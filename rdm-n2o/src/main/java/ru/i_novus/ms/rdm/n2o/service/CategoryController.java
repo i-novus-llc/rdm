@@ -4,30 +4,30 @@ import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
+import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
+import ru.i_novus.ms.rdm.n2o.model.Category;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
-import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
-import ru.i_novus.ms.rdm.n2o.model.Category;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Controller
+@SuppressWarnings("java:S3740")
 public class CategoryController {
 
     private static final String CATEGORY_REFBOOK_CODE = "CAT";
     private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
@@ -45,13 +45,15 @@ public class CategoryController {
     }
 
     private static SearchDataCriteria toSearchDataCriteria(CategoryCriteria categoryCriteria) {
-        SearchDataCriteria criteria = new SearchDataCriteria();
+
+        SearchDataCriteria criteria = new SearchDataCriteria(categoryCriteria.getPage() - 1, categoryCriteria.getSize());
+
         if (isNotBlank(categoryCriteria.getName())) {
-            criteria.setAttributeFilter(singleton(singletonList(
-                    new AttributeFilter(CATEGORY_NAME_FIELD_CODE, categoryCriteria.getName(), FieldType.STRING, SearchTypeEnum.LIKE))));
+            AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
+                    categoryCriteria.getName(), FieldType.STRING, SearchTypeEnum.LIKE);
+            criteria.addAttributeFilterList(singletonList(filter));
         }
-        criteria.setPageNumber(categoryCriteria.getPage() - 1);
-        criteria.setPageSize(categoryCriteria.getSize());
+
         return criteria;
     }
 

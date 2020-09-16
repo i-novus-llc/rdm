@@ -2,12 +2,12 @@ package ru.i_novus.ms.rdm.impl.file.export;
 
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -38,23 +38,30 @@ public class VersionDataIterator implements Iterator<Row> {
 
     @Override
     public Row next() {
+
         if (!hasNext()) return null;
+
         RowValue rowValue = buffer.next();
         return ConverterUtil.toRow(rowValue);
     }
 
     private boolean nextPage() {
+
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(BUFFER_SIZE);
         criteria.setPageNumber(currentPage++);
+
         Page<RefBookRowValue> page = versionService.search(currentVersionId, criteria);
+
         if (page != null && !CollectionUtils.isEmpty(page.getContent())){
             buffer = page.getContent().iterator();
             return true;
+
         } else if (versionIdIterator.hasNext()){
             currentVersionId = versionIdIterator.next();
             currentPage = 0;
             return nextPage();
+
         } else {
             hasNext = false;
             return false;

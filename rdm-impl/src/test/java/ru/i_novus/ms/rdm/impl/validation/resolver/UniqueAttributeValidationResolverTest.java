@@ -8,12 +8,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -43,7 +43,7 @@ public class UniqueAttributeValidationResolverTest {
                 .thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
         when(searchDataService.getPagedData(
                 argThat(o -> DB_CONTAINS_STRING.equals(
-                        o.getFieldFilter().iterator().next().get(0).getValues().get(0))
+                        o.getFieldFilters().iterator().next().get(0).getValues().get(0))
                 )
         )).thenReturn(new CollectionPage<>(
                 1,

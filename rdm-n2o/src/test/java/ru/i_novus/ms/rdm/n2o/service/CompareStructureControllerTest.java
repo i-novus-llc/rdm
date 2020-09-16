@@ -8,14 +8,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
+import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
-import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +31,7 @@ public class CompareStructureControllerTest {
     private CompareStructureController compareStructureController;
 
     @Mock
-    private VersionService versionService;
+    private VersionRestService versionService;
     @Mock
     private CompareService compareService;
 

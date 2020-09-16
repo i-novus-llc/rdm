@@ -1,13 +1,10 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import com.google.common.collect.ImmutableSet;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -16,17 +13,20 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 @Controller
@@ -46,14 +46,15 @@ public class CreateDraftController {
     private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
 
     private RefBookService refBookService;
-    private VersionService versionService;
-    private DraftService draftService;
+    private VersionRestService versionService;
+    private DraftRestService draftService;
 
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
     @Autowired
-    public CreateDraftController(RefBookService refBookService, VersionService versionService, DraftService draftService,
+    public CreateDraftController(RefBookService refBookService,
+                                 VersionRestService versionService, DraftRestService draftService,
                                  StructureController structureController, DataRecordController dataRecordController) {
         this.refBookService = refBookService;
         this.versionService = versionService;
@@ -207,7 +208,7 @@ public class CreateDraftController {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(1);
-        criteria.setAttributeFilter(Set.of(primaryFilters));
+        criteria.addAttributeFilterList(primaryFilters);
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         if (rowValues != null && !isEmpty(rowValues.getContent())) {
@@ -251,16 +252,15 @@ public class CreateDraftController {
         if (oldSystemId == null) return null;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        AttributeFilter recordIdFilter = new AttributeFilter(DataConstants.SYS_PRIMARY_COLUMN, oldSystemId.intValue(), FieldType.INTEGER);
-        criteria.setAttributeFilter(singleton(singletonList(recordIdFilter)));
+        criteria.setRowSystemIds(singletonList(oldSystemId));
 
         Page<RefBookRowValue> oldRow = versionService.search(oldVersionId, criteria);
         if (isEmpty(oldRow.getContent()))
             throw new NotFoundException(UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE);
 
+        SearchDataCriteria hashCriteria = new SearchDataCriteria();
         String hash = oldRow.getContent().get(0).getHash();
-        AttributeFilter hashFilter = new AttributeFilter(DataConstants.SYS_HASH, hash, FieldType.STRING);
-        final SearchDataCriteria hashCriteria = new SearchDataCriteria(ImmutableSet.of(singletonList(hashFilter)), null);
+        hashCriteria.setRowHashList(singletonList(hash));
 
         final Page<RefBookRowValue> newRow = versionService.search(newVersionId, hashCriteria);
         if (isEmpty(newRow.getContent()))

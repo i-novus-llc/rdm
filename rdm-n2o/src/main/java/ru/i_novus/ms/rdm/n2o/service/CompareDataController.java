@@ -4,22 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.util.ComparableUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static ru.i_novus.ms.rdm.api.util.ComparableUtils.createPrimaryAttributesFilters;
 
 @Controller
 @SuppressWarnings("WeakerAccess")
@@ -27,8 +25,9 @@ public class CompareDataController {
 
     @Autowired
     CompareService compareService;
+
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     public Page<ComparableRow> getOldWithDiff(CompareDataCriteria criteria) {
         return getComparableRowsPage(criteria.getOldVersionId(), criteria, DiffStatusEnum.DELETED);
@@ -39,8 +38,9 @@ public class CompareDataController {
     }
 
     private Page<ComparableRow> getComparableRowsPage(Integer versionId, CompareDataCriteria criteria, DiffStatusEnum status) {
+
         Structure structure = versionService.getStructure(versionId);
-        Page<RefBookRowValue> data = versionService.search(versionId, new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), null));
+        Page<RefBookRowValue> data = versionService.search(versionId, new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize()));
 
         criteria.setPrimaryAttributesFilters(ComparableUtils.createPrimaryAttributesFilters(data, structure));
         Page<ComparableRow> commonComparableRows = compareService.getCommonComparableRows(criteria);
@@ -48,9 +48,7 @@ public class CompareDataController {
         data.getContent().forEach(rowValue -> {
             ComparableRow comparableRow = ComparableUtils.findComparableRow(structure.getPrimary(), rowValue, commonComparableRows.getContent(), status);
             ComparableRow resultComparableRow = new ComparableRow(
-                    structure
-                            .getAttributes()
-                            .stream()
+                    structure.getAttributes().stream()
                             .map(attribute -> getComparableFieldValue(comparableRow, attribute, status))
                             .collect(Collectors.toList()),
                     comparableRow.getStatus());

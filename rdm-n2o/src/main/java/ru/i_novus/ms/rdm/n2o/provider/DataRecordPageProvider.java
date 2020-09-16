@@ -19,7 +19,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 
 /**
  * Провайдер для формирования страницы по отображению данных

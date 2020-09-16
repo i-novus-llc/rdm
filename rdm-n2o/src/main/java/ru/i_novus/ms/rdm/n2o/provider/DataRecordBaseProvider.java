@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 
 /**
  * Провайдер для формирования метаданных.
@@ -15,10 +15,10 @@ public class DataRecordBaseProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DataRecordBaseProvider.class);
 
-    protected VersionService versionService;
+    protected VersionRestService versionService;
 
     @Autowired
-    public void setVersionService(VersionService versionService) {
+    public void setVersionService(VersionRestService versionService) {
         this.versionService = versionService;
     }
 

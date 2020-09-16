@@ -1,14 +1,14 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.springframework.util.ObjectUtils;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
 import java.util.List;
@@ -129,7 +129,7 @@ public class RowUtils {
     public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
         return primaries.stream()
                 .map(key -> {
-                    Object value = row.getData().get(key.getCode());
+                    Serializable value = (Serializable) row.getData().get(key.getCode());
                     if (value == null)
                         return null;
 

@@ -6,19 +6,11 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.components.common.exception.CodifiedException;
-import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -51,6 +43,15 @@ import ru.i_novus.ms.rdm.impl.util.mappers.*;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,9 +64,10 @@ import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
-@Primary
 @Service
+@SuppressWarnings("java:S3740")
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
@@ -99,13 +101,15 @@ public class DraftServiceImpl implements DraftService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
-                            DraftDataService draftDataService, DropDataService dropDataService, SearchDataService searchDataService,
+                            DraftDataService draftDataService, DropDataService dropDataService,
+                            SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
                             FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                             VersionFileService versionFileService,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository,
-                            AttributeValidationRepository attributeValidationRepository, StructureChangeValidator structureChangeValidator,
+                            AttributeValidationRepository attributeValidationRepository,
+                            StructureChangeValidator structureChangeValidator,
                             AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
@@ -269,9 +273,9 @@ public class DraftServiceImpl implements DraftService {
 
     @Override
     @Transactional
-    public Draft create(CreateDraftRequest createDraftRequest) {
+    public Draft create(CreateDraftRequest request) {
 
-        final Integer refBookId = createDraftRequest.getRefBookId();
+        final Integer refBookId = request.getRefBookId();
         versionValidation.validateRefBook(refBookId);
 
         RefBookVersionEntity lastRefBookVersion = getLastRefBookVersion(refBookId);
@@ -280,15 +284,15 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         List<PassportValueEntity> passportValues = null;
-        if (createDraftRequest.getPassport() != null) {
-            passportValues = objectPassportToValues(createDraftRequest.getPassport(), true, null);
+        if (request.getPassport() != null) {
+            passportValues = objectPassportToValues(request.getPassport(), true, null);
         }
 
-        final Structure structure = createDraftRequest.getStructure();
+        final Structure structure = request.getStructure();
         final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
-        if (createDraftRequest.getReferrerValidationRequired())
+        if (request.getReferrerValidationRequired())
             versionValidation.validateReferrerStructure(structure);
 
         List<Field> fields = ConverterUtil.fields(structure);
@@ -305,7 +309,7 @@ public class DraftServiceImpl implements DraftService {
         }
 
         RefBookVersionEntity savedDraftVersion = versionRepository.save(draftVersion);
-        addValidations(createDraftRequest.getValidations(), savedDraftVersion);
+        addValidations(request.getValidations(), savedDraftVersion);
 
         return savedDraftVersion.toDraft();
     }
@@ -556,7 +560,7 @@ public class DraftServiceImpl implements DraftService {
                 .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
                 .flatMap(Collection::stream).collect(toList());
-        criteria.setAttributeFilter(Set.of(filters));
+        criteria.addAttributeFilterList(filters);
 
         Page<RefBookRowValue> rowValues = versionService.search(draftVersion.getId(), criteria);
         if (rowValues == null || isEmpty(rowValues.getContent()))
@@ -638,11 +642,26 @@ public class DraftServiceImpl implements DraftService {
         versionValidation.validateDraftExists(draftId);
 
         RefBookVersionEntity draft = versionRepository.getOne(draftId);
-        String storageCode = draft.getStorageCode();
-        List<Field> fields = ConverterUtil.fields(draft.getStructure());
+        return getRowValuesOfDraft(draft, criteria);
+    }
 
-        DataCriteria dataCriteria = new DataCriteria(storageCode, null, null,
-                fields, ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()), criteria.getCommonFilter());
+    private Page<RefBookRowValue> getRowValuesOfDraft(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+
+        List<Field> fields = makeOutputFields(draft, criteria.getLocaleCode());
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
+
+        String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
+
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
+                fields, fieldSearchCriterias, criteria.getCommonFilter());
+
+        dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        dataCriteria.setSize(criteria.getPageSize());
+        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
+
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));
     }
@@ -672,8 +691,10 @@ public class DraftServiceImpl implements DraftService {
         removeDraft(draftVersion);
     }
 
-    /** Удаление черновика. */
-    public void removeDraft(RefBookVersionEntity draftVersion) {
+    /**
+     * Удаление черновика.
+     */
+    private void removeDraft(RefBookVersionEntity draftVersion) {
 
         dropDataService.drop(singleton(draftVersion.getStorageCode()));
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
@@ -936,7 +957,7 @@ public class DraftServiceImpl implements DraftService {
         List<AttributeValidationEntity> validationEntities = (attribute == null)
                 ? attributeValidationRepository.findAllByVersionId(draftId)
                 : attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute);
-        return validationEntities.stream().map(AttributeValidationEntity::attributeValidationModel).collect(toList());
+        return validationEntities.stream().map(AttributeValidationEntity::toModel).collect(toList());
     }
 
     @Override
@@ -1040,6 +1061,31 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
+    }
+
+    /**
+     * Формирование списка полей, выводимых в результате запроса данных в хранилище версии.
+     *
+     * @param version    версия справочника
+     * @param localeCode код локали
+     * @return Список выводимых полей
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected List<Field> makeOutputFields(RefBookVersionEntity version, String localeCode) {
+
+        return ConverterUtil.fields(version.getStructure());
+    }
+
+    /**
+     * Преобразование кода хранилища с учётом локали.
+     *
+     * @param storageCode исходный код хранилища
+     * @param localeCode  код локали
+     * @return Код хранилища с учётом локали
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected String toLocaleStorageCode(String storageCode, String localeCode) {
+        return storageCode;
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

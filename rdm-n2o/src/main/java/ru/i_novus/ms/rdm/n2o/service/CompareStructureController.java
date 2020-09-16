@@ -5,25 +5,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
+import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Controller
 public class CompareStructureController {
 
     @Autowired
     CompareService compareService;
+
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     public Page<AttributeDiff> getCommonDiff(CompareCriteria criteria) {
 

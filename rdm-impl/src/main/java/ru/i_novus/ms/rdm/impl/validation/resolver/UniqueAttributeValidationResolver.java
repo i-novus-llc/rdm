@@ -1,14 +1,12 @@
 package ru.i_novus.ms.rdm.impl.validation.resolver;
 
 import net.n2oapp.platform.i18n.Message;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -59,12 +57,15 @@ public class UniqueAttributeValidationResolver implements AttributeValidationRes
         return null;
     }
 
-    private DataCriteria createCriteria(Structure.Attribute attribute, UniqueAttributeValue value) {
+    private StorageDataCriteria createCriteria(Structure.Attribute attribute, UniqueAttributeValue value) {
+
         Field field = ConverterUtil.field(attribute);
-        FieldSearchCriteria filter = new FieldSearchCriteria(field, SearchTypeEnum.EXACT,
+        FieldSearchCriteria fieldSearchCriteria = new FieldSearchCriteria(field, SearchTypeEnum.EXACT,
                 singletonList(ConverterUtil.toSearchValue(value.getValue())));
-        DataCriteria criteria = new DataCriteria(storageCode, null, null, singletonList(field), singletonList(filter), null);
-        criteria.setPage(1);
+
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null,
+                singletonList(field), singletonList(fieldSearchCriteria), null);
+        criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(value.getSystemId() != null ? 2 : 1);
         return criteria;
     }

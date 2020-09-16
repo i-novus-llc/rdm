@@ -68,12 +68,12 @@
         </field>
 
         <field id="attrType.name" domain="string" name="Тип данных">
-            <select mapping="type.name()=='STRING'?'Строковый':
-                             type.name()=='INTEGER'?'Целочисленный':
-                             type.name()=='FLOAT'?'Дробный':
-                             type.name()=='DATE'?'Дата':
-                             type.name()=='BOOLEAN'?'Логический':
-                             type.name()=='REFERENCE'?'Ссылочный':
+            <select mapping="type.name() == 'STRING' ? 'Строковый' :
+                             type.name() == 'INTEGER' ? 'Целочисленный' :
+                             type.name() == 'FLOAT' ? 'Дробный' :
+                             type.name() == 'DATE' ? 'Дата' :
+                             type.name() == 'BOOLEAN' ? 'Логический' :
+                             type.name() == 'REFERENCE' ? 'Ссылочный' :
                              null"/>
         </field>
 

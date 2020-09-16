@@ -11,10 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Sort;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.DataConstants;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
@@ -29,6 +25,8 @@ import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -39,8 +37,6 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Collections.singletonList;
 
 /**
  * Created by znurgaliev on 26.09.2018.
@@ -284,9 +280,8 @@ class XlsxCompareFileGenerator implements FileGenerator {
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
-        compareCriteria.setOrders(singletonList(new Sort.Order(Sort.Direction.ASC, DataConstants.SYS_PRIMARY_COLUMN)));
 
-        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria);
+        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria, true);
         pageIterator.forEachRemaining(page ->
                 page.getContent().stream()
                         .map(comparableRow -> {

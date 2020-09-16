@@ -8,14 +8,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.*;
 import ru.i_novus.ms.rdm.api.model.diff.*;
@@ -30,7 +22,14 @@ import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +40,11 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.ComparableUtils.*;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
 @Primary
+@SuppressWarnings("java:S3740")
 public class CompareServiceImpl implements CompareService {
 
     private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
@@ -185,19 +186,20 @@ public class CompareServiceImpl implements CompareService {
         Structure newStructure = versionService.getStructure(criteria.getNewVersionId());
         Structure oldStructure = versionService.getStructure(criteria.getOldVersionId());
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getPrimaryAttributesFilters());
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        searchDataCriteria.setAttributeFilters(criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
-        RefBookDataDiff refBookDataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
-        RefBookDataDiff refBookDataDiffDeleted = compareData(createRdmCompareDataCriteriaDeleted(criteria));
+        RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
+        RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
 
-        List<ComparableField> comparableFields = createCommonComparableFieldsList(refBookDataDiff, newStructure, oldStructure);
+        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff, newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
 
-        addNewVersionRows(comparableRows, comparableFields, newData, refBookDataDiff, newStructure, criteria);
-        addDeletedRows(comparableRows, comparableFields, refBookDataDiffDeleted, oldStructure, criteria, (int) newData.getTotalElements());
+        addNewVersionRows(comparableRows, comparableFields, newData, dataDiff, newStructure, criteria);
+        addDeletedRows(comparableRows, comparableFields, deletedDiff, oldStructure, criteria, (int) newData.getTotalElements());
 
-        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + refBookDataDiffDeleted.getRows().getTotalElements());
+        return new RestPage<>(comparableRows, criteria, newData.getTotalElements() + deletedDiff.getRows().getTotalElements());
     }
 
     private List<Field> getCommonFields(Structure oldStructure, Structure newStructure) {
@@ -227,39 +229,44 @@ public class CompareServiceImpl implements CompareService {
 
     private CompareDataCriteria createVdsCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                              ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria) {
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria();
-        compareDataCriteria.setStorageCode(oldVersion.getStorageCode());
-        compareDataCriteria.setNewStorageCode(newVersion.getStorageCode());
-        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
-        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
-        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
-        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
+
+        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
+
+        compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
         compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimary()
                 .stream()
                 .map(Structure.Attribute::getCode)
                 .collect(Collectors.toList()));
-        compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
+        compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
 
-        compareDataCriteria.setPrimaryFieldsFilters(ConverterUtil.getFieldSearchCriteriaList(rdmCriteria.getPrimaryAttributesFilters()));
+        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
+        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
+        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
+        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
+
         compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
         compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
         compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
         compareDataCriteria.setSize(rdmCriteria.getPageSize());
+
         return compareDataCriteria;
     }
 
     private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
-        return rdmCriteria;
+
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        vdsCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
+        return vdsCriteria;
     }
 
-    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createRdmCompareDataCriteriaDeleted(CompareCriteria criteria) {
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria deletedRdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        deletedRdmCriteria.setPrimaryAttributesFilters(emptySet());
-        deletedRdmCriteria.setDiffStatus(DiffStatusEnum.DELETED);
-        deletedRdmCriteria.setCountOnly(false);
-        return deletedRdmCriteria;
+    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsDeletedDataCriteria(CompareCriteria criteria) {
+
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        vdsCriteria.setPrimaryAttributesFilters(emptySet());
+        vdsCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        vdsCriteria.setCountOnly(false);
+
+        return vdsCriteria;
     }
 
     private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
@@ -270,21 +277,23 @@ public class CompareServiceImpl implements CompareService {
 
         boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
 
-        SearchDataCriteria oldSearchDataCriteria = hasUpdOrDelAttr
-                ? new SearchDataCriteria(0, criteria.getPageSize(), createPrimaryAttributesFilters(newData, newStructure))
-                : null;
+        Page<RefBookRowValue> oldData = null;
+        if (hasUpdOrDelAttr) {
+            SearchDataCriteria oldSearchDataCriteria = new SearchDataCriteria();
+            oldSearchDataCriteria.setPageSize(criteria.getPageSize());
+            oldSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(newData, newStructure));
 
-        Page<RefBookRowValue> oldData = hasUpdOrDelAttr
-                ? versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria)
-                : null;
+            oldData = versionService.search(criteria.getOldVersionId(), oldSearchDataCriteria);
+        }
 
+        final List<RefBookRowValue> oldContent = oldData != null ? oldData.getContent() : null;
         newData.getContent()
                 .forEach(newRowValue -> {
                     ComparableRow comparableRow = new ComparableRow();
                     DiffRowValue diffRowValue = findDiffRowValue(newStructure.getPrimary(), newRowValue,
                             refBookDataDiff.getRows().getContent());
-                    RowValue oldRowValue = oldData != null
-                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldData.getContent())
+                    RowValue oldRowValue = oldContent != null
+                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldContent)
                             : null;
 
                     comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
@@ -306,16 +315,22 @@ public class CompareServiceImpl implements CompareService {
     }
 
     private void addDeletedRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
-                                RefBookDataDiff refBookDataDiffDeleted, Structure oldStructure,
+                                RefBookDataDiff deletedDiff, Structure oldStructure,
                                 CompareCriteria criteria, int totalNewCount) {
         if (comparableRows.size() < criteria.getPageSize()) {
+
             int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
             long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
             long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+
             long pageSize = skipDeletedRowsCount + criteria.getPageSize();
             if (pageSize <= 0)
                 return;
-            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria(0, (int) pageSize, createPrimaryAttributesFilters(refBookDataDiffDeleted, oldStructure));
+
+            SearchDataCriteria delSearchDataCriteria = new SearchDataCriteria();
+            delSearchDataCriteria.setPageSize((int) pageSize);
+            delSearchDataCriteria.setAttributeFilters(createPrimaryAttributesFilters(deletedDiff, oldStructure));
+
             Page<RefBookRowValue> delData = versionService.search(criteria.getOldVersionId(), delSearchDataCriteria);
             delData.getContent()
                     .stream()

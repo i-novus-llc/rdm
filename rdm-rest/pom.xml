@@ -139,19 +139,7 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>fnsi</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-fnsi-impl</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
+
         <profile>
             <id>external-tracing-tool</id>
             <activation>
@@ -161,6 +149,20 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>l10n</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-l10n</artifactId>
+                    <version>${project.version}</version>
                 </dependency>
             </dependencies>
         </profile>

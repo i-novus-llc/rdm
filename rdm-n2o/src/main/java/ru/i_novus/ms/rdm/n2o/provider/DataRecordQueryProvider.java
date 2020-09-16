@@ -18,8 +18,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addFieldProperty;
-import static ru.i_novus.ms.rdm.n2o.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addFieldProperty;
+import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 
 /**
  * Провайдер для формирования запроса на получение данных

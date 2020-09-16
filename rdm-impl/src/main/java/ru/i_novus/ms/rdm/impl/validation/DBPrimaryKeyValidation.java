@@ -2,18 +2,17 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import org.apache.commons.collections4.MapUtils;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -34,7 +33,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     private final List<Structure.Attribute> primaryKeys;
     private final List<String> primaryKeyCodes;
 
-    private final List<Map<Structure.Attribute, Object>> primaryKeyMaps;
+    private final List<Map<Structure.Attribute, Serializable>> primaryKeyMaps;
     private final List<RowValue> primarySearchValues;
 
     public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, Row row) {
@@ -74,13 +73,13 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         return emptyList();
     }
 
-    private List<Map<Structure.Attribute, Object>> toPrimaryKeyMaps(List<Row> rows) {
+    private List<Map<Structure.Attribute, Serializable>> toPrimaryKeyMaps(List<Row> rows) {
         return rows.stream().map(this::toPrimaryKeyMap).filter(MapUtils::isNotEmpty).collect(toList());
     }
 
-    private Map<Structure.Attribute, Object> toPrimaryKeyMap(Row row) {
-        Map<Structure.Attribute, Object> map = new HashMap<>();
-        primaryKeys.forEach(attribute -> map.put(attribute, row.getData().get(attribute.getCode())));
+    private Map<Structure.Attribute, Serializable> toPrimaryKeyMap(Row row) {
+        Map<Structure.Attribute, Serializable> map = new HashMap<>();
+        primaryKeys.forEach(attribute -> map.put(attribute, (Serializable) row.getData().get(attribute.getCode())));
         return map;
     }
 
@@ -89,23 +88,23 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         if (isEmpty(primaryKeyMaps))
             return emptyList();
 
-        DataCriteria criteria = createCriteria(rows);
+        StorageDataCriteria criteria = createCriteria(rows);
         Collection<RowValue> rowValues = searchDataService.getPagedData(criteria).getCollection();
-        return rowValues.stream().map(this::toPrimaryRowValue).collect(toList());
+        return !isEmpty(rowValues) ? rowValues.stream().map(this::toPrimaryRowValue).collect(toList()) : emptyList();
     }
 
-    private DataCriteria createCriteria(List<Row> rows) {
+    private StorageDataCriteria createCriteria(List<Row> rows) {
 
         List<Field> fields = primaryKeys.stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> filters = primaryKeyMaps.stream()
+        Set<List<FieldSearchCriteria>> fieldFilters = primaryKeyMaps.stream()
                 .filter(this::isCorrectType)
                 .map(entry -> entry.entrySet().stream()
                         .map(this::toFieldSearchCriteria)
                         .collect(toList())
                 ).collect(toSet());
 
-        DataCriteria criteria = new DataCriteria(storageCode, null, null, fields, filters, null);
-        criteria.setPage(1);
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null, fields, fieldFilters, null);
+        criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
         return criteria;
     }
@@ -116,7 +115,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         return (systemIdsCount > 0) ? 2 * systemIdsCount : rows.size();
     }
 
-    private boolean isCorrectType(Map<Structure.Attribute, Object> primaryKeyMap) {
+    private boolean isCorrectType(Map<Structure.Attribute, Serializable> primaryKeyMap) {
 
         return primaryKeyMap.keySet().stream()
                 .allMatch(attribute ->
@@ -124,7 +123,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 );
     }
 
-    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Object> primaryKeyValue) {
+    private FieldSearchCriteria toFieldSearchCriteria(Map.Entry<Structure.Attribute, Serializable> primaryKeyValue) {
         return new FieldSearchCriteria(
                 ConverterUtil.field(primaryKeyValue.getKey()),
                 SearchTypeEnum.EXACT,

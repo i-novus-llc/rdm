@@ -4,32 +4,32 @@ import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.util.List;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.toDisplayValue;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 
 @Controller
+@SuppressWarnings("java:S3740")
 public class ReferenceController {
 
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
 
     /**
      * Поиск списка значений справочника для ссылки.
@@ -66,8 +66,10 @@ public class ReferenceController {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         if (isNotBlank(referenceCriteria.getValue())) {
-            criteria.setAttributeFilter(singleton(singletonList(
-                    new AttributeFilter(attribute.getCode(), referenceCriteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT))));
+
+            AttributeFilter filter = new AttributeFilter(attribute.getCode(),
+                    referenceCriteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT);
+            criteria.addAttributeFilterList(singletonList(filter));
         }
 
         if (isNotBlank(referenceCriteria.getDisplayValue()))

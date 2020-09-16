@@ -4,66 +4,103 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201806211100_RDM-45_1.0" author="ekrasulina" dbms="postgresql">
+    <changeSet id="201806211100_RDM-45_1.1" author="ekrasulina" dbms="postgresql">
         <comment>Добавление справочника "A078 Справочник должностей"</comment>
         <sql>
             INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A078', TRUE);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '1', 'PUBLISHED', '2018-01-01', '2018-02-02');
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник должностей', 'Справочник должностей',
+            'A078-storage-1', '1', 'PUBLISHED', '2018-01-01', '2018-02-02');
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-                VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник должностей', 'Справочник должностей', '2', 'PUBLISHED', '2018-02-03', null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник должностей', 'Справочник должностей',
+            'A078-storage-2', '2', 'PUBLISHED', '2018-02-03', null);
         </sql>
     </changeSet>
 
-    <changeSet id="201806211100_RDM-45_2.0" author="ekrasulina" dbms="postgresql">
+    <changeSet id="201806211100_RDM-45_2.1" author="ekrasulina" dbms="postgresql">
         <comment>Добавление справочника "A079 Справочник-архив"</comment>
         <sql>
             INSERT INTO n2o_rdm_management.ref_book(code, archived) VALUES ('A079', TRUE);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', '1', 'PUBLISHED', '2017-01-01', null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник архив', 'Справочник архив',
+            'A079-storage-1', '1', 'PUBLISHED', '2017-01-01', null);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник архив', 'Справочник архив', null, 'DRAFT', null, null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'A079-storage-draft', 'Справочник архив', 'Справочник архив',
+            null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 
-    <changeSet id="201806211100_RDM-45_3.0" author="ekrasulina" dbms="postgresql">
+    <changeSet id="201806211100_RDM-45_3.1" author="ekrasulina" dbms="postgresql">
         <comment>Добавление справочника "A080 Справочник должностей"</comment>
         <sql>
-            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A080', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book (code, removable) VALUES ('A080', TRUE);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО', '1', 'PUBLISHED', '2018-02-03', '2018-05-02');
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник медицинских организаций (отличное от последней версии)', 'Справочник МО',
+            'A080-storage-1', '1', 'PUBLISHED', '2018-02-03', '2018-05-02');
 
-            INSERT INTO n2o_rdm_management.ref_book_version(id, ref_book_id, full_name, short_name, version, status, from_date, to_date, structure)
-            VALUES (801, currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', '2', 'PUBLISHED', '2018-05-02', null,
-            '{"attributes": [{"code": "code", "name": "Код", "type": "STRING", "isPrimary": true, "isRequired": true, "description": "описание"}]}');
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (id, ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date,
+            structure)
+            VALUES (801, currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник медицинских организаций', 'Справочник МО',
+            'A080-storage-2', '2', 'PUBLISHED', '2018-05-02', null,
+            '{"attributes": [{"code": "code", "name": "Код", "type": "STRING", "isPrimary": true, "isRequired": true,
+            "description": "описание"}]}');
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник медицинских организаций', 'Справочник МО', null, 'DRAFT', null, null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник медицинских организаций', 'Справочник МО',
+            'A080-storage-draft', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 
-    <changeSet id="201806211100_RDM-45_4.0" author="ekrasulina" dbms="postgresql">
+    <changeSet id="201806211100_RDM-45_4.1" author="ekrasulina" dbms="postgresql">
         <comment>Добавление справочника "A081 Справочник оборудования"</comment>
         <sql>
-            INSERT INTO n2o_rdm_management.ref_book(code, removable) VALUES ('A081', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book (code, removable) VALUES ('A081', TRUE);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (currval('n2o_rdm_management.ref_book_id_seq'), 'Справочник оборудования', 'Справочник оборудования', null, 'DRAFT', null, null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (currval('n2o_rdm_management.ref_book_id_seq'),
+            'Справочник оборудования', 'Справочник оборудования',
+            'A081-storage-draft', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 
-    <changeSet id="201806211100_RDM-45_5.0" author="ekrasulina" dbms="postgresql">
+    <changeSet id="201806211100_RDM-45_5.1" author="ekrasulina" dbms="postgresql">
         <comment>Добавление справочника "A082 Справочник для удаления"</comment>
         <sql>
-            INSERT INTO n2o_rdm_management.ref_book(id, code, removable) VALUES (501, 'A082', TRUE);
+            INSERT INTO n2o_rdm_management.ref_book (id, code, removable) VALUES (501, 'A082', TRUE);
 
-            INSERT INTO n2o_rdm_management.ref_book_version(ref_book_id, full_name, short_name, version, status, from_date, to_date)
-            VALUES (501, 'Справочник для удаления', 'Справочник для удаления', null, 'DRAFT', null, null);
+            INSERT INTO n2o_rdm_management.ref_book_version
+            (ref_book_id, full_name, short_name,
+            storage_code, version, status, from_date, to_date)
+            VALUES (501, 'Справочник для удаления', 'Справочник для удаления',
+            'A082-storage-draft', null, 'DRAFT', null, null);
         </sql>
     </changeSet>
 

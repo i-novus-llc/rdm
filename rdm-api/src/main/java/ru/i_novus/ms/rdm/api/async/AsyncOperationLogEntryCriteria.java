@@ -7,6 +7,9 @@ import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Асинхронная операция: Критерий поиска.
+ */
 public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
 
     public static final Sort.Order DEFAULT_ORDER = Sort.Order.desc("tsStart");
@@ -14,11 +17,14 @@ public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
     @QueryParam("id")
     private UUID id;
 
-    @QueryParam("operation")
-    private AsyncOperation operation;
+    @QueryParam("operationType")
+    private AsyncOperationTypeEnum operationType;
+
+    @QueryParam("code")
+    private String code;
 
     @QueryParam("status")
-    private AsyncOperationStatus status;
+    private AsyncOperationStatusEnum status;
 
     public UUID getId() {
         return id;
@@ -28,19 +34,27 @@ public class AsyncOperationLogEntryCriteria extends AbstractCriteria {
         this.id = id;
     }
 
-    public AsyncOperation getOperation() {
-        return operation;
+    public AsyncOperationTypeEnum getOperationType() {
+        return operationType;
     }
 
-    public void setOperation(AsyncOperation operation) {
-        this.operation = operation;
+    public void setOperationType(AsyncOperationTypeEnum operationType) {
+        this.operationType = operationType;
     }
 
-    public AsyncOperationStatus getStatus() {
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public AsyncOperationStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(AsyncOperationStatus status) {
+    public void setStatus(AsyncOperationStatusEnum status) {
         this.status = status;
     }
 

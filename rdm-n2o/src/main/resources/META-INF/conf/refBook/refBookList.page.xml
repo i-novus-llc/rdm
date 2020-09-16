@@ -21,7 +21,8 @@
         </filters>
         <toolbar>
             <button id="view" label="Просмотр">
-                <open-page page-id="refBookView" page-name="Просмотр справочника" detail-field-id="refBookId"/>
+                <open-page page-id="refBookView" page-name="Просмотр справочника &quot;{name}&quot; [{code}]"
+                           detail-field-id="refBookId"/>
             </button>
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">

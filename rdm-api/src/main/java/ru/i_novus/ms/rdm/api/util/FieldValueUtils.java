@@ -3,18 +3,19 @@ package ru.i_novus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -23,13 +24,14 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static ru.i_novus.platform.datastorage.temporal.model.DataConstants.SYS_PRIMARY_COLUMN;
 
+@SuppressWarnings("java:S3740")
 public class FieldValueUtils {
 
-    private static final String PRIMARY_KEY_CODE_DELIMITER = ": ";
+    private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
 
     private FieldValueUtils() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -66,8 +68,8 @@ public class FieldValueUtils {
         );
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
-                        .filter(placeholder -> Objects.isNull(map.get(placeholder)))
-                        .collect(toList());
+                .filter(placeholder -> Objects.isNull(map.get(placeholder)))
+                .collect(toList());
         absentPlaceholders.forEach(absent -> map.put(absent, ""));
 
         String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
@@ -77,7 +79,7 @@ public class FieldValueUtils {
             String primaryKeysValue = primaryKeyCodes.stream()
                     .map(code -> String.valueOf(map.get(code)))
                     .filter(value -> !StringUtils.isEmpty(value))
-                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_CODE_DELIMITER);
+                    .reduce("", (result, value) -> result + value + PRIMARY_KEY_VALUE_DISPLAY_DELIMITER);
             displayValue = primaryKeysValue + displayValue;
         }
 
@@ -101,7 +103,7 @@ public class FieldValueUtils {
      * @param refFieldType тип атрибута, к которому приводится значение
      * @return Типизированное значение атрибута
      */
-    public static Object castFieldValue(FieldValue fieldValue, FieldType refFieldType) {
+    public static Serializable castFieldValue(FieldValue fieldValue, FieldType refFieldType) {
         if (fieldValue instanceof ReferenceFieldValue) {
             return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
         }
@@ -117,7 +119,7 @@ public class FieldValueUtils {
      * @param refFieldType тип атрибута, на который ссылаемся
      * @return Типизированное значение ссылочного атрибута
      */
-    private static Object castRefValue(Reference value, FieldType refFieldType) {
+    private static Serializable castRefValue(Reference value, FieldType refFieldType) {
         if (refFieldType == FieldType.INTEGER) {
             return value.getValue() != null ? new BigInteger(value.getValue()) : null;
         }
@@ -156,19 +158,6 @@ public class FieldValueUtils {
     }
 
     /**
-     * Получение множества фильтров атрибута по системным идентификаторам.
-     *
-     * @param systemIds системные идентификаторы
-     * @return Множество фильтров
-     */
-    public static Set<List<AttributeFilter>> toSystemIdFilters(List<Long> systemIds) {
-        return systemIds.stream()
-                .map(systemId -> new AttributeFilter(SYS_PRIMARY_COLUMN, BigInteger.valueOf(systemId), FieldType.INTEGER))
-                .map(Collections::singletonList)
-                .collect(toSet());
-    }
-
-    /**
      * Получение множества фильтров атрибута по ссылочным значениям.
      *
      * @param filterValues ссылочные значения
@@ -177,15 +166,17 @@ public class FieldValueUtils {
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
         return filterValues.stream()
                 .map(value -> {
-                    Object attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
+                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
                     return new AttributeFilter(value.getAttribute().getCode(), attributeValue, value.getAttribute().getType(), SearchTypeEnum.EXACT);
                 })
                 .map(Collections::singletonList)
                 .collect(toSet());
     }
 
-    public static Object getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
-        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
+    public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
+        return DiffStatusEnum.DELETED.equals(status)
+                ? (Serializable) fieldValue.getOldValue()
+                : (Serializable) fieldValue.getNewValue();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -193,16 +184,24 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
-    public static FieldValue getFieldValueFromFieldType(Object value, String fieldCode, FieldType fieldType) {
+    public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
         switch (fieldType) {
-            case STRING: return new StringFieldValue(fieldCode, (String) value);
-            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
-            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
-            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
-            case TREE: return new TreeFieldValue(fieldCode, (String) value);
-            default: throw new RdmException("Unexpected field type: " + fieldType);
+            case STRING:
+                return new StringFieldValue(fieldCode, (String) value);
+            case INTEGER:
+                return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE:
+                return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT:
+                return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN:
+                return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE:
+                return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE:
+                return new TreeFieldValue(fieldCode, (String) value);
+            default:
+                throw new RdmException("Unexpected field type: " + fieldType);
         }
     }
 

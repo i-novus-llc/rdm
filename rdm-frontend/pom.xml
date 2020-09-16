@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>rdm-frontend</artifactId>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
@@ -7,15 +11,15 @@
         <version>2.5-SNAPSHOT</version>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>rdm-frontend</artifactId>
-
     <properties>
         <backend.default.path>http://localhost:8080/rdm/api</backend.default.path>
         <frontend.default.port>8081</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.skip>false</jacoco.skip>
+
+        <rdm.l10n.support>false</rdm.l10n.support>
+        <rdm.l10n.messages/>
     </properties>
 
     <dependencies>
@@ -23,6 +27,11 @@
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-n2o-api</artifactId>
         </dependency>
 
         <dependency>
@@ -123,6 +132,8 @@
     </dependencies>
 
     <build>
+        <finalName>rdm</finalName>
+
         <resources>
             <resource>
                 <directory>rdm-react/packages/rdm-frontend/build</directory>
@@ -133,8 +144,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-
-        <finalName>rdm</finalName>
 
         <pluginManagement>
             <plugins>
@@ -221,6 +230,7 @@
                 </plugins>
             </build>
         </profile>
+
         <profile>
             <id>production</id>
             <properties>
@@ -243,19 +253,7 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>fnsi</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-fnsi-n2o</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
+
         <profile>
             <id>external-tracing-tool</id>
             <activation>
@@ -265,6 +263,21 @@
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
                     <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>l10n</id>
+            <properties>
+                <rdm.l10n.support>true</rdm.l10n.support>
+                <rdm.l10n.messages>,messages.rdm_n2o_l10n</rdm.l10n.messages>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-n2o-l10n</artifactId>
+                    <version>${project.version}</version>
                 </dependency>
             </dependencies>
         </profile>

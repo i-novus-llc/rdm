@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-platform-parent</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.6</version>
     </parent>
 
     <properties>
@@ -19,8 +19,9 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>2.23</vds.version>
-        <n2o.version>7.7.7</n2o.version>
+        <vds.version>3.3</vds.version>
+        <l10n.vds.version>3.8</l10n.vds.version>
+        <n2o.version>7.9.5</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
@@ -58,11 +59,18 @@
         <url>https://i-novus.ru/</url>
     </organization>
 
-
     <modules>
         <module>rdm-api</module>
         <module>rdm-sync-spring-boot-starter</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.interceptor</groupId>
+            <artifactId>javax.interceptor-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>
@@ -81,8 +89,32 @@
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-l10n</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-n2o-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-n2o-l10n</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.components</groupId>
+                <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+                <version>${l10n.vds.version}</version>
             </dependency>
 
             <dependency>
@@ -202,6 +234,18 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <id>build-all-modules</id>
@@ -209,13 +253,17 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>rdm-rest</module>
                 <module>rdm-impl</module>
-                <module>rdm-frontend</module>
+                <module>rdm-l10n</module>
+                <module>rdm-n2o-api</module>
+                <module>rdm-n2o-l10n</module>
+                <module>rdm-rest</module>
                 <module>rdm-n2o</module>
+                <module>rdm-frontend</module>
                 <module>rdm-esnsi</module>
             </modules>
         </profile>
+
         <profile>
             <id>release</id>
             <activation>
@@ -264,23 +312,4 @@
         </profile>
     </profiles>
 
-    <dependencies>
-        <dependency>
-            <groupId>javax.interceptor</groupId>
-            <artifactId>javax.interceptor-api</artifactId>
-            <version>1.2</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <useSystemClassLoader>false</useSystemClassLoader>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

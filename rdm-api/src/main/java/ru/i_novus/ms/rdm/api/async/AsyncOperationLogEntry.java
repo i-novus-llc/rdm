@@ -1,28 +1,45 @@
 package ru.i_novus.ms.rdm.api.async;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@ApiModel("Асинхронная операция")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AsyncOperationLogEntry {
 
+    @ApiModelProperty("Идентификатор операции")
     private UUID id;
+
+    @ApiModelProperty("Тип операции")
+    private AsyncOperationTypeEnum operationType;
+
+    @ApiModelProperty("Код справочника")
     private String code;
-    private AsyncOperation operation;
-    private AsyncOperationStatus status;
-    private String error;
-    private String stackTrace;
-    private String payload;
-    private String result;
+
+    @ApiModelProperty("Статус операции")
+    private AsyncOperationStatusEnum status;
+
+    @ApiModelProperty("Дата создания операции")
     private LocalDateTime tsStart;
+
+    @ApiModelProperty("Дата окончания обработки операции")
     private LocalDateTime tsEnd;
 
-    public String getCode() {
-        return code;
-    }
+    @ApiModelProperty("Полезная нагрузка в формате JSON")
+    private String payload;
 
-    public void setCode(String code) {
-        this.code = code;
-    }
+    @ApiModelProperty("Результат операции в формате JSON")
+    private String result;
+
+    @ApiModelProperty("Текст ошибки операции")
+    private String error;
+
+    @ApiModelProperty("Трассировка стека в случае ошибки")
+    private String stackTrace;
 
     public UUID getId() {
         return id;
@@ -32,28 +49,28 @@ public class AsyncOperationLogEntry {
         this.id = id;
     }
 
-    public AsyncOperation getOperation() {
-        return operation;
+    public AsyncOperationTypeEnum getOperationType() {
+        return operationType;
     }
 
-    public void setOperation(AsyncOperation operation) {
-        this.operation = operation;
+    public void setOperationType(AsyncOperationTypeEnum operationType) {
+        this.operationType = operationType;
     }
 
-    public AsyncOperationStatus getStatus() {
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public AsyncOperationStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(AsyncOperationStatus status) {
+    public void setStatus(AsyncOperationStatusEnum status) {
         this.status = status;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 
     public LocalDateTime getTsStart() {
@@ -88,6 +105,14 @@ public class AsyncOperationLogEntry {
         this.result = result;
     }
 
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
     public String getStackTrace() {
         return stackTrace;
     }
@@ -100,16 +125,15 @@ public class AsyncOperationLogEntry {
     public String toString() {
         return "AsyncOperationLogEntry{" +
                 "id=" + id +
+                ", operationType=" + operationType +
                 ", code='" + code + '\'' +
-                ", operation=" + operation +
                 ", status=" + status +
-                ", error='" + error + '\'' +
-                ", stackTrace='" + stackTrace + '\'' +
-                ", payload='" + payload + '\'' +
-                ", result='" + result + '\'' +
                 ", tsStart=" + tsStart +
                 ", tsEnd=" + tsEnd +
+                ", payload='" + payload + '\'' +
+                ", result='" + result + '\'' +
+                ", error='" + error + '\'' +
+                ", stackTrace='" + stackTrace + '\'' +
                 '}';
     }
-
 }

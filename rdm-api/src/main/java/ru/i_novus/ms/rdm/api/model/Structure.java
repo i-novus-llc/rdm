@@ -10,8 +10,8 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -44,7 +44,8 @@ public class Structure implements Serializable {
     }
 
     public Structure(Structure structure) {
-        this(structure.getAttributes(), structure.getReferences());
+        this.attributes = new ArrayList<>(structure.attributes);
+        this.references = new ArrayList<>(structure.references);
     }
 
     @JsonGetter
@@ -248,10 +249,7 @@ public class Structure implements Serializable {
         }
 
         public static Attribute build(Attribute attribute) {
-            if (attribute != null)
-                return new Attribute(attribute);
-
-            return new Attribute();
+            return (attribute != null) ? new Attribute(attribute) : new Attribute();
         }
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -393,10 +391,7 @@ public class Structure implements Serializable {
         }
 
         public static Reference build(Reference reference) {
-            if (reference != null)
-                return new Reference(reference);
-
-            return new Reference();
+            return (reference != null) ? new Reference(reference) : new Reference();
         }
 
         @JsonGetter
