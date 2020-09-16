@@ -6,20 +6,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.sql.*;
+import java.util.*;
 import java.util.function.Function;
 
 import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.jsonMapper;
@@ -48,81 +42,104 @@ public class StructureType implements UserType {
 
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
+
         final String cellContent = rs.getString(names[0]);
-        if (cellContent == null) {
+        if (cellContent == null)
             return null;
-        }
 
         try {
             JsonNode attributesJson = jsonMapper.readTree(cellContent).get("attributes");
             return jsonToStructure(attributesJson);
+
         } catch (IOException e) {
             throw new PersistenceException(e);
         }
     }
 
     private Structure jsonToStructure(JsonNode attributesJson) {
+
         Structure structure = new Structure();
         List<Structure.Attribute> attributes = new ArrayList<>();
         List<Structure.Reference> references = new ArrayList<>();
+
         if (attributesJson.isArray()) {
             for (JsonNode attributeJson : attributesJson) {
+
                 String code = getByKey(attributeJson, "code", JsonNode::asText);
                 String name = getByKey(attributeJson, "name", JsonNode::asText);
-                String description = getByKey(attributeJson, "description", JsonNode::asText);
                 String type = getByKey(attributeJson, "type", JsonNode::asText);
+
                 boolean isPrimary = Boolean.TRUE.equals(getByKey(attributeJson, "isPrimary", JsonNode::asBoolean));
+                boolean localizable = Boolean.TRUE.equals(getByKey(attributeJson, "localizable", JsonNode::asBoolean));
+                String description = getByKey(attributeJson, "description", JsonNode::asText);
+
                 String referenceCode = getByKey(attributeJson, "referenceCode", JsonNode::asText);
                 String displayExpression = getByKey(attributeJson, "displayExpression", JsonNode::asText);
+
                 Structure.Attribute attribute;
                 if (isPrimary) {
                     attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
+
+                } else if (localizable) {
+                    attribute = Structure.Attribute.buildLocalizable(code, name, FieldType.valueOf(type), description);
+
                 } else {
                     attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
                 }
-                if (FieldType.valueOf(type).equals(FieldType.REFERENCE)) {
+
+                if (attribute.isReferenceType()) {
                     Structure.Reference reference = new Structure.Reference(code, referenceCode, displayExpression);
                     references.add(reference);
                 }
+
                 attributes.add(attribute);
             }
         }
+
         structure.setAttributes(attributes);
         structure.setReferences(references);
+
         return structure;
     }
 
-
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws SQLException {
+
         if (value == null) {
             st.setNull(index, Types.OTHER);
             return;
         }
+
         try {
             ObjectNode structure = valueToJson(value);
             st.setObject(index, jsonMapper.writeValueAsString(structure), Types.OTHER);
+
         } catch (IOException ex) {
             throw new PersistenceException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
         }
     }
 
     private ObjectNode valueToJson(Object value) {
+
         Structure structure = (Structure) value;
         ArrayNode attributesJson = jsonMapper.createArrayNode();
         structure.getAttributes().forEach(attribute -> attributesJson.add(createAttributeJson(attribute, structure)));
+
         ObjectNode jsonStructure = jsonMapper.createObjectNode();
         jsonStructure.set("attributes", attributesJson);
         return jsonStructure;
     }
 
     private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
+
         ObjectNode attributeJson = jsonMapper.createObjectNode();
         attributeJson.put("code", attribute.getCode());
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
         attributeJson.put("isPrimary", attribute.getIsPrimary());
-        Optional.ofNullable(attribute.getDescription()).ifPresent(d -> attributeJson.put("description", attribute.getDescription()));
+        Optional.ofNullable(attribute.getLocalizable()).ifPresent(value -> attributeJson.put("localizable", value));
+        Optional.ofNullable(attribute.getDescription()).ifPresent(value -> attributeJson.put("description", value));
+
         Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
             attributeJson.put("referenceCode", reference.getReferenceCode());
@@ -135,11 +152,8 @@ public class StructureType implements UserType {
 
     @Override
     public Object deepCopy(Object value) {
-        Object copy = null;
-        if (value != null) {
-            copy = SerializationUtils.clone((Structure) value);
-        }
-        return copy;
+
+        return (value != null) ? SerializationUtils.clone((Structure) value) : null;
     }
 
     @Override
@@ -163,10 +177,8 @@ public class StructureType implements UserType {
     }
 
     private <T> T getByKey(JsonNode node, String key, Function<JsonNode, T> valueExtractor) {
+
         JsonNode valueJson = node.get(key);
-        if (valueJson == null) {
-            return null;
-        }
-        return valueExtractor.apply(valueJson);
+        return (valueJson == null) ? null : valueExtractor.apply(valueJson);
     }
 }

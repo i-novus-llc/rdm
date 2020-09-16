@@ -233,18 +233,26 @@ public class Structure implements Serializable {
         @ApiModelProperty("Признак первичного атрибута")
         private Boolean isPrimary;
 
+        /** Признак переводимого атрибута. */
+        @ApiModelProperty("Признак переводимого атрибута")
+        private Boolean localizable;
+
         /** Описание атрибута. */
         @ApiModelProperty("Описание атрибута")
         private String description;
 
         public Attribute() {
+            // Nothing to do.
         }
 
         public Attribute(Attribute attribute) {
+
             this.code = attribute.code;
             this.name = attribute.name;
             this.type = attribute.type;
+
             this.isPrimary = attribute.isPrimary;
+            this.localizable = attribute.localizable;
             this.description = attribute.description;
         }
 
@@ -252,23 +260,36 @@ public class Structure implements Serializable {
             return (attribute != null) ? new Attribute(attribute) : new Attribute();
         }
 
-        public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
-            Attribute attribute = new Attribute();
-            attribute.setPrimary(Boolean.TRUE);
-            attribute.setCode(code);
-            attribute.setName(name);
-            attribute.setType(type);
-            attribute.setDescription(description);
+        public static Attribute build(String code, String name, FieldType type, String description) {
+
+            Attribute attribute = create(code, name, type, description);
+            attribute.setPrimary(Boolean.FALSE);
             return attribute;
         }
 
-        public static Attribute build(String code, String name, FieldType type, String description) {
+        public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
+
+            Attribute attribute = create(code, name, type, description);
+            attribute.setPrimary(Boolean.TRUE);
+            return attribute;
+        }
+
+        public static Attribute buildLocalizable(String code, String name, FieldType type, String description) {
+
+            Attribute attribute = create(code, name, type, description);
+            attribute.setLocalizable(Boolean.TRUE);
+            return attribute;
+        }
+
+        private static Attribute create(String code, String name, FieldType type, String description) {
+
             Attribute attribute = new Attribute();
-            attribute.setPrimary(Boolean.FALSE);
+
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
             attribute.setDescription(description);
+
             return attribute;
         }
 
@@ -306,6 +327,15 @@ public class Structure implements Serializable {
 
         public void setPrimary(Boolean isPrimary) {
             this.isPrimary = isPrimary != null && isPrimary;
+        }
+
+        @JsonGetter
+        public Boolean getLocalizable() {
+            return localizable;
+        }
+
+        public void setLocalizable(Boolean localizable) {
+            this.localizable = localizable;
         }
 
         @JsonGetter
@@ -378,6 +408,7 @@ public class Structure implements Serializable {
         private String displayExpression;
 
         public Reference() {
+            // Nothing to do.
         }
 
         public Reference(Reference reference) {
@@ -385,6 +416,7 @@ public class Structure implements Serializable {
         }
 
         public Reference(String attribute, String referenceCode, String displayExpression) {
+
             this.attribute = attribute;
             this.referenceCode = referenceCode;
             this.displayExpression = displayExpression;
