@@ -45,13 +45,13 @@ public class DataCriteriaTest {
 
     private DataCriteria createCriteria() {
 
-        DataCriteria criteria = new DataCriteria();
+        DataCriteria result = new DataCriteria();
 
-        criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
-        criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
-        criteria.setLocaleCode("test");
+        result.setVersionId(TEST_REFBOOK_VERSION_ID);
+        result.setOptLockValue(TEST_OPT_LOCK_VALUE);
+        result.setLocaleCode("test");
 
-        return criteria;
+        return result;
     }
 
     private DataCriteria copyCriteria(DataCriteria criteria) {

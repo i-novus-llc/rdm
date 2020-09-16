@@ -51,14 +51,14 @@ public class SearchDataCriteriaTest {
 
     private SearchDataCriteria createCriteria() {
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
+        SearchDataCriteria result = new SearchDataCriteria();
 
-        criteria.setLocaleCode("test");
-        criteria.setCommonFilter("common-filter");
-        criteria.setRowHashList(List.of("hash1", "hash2"));
-        criteria.setRowSystemIds(List.of(1L, 2L));
+        result.setLocaleCode("test");
+        result.setCommonFilter("common-filter");
+        result.setRowHashList(List.of("hash1", "hash2"));
+        result.setRowSystemIds(List.of(1L, 2L));
 
-        return criteria;
+        return result;
     }
 
     private SearchDataCriteria copyCriteria(SearchDataCriteria criteria) {
