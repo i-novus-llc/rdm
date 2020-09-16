@@ -436,16 +436,17 @@ public class RefBookDataController {
     public static class DataGridRow {
 
         @JsonProperty
-        Long id;
+        private Long id;
 
         @JsonProperty
-        List<DataGridColumn> columns;
+        private List<DataGridColumn> columns;
 
         @JsonProperty
-        Map<String, Object> row;
+        private Map<String, Object> row;
 
         @SuppressWarnings("unused")
         public DataGridRow() {
+            // Nothing to do.
         }
 
         public DataGridRow(List<DataGridColumn> columns) {
@@ -486,13 +487,14 @@ public class RefBookDataController {
     public static class DataGridCell {
 
         @JsonProperty
-        String value;
+        private String value;
 
         @JsonProperty
-        Map<String, Object> cellOptions;
+        private Map<String, Object> cellOptions;
 
         @SuppressWarnings("unused")
         public DataGridCell() {
+            // Nothing to do.
         }
 
         public DataGridCell(String value, Map<String, Object> cellOptions) {
