@@ -38,6 +38,12 @@
             <artifactId>commons-text</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 </project>

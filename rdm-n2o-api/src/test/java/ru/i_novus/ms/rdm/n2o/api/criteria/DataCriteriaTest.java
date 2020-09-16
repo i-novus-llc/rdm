@@ -1,0 +1,74 @@
+package ru.i_novus.ms.rdm.n2o.api.criteria;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.criteria.api.Criteria;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+
+import static ru.i_novus.ms.rdm.n2o.api.utils.UiRefBookTestUtils.assertObjects;
+
+public class DataCriteriaTest {
+
+    private static final int TEST_REFBOOK_VERSION_ID = -10;
+    private static final int TEST_OPT_LOCK_VALUE = 10;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Before
+    @SuppressWarnings("java:S2696")
+    public void setUp() {
+        JsonUtil.jsonMapper = objectMapper;
+    }
+
+    @Test
+    public void testClass() {
+
+        Criteria superCriteria = new Criteria();
+
+        DataCriteria emptyCriteria = new DataCriteria();
+        assertObjects(Assert::assertNotEquals, superCriteria, emptyCriteria);
+
+        DataCriteria newCriteria = createCriteria();
+        assertObjects(Assert::assertNotEquals, superCriteria, emptyCriteria);
+
+        DataCriteria sameCriteria = createCriteria();
+        assertObjects(Assert::assertEquals, newCriteria, sameCriteria);
+
+        DataCriteria cloneCriteria = new DataCriteria(newCriteria);
+        assertObjects(Assert::assertEquals, newCriteria, cloneCriteria);
+
+        DataCriteria copyCriteria = copyCriteria(newCriteria);
+        assertObjects(Assert::assertEquals, newCriteria, copyCriteria);
+    }
+
+    private DataCriteria createCriteria() {
+
+        DataCriteria criteria = new DataCriteria();
+
+        criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
+        criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
+        criteria.setLocaleCode("test");
+
+        return criteria;
+    }
+
+    private DataCriteria copyCriteria(DataCriteria criteria) {
+
+        DataCriteria result = new DataCriteria();
+
+        result.setPage(criteria.getPage());
+        result.setSize(criteria.getSize());
+        result.setSortings(criteria.getSortings());
+
+        result.setVersionId(criteria.getVersionId());
+        result.setOptLockValue(criteria.getOptLockValue());
+        result.setLocaleCode(criteria.getLocaleCode());
+
+        result.setFilter(criteria.getFilter());
+        result.setHasDataConflict(criteria.getHasDataConflict());
+
+        return result;
+    }
+}
