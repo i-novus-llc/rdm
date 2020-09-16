@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.api.model.refdata;
 import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import javax.ws.rs.QueryParam;
 import java.util.*;
@@ -122,5 +123,10 @@ public class SearchDataCriteria extends AbstractCriteria {
     public int hashCode() {
         return Objects.hash(super.hashCode(), localeCode, attributeFilters, plainAttributeFilters,
                 commonFilter, rowHashList, rowSystemIds);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.getAsJson(this);
     }
 }

@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import org.junit.Assert;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -177,6 +179,42 @@ public class RefBookDataControllerTest {
     }
 
     @Test
+    public void testDataCriteria() {
+
+        DataCriteria criteria = new DataCriteria();
+        Criteria superCriteria = new Criteria();
+        assertObjects(Assert::assertNotEquals, superCriteria, criteria);
+
+        criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
+        criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
+        criteria.setLocaleCode("test");
+        assertObjects(Assert::assertNotEquals, superCriteria, criteria);
+
+        DataCriteria sameCriteria = new DataCriteria(criteria);
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
+
+        DataCriteria copyCriteria = copyDataCriteria(criteria);
+        assertObjects(Assert::assertEquals, criteria, copyCriteria);
+    }
+
+    private DataCriteria copyDataCriteria(DataCriteria criteria) {
+
+        DataCriteria result = new DataCriteria();
+        result.setPage(criteria.getPage());
+        result.setSize(criteria.getSize());
+        result.setSortings(criteria.getSortings());
+
+        result.setVersionId(criteria.getVersionId());
+        result.setOptLockValue(criteria.getOptLockValue());
+        result.setLocaleCode(criteria.getLocaleCode());
+
+        result.setFilter(criteria.getFilter());
+        result.setHasDataConflict(criteria.getHasDataConflict());
+
+        return result;
+    }
+
+    @Test
     public void testSearchDataCriteria() {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -184,6 +222,12 @@ public class RefBookDataControllerTest {
 
         SearchDataCriteria sameCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
         assertObjects(Assert::assertEquals, criteria, sameCriteria);
+
+        AbstractCriteria superCriteria = new AbstractCriteria();
+        assertObjects(Assert::assertNotEquals, criteria, superCriteria);
+
+        superCriteria = new AbstractCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        assertObjects(Assert::assertNotEquals, criteria, superCriteria);
     }
 
     private DataCriteria createCriteria(int versionId, boolean hasDataConflict) {

@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.api.model;
 
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ public class AbstractCriteria extends RestCriteria {
         return Collections.emptyList();
     }
 
-    public void noPagination() {
+    public void makeUnpaged() {
         setPageSize(NO_PAGINATION_SIZE);
         setPageNumber(DEFAULT_PAGE_NUMBER);
     }
@@ -51,5 +52,10 @@ public class AbstractCriteria extends RestCriteria {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), getPageNumber(), getPageSize(), getSort());
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.getAsJson(this);
     }
 }
