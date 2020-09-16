@@ -15,6 +15,7 @@ import java.util.*;
 /**
  * Пользовательские проверки значений атрибутов.
  */
+@SuppressWarnings("java:S3740")
 public class AttributeCustomValidation extends AppendRowValidation {
 
     private final Structure structure;
@@ -85,10 +86,10 @@ public class AttributeCustomValidation extends AppendRowValidation {
                 .filter(e -> !getErrorAttributes().contains(e.getKey()))
                 .forEach(e -> {
                     for (AttributeValidationResolver resolver : e.getValue()) {
-                        Object attributeValue =
-                                resolver instanceof UniqueAttributeValidationResolver
-                                        ? new UniqueAttributeValue(systemId, (Serializable) rowData.get(e.getKey()))
-                                        : rowData.get(e.getKey());
+                        Object value = rowData.get(e.getKey());
+                        Object attributeValue = resolver instanceof UniqueAttributeValidationResolver
+                                ? new UniqueAttributeValue(systemId, (Serializable) value)
+                                : value;
                         @SuppressWarnings("unchecked")
                         Message message = resolver.resolve(attributeValue);
                         if (message != null) {

@@ -24,8 +24,8 @@ import java.util.*;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
+@SuppressWarnings("java:S3740")
 public class ReferenceValidation implements RdmValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
@@ -66,7 +66,7 @@ public class ReferenceValidation implements RdmValidation {
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
-        Field draftField = field(draftAttribute);
+        Field draftField = ConverterUtil.field(draftAttribute);
 
         // Использовать VersionValidationImpl.validateReferenceCode
         RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
@@ -83,7 +83,7 @@ public class ReferenceValidation implements RdmValidation {
             logger.info(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, e);
             return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId()));
         }
-        Field referredField = field(referredAttribute);
+        Field referredField = ConverterUtil.field(referredAttribute);
 
         // Поля из вычисляемого выражения, отсутствующие в версии, на которую ссылаемся.
         List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());

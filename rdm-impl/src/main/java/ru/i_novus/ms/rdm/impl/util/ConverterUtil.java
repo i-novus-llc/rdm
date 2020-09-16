@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+@SuppressWarnings("java:S3740")
 public class ConverterUtil {
 
     private static final FieldFactory fieldFactory = new FieldFactoryImpl();
@@ -125,7 +126,8 @@ public class ConverterUtil {
 
     public static Row toRow(RowValue rowValue) {
 
-        List<FieldValue> fieldValues = (List<FieldValue>) rowValue.getFieldValues();
+        @SuppressWarnings("unchecked")
+        List<FieldValue> fieldValues = rowValue.getFieldValues();
         Map<String, Object> data = new HashMap<>();
         fieldValues.forEach(fieldValue -> data.put(fieldValue.getField(), fieldValue.getValue()));
 
