@@ -61,7 +61,12 @@ public class DataCriteriaTest {
 
         DataCriteria result = new DataCriteria(criteria.getVersionId(), criteria.getOptLockValue(),
                 criteria.getFilter(), criteria.getHasDataConflict());
-        criteria.setLocaleCode(criteria.getLocaleCode());
+
+        result.setPage(criteria.getPage());
+        result.setSize(criteria.getSize());
+        result.setSortings(criteria.getSortings());
+
+        result.setLocaleCode(criteria.getLocaleCode());
 
         return result;
     }
