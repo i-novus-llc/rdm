@@ -2,9 +2,11 @@ package ru.i_novus.ms.rdm.api.model.draft;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @ApiModel(value = "Модель пост-публикации черновика",
         description = "Набор входных параметров для пост-публикации черновика")
@@ -78,5 +80,28 @@ public class PostPublishRequest implements Serializable {
 
     public void setToDate(LocalDateTime toDate) {
         this.toDate = toDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PostPublishRequest that = (PostPublishRequest) o;
+        return Objects.equals(lastStorageCode, that.lastStorageCode) &&
+                Objects.equals(oldStorageCode, that.oldStorageCode) &&
+                Objects.equals(newStorageCode, that.newStorageCode) &&
+                Objects.equals(fromDate, that.fromDate) &&
+                Objects.equals(toDate, that.toDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.getAsJson(this);
     }
 }
