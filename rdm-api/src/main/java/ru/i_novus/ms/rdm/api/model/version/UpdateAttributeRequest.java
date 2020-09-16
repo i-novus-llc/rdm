@@ -176,7 +176,7 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         attribute.setDescription(this.getDescription());
 
         setValueIfExists(this::getName, attribute::setName);
-        setValueIfExists(this::getIsPrimary, attribute::setPrimary);
+        setValueIfExists(this::getIsPrimary, attribute::setIsPrimary);
     }
 
     public void fillReference(Structure.Reference reference) {

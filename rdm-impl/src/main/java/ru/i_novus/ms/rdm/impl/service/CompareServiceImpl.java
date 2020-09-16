@@ -233,7 +233,7 @@ public class CompareServiceImpl implements CompareService {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
 
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-        compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimary()
+        compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimaries()
                 .stream()
                 .map(Structure.Attribute::getCode)
                 .collect(Collectors.toList()));
@@ -290,10 +290,10 @@ public class CompareServiceImpl implements CompareService {
         newData.getContent()
                 .forEach(newRowValue -> {
                     ComparableRow comparableRow = new ComparableRow();
-                    DiffRowValue diffRowValue = findDiffRowValue(newStructure.getPrimary(), newRowValue,
+                    DiffRowValue diffRowValue = findDiffRowValue(newStructure.getPrimaries(), newRowValue,
                             refBookDataDiff.getRows().getContent());
                     RowValue oldRowValue = oldContent != null
-                            ? findRowValue(newStructure.getPrimary(), newRowValue, oldContent)
+                            ? findRowValue(newStructure.getPrimaries(), newRowValue, oldContent)
                             : null;
 
                     comparableRow.setStatus(diffRowValue != null ? diffRowValue.getStatus() : null);
@@ -357,11 +357,11 @@ public class CompareServiceImpl implements CompareService {
     /** Проверка первичных ключей версий на совпадение. */
     private void validatePrimariesEquality(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
-        List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimary();
+        List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimaries();
         if (isEmpty(oldPrimaries))
             throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
 
-        List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimary();
+        List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimaries();
         if (isEmpty(newPrimaries))
             throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 

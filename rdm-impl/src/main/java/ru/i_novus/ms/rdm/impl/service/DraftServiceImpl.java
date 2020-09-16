@@ -550,7 +550,7 @@ public class DraftServiceImpl implements DraftService {
     /** Заполнение systemId из имеющихся записей, совпадающих по первичным ключам. */
     private void fillSystemIdsByPrimaries(RefBookVersionEntity draftVersion, List<Row> rows) {
 
-        List<Structure.Attribute> primaries = draftVersion.getStructure().getPrimary();
+        List<Structure.Attribute> primaries = draftVersion.getStructure().getPrimaries();
         if (primaries.isEmpty()) return;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
@@ -912,7 +912,7 @@ public class DraftServiceImpl implements DraftService {
     private void validateOldAttribute(Structure.Attribute oldAttribute,
                                       Structure oldStructure, String refBookCode) {
 
-        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimary().size() == 1)
+        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimaries().size() == 1)
             throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 

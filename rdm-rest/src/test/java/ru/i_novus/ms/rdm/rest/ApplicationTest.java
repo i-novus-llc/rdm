@@ -508,11 +508,11 @@ public class ApplicationTest {
         failDraftReferrerCreate(structure, false, "attribute.reference.not.found");
 
         structure = createTestStructureWithReferenceType();
-        structure.setAttributes(structure.getPrimary());
+        structure.setAttributes(structure.getPrimaries());
         failDraftReferrerCreate(structure, false, "reference.attribute.not.found");
 
         structure = createTestStructureWithReferenceType();
-        structure.getAttribute(structure.getReferences().get(0).getAttribute()).setPrimary(Boolean.TRUE);
+        structure.getAttribute(structure.getReferences().get(0).getAttribute()).setIsPrimary(Boolean.TRUE);
         failDraftReferrerCreate(structure, false, "reference.attribute.cannot.be.primary.key");
 
         structure = createTestStructureWithReferenceType();
@@ -1259,11 +1259,11 @@ public class ApplicationTest {
 
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
-        structure.getAttribute("code").setPrimary(Boolean.TRUE);
+        structure.getAttribute("code").setIsPrimary(Boolean.TRUE);
         UpdateAttributeRequest updateAttributeRequest = new UpdateAttributeRequest(null, structure.getAttribute("name"), new Structure.Reference());
         draftService.updateAttribute(draftId, updateAttributeRequest);
 
-        structure.getAttribute("name").setPrimary(Boolean.TRUE);
+        structure.getAttribute("name").setIsPrimary(Boolean.TRUE);
         updateAttributeRequest = new UpdateAttributeRequest(null, structure.getAttribute("name"), new Structure.Reference());
         try {
             draftService.updateAttribute(draftId, updateAttributeRequest);

@@ -198,7 +198,7 @@ public class CreateDraftController {
             return;
 
         Structure structure = versionService.getStructure(versionId);
-        List<Structure.Attribute> primaries = structure.getPrimary();
+        List<Structure.Attribute> primaries = structure.getPrimaries();
         if (primaries.isEmpty())
             return;
 

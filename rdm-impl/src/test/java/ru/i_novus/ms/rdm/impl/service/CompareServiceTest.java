@@ -143,13 +143,13 @@ public class CompareServiceTest {
         final Structure newStructure = new Structure(asList(id, code, common, name, upd2, typeI), emptyList());
         when(versionService.getStructure(OLD_ID)).thenReturn(oldStructure);
         when(versionService.getStructure(NEW_ID)).thenReturn(newStructure);
-        when(versionValidation.equalsPrimaries(eq(oldStructure.getPrimary()), eq(newStructure.getPrimary()))).thenReturn(true);
+        when(versionValidation.equalsPrimaries(eq(oldStructure.getPrimaries()), eq(newStructure.getPrimaries()))).thenReturn(true);
 
         final Structure oldStructure1 = new Structure(asList(id, common), emptyList());
         final Structure newStructure1 = new Structure(asList(id, common), emptyList());
         when(versionService.getStructure(OLD_ID_1)).thenReturn(oldStructure1);
         when(versionService.getStructure(NEW_ID_1)).thenReturn(newStructure1);
-        when(versionValidation.equalsPrimaries(eq(oldStructure1.getPrimary()), eq(newStructure1.getPrimary()))).thenReturn(true);
+        when(versionValidation.equalsPrimaries(eq(oldStructure1.getPrimaries()), eq(newStructure1.getPrimaries()))).thenReturn(true);
     }
 
     private void initPassportAttributes() {

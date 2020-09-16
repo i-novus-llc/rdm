@@ -140,7 +140,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                                    RefBookVersionEntity newRefToEntity,
                                                                    List<DiffRowValue> diffRowValues) {
 
-        List<Structure.Attribute> refToPrimaries = oldRefToEntity.getStructure().getPrimary();
+        List<Structure.Attribute> refToPrimaries = oldRefToEntity.getStructure().getPrimaries();
         List<Structure.Attribute> refFromAttributes = refFromEntity.getStructure().getRefCodeAttributes(oldRefToEntity.getRefBook().getCode());
         List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues, refToPrimaries, refFromAttributes);
 
@@ -218,7 +218,7 @@ public class ConflictServiceImpl implements ConflictService {
     private boolean checkDataDiffConflicts(RefBookVersionEntity refFromEntity, RefBookVersionEntity refToEntity,
                                            List<DiffRowValue> diffRowValues, DiffStatusEnum diffStatus) {
 
-        List<Structure.Attribute> refToPrimaries = refToEntity.getStructure().getPrimary();
+        List<Structure.Attribute> refToPrimaries = refToEntity.getStructure().getPrimaries();
         List<Structure.Attribute> refFromAttributes = refFromEntity.getStructure().getRefCodeAttributes(refToEntity.getRefBook().getCode());
         List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues, refToPrimaries, refFromAttributes);
 

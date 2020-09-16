@@ -25,7 +25,7 @@ public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
     public PkUniqueRowAppendValidation(Structure structure) {
         this.structure = structure;
-        this.primaryKeyCodes = structure.getPrimary().stream().map(Structure.Attribute::getCode).collect(toSet());
+        this.primaryKeyCodes = structure.getPrimaries().stream().map(Structure.Attribute::getCode).collect(toSet());
         this.uniqueRowSet = new HashSet<>();
     }
 
@@ -38,7 +38,7 @@ public class PkUniqueRowAppendValidation extends AppendRowValidation {
         rowData.entrySet().removeIf(entry -> !primaryKeyCodes.contains(entry.getKey()));
         if (!uniqueRowSet.add(rowData)) {
             return singletonList(new Message(VALIDATION_NOT_UNIQUE_PK_ERR_EXCEPTION_CODE,
-                    RowUtils.toNamedValues(rowData, structure.getPrimary())
+                    RowUtils.toNamedValues(rowData, structure.getPrimaries())
             ));
         }
 

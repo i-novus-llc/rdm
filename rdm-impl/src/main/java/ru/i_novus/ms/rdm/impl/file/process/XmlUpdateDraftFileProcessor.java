@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.impl.file.process;
 
 import org.springframework.data.util.Pair;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.exception.FileContentException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -87,7 +87,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
             structureAttribute.setDescription((String) attribute.get("description"));
             structureAttribute.setName((String) attribute.get("name"));
             structureAttribute.setType(FieldType.valueOf((String) attribute.get("type")));
-            structureAttribute.setPrimary(Boolean.valueOf((String) attribute.get("primary")));
+            structureAttribute.setIsPrimary(Boolean.valueOf((String) attribute.get("primary")));
             structure.getAttributes().add(structureAttribute);
 
             if(FieldType.REFERENCE.equals(structureAttribute.getType())) {

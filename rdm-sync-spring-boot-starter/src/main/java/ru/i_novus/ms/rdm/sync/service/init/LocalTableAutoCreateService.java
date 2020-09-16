@@ -46,7 +46,7 @@ class LocalTableAutoCreateService {
         boolean isDeletedReserved = structure.getAttributes().stream().anyMatch(attribute -> "is_deleted".equals(attribute.getCode()));
         if (isDeletedReserved)
             isDeletedField = "rdm_sync_internal_" + isDeletedField;
-        Structure.Attribute uniqueSysField = structure.getPrimary().get(0);
+        Structure.Attribute uniqueSysField = structure.getPrimaries().get(0);
         XmlMappingRefBook mapping = new XmlMappingRefBook();
         mapping.setCode(refBookCode);
         mapping.setSysTable(String.format("%s.%s", autoCreateSchema, refBookCode.replaceAll("[-.]", "_").toLowerCase()));

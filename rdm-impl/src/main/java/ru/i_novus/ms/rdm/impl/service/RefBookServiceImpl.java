@@ -11,8 +11,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.ms.rdm.api.enumeration.*;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -35,6 +33,8 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
 import java.io.InputStream;
 import java.util.*;
@@ -410,7 +410,7 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         Structure structure = entity.getStructure();
-        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
+        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimaries() : null;
         model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
 
         model.setHasReferrer(hasReferrerVersions);

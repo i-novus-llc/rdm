@@ -93,13 +93,18 @@ public class Structure implements Serializable {
 
         attributes.forEach(a -> {
             if (a.hasIsPrimary())
-                a.setPrimary(Boolean.FALSE);
+                a.setIsPrimary(Boolean.FALSE);
         });
     }
 
     @JsonIgnore
-    public List<Attribute> getPrimary() {
+    public List<Attribute> getPrimaries() {
         return attributes.stream().filter(Attribute::hasIsPrimary).collect(toList());
+    }
+
+    @JsonIgnore
+    public List<Attribute> getLocalizables() {
+        return attributes.stream().filter(Attribute::isLocalizable).collect(toList());
     }
 
     /**
@@ -212,6 +217,15 @@ public class Structure implements Serializable {
         return list == null ? new ArrayList<>(0) : list;
     }
 
+    public boolean storageEquals(Structure that) {
+
+        List<Attribute> others = that.getAttributes();
+        return CollectionUtils.isEmpty(attributes)
+                ? CollectionUtils.isEmpty(others)
+                : attributes.size() == others.size()
+                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
+    }
+
     @ApiModel("Атрибут справочника")
     public static class Attribute implements Serializable {
 
@@ -261,20 +275,21 @@ public class Structure implements Serializable {
         public static Attribute build(String code, String name, FieldType type, String description) {
 
             Attribute attribute = create(code, name, type, description);
-            attribute.setPrimary(Boolean.FALSE);
+            attribute.setIsPrimary(Boolean.FALSE);
             return attribute;
         }
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
 
             Attribute attribute = create(code, name, type, description);
-            attribute.setPrimary(Boolean.TRUE);
+            attribute.setIsPrimary(Boolean.TRUE);
             return attribute;
         }
 
         public static Attribute buildLocalizable(String code, String name, FieldType type, String description) {
 
             Attribute attribute = create(code, name, type, description);
+            attribute.setIsPrimary(Boolean.FALSE);
             attribute.setLocalizable(Boolean.TRUE);
             return attribute;
         }
@@ -323,7 +338,7 @@ public class Structure implements Serializable {
             return isPrimary;
         }
 
-        public void setPrimary(Boolean isPrimary) {
+        public void setIsPrimary(Boolean isPrimary) {
             this.isPrimary = isPrimary != null && isPrimary;
         }
 
@@ -347,6 +362,11 @@ public class Structure implements Serializable {
 
         public boolean hasIsPrimary() {
             return isPrimary != null && isPrimary;
+        }
+
+        @JsonIgnore
+        public boolean isLocalizable() {
+            return localizable != null && localizable;
         }
 
         @JsonIgnore
@@ -460,7 +480,7 @@ public class Structure implements Serializable {
          */
         public Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Attribute> primaryAttributes = referenceStructure.getPrimary();
+            List<Attribute> primaryAttributes = referenceStructure.getPrimaries();
             if (CollectionUtils.isEmpty(primaryAttributes))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
 
@@ -495,14 +515,6 @@ public class Structure implements Serializable {
         public String toString() {
             return JsonUtil.getAsJson(this);
         }
-    }
-
-    public boolean storageEquals(Structure that) {
-        List<Attribute> others = that.getAttributes();
-        return CollectionUtils.isEmpty(attributes)
-                ? CollectionUtils.isEmpty(others)
-                : attributes.size() == others.size()
-                && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
     @Override
