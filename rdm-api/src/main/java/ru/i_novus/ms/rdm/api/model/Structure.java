@@ -99,9 +99,7 @@ public class Structure implements Serializable {
 
     @JsonIgnore
     public List<Attribute> getPrimary() {
-        return attributes.stream()
-                .filter(attribute -> attribute.isPrimary)
-                .collect(toList());
+        return attributes.stream().filter(Attribute::hasIsPrimary).collect(toList());
     }
 
     /**
@@ -110,7 +108,7 @@ public class Structure implements Serializable {
      * @return {@code true}, если есть хотя бы один первичный ключ, иначе - {@code false}.
      */
     public boolean hasPrimary() {
-        return attributes.stream().anyMatch(attribute -> attribute.isPrimary);
+        return attributes.stream().anyMatch(Attribute::hasIsPrimary);
     }
 
     /**
