@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -24,7 +23,7 @@ import java.util.List;
 @Primary
 @Service
 @SuppressWarnings("java:S3740")
-public class L10nVersionServiceImpl extends VersionServiceImpl implements VersionService {
+public class L10nVersionServiceImpl extends VersionServiceImpl {
 
     private L10nVersionStorageService versionStorageService;
 

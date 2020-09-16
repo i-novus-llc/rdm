@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
@@ -29,7 +28,7 @@ import java.util.List;
 @Primary
 @Service
 @SuppressWarnings("java:S3740")
-public class L10nDraftServiceImpl extends DraftServiceImpl implements DraftService {
+public class L10nDraftServiceImpl extends DraftServiceImpl {
 
     private L10nVersionStorageService versionStorageService;
 
