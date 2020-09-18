@@ -50,7 +50,7 @@
 
         <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
-                   confirm="true" confirm-text="Вы уверены, что хотите удалить этот справочник?">
+                   confirm="true" confirm-text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?">
             <invocation>
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
