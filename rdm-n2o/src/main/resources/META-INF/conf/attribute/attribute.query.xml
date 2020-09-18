@@ -71,6 +71,10 @@
             <select mapping="isPrimary ? 'Ключевой атрибут' : null"/>
         </field>
 
+        <field id="localizable" domain="boolean">
+            <select/>
+        </field>
+
         <field id="attrType.id" domain="string" name="Тип данных">
             <select mapping="type.name()"/>
         </field>

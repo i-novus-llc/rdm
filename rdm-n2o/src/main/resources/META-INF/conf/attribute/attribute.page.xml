@@ -21,17 +21,37 @@
             </row>
 
             <row>
-                <checkbox id="isPrimary" label="Первичный ключ">
-                    <dependencies>
-                        <set-value on="attrType">
-                            if (attrType != null &amp;&amp; attrType.id == 'BOOLEAN' &amp;&amp; attrType.id == 'REFERENCE') return null;
-                        </set-value>
-                        <enabling on="attrType,hasReferrer">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; attrType.id != 'REFERENCE'
-                                &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
-                        </enabling>
-                    </dependencies>
-                </checkbox>
+                <col>
+                    <checkbox id="isPrimary" label="Первичный ключ" no-label-block="true">
+                        <dependencies>
+                            <set-value on="attrType">
+                                if (attrType != null &amp;&amp; attrType.id == 'BOOLEAN' &amp;&amp; attrType.id == 'REFERENCE') return null;
+                            </set-value>
+                            <enabling on="attrType,hasReferrer">
+                                (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; attrType.id != 'REFERENCE'
+                                    &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
+                            </enabling>
+                        </dependencies>
+                    </checkbox>
+
+                    <checkbox id="localizable" label="Переводимый атрибут" no-label-block="true">
+                        <dependencies>
+                            <visibility on="attrType">return ${rdm.l10n.support}</visibility>
+                            <set-value on="attrType,isPrimary">
+                                if (isPrimary)
+                                    return false;
+                                else if (attrType?.id != 'STRING')
+                                    return null;
+                                else
+                                    return;
+                            </set-value>
+                            <enabling on="attrType,isPrimary">
+                                (attrType?.id == 'STRING'
+                                    &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                            </enabling>
+                        </dependencies>
+                    </checkbox>
+                </col>
 
                 <select id="attrType" label="Тип" required="true" label-field-id="name">
                     <options>
@@ -125,7 +145,7 @@
             <!-- Пользовательские проверки -->
             
             <row>
-                <checkbox id="required" label="Обязательный атрибут">
+                <checkbox id="required" label="Обязательный атрибут" no-label-block="true">
                     <dependencies>
                         <visibility on="attrType,isPrimary">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
@@ -142,7 +162,7 @@
                     </dependencies>
                 </checkbox>
 
-                <checkbox id="unique" label="Уникальный атрибут">
+                <checkbox id="unique" label="Уникальный атрибут" no-label-block="true">
                     <dependencies>
                         <visibility on="attrType,isPrimary">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
