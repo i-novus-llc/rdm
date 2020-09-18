@@ -129,26 +129,25 @@ public class Structure implements Serializable {
 
     public void add(Attribute attribute, Reference reference) {
 
-        if (attribute == null)
+        if (attribute == null ||
+                StringUtils.isEmpty(attribute.getCode()))
             return;
-
-        if (getAttributes() == null)
-            setAttributes(getOrCreateList(null));
 
         getAttributes().add(attribute);
 
         if (reference == null)
             return;
 
-        if (getReferences() == null)
-            setReferences(getOrCreateList(null));
+        if (!attribute.getCode().equals(reference.getAttribute()))
+            return;
 
         getReferences().add(reference);
     }
 
     public void update(Attribute oldAttribute, Attribute newAttribute) {
 
-        if (oldAttribute == null || newAttribute == null)
+        if (oldAttribute == null || newAttribute == null ||
+                StringUtils.isEmpty(newAttribute.getCode()))
             return;
 
         int index = getAttributes().indexOf(oldAttribute);
@@ -157,7 +156,8 @@ public class Structure implements Serializable {
 
     public void update(Reference oldReference, Reference newReference) {
 
-        if (newReference != null) {
+        if (newReference != null &&
+                !StringUtils.isEmpty(newReference.getAttribute())) {
             if (oldReference != null) {
                 int index = getReferences().indexOf(oldReference);
                 getReferences().set(index, newReference);
@@ -175,11 +175,19 @@ public class Structure implements Serializable {
     public void remove(String attributeCode) {
 
         Attribute attribute = getAttribute(attributeCode);
-
-        if (attribute.isReferenceType())
-            getReferences().remove(getReference(attributeCode));
+        if (attribute == null)
+            return;
 
         getAttributes().remove(attribute);
+
+        if (!attribute.isReferenceType())
+            return;
+
+        Reference reference = getReference(attributeCode);
+        if (reference == null)
+            return;
+
+        getReferences().remove(reference);
     }
 
     /**
@@ -490,14 +498,14 @@ public class Structure implements Serializable {
          */
         public Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Attribute> primaryAttributes = referenceStructure.getPrimaries();
-            if (CollectionUtils.isEmpty(primaryAttributes))
+            List<Attribute> primaries = referenceStructure.getPrimaries();
+            if (CollectionUtils.isEmpty(primaries))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
 
-            if (primaryAttributes.size() > 1)
+            if (primaries.size() > 1)
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE));
 
-            return primaryAttributes.get(0);
+            return primaries.get(0);
         }
 
         @JsonIgnore
