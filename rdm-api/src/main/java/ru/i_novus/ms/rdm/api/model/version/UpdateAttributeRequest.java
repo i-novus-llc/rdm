@@ -26,26 +26,29 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     private String code;
 
     @ApiModelProperty("Наименование атрибута")
-    private UpdateValue<String> name; // NOSONAR
+    private UpdateValue<String> name;
 
     @ApiModelProperty("Тип атрибута")
     private FieldType type;
 
     @ApiModelProperty("Признак первичного атрибута")
-    private UpdateValue<Boolean> isPrimary; // NOSONAR
+    private UpdateValue<Boolean> isPrimary;
+
+    @ApiModelProperty("Признак переводимого атрибута")
+    private UpdateValue<Boolean> localizable;
 
     @ApiModelProperty("Описание атрибута")
     private String description;
 
     // Поля Structure.Reference:
     @ApiModelProperty("Код атрибута, который ссылается")
-    private UpdateValue<String> attribute; // NOSONAR
+    private UpdateValue<String> attribute;
 
     @ApiModelProperty("Код справочника, на который ссылаются")
-    private UpdateValue<String> referenceCode; // NOSONAR
+    private UpdateValue<String> referenceCode;
 
     @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
-    private UpdateValue<String> displayExpression; // NOSONAR
+    private UpdateValue<String> displayExpression;
 
     public UpdateAttributeRequest(){}
 
@@ -64,6 +67,7 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
 
         setUpdateValueIfExists(attribute::getName, this::setName);
         setUpdateValueIfExists(attribute::getIsPrimary, this::setIsPrimary);
+        setUpdateValueIfExists(attribute::getLocalizable, this::setLocalizable);
 
         // Поля Structure.Reference:
         if (reference == null)
@@ -116,6 +120,17 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         this.isPrimary = isPrimary;
     }
 
+    public UpdateValue<Boolean> getLocalizable() {
+        return localizable;
+    }
+
+    public boolean hasIsPrimary() {
+
+        return getIsPrimary() != null
+                && getIsPrimary().isPresent()
+                && Boolean.TRUE.equals(getIsPrimary().get());
+    }
+
     public String getDescription() {
         return description;
     }
@@ -148,10 +163,15 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         this.displayExpression = displayExpression;
     }
 
-    public boolean hasIsPrimary() {
-        return getIsPrimary() != null
-                && getIsPrimary().isPresent()
-                && Boolean.TRUE.equals(getIsPrimary().get());
+    public boolean isLocalizable() {
+
+        return getLocalizable() != null
+                && getLocalizable().isPresent()
+                && Boolean.TRUE.equals(getLocalizable().get());
+    }
+
+    public void setLocalizable(UpdateValue<Boolean> localizable) {
+        this.localizable = localizable;
     }
 
     public boolean isReferenceType() {
@@ -159,12 +179,14 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     }
 
     public boolean isReferenceUpdating() {
+
         return isNullOrPresent(getAttribute())
                 && isNullOrPresent(getReferenceCode())
                 && isNullOrPresent(getDisplayExpression());
     }
 
     public boolean isReferenceFilling() {
+
         return isNotNullAndPresent(getAttribute())
                 && isNotNullAndPresent(getReferenceCode())
                 && isNotNullAndPresent(getDisplayExpression());
@@ -177,6 +199,7 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
 
         setValueIfExists(this::getName, attribute::setName);
         setValueIfExists(this::getIsPrimary, attribute::setIsPrimary);
+        setValueIfExists(this::getLocalizable, attribute::setLocalizable);
     }
 
     public void fillReference(Structure.Reference reference) {

@@ -11,8 +11,9 @@
             <code>string</code>
             <name>string</name>
             <type>STRING</type>
-            <description>строка</description>
             <primary>true</primary>
+            <localizable>false</localizable>
+            <description>строка</description>
             <validation>
                 <type>PLAIN_SIZE</type>
                 <value>40</value>
@@ -26,8 +27,9 @@
             <code>integer</code>
             <name>integer</name>
             <type>INTEGER</type>
-            <description>число</description>
             <primary>false</primary>
+            <localizable>false</localizable>
+            <description>число</description>
             <validation>
                 <type>INT_RANGE</type>
                 <value>1;10</value>
@@ -40,8 +42,9 @@
             <code>date</code>
             <name>date</name>
             <type>DATE</type>
-            <description>дата</description>
             <primary>false</primary>
+            <localizable>false</localizable>
+            <description>дата</description>
             <validation>
                 <type>DATE_RANGE</type>
                 <value>01.02.2019;02.02.2019</value>
@@ -51,8 +54,9 @@
             <code>boolean</code>
             <name>boolean</name>
             <type>BOOLEAN</type>
-            <description>булево</description>
             <primary>false</primary>
+            <localizable>false</localizable>
+            <description>булево</description>
             <validation>
                 <type>REQUIRED</type>
             </validation>
@@ -61,8 +65,9 @@
             <code>float</code>
             <name>float</name>
             <type>FLOAT</type>
-            <description>дробное</description>
             <primary>false</primary>
+            <localizable>false</localizable>
+            <description>дробное</description>
             <validation>
                 <type>FLOAT_SIZE</type>
                 <value>2;2</value>
@@ -76,8 +81,9 @@
             <code>reference</code>
             <name>reference</name>
             <type>REFERENCE</type>
-            <description>ссылка</description>
             <primary>false</primary>
+            <localizable>false</localizable>
+            <description>ссылка</description>
             <referenceCode>REF_CODE_TO_REFERENCE</referenceCode>
         </row>
     </structure>

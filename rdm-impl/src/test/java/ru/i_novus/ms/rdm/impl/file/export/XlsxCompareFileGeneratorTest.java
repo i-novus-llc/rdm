@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,28 +14,19 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
-import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.model.compare.*;
+import ru.i_novus.ms.rdm.api.model.diff.*;
 import ru.i_novus.ms.rdm.api.model.version.PassportAttribute;
-import ru.i_novus.ms.rdm.api.model.diff.PassportAttributeDiff;
-import ru.i_novus.ms.rdm.api.model.diff.PassportDiff;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
+import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -51,7 +42,6 @@ import static org.mockito.Mockito.when;
  * Created by znurgaliev on 22.10.2018.
  */
 @RunWith(MockitoJUnitRunner.class)
-
 public class XlsxCompareFileGeneratorTest {
 
     @Mock
@@ -196,8 +186,8 @@ public class XlsxCompareFileGeneratorTest {
 
     @Test
     public void testNotComparableData() throws IOException {
-        when(compareService.compareData(any())).thenThrow(new UserException("comparing is unavailable"));
 
+        when(compareService.compareData(any())).thenThrow(new UserException("comparing is unavailable"));
 
         File tempFile = File.createTempFile("compare_no_data", "xlsx");
         try (OutputStream os = new FileOutputStream(tempFile)) {
@@ -220,11 +210,17 @@ public class XlsxCompareFileGeneratorTest {
                 for (Cell expectedCell : expectedRow) {
                     Cell actualCell = actualCells.next();
                     DataFormatter dataFormatter = new DataFormatter();
-                    assertEquals(expectedCell.getCellStyle(), actualCell.getCellStyle());
+                    assertCellStyleEquals((XSSFCellStyle) expectedCell.getCellStyle(),
+                            (XSSFCellStyle) actualCell.getCellStyle());
                     assertEquals(dataFormatter.formatCellValue(expectedCell), dataFormatter.formatCellValue(actualCell));
                 }
             }
         }
+    }
+
+    private void assertCellStyleEquals(XSSFCellStyle expectedCellStyle, XSSFCellStyle actualCellStyle) {
+
+        assertEquals(expectedCellStyle, actualCellStyle);
     }
 
     private static class CompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {

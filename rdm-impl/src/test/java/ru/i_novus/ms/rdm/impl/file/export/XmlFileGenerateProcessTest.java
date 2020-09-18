@@ -5,12 +5,12 @@ import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.xml.sax.SAXException;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.ms.rdm.api.model.validation.*;
-import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
-import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -22,10 +22,51 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.custommonkey.xmlunit.XMLUnit.compareXML;
 import static org.junit.Assert.assertTrue;
-import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
+import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 public class XmlFileGenerateProcessTest {
+
+    @SuppressWarnings("I-novus:UnitTestPrivateMethodsRule")
+    public static Structure createFullTestStructure() {
+
+        return new Structure(
+                asList(
+                        Structure.Attribute.buildPrimary("string", "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
+                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
+                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
+                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
+                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
+                ),
+                singletonList(new Structure.Reference("reference", "ref_code", toPlaceholder("count")))
+        );
+    }
+
+    @SuppressWarnings("I-novus:UnitTestPrivateMethodsRule")
+    public static List<Map<String, Object>> createRowsValues() {
+
+        List<Map<String, Object>> rowValues = new ArrayList<>();
+        rowValues.add(new LinkedHashMap<>() {{
+            put("reference", "2");
+            put("date", parseLocalDate("02.02.2002"));
+            put("boolean", true);
+            put("string", "string2");
+            put("integer", BigInteger.valueOf(2));
+            put("float", BigDecimal.valueOf(2.2));
+        }});
+
+        rowValues.add(new LinkedHashMap<>() {{
+            put("reference", "5");
+            put("date", parseLocalDate("05.05.2005"));
+            put("boolean", false);
+            put("string", "string5");
+            put("integer", BigInteger.valueOf(5));
+            put("float", BigDecimal.valueOf(5.5));
+        }});
+
+        return rowValues;
+    }
 
     @Test
     public void testXmlFileGenerate() throws IOException, SAXException {
@@ -74,43 +115,7 @@ public class XmlFileGenerateProcessTest {
 
         XMLUnit.setIgnoreWhitespace(true);
         final Diff diff = compareXML(expectedXml, actualXml);
-        assertTrue(new DetailedDiff(diff).getAllDifferences().toString(),
-                diff.identical());
-    }
-
-    public static Structure createFullTestStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.buildPrimary("string", "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build("integer", "integer", FieldType.INTEGER, "число"),
-                        Structure.Attribute.build("date", "date", FieldType.DATE, "дата"),
-                        Structure.Attribute.build("boolean", "boolean", FieldType.BOOLEAN, "булево"),
-                        Structure.Attribute.build("float", "float", FieldType.FLOAT, "дробное"),
-                        Structure.Attribute.build("reference", "reference", FieldType.REFERENCE, "ссылка")
-                ),
-                singletonList(new Structure.Reference("reference", "ref_code", toPlaceholder("count")))
-        );
-    }
-
-    public static List<Map<String, Object>> createRowsValues() {
-        List<Map<String, Object>> rowValues = new ArrayList<>();
-        rowValues.add(new LinkedHashMap<>() {{
-            put("reference", "2");
-            put("date", parseLocalDate("02.02.2002"));
-            put("boolean", true);
-            put("string", "string2");
-            put("integer", BigInteger.valueOf(2));
-            put("float", BigDecimal.valueOf(2.2));
-        }});
-        rowValues.add(new LinkedHashMap<>() {{
-            put("reference", "5");
-            put("date", parseLocalDate("05.05.2005"));
-            put("boolean", false);
-            put("string", "string5");
-            put("integer", BigInteger.valueOf(5));
-            put("float", BigDecimal.valueOf(5.5));
-        }});
-        return rowValues;
+        assertTrue(new DetailedDiff(diff).getAllDifferences().toString(), diff.identical());
     }
 
 }

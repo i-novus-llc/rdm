@@ -84,16 +84,11 @@ public class CompareStructureController {
     }
 
     private AttributeDiff createDiff(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
+
         oldAttr = oldAttr != null ? oldAttr : new Structure.Attribute();
         newAttr = newAttr != null ? newAttr : new Structure.Attribute();
-        return new AttributeDiff(
-                newAttr.getCode() != null ? newAttr.getCode() : oldAttr.getCode(),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription()),
-                diffStatus
-        );
+
+        return new AttributeDiff(oldAttr, newAttr, diffStatus);
     }
 
     private Map<String, AttributeDiff> createDiffMap(StructureDiff structureDiff, DiffStatusEnum... statuses) {

@@ -172,11 +172,15 @@ public class StructureControllerTest extends TestCase {
         FormAttribute formAttribute = new FormAttribute();
         formAttribute.setCode(testCode);
         formAttribute.setName(testName);
-        formAttribute.setIsPrimary(false);
-        formAttribute.setDescription(testDescription);
         formAttribute.setType(FieldType.REFERENCE);
+
+        formAttribute.setIsPrimary(false);
+        formAttribute.setLocalizable(false);
+        formAttribute.setDescription(testDescription);
+
         formAttribute.setDisplayExpression(referenceDisplayExpression);
         formAttribute.setReferenceCode(referenceCode);
+
         structureController.createAttribute(versionId, null, formAttribute);
 
         verify(draftService, times(1)).createAttribute(eq(versionId), createAttributeArgumentCaptor.capture());
@@ -187,7 +191,8 @@ public class StructureControllerTest extends TestCase {
         assertEquals(testName, actual.getAttribute().getName());
         assertEquals(testDescription, actual.getAttribute().getDescription());
         assertEquals(FieldType.REFERENCE, actual.getAttribute().getType());
-        assertFalse(actual.getAttribute().getIsPrimary());
+        assertFalse(actual.getAttribute().hasIsPrimary());
+        assertFalse(actual.getAttribute().isLocalizable());
         assertEquals(testCode, actual.getReference().getAttribute());
         assertEquals(referenceDisplayExpression, actual.getReference().getDisplayExpression());
         assertEquals(referenceCode, actual.getReference().getReferenceCode());
