@@ -149,6 +149,7 @@ public class L10nVersionStorageServiceTest {
 
         RefBookVersionEntity versionEntity = createVersionEntity();
         versionEntity.setStorageCode(null);
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
         LocalizeTableRequest request = new LocalizeTableRequest(null, TEST_LOCALE_CODE);
         try {
