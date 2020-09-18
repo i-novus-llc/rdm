@@ -198,23 +198,20 @@ public class L10nVersionStorageServiceTest {
     @Test
     public void testSearchVersionLocales() {
 
-        RefBookVersionEntity versionEntity = createVersionEntity();
-        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
-
         when(localeInfoService.search(any())).thenReturn(LOCALE_INFOS);
 
         List<String> localeCodes = LOCALE_INFOS.stream().map(L10nLocaleInfo::getCode).collect(toList());
         Map<String, String> localeSchemas = localeCodes.stream().collect(toMap(identity(), this::toSchemaName));
         when(storageCodeService.toSchemaNames(eq(localeCodes))).thenReturn(localeSchemas);
 
-        List<String> existedSchemaNames = localeSchemas.entrySet().stream()
+        List<String> existentSchemaNames = localeSchemas.entrySet().stream()
                 .filter(e -> !localeCodes.get(localeCodes.size() - 1).equals(e.getKey()))
                 .map(Map.Entry::getValue)
                 .collect(toList());
-        when(draftDataService.getExistedTableSchemaNames(any(), eq(TEST_STORAGE_NAME))).thenReturn(existedSchemaNames);
+        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
 
         List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
-                .filter(info -> existedSchemaNames.contains(toSchemaName(info.getCode())))
+                .filter(info -> existentSchemaNames.contains(toSchemaName(info.getCode())))
                 .collect(toList());
         List<L10nVersionLocale> actualVersionLocales = versionStorageService
                 .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
@@ -228,14 +225,11 @@ public class L10nVersionStorageServiceTest {
     @Test
     public void testGetVersionLocale() {
 
-        RefBookVersionEntity versionEntity = createVersionEntity();
-        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
-
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
 
-        List<String> existedSchemaNames = List.of(TEST_SCHEMA_NAME);
-        when(draftDataService.getExistedTableSchemaNames(any(), eq(TEST_STORAGE_NAME))).thenReturn(existedSchemaNames);
+        List<String> existentSchemaNames = List.of(TEST_SCHEMA_NAME);
+        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
 
         L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertLocales(TEST_LOCALE_INFO, actualVersionLocale);

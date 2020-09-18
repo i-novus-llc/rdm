@@ -123,20 +123,18 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     @Override
     public Page<L10nVersionLocale> searchVersionLocales(Integer versionId) {
 
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-
         L10nLocaleCriteria criteria = new L10nLocaleCriteria();
         criteria.makeUnpaged();
         List<L10nLocaleInfo> localeInfos = localeInfoService.search(criteria);
         List<String> localeCodes = localeInfos.stream().map(L10nLocaleInfo::getCode).collect(toList());
 
         Map<String, String> localeSchemas = storageCodeService.toSchemaNames(localeCodes);
-        List<String> schemaNames = new ArrayList<>(localeSchemas.values());
-        List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(schemaNames, versionEntity.getStorageCode());
+        List<String> localeSchemaNames = new ArrayList<>(localeSchemas.values());
+        List<String> existentSchemaNames = draftDataService.getExistentSchemaNames(localeSchemaNames);
 
         List<L10nVersionLocale> list = localeSchemas.entrySet().stream()
                 .filter(e -> !StorageUtils.isDefaultSchema(e.getValue()))
-                .filter(e -> tableSchemaNames.contains(e.getValue()))
+                .filter(e -> existentSchemaNames.contains(e.getValue()))
                 .map(e -> toVersionLocale(versionId, findLocaleInfo(e.getKey(), localeInfos)))
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -147,13 +145,11 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     @Override
     public L10nVersionLocale getVersionLocale(Integer versionId, String localeCode) {
 
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-
         L10nLocaleInfo localeInfo = localeInfoService.find(localeCode);
 
-        String localeSchema = storageCodeService.toSchemaName(localeCode);
-        List<String> tableSchemaNames = draftDataService.getExistedTableSchemaNames(List.of(localeSchema), versionEntity.getStorageCode());
-        if (CollectionUtils.isEmpty(tableSchemaNames))
+        String localeSchemaName = storageCodeService.toSchemaName(localeCode);
+        List<String> existentSchemaNames = draftDataService.getExistentSchemaNames(List.of(localeSchemaName));
+        if (CollectionUtils.isEmpty(existentSchemaNames))
             throw new UserException(new Message(LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE, localeCode));
 
         return toVersionLocale(versionId, localeInfo);
