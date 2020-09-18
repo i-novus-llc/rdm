@@ -365,7 +365,7 @@ public class Structure implements Serializable {
         }
 
         public void setLocalizable(Boolean localizable) {
-            this.localizable = localizable;
+            this.localizable = Boolean.TRUE.equals(localizable) ? Boolean.TRUE : null;
         }
 
         @JsonGetter
