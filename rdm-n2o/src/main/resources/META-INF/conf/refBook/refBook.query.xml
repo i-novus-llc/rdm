@@ -198,7 +198,7 @@
 
         <field id="lastHasConflictMsg" domain="string">
             <select mapping="
-                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                (lastHasConflict ? 'В опубликованной версии есть ссылки на неактуальные данные' : '')
                 "/>
         </field>
 
