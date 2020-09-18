@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -40,8 +41,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
@@ -49,6 +49,7 @@ import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUti
 public class L10nVersionStorageServiceTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
+    private static final int TEST_OPT_LOCK_VALUE = 10;
     private static final String TEST_REFBOOK_CODE = "L10N_TEST";
 
     private static final String TEST_LOCALE_CODE = "test";
@@ -111,46 +112,20 @@ public class L10nVersionStorageServiceTest {
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
-
-        LocalizeTableRequest sameRequest = new LocalizeTableRequest();
-        sameRequest.setOptLockValue(versionEntity.getOptLockValue());
-        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
-
-        assertEquals(request.toString(), sameRequest.toString());
-        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
-        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
     }
 
     @Test
-    public void testLocalizeData() {
+    public void testLocalizeTableFailed() {
 
-        RefBookVersionEntity versionEntity = createVersionEntity();
-        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+        LocalizeTableRequest request = new LocalizeTableRequest(null, null);
+        try {
+            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            fail(getFailedMessage(IllegalArgumentException.class));
 
-        String schemaName = TEST_SCHEMA_NAME;
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
-        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
-        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
-
-        final int rowCount = 10;
-        List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
-
-        LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
-        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
-
-        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
-        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
-        verify(draftDataService).updateRows(eq(testStorageCode), any());
-
-        LocalizeDataRequest sameRequest = new LocalizeDataRequest();
-        sameRequest.setOptLockValue(versionEntity.getOptLockValue());
-        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
-        sameRequest.setRows(rows);
-
-        assertEquals(request.toString(), sameRequest.toString());
-        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
-        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
-        assertEquals(request.getRows(), sameRequest.getRows());
+        } catch (RuntimeException e) {
+            assertEquals(IllegalArgumentException.class, e.getClass());
+            assertEquals("locale.code.not.found", getExceptionMessage(e));
+        }
     }
 
     @Test
@@ -170,7 +145,24 @@ public class L10nVersionStorageServiceTest {
     }
 
     @Test
-    public void testLocalizeTableFailed() {
+    public void testLocalizeTableVersionStorageFailed() {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        versionEntity.setStorageCode(null);
+
+        LocalizeTableRequest request = new LocalizeTableRequest(null, TEST_LOCALE_CODE);
+        try {
+            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            fail(getFailedMessage(IllegalArgumentException.class));
+
+        } catch (RuntimeException e) {
+            assertEquals(IllegalArgumentException.class, e.getClass());
+            assertEquals("storage.code.not.found", getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testLocalizeTableSchemaFailed() {
 
         failLocalizeTableToSchema(null, "locale.code.is.default", UserException.class);
         failLocalizeTableToSchema(DEFAULT_SCHEMA_NAME, "locale.code.is.default", UserException.class);
@@ -193,6 +185,115 @@ public class L10nVersionStorageServiceTest {
             assertEquals(expectedExceptionClass, e.getClass());
             assertEquals(message, getExceptionMessage(e));
         }
+    }
+
+    @Test
+    public void testLocalizeData() {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        String schemaName = TEST_SCHEMA_NAME;
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
+
+        final int rowCount = 10;
+        List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
+
+        LocalizeDataRequest request = new LocalizeDataRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE, rows);
+        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
+        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
+        verify(draftDataService).updateRows(eq(testStorageCode), any());
+    }
+
+    @Test
+    public void testLocalizeDataWithNullRows() {
+
+        testLocalizeDataWithoutRows(null);
+    }
+
+    @Test
+    public void testLocalizeDataWithEmptyRows() {
+
+        testLocalizeDataWithoutRows(emptyList());
+    }
+
+    @Test
+    public void testLocalizeDataWithInvalidRows() {
+
+        final int rowCount = 10;
+        List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
+        rows.forEach(row -> row.setSystemId(null));
+
+        testLocalizeDataWithoutRows(rows);
+    }
+
+    private void testLocalizeDataWithoutRows(List<Row> rows) {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        String schemaName = TEST_SCHEMA_NAME;
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
+
+        LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
+        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+
+        verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
+        verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
+        verify(draftDataService, times(0)).updateRows(eq(testStorageCode), any());
+    }
+
+    @Test
+    public void testLocalizeDataFailed() {
+
+        LocalizeDataRequest request = new LocalizeDataRequest(null, null, null);
+        try {
+            versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+            fail(getFailedMessage(IllegalArgumentException.class));
+
+        } catch (RuntimeException e) {
+            assertEquals(IllegalArgumentException.class, e.getClass());
+            assertEquals("locale.code.not.found", getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testLocalizeTableRequest() {
+
+        LocalizeTableRequest request = new LocalizeTableRequest(TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE);
+
+        LocalizeTableRequest sameRequest = new LocalizeTableRequest();
+        sameRequest.setOptLockValue(TEST_OPT_LOCK_VALUE);
+        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
+
+        assertEquals(request.toString(), sameRequest.toString());
+        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
+        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
+    }
+
+    @Test
+    public void testLocalizeDataRequest() {
+
+        final int rowCount = 10;
+        List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
+
+        LocalizeDataRequest request = new LocalizeDataRequest(TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, rows);
+
+        LocalizeDataRequest sameRequest = new LocalizeDataRequest();
+        sameRequest.setOptLockValue(TEST_OPT_LOCK_VALUE);
+        sameRequest.setLocaleCode(TEST_LOCALE_CODE);
+        sameRequest.setRows(rows);
+
+        assertEquals(request.toString(), sameRequest.toString());
+        assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
+        assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
+        assertEquals(request.getRows(), sameRequest.getRows());
     }
 
     @Test

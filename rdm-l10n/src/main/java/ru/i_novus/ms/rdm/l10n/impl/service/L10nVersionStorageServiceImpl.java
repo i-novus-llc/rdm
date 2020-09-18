@@ -91,6 +91,9 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
 
         String targetCode = localizeTable(versionEntity, request);
 
+        if (CollectionUtils.isEmpty(request.getRows()))
+            return;
+
         Structure structure = versionEntity.getStructure();
         List<RowValue> updatedRowValues = request.getRows().stream()
                 .map(row -> ConverterUtil.rowValue(row, structure))
