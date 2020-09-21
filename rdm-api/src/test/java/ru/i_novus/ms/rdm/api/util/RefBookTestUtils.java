@@ -1,10 +1,13 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import net.n2oapp.platform.i18n.UserException;
+import org.junit.Assert;
 import org.springframework.util.StringUtils;
 
+import java.math.BigInteger;
 import java.util.function.BiConsumer;
 
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @SuppressWarnings("java:S3740")
@@ -27,6 +30,19 @@ public class RefBookTestUtils {
             objectAssert.accept(current.hashCode(), actual.hashCode());
             objectAssert.accept(current.toString(), actual.toString());
         }
+    }
+
+    /**
+     * Сравнение объектов по особым условиям.
+     */
+    public static void assertSpecialEquals(Object current) {
+
+        assertNotNull(current);
+        assertObjects(Assert::assertEquals, current, current);
+        assertObjects(Assert::assertNotEquals, current, null);
+
+        Object other = (!BigInteger.ZERO.equals(current)) ? BigInteger.ZERO : BigInteger.ONE;
+        assertObjects(Assert::assertNotEquals, current, other);
     }
 
     /**
