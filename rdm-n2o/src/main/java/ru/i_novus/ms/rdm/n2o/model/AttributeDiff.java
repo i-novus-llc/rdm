@@ -34,8 +34,8 @@ public class AttributeDiff {
         this.name = new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName());
         this.type = new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType());
 
-        this.isPrimary = new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary());
-        this.localizable = new AttributeDiff.AttributeFieldDiff(oldAttr.getLocalizable(), newAttr.getLocalizable());
+        this.isPrimary = new AttributeDiff.AttributeFieldDiff(oldAttr.hasIsPrimary(), newAttr.hasIsPrimary());
+        this.localizable = new AttributeDiff.AttributeFieldDiff(oldAttr.isLocalizable(), newAttr.isLocalizable());
         this.description = new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription());
 
         this.diffStatus = diffStatus;
@@ -126,6 +126,7 @@ public class AttributeDiff {
         private Object newValue;
 
         public AttributeFieldDiff() {
+            // Nothing to do.
         }
 
         public AttributeFieldDiff(Object oldValue, Object newValue) {
