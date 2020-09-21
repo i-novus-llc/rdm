@@ -17,9 +17,10 @@ public class N2oDomain {
     public static final String BOOLEAN = "boolean";
 
     private N2oDomain() {
+        // Nothing to do.
     }
 
-    static String fieldTypeToDomain(FieldType fieldType) {
+    public static String fieldTypeToDomain(FieldType fieldType) {
         switch (fieldType) {
             case STRING: return N2oDomain.STRING;
             case INTEGER: return N2oDomain.INTEGER;
