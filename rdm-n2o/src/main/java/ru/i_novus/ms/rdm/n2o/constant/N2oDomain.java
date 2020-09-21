@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.provider;
+package ru.i_novus.ms.rdm.n2o.constant;
 
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 

@@ -1,4 +1,6 @@
-package ru.i_novus.ms.rdm.n2o.provider;
+package ru.i_novus.ms.rdm.n2o.constant;
+
+import java.util.List;
 
 public class DataRecordConstants {
 

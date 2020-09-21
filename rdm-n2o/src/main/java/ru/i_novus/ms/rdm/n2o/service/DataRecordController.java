@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
-import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
+import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.util.*;

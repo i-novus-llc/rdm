@@ -15,6 +15,8 @@ import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
+import ru.i_novus.ms.rdm.n2o.constant.N2oDomain;
 
 import java.util.*;
 
