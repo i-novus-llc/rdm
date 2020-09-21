@@ -13,9 +13,12 @@ import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.jsonMapper;
 
 public class StructureType implements UserType {
@@ -136,9 +139,16 @@ public class StructureType implements UserType {
         attributeJson.put("code", attribute.getCode());
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
-        attributeJson.put("isPrimary", attribute.hasIsPrimary());
-        Optional.ofNullable(attribute.getLocalizable()).ifPresent(value -> attributeJson.put("localizable", value));
-        Optional.ofNullable(attribute.getDescription()).ifPresent(value -> attributeJson.put("description", value));
+
+        if (attribute.hasIsPrimary()) {
+            attributeJson.put("isPrimary", true);
+        }
+        if (attribute.isLocalizable()) {
+            attributeJson.put("localizable", true);
+        }
+        if (!isEmpty(attribute.getDescription())) {
+            attributeJson.put("description", attribute.getDescription());
+        }
 
         Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
