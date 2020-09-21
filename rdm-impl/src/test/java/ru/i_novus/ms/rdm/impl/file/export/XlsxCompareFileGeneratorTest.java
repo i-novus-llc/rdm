@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -210,17 +209,11 @@ public class XlsxCompareFileGeneratorTest {
                 for (Cell expectedCell : expectedRow) {
                     Cell actualCell = actualCells.next();
                     DataFormatter dataFormatter = new DataFormatter();
-                    assertCellStyleEquals((XSSFCellStyle) expectedCell.getCellStyle(),
-                            (XSSFCellStyle) actualCell.getCellStyle());
+                    assertEquals(expectedCell.getCellStyle(), actualCell.getCellStyle());
                     assertEquals(dataFormatter.formatCellValue(expectedCell), dataFormatter.formatCellValue(actualCell));
                 }
             }
         }
-    }
-
-    private void assertCellStyleEquals(XSSFCellStyle expectedCellStyle, XSSFCellStyle actualCellStyle) {
-
-        assertEquals(expectedCellStyle, actualCellStyle);
     }
 
     private static class CompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {
