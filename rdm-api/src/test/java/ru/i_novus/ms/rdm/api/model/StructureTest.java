@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.util.RefBookTestUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
@@ -106,6 +107,7 @@ public class StructureTest {
         Structure structure = new Structure();
         assertNotNull(structure);
         assertTrue(structure.isEmpty());
+        assertSpecialEquals(structure);
 
         assertNotNull(structure.getAttributes());
         assertNotNull(structure.getReferences());
@@ -139,6 +141,9 @@ public class StructureTest {
         assertEquals(ATTRIBUTE_LIST, structure.getAttributes());
         assertEquals(REFERENCE_LIST, structure.getReferences());
 
+        structure.getAttributes().forEach(RefBookTestUtils::assertSpecialEquals);
+        structure.getReferences().forEach(RefBookTestUtils::assertSpecialEquals);
+
         Structure emptyStructure = new Structure();
         assertObjects(Assert::assertNotEquals, structure, emptyStructure);
 
@@ -154,6 +159,7 @@ public class StructureTest {
     public void testCopy() {
 
         Structure structure = createStructure();
+        assertSpecialEquals(structure);
 
         Structure copyStructure = new Structure(structure);
         assertEquals(structure, copyStructure);
@@ -168,6 +174,65 @@ public class StructureTest {
         structure.getReferences().forEach(reference -> {
             Structure.Reference copyReference = copyReference(reference);
             assertObjects(Assert::assertEquals, reference, copyReference);
+        });
+    }
+
+    @Test
+    public void testBuild() {
+
+        Structure structure = createStructure();
+
+        structure.getAttributes().forEach(attribute -> {
+            Structure.Attribute buildAttribute = Structure.Attribute.build(attribute);
+            assertObjects(Assert::assertEquals, attribute, buildAttribute);
+            assertTrue(buildAttribute.storageEquals(attribute));
+        });
+
+        structure.getReferences().forEach(reference -> {
+            Structure.Reference buildReference = Structure.Reference.build(reference);
+            assertObjects(Assert::assertEquals, reference, buildReference);
+        });
+    }
+
+    @Test
+    public void testBuildNull() {
+        Structure.Attribute nullAttribute = Structure.Attribute.build(null);
+        assertEquals(new Structure.Attribute(), nullAttribute);
+
+        Structure.Reference nullReference = Structure.Reference.build(null);
+        assertEquals(new Structure.Reference(), nullReference);
+        assertTrue(nullReference.isNull());
+    }
+
+    @Test
+    public void testBuildWithSet() {
+
+        Structure structure = createStructure();
+
+        structure.getPrimaries().forEach(attribute -> {
+
+            Structure.Attribute createAttribute = Structure.Attribute.build(attribute);
+            attribute.setIsPrimary(true);
+            assertObjects(Assert::assertEquals, attribute, createAttribute);
+            assertTrue(createAttribute.storageEquals(attribute));
+
+            createAttribute = Structure.Attribute.build(attribute);
+            attribute.setIsPrimary(null);
+            assertObjects(Assert::assertNotEquals, attribute, createAttribute);
+            assertTrue(createAttribute.storageEquals(attribute));
+        });
+
+        structure.getAttributes().stream().filter(Structure.Attribute::isLocalizable).forEach(attribute -> {
+
+            Structure.Attribute createAttribute = Structure.Attribute.build(attribute);
+            attribute.setLocalizable(true);
+            assertObjects(Assert::assertEquals, attribute, createAttribute);
+            assertTrue(createAttribute.storageEquals(attribute));
+
+            createAttribute = Structure.Attribute.build(attribute);
+            attribute.setLocalizable(null);
+            assertObjects(Assert::assertNotEquals, attribute, createAttribute);
+            assertTrue(createAttribute.storageEquals(attribute));
         });
     }
 
@@ -234,6 +299,7 @@ public class StructureTest {
                     REFERENCE_LIST.get(index),
                     structure.getReference(code)
             );
+            assertFalse(REFERENCE_LIST.get(index).isNull());
         });
     }
 
@@ -344,31 +410,31 @@ public class StructureTest {
     }
 
     @Test
-    public void testChangeEmptyWithReference() {
+    public void testChangeEmptyWithAttribute() {
 
         Structure oldStructure = new Structure();
-        changeStructureWithReference(oldStructure);
+        testChangeStructureWithAttribute(oldStructure);
     }
 
     @Test
     public void testChangeFilledWithAttribute() {
 
         Structure oldStructure = createStructure();
-        changeStructureWithAttribute(oldStructure);
+        testChangeStructureWithAttribute(oldStructure);
     }
 
     @Test
-    public void testChangeEmptyWithAttribute() {
+    public void testChangeEmptyWithReference() {
 
         Structure oldStructure = new Structure();
-        changeStructureWithAttribute(oldStructure);
+        testChangeStructureWithReference(oldStructure);
     }
 
     @Test
     public void testChangeFilledWithReference() {
 
         Structure oldStructure = createStructure();
-        changeStructureWithReference(oldStructure);
+        testChangeStructureWithReference(oldStructure);
     }
 
     @Test
@@ -397,6 +463,193 @@ public class StructureTest {
             assertEquals(UserException.class, e.getClass());
             assertEquals("primary.attribute.is.multiple", getExceptionMessage(e));
         }
+    }
+
+    private void testChangeStructureWithAttribute(Structure oldStructure) {
+
+        testChangeSimple(oldStructure);
+        testChangeNullAttribute(oldStructure);
+        testChangeWithAttribute(oldStructure);
+    }
+
+    private void testChangeStructureWithReference(Structure oldStructure) {
+
+        testChangeNullReference(oldStructure);
+        testChangeWithReference(oldStructure);
+    }
+
+    private void testChangeSimple(Structure oldStructure) {
+
+        Structure addedStructure = new Structure(oldStructure);
+
+        Structure.Attribute addingAttribute = copyAttribute(CHANGE_ATTRIBUTE);
+
+        addedStructure.add(addingAttribute, null);
+        assertObjects(Assert::assertNotEquals, oldStructure, addedStructure);
+        assertFalse(addedStructure.storageEquals(oldStructure));
+
+        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, CHANGE_ATTRIBUTE, addedAttribute);
+
+        Structure updatedStructure = new Structure(addedStructure);
+
+        Structure.Attribute updatingAttribute = copyAttribute(CHANGE_ATTRIBUTE);
+        updatingAttribute.setType(FieldType.INTEGER);
+
+        updatedStructure.update(addedAttribute, updatingAttribute);
+        assertFalse(updatedStructure.storageEquals(oldStructure));
+
+        Structure.Attribute updatedAttribute = updatedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertNotEquals, CHANGE_ATTRIBUTE, updatedAttribute);
+        assertFalse(updatedAttribute.storageEquals(addedAttribute));
+
+        Structure removedStructure = new Structure(updatedStructure);
+
+        removedStructure.remove(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, oldStructure, removedStructure);
+        assertTrue(removedStructure.storageEquals(oldStructure));
+    }
+
+    private void testChangeNullAttribute(Structure oldStructure) {
+
+        Structure addedStructure = new Structure(oldStructure);
+
+        addedStructure.add(null, null);
+        assertObjects(Assert::assertEquals, oldStructure, addedStructure);
+        assertTrue(addedStructure.storageEquals(oldStructure));
+
+        assertEquals(oldStructure.getAttributes().size(), addedStructure.getAttributes().size());
+        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
+
+        addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), null);
+
+        Structure removedStructure = new Structure(addedStructure);
+
+        removedStructure.remove(null);
+        assertObjects(Assert::assertEquals, addedStructure, removedStructure);
+        assertTrue(removedStructure.storageEquals(addedStructure));
+
+        assertEquals(addedStructure.getAttributes().size(), removedStructure.getAttributes().size());
+        assertEquals(addedStructure.getReferences().size(), removedStructure.getReferences().size());
+    }
+
+    private void testChangeWithAttribute(Structure oldStructure) {
+
+        Structure addedStructure = new Structure(oldStructure);
+
+        addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), null);
+        assertObjects(Assert::assertNotEquals, oldStructure, addedStructure);
+        assertFalse(addedStructure.storageEquals(oldStructure));
+
+        assertEquals(oldStructure.getAttributes().size() + 1, addedStructure.getAttributes().size());
+        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
+
+        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
+        Structure.Reference addedReference = addedStructure.getReference(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, CHANGE_ATTRIBUTE, addedAttribute);
+        assertNull(addedReference);
+
+        Structure updatedStructure = new Structure(addedStructure);
+
+        Structure.Attribute updatingAttribute = copyAttribute(CHANGE_ATTRIBUTE);
+        String newName = updatingAttribute.getName() + "_updated";
+        updatingAttribute.setName(newName);
+        updatingAttribute.setType(FieldType.REFERENCE);
+        assertObjects(Assert::assertNotEquals, CHANGE_ATTRIBUTE, updatingAttribute);
+
+        updatedStructure.update(addedAttribute, updatingAttribute);
+        assertFalse(updatedStructure.storageEquals(oldStructure));
+
+        Structure.Attribute updatedAttribute = updatedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
+        assertEquals(newName, updatedAttribute.getName());
+        assertObjects(Assert::assertNotEquals, CHANGE_ATTRIBUTE, updatedAttribute);
+
+        Structure.Reference updatingReference = copyReference(CHANGE_REF_REFERENCE);
+        updatingReference.setAttribute(CHANGE_ATTRIBUTE_CODE);
+        String newDisplayExpression = updatingReference.getDisplayExpression() + "_updated";
+        updatingReference.setDisplayExpression(newDisplayExpression);
+        assertObjects(Assert::assertNotEquals, CHANGE_REF_REFERENCE, updatingReference);
+
+        updatedStructure.update(addedReference, updatingReference);
+        assertFalse(updatedStructure.storageEquals(oldStructure));
+
+        Structure.Reference updatedReference = updatedStructure.getReference(CHANGE_ATTRIBUTE_CODE);
+        assertEquals(newDisplayExpression, updatedReference.getDisplayExpression());
+        assertObjects(Assert::assertNotEquals, CHANGE_REF_REFERENCE, updatedReference);
+
+        Structure removedStructure = new Structure(updatedStructure);
+
+        removedStructure.remove(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, oldStructure, removedStructure);
+        assertTrue(removedStructure.storageEquals(oldStructure));
+    }
+
+    private void testChangeNullReference(Structure oldStructure) {
+
+        Structure addedStructure = new Structure(oldStructure);
+
+        addedStructure.add(null, CHANGE_REF_REFERENCE);
+        assertObjects(Assert::assertEquals, oldStructure, addedStructure);
+        assertTrue(addedStructure.storageEquals(oldStructure));
+
+        assertEquals(oldStructure.getAttributes().size(), addedStructure.getAttributes().size());
+        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
+
+        addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), copyReference(CHANGE_REF_REFERENCE));
+
+        Structure removedStructure = new Structure(addedStructure);
+
+        removedStructure.remove(null);
+        assertObjects(Assert::assertEquals, addedStructure, removedStructure);
+        assertTrue(removedStructure.storageEquals(addedStructure));
+
+        assertEquals(addedStructure.getAttributes().size(), removedStructure.getAttributes().size());
+        assertEquals(addedStructure.getReferences().size(), removedStructure.getReferences().size());
+    }
+
+    private void testChangeWithReference(Structure oldStructure) {
+
+        Structure addedStructure = new Structure(oldStructure);
+
+        addedStructure.add(copyAttribute(CHANGE_REF_ATTRIBUTE), copyReference(CHANGE_REF_REFERENCE));
+        assertObjects(Assert::assertNotEquals, oldStructure, addedStructure);
+        assertFalse(addedStructure.storageEquals(oldStructure));
+
+        assertEquals(oldStructure.getAttributes().size() + 1, addedStructure.getAttributes().size());
+        assertEquals(oldStructure.getReferences().size() + 1, addedStructure.getReferences().size());
+
+        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_REF_ATTRIBUTE_CODE);
+        Structure.Reference addedReference = addedStructure.getReference(CHANGE_REF_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, CHANGE_REF_ATTRIBUTE, addedAttribute);
+        assertObjects(Assert::assertEquals, CHANGE_REF_REFERENCE, addedReference);
+
+        Structure updatedStructure = new Structure(addedStructure);
+
+        Structure.Attribute updatingAttribute = copyAttribute(CHANGE_REF_ATTRIBUTE);
+        String newName = updatingAttribute.getName() + "_updated";
+        updatingAttribute.setName(newName);
+
+        updatedStructure.update(addedAttribute, updatingAttribute);
+        assertFalse(updatedStructure.storageEquals(oldStructure));
+
+        Structure.Attribute updatedAttribute = updatedStructure.getAttribute(CHANGE_REF_ATTRIBUTE_CODE);
+        assertEquals(newName, updatedAttribute.getName());
+        assertObjects(Assert::assertNotEquals, CHANGE_REF_ATTRIBUTE, updatedAttribute);
+
+        Structure.Reference updatingReference = copyReference(CHANGE_REF_REFERENCE);
+        String newDisplayExpression = updatingReference.getDisplayExpression() + "_updated";
+        updatingReference.setDisplayExpression(newDisplayExpression);
+        updatedStructure.update(addedReference, updatingReference);
+
+        Structure.Reference updatedReference = updatedStructure.getReference(CHANGE_REF_ATTRIBUTE_CODE);
+        assertEquals(newDisplayExpression, updatedReference.getDisplayExpression());
+        assertObjects(Assert::assertNotEquals, CHANGE_REF_REFERENCE, updatedReference);
+
+        Structure removedStructure = new Structure(updatedStructure);
+
+        removedStructure.remove(CHANGE_REF_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, oldStructure, removedStructure);
+        assertTrue(removedStructure.storageEquals(oldStructure));
     }
 
     /** Создание структуры с глубоким копированием атрибутов и ссылок. */
@@ -442,116 +695,5 @@ public class StructureTest {
         result.setDisplayExpression(reference.getDisplayExpression());
 
         return result;
-    }
-
-    private void changeStructureWithAttribute(Structure oldStructure) {
-
-        Structure addedStructure = new Structure(oldStructure);
-
-        addedStructure.add(null, null);
-        assertObjects(Assert::assertEquals, oldStructure, addedStructure);
-        assertTrue(addedStructure.storageEquals(oldStructure));
-
-        addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), null);
-        assertObjects(Assert::assertNotEquals, oldStructure, addedStructure);
-        assertFalse(addedStructure.storageEquals(oldStructure));
-
-        assertEquals(oldStructure.getAttributes().size() + 1, addedStructure.getAttributes().size());
-        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
-
-        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
-        Structure.Reference addedReference = addedStructure.getReference(CHANGE_ATTRIBUTE_CODE);
-        assertObjects(Assert::assertEquals, CHANGE_ATTRIBUTE, addedAttribute);
-        assertNull(addedReference);
-
-        Structure updatedStructure = new Structure(addedStructure);
-
-        Structure.Attribute updatingAttribute = copyAttribute(CHANGE_ATTRIBUTE);
-        String newName = updatingAttribute.getName() + "_updated";
-        updatingAttribute.setName(newName);
-        updatingAttribute.setType(FieldType.REFERENCE);
-
-        updatedStructure.update(addedAttribute, updatingAttribute);
-        assertFalse(updatedStructure.storageEquals(oldStructure));
-
-        Structure.Attribute updatedAttribute = updatedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
-        assertEquals(newName, updatedAttribute.getName());
-        assertObjects(Assert::assertNotEquals, CHANGE_ATTRIBUTE, updatedAttribute);
-
-        Structure.Reference updatingReference = copyReference(CHANGE_REF_REFERENCE);
-        updatingReference.setAttribute(CHANGE_ATTRIBUTE_CODE);
-        String newDisplayExpression = updatingReference.getDisplayExpression() + "_updated";
-        updatingReference.setDisplayExpression(newDisplayExpression);
-        updatedStructure.update(addedReference, updatingReference);
-
-        Structure.Reference updatedReference = updatedStructure.getReference(CHANGE_ATTRIBUTE_CODE);
-        assertEquals(newDisplayExpression, updatedReference.getDisplayExpression());
-        assertObjects(Assert::assertNotEquals, CHANGE_REF_REFERENCE, updatedReference);
-
-        Structure removedStructure = new Structure(updatedStructure);
-
-        removedStructure.remove(null);
-        assertObjects(Assert::assertEquals, updatedStructure, removedStructure);
-        assertTrue(removedStructure.storageEquals(updatedStructure));
-
-        removedStructure.remove(CHANGE_ATTRIBUTE_CODE);
-        assertObjects(Assert::assertEquals, oldStructure, removedStructure);
-        assertTrue(removedStructure.storageEquals(oldStructure));
-    }
-
-    private void changeStructureWithReference(Structure oldStructure) {
-
-        Structure addedStructure = new Structure(oldStructure);
-
-        addedStructure.add(null, CHANGE_REF_REFERENCE);
-        assertObjects(Assert::assertEquals, oldStructure, addedStructure);
-        assertTrue(addedStructure.storageEquals(oldStructure));
-
-        assertEquals(oldStructure.getAttributes().size(), addedStructure.getAttributes().size());
-        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
-
-        addedStructure.add(copyAttribute(CHANGE_REF_ATTRIBUTE), copyReference(CHANGE_REF_REFERENCE));
-        assertObjects(Assert::assertNotEquals, oldStructure, addedStructure);
-        assertFalse(addedStructure.storageEquals(oldStructure));
-
-        assertEquals(oldStructure.getAttributes().size() + 1, addedStructure.getAttributes().size());
-        assertEquals(oldStructure.getReferences().size() + 1, addedStructure.getReferences().size());
-
-        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_REF_ATTRIBUTE_CODE);
-        Structure.Reference addedReference = addedStructure.getReference(CHANGE_REF_ATTRIBUTE_CODE);
-        assertObjects(Assert::assertEquals, CHANGE_REF_ATTRIBUTE, addedAttribute);
-        assertObjects(Assert::assertEquals, CHANGE_REF_REFERENCE, addedReference);
-
-        Structure updatedStructure = new Structure(addedStructure);
-
-        Structure.Attribute updatingAttribute = copyAttribute(CHANGE_REF_ATTRIBUTE);
-        String newName = updatingAttribute.getName() + "_updated";
-        updatingAttribute.setName(newName);
-
-        updatedStructure.update(addedAttribute, updatingAttribute);
-        assertFalse(updatedStructure.storageEquals(oldStructure));
-
-        Structure.Attribute updatedAttribute = updatedStructure.getAttribute(CHANGE_REF_ATTRIBUTE_CODE);
-        assertEquals(newName, updatedAttribute.getName());
-        assertObjects(Assert::assertNotEquals, CHANGE_REF_ATTRIBUTE, updatedAttribute);
-
-        Structure.Reference updatingReference = copyReference(CHANGE_REF_REFERENCE);
-        String newDisplayExpression = updatingReference.getDisplayExpression() + "_updated";
-        updatingReference.setDisplayExpression(newDisplayExpression);
-        updatedStructure.update(addedReference, updatingReference);
-
-        Structure.Reference updatedReference = updatedStructure.getReference(CHANGE_REF_ATTRIBUTE_CODE);
-        assertEquals(newDisplayExpression, updatedReference.getDisplayExpression());
-        assertObjects(Assert::assertNotEquals, CHANGE_REF_REFERENCE, updatedReference);
-
-        Structure removedStructure = new Structure(updatedStructure);
-
-        removedStructure.remove(null);
-        assertObjects(Assert::assertEquals, updatedStructure, removedStructure);
-        assertTrue(removedStructure.storageEquals(updatedStructure));
-
-        removedStructure.remove(CHANGE_REF_ATTRIBUTE_CODE);
-        assertObjects(Assert::assertEquals, oldStructure, removedStructure);
-        assertTrue(removedStructure.storageEquals(oldStructure));
     }
 }
