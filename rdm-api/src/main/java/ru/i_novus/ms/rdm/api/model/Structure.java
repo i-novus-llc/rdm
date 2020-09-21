@@ -260,11 +260,11 @@ public class Structure implements Serializable {
 
         /** Признак первичного атрибута. */
         @ApiModelProperty("Признак первичного атрибута")
-        private Boolean isPrimary;
+        private Boolean isPrimary = Boolean.FALSE;
 
         /** Признак переводимого атрибута. */
         @ApiModelProperty("Признак переводимого атрибута")
-        private Boolean localizable;
+        private Boolean localizable = Boolean.FALSE;
 
         /** Описание атрибута. */
         @ApiModelProperty("Описание атрибута")
@@ -290,10 +290,7 @@ public class Structure implements Serializable {
         }
 
         public static Attribute build(String code, String name, FieldType type, String description) {
-
-            Attribute attribute = create(code, name, type, description);
-            attribute.setIsPrimary(Boolean.FALSE);
-            return attribute;
+            return create(code, name, type, description);
         }
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
@@ -306,7 +303,6 @@ public class Structure implements Serializable {
         public static Attribute buildLocalizable(String code, String name, FieldType type, String description) {
 
             Attribute attribute = create(code, name, type, description);
-            attribute.setIsPrimary(Boolean.FALSE);
             attribute.setLocalizable(Boolean.TRUE);
             return attribute;
         }
@@ -365,7 +361,7 @@ public class Structure implements Serializable {
         }
 
         public void setLocalizable(Boolean localizable) {
-            this.localizable = Boolean.TRUE.equals(localizable) ? Boolean.TRUE : null;
+            this.localizable = localizable != null && localizable;
         }
 
         @JsonGetter
