@@ -136,7 +136,7 @@ public class StructureType implements UserType {
         attributeJson.put("code", attribute.getCode());
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());
-        attributeJson.put("isPrimary", attribute.getIsPrimary());
+        attributeJson.put("isPrimary", attribute.hasIsPrimary());
         Optional.ofNullable(attribute.getLocalizable()).ifPresent(value -> attributeJson.put("localizable", value));
         Optional.ofNullable(attribute.getDescription()).ifPresent(value -> attributeJson.put("description", value));
 
