@@ -90,12 +90,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private N2oQuery.Field[] createQueryFields(Integer versionId, Structure structure) {
 
         return Stream.concat(
-                createFixedFields(versionId).stream(),
+                createRegularFields(versionId).stream(),
                 createDynamicFields(structure).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
 
-    private List<N2oQuery.Field> createFixedFields(Integer versionId) {
+    private List<N2oQuery.Field> createRegularFields(Integer versionId) {
 
         N2oQuery.Field idField = new N2oQuery.Field();
         idField.setId(FIELD_SYSTEM_ID);
