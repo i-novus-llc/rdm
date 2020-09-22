@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
-import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
+import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.util.*;
@@ -29,6 +29,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 
 @Controller
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider
@@ -54,37 +55,37 @@ public class DataRecordController {
     private Messages messages;
 
     /**
-     * Получение записи версии справочника для создания/редактирования.
+     * Получение записи версии справочника по параметрам.
      *
-     * @param versionId    идентификатор версии справочника
-     * @param sysRecordId  идентификатор записи
-     * @param optLockValue значение оптимистической блокировки версии
-     * @param dataAction   действие, которое планируется выполнять над записью
+     * @param criteria критерий поиска
      */
-    public Map<String, Object> getRow(Integer versionId, Integer sysRecordId, Integer optLockValue, String dataAction) {
+    public Map<String, Object> getRow(DataRecordCriteria criteria) {
 
-        RefBookVersion version = versionService.getById(versionId);
+        String dataAction = criteria.getDataAction();
         if (StringUtils.isEmpty(dataAction))
-            throw new IllegalArgumentException("data action is not supported");
+            throw new IllegalArgumentException("A data action is not specified");
 
-        Map<String, Object> map = createRowMap(version, optLockValue, dataAction);
+        RefBookVersion version = versionService.getById(criteria.getVersionId());
+
+        Map<String, Object> map = createRowMap(version, criteria);
 
         switch (dataAction) {
-            case DataRecordConstants.DATA_ACTION_CREATE: return getCreatedRow(version, map);
-            case DataRecordConstants.DATA_ACTION_EDIT: return getUpdatedRow(versionId, sysRecordId, map);
+            case DATA_ACTION_CREATE: return getCreatedRow(version, map);
+            case DATA_ACTION_EDIT: return getUpdatedRow(version, criteria.getId(), map);
             default: return emptyMap();
         }
     }
 
     /** Создание набора для заполнения. */
-    private Map<String, Object> createRowMap(RefBookVersion version, Integer optLockValue, String dataAction) {
+    private Map<String, Object> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
 
         int atributeCount = version.getStructure().getAttributes().size();
         Map<String, Object> map = new HashMap<>(4 + atributeCount);
 
-        map.put(DataRecordConstants.FIELD_VERSION_ID, version.getId());
-        map.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, optLockValue);
-        map.put(DataRecordConstants.FIELD_DATA_ACTION, dataAction);
+        map.put(FIELD_VERSION_ID, version.getId());
+        map.put(FIELD_OPT_LOCK_VALUE, criteria.getOptLockValue());
+        map.put(FIELD_LOCALE_CODE, criteria.getLocaleCode());
+        map.put(FIELD_DATA_ACTION, criteria.getDataAction());
 
         return map;
     }
@@ -92,9 +93,9 @@ public class DataRecordController {
     /** Заполнение набора для создания записи. */
     private Map<String, Object> getCreatedRow(RefBookVersion version, Map<String, Object> map) {
 
-        // sysRecordId == null, поэтому не указывается.
+        // id == null, поэтому не указывается.
 
-        // Значения по умолчанию при создангии записи заполнять здесь.
+        // Значения по умолчанию при создании записи заполнять здесь.
 
         // Get default values from backend by versionService.searchDefaults(versionId) instead of:
         version.getStructure().getReferences().forEach(reference ->
@@ -105,11 +106,11 @@ public class DataRecordController {
     }
 
     /** Заполнение набора для изменения записи. */
-    private Map<String, Object> getUpdatedRow(Integer versionId, Integer sysRecordId, Map<String, Object> map) {
+    private Map<String, Object> getUpdatedRow(RefBookVersion version, Integer id, Map<String, Object> map) {
 
-        map.put(DataRecordConstants.FIELD_SYSTEM_ID, sysRecordId);
+        map.put(FIELD_SYSTEM_ID, id);
 
-        List<RefBookRowValue> rowValues = findRowValues(versionId, sysRecordId);
+        List<RefBookRowValue> rowValues = findRowValues(version.getId(), id);
         if (isEmpty(rowValues))
             return emptyMap();
 
@@ -121,32 +122,32 @@ public class DataRecordController {
     }
 
     /**
-     * Получение записи из указанной версии справочника по системному иентификатору.
+     * Получение записи из указанной версии справочника по системному идентификатору.
      */
-    private List<RefBookRowValue> findRowValues(Integer versionId, Integer sysRecordId) {
+    private List<RefBookRowValue> findRowValues(Integer versionId, Integer id) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setRowSystemIds(singletonList(sysRecordId.longValue()));
+        criteria.setRowSystemIds(singletonList(id.longValue()));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
     }
 
     /**
-     * Проверка наличия конфликтов для записи у ссылаемой версии.
+     * Проверка наличия конфликтов для записи у ссылающейся версии.
      *
-     * @param referrerVersionId идентификатор версии, которая ссылается
-     * @param sysRecordId       идентификатор записи этой версии
+     * @param versionId идентификатор версии, которая ссылается
+     * @param id        идентификатор записи этой версии
      * @return Строка со всеми конфликтами
      */
-    public String getDataConflicts(Integer referrerVersionId, Long sysRecordId) {
+    public String getDataConflicts(Integer versionId, Long id) {
 
-        final Structure structure = getStructureOrNull(referrerVersionId);
+        final Structure structure = getStructureOrNull(versionId);
         if (structure == null || isEmpty(structure.getReferences()))
             return null;
 
         List<String> refFieldCodes = StructureUtils.getReferenceAttributeCodes(structure).collect(toList());
-        List<RefBookConflict> conflicts = findDataConflicts(referrerVersionId, sysRecordId, refFieldCodes);
+        List<RefBookConflict> conflicts = findDataConflicts(versionId, id, refFieldCodes);
         if (isEmpty(conflicts))
             return null;
 
@@ -168,21 +169,21 @@ public class DataRecordController {
     }
 
     /**
-     * Поиск конфликта по ссылаемой версии, идентификатору строки и ссылкам.
+     * Поиск конфликта по ссылающейся версии, идентификатору строки и ссылкам.
      *
-     * @param referrerVersionId идентификатор версии, которая ссылается
-     * @param sysRecordId       идентификатор записи этой версии
-     * @param refFieldCodes     список кодов ссылок в структуре этой версии
+     * @param versionId     идентификатор версии, которая ссылается
+     * @param id            идентификатор записи этой версии
+     * @param refFieldCodes список кодов ссылок в структуре этой версии
      * @return Список конфликтов
      */
-    private List<RefBookConflict> findDataConflicts(Integer referrerVersionId,
-                                                    Long sysRecordId,
+    private List<RefBookConflict> findDataConflicts(Integer versionId,
+                                                    Long id,
                                                     List<String> refFieldCodes) {
         RefBookConflictCriteria criteria = new RefBookConflictCriteria();
-        criteria.setReferrerVersionId(referrerVersionId);
+        criteria.setReferrerVersionId(versionId);
         criteria.setIsLastPublishedVersion(true);
         criteria.setRefFieldCodes(refFieldCodes);
-        criteria.setRefRecordId(sysRecordId);
+        criteria.setRefRecordId(id);
         criteria.setPageSize(refFieldCodes.size());
 
         Page<RefBookConflict> conflicts = conflictService.search(criteria);

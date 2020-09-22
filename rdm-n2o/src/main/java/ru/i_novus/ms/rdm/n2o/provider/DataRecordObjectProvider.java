@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.framework.api.exception.SeverityType;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
-import net.n2oapp.framework.api.metadata.dataprovider.AbstractDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
@@ -13,7 +12,6 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
@@ -26,6 +24,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 
 /**
  * Провайдер для формирования объекта по выполнению операции
@@ -73,7 +72,8 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         N2oObject n2oObject = new N2oObject();
         n2oObject.setOperations(new N2oObject.Operation[]{
                 getCreateOperation(versionId, structure),
-                getUpdateOperation(versionId, structure)
+                getUpdateOperation(versionId, structure),
+                getLocalizeOperation(versionId, structure) // to-do: Убрать в Resolver
         });
 
         return n2oObject;
@@ -114,7 +114,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         return operation;
     }
 
-    private AbstractDataProvider createInvocation() {
+    private N2oJavaDataProvider createInvocation() {
 
         N2oJavaDataProvider invocation = new N2oJavaDataProvider();
         invocation.setClassName(CONTROLLER_CLASS_NAME);
@@ -133,7 +133,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         Argument optLockValueArgument = new Argument();
         optLockValueArgument.setType(Argument.Type.PRIMITIVE);
-        optLockValueArgument.setName(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        optLockValueArgument.setName(FIELD_OPT_LOCK_VALUE);
         optLockValueArgument.setClassName(Integer.class.getName());
 
         invocation.setArguments(new Argument[]{ versionIdArgument, rowArgument, optLockValueArgument });
@@ -141,10 +141,64 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         return invocation;
     }
 
+    private N2oObject.Operation getLocalizeOperation(Integer versionId, Structure structure) {
+
+        N2oObject.Operation operation = new N2oObject.Operation();
+        operation.setId("localize");
+        operation.setFormSubmitLabel("Сохранить перевод");
+
+        operation.setInvocation(createLocalizeInvocation());
+        operation.setInParameters(Stream.concat(
+                Stream.of(createVersionIdParameter(versionId),
+                        createSystemIdParameter(),
+                        createOptLockValueParameter(),
+                        createLocaleCodeParameter()),
+                createDynamicParams(structure).stream())
+                .toArray(N2oObject.Parameter[]::new));
+
+        addDataConflictValidation(versionId, operation);
+
+        return operation;
+    }
+
+    private N2oJavaDataProvider createLocalizeInvocation() {
+
+        N2oJavaDataProvider invocation = new N2oJavaDataProvider();
+        invocation.setClassName(CONTROLLER_CLASS_NAME);
+        invocation.setMethod(CONTROLLER_CLASS_METHOD);
+        invocation.setSpringProvider(new SpringProvider());
+
+        Argument versionIdArgument = new Argument();
+        versionIdArgument.setType(Argument.Type.PRIMITIVE);
+        versionIdArgument.setName("versionId");
+        versionIdArgument.setClassName(Integer.class.getName());
+
+        Argument rowArgument = new Argument();
+        rowArgument.setType(Argument.Type.CLASS);
+        rowArgument.setName("row");
+        rowArgument.setClassName(Row.class.getName());
+
+        Argument optLockValueArgument = new Argument();
+        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
+        optLockValueArgument.setName(FIELD_OPT_LOCK_VALUE);
+        optLockValueArgument.setClassName(Integer.class.getName());
+
+        Argument localeCodeArgument = new Argument();
+        localeCodeArgument.setType(Argument.Type.PRIMITIVE);
+        localeCodeArgument.setName(FIELD_LOCALE_CODE);
+        localeCodeArgument.setClassName(String.class.getName());
+
+        invocation.setArguments(new Argument[]{
+                versionIdArgument, rowArgument, optLockValueArgument, localeCodeArgument
+        });
+
+        return invocation;
+    }
+
     private N2oObject.Parameter createVersionIdParameter(Integer versionId) {
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(DataRecordConstants.FIELD_VERSION_ID);
+        parameter.setId(FIELD_VERSION_ID);
         parameter.setMapping("[0]");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
@@ -154,19 +208,30 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     private N2oObject.Parameter createSystemIdParameter() {
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(DataRecordConstants.FIELD_SYSTEM_ID);
+        parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setMapping("[1].systemId");
         return parameter;
     }
 
     private N2oObject.Parameter createOptLockValueParameter() {
+
         N2oObject.Parameter optLockValueParameter = new N2oObject.Parameter();
-        optLockValueParameter.setId(DataRecordConstants.FIELD_OPT_LOCK_VALUE);
+        optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
         optLockValueParameter.setMapping("[2]");
         optLockValueParameter.setDomain(N2oDomain.INTEGER);
-        optLockValueParameter.setDefaultValue(String.valueOf(DataRecordConstants.DEFAULT_OPT_LOCK_VALUE));
+        optLockValueParameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         return optLockValueParameter;
+    }
+
+    private N2oObject.Parameter createLocaleCodeParameter() {
+
+        N2oObject.Parameter localeCodeParameter = new N2oObject.Parameter();
+        localeCodeParameter.setId(FIELD_LOCALE_CODE);
+        localeCodeParameter.setMapping("[3]");
+        localeCodeParameter.setDomain(N2oDomain.STRING);
+        localeCodeParameter.setDefaultValue(String.valueOf(DEFAULT_LOCALE_CODE));
+        return localeCodeParameter;
     }
 
     private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
@@ -241,17 +306,17 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         dataProvider.setMethod(CONFLICT_VALIDATION_CLASS_METHOD);
         dataProvider.setSpringProvider(new SpringProvider());
 
-        Argument refFromIdArgument = new Argument();
-        refFromIdArgument.setType(Argument.Type.PRIMITIVE);
-        refFromIdArgument.setClassName("java.lang.Integer");
-        refFromIdArgument.setName("referrerVersionId");
+        Argument versionIdArgument = new Argument();
+        versionIdArgument.setType(Argument.Type.PRIMITIVE);
+        versionIdArgument.setClassName("java.lang.Integer");
+        versionIdArgument.setName("versionId");
 
-        Argument rowSystemIdArgument = new Argument();
-        rowSystemIdArgument.setType(Argument.Type.PRIMITIVE);
-        rowSystemIdArgument.setClassName("java.lang.Long");
-        rowSystemIdArgument.setName("rowSystemId");
+        Argument idArgument = new Argument();
+        idArgument.setType(Argument.Type.PRIMITIVE);
+        idArgument.setClassName("java.lang.Long");
+        idArgument.setName("id");
 
-        dataProvider.setArguments(new Argument[]{ refFromIdArgument, rowSystemIdArgument });
+        dataProvider.setArguments(new Argument[]{ versionIdArgument, idArgument });
 
         N2oConstraint constraint = new N2oConstraint();
         constraint.setId(CONFLICT_VALIDATION_NAME);
@@ -261,15 +326,18 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         constraint.setMessage('{' + CONFLICT_TEXT_RESULT + '}');
         constraint.setN2oInvocation(dataProvider);
 
-        N2oObject.Parameter versionIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_VERSION_ID, "[0]");
+        N2oObject.Parameter versionIdParam = new N2oObject.Parameter(
+                N2oObject.Parameter.Type.in, FIELD_VERSION_ID, "[0]");
         versionIdParam.setDefaultValue(versionId.toString());
         versionIdParam.setDomain(N2oDomain.INTEGER);
 
-        N2oObject.Parameter rowSysRecordIdParam = new N2oObject.Parameter(N2oObject.Parameter.Type.in, DataRecordConstants.FIELD_SYS_RECORD_ID, "[1]");
-        rowSysRecordIdParam.setDomain(N2oDomain.LONG);
-        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, rowSysRecordIdParam });
+        N2oObject.Parameter idParam = new N2oObject.Parameter(
+                N2oObject.Parameter.Type.in, FIELD_SYSTEM_ID, "[1]");
+        idParam.setDomain(N2oDomain.LONG);
+        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, idParam });
 
-        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
+        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(
+                N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
         conflictTextParam.setDomain(N2oDomain.STRING);
         N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{ conflictTextParam };
         constraint.setOutParameters(outParams);

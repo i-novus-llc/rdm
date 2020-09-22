@@ -218,16 +218,16 @@ public class CreateDraftController {
         }
     }
 
-    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long sysRecordId) {
+    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long id) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
-            sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
+            id = findNewSystemId(id, versionId, uiDraft.getId());
         }
 
-        Row row = new Row(sysRecordId, emptyMap());
+        Row row = new Row(id, emptyMap());
         DeleteDataRequest request = new DeleteDataRequest(optLockValue, row);
         draftService.deleteData(uiDraft.getId(), request);
         return uiDraft;

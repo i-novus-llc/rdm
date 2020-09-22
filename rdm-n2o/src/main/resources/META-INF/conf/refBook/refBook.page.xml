@@ -116,8 +116,8 @@
                         <show-modal page-id="attribute" upload="defaults"
                                     submit-operation-id="createAttribute" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -126,7 +126,7 @@
                                     submit-operation-id="updateAttribute" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="versionId" value="{versionId}"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="code" value="{code}"/>
                             </pre-filters>
                         </show-modal>
@@ -142,8 +142,7 @@
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                     <eq field-id="localeCode" value=""/>
                 </pre-filters>
 
@@ -156,7 +155,7 @@
                                     submit-operation-id="create" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="0"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="dataAction" value="create"/>
                             </pre-filters>
                         </show-modal>
@@ -167,8 +166,8 @@
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="dataAction" value="edit"/>
                             </pre-filters>
                         </show-modal>
@@ -182,10 +181,8 @@
                         <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
                                     submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
-                                    ref-widget-id="version_select"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                                    ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -208,19 +205,35 @@
                    master-field-id="id" detail-field-id="versionId" object-id="data"
                    visible="{${rdm.l10n.support}}">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
-                    <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                    <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
                 </pre-filters>
+
+                <toolbar place="topRight">
+                    <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
+                            widget-id="version_select" model="resolve" enabling-condition="localeCode.id != null">
+                        <show-modal page-id="dataRecordPage?{id}_localize" upload="query" route="/localize"
+                                    submit-operation-id="localize" refresh-widget-id="version_select">
+                            <!--<query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>-->
+                            <!--<query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>-->
+                            <!--<query-param name="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>-->
+                            <!--<query-param name="dataAction" value="localize"/>-->
+                            <pre-filters>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="dataAction" value="localize"/>
+                            </pre-filters>
+                        </show-modal>
+                    </button>
+                </toolbar>
             </table>
 
             <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                     <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>
 
@@ -230,8 +243,8 @@
                         <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
                                     submit-operation-id="update" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTableWithConflicts"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="dataAction" value="edit"/>
                             </pre-filters>
                         </show-modal>

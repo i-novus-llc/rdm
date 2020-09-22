@@ -15,13 +15,13 @@ import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.constant.N2oDomain;
 
 import java.util.*;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 
 /**
  * Провайдер для формирования страницы по отображению данных
@@ -36,8 +36,8 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
     private static final String PAGE_PROVIDER_ID = "dataRecordPage";
 
     private static final Map<String, String> pageNames = Map.of(
-            DataRecordConstants.DATA_ACTION_CREATE, "Добавление новой записи",
-            DataRecordConstants.DATA_ACTION_EDIT, "Редактирование записи"
+            DATA_ACTION_CREATE, "Добавление новой записи",
+            DATA_ACTION_EDIT, "Редактирование записи"
     );
 
     /**
@@ -179,10 +179,10 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
-        referenceField.setQueryId(DataRecordConstants.REFERENCE_QUERY_ID);
+        referenceField.setQueryId(REFERENCE_QUERY_ID);
         // NB: value-field-id is deprecated:
-        referenceField.setValueFieldId(DataRecordConstants.REFERENCE_VALUE);
-        referenceField.setLabelFieldId(DataRecordConstants.REFERENCE_DISPLAY_VALUE);
+        referenceField.setValueFieldId(REFERENCE_VALUE);
+        referenceField.setLabelFieldId(REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
         N2oPreFilter versionFilter = new N2oPreFilter();
