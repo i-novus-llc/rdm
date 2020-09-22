@@ -103,9 +103,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(createVersionIdParameter(versionId),
-                        createSystemIdParameter(),
-                        createOptLockValueParameter()),
+                createRegularParams(versionId).stream(),
                 createDynamicParams(structure).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
@@ -193,6 +191,15 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         });
 
         return invocation;
+    }
+
+    private List<N2oObject.Parameter> createRegularParams(Integer versionId) {
+
+        return List.of(
+                createVersionIdParameter(versionId),
+                createSystemIdParameter(),
+                createOptLockValueParameter()
+        );
     }
 
     private N2oObject.Parameter createVersionIdParameter(Integer versionId) {
