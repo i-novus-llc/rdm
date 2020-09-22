@@ -278,7 +278,7 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(optLockValue, oldAttribute, oldReference);
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(null, oldAttribute, oldReference);
             draftService.updateAttribute(versionId, rollbackRequest);
             throw re;
         }
