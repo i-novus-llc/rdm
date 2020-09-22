@@ -247,6 +247,8 @@ public class StructureTest {
         assertEquals(1, primaries.size());
 
         Structure.Attribute primary = primaries.get(0);
+        assertTrue(primary.hasIsPrimary());
+        assertFalse(primary.isLocalizable());
         assertObjects(Assert::assertEquals, ID_ATTRIBUTE, primary);
 
         structure.clearPrimary();
@@ -269,6 +271,10 @@ public class StructureTest {
         assertNotNull(localizables);
         assertEquals(1, localizables.size());
         assertObjects(Assert::assertEquals, NAME_ATTRIBUTE, localizables.get(0));
+
+        Structure.Attribute localizable = localizables.get(0);
+        assertTrue(localizable.isLocalizable());
+        assertFalse(localizable.hasIsPrimary());
     }
 
     @Test
@@ -522,8 +528,22 @@ public class StructureTest {
         assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
 
         addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), null);
+        Structure.Attribute addedAttribute = addedStructure.getAttribute(CHANGE_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, CHANGE_ATTRIBUTE, addedAttribute);
 
-        Structure removedStructure = new Structure(addedStructure);
+        Structure updatedStructure = new Structure(addedStructure);
+
+        Structure.Attribute nullAttribute = null;
+        updatedStructure.update(nullAttribute, null);
+        assertObjects(Assert::assertEquals, addedStructure, updatedStructure);
+
+        updatedStructure.update(addedAttribute, null);
+        assertObjects(Assert::assertEquals, addedStructure, updatedStructure);
+
+        updatedStructure.update(null, copyAttribute(CHANGE_ATTRIBUTE));
+        assertObjects(Assert::assertEquals, addedStructure, updatedStructure);
+
+        Structure removedStructure = new Structure(updatedStructure);
 
         removedStructure.remove(null);
         assertObjects(Assert::assertEquals, addedStructure, removedStructure);
@@ -596,6 +616,20 @@ public class StructureTest {
         assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
 
         addedStructure.add(copyAttribute(CHANGE_ATTRIBUTE), copyReference(CHANGE_REF_REFERENCE));
+        assertEquals(oldStructure.getAttributes().size() + 1, addedStructure.getAttributes().size());
+        assertEquals(oldStructure.getReferences().size(), addedStructure.getReferences().size());
+
+        addedStructure.add(copyAttribute(CHANGE_REF_ATTRIBUTE), copyReference(CHANGE_REF_REFERENCE));
+        Structure.Reference addedReference = addedStructure.getReference(CHANGE_REF_ATTRIBUTE_CODE);
+        assertObjects(Assert::assertEquals, CHANGE_REF_REFERENCE, addedReference);
+
+        Structure updatedStructure = new Structure(addedStructure);
+        Structure.Reference nullReference = null;
+        updatedStructure.update(nullReference, null);
+        assertObjects(Assert::assertEquals, addedStructure, updatedStructure);
+
+        updatedStructure.update(addedReference, null);
+        assertEquals(oldStructure.getReferences().size(), updatedStructure.getReferences().size());
 
         Structure removedStructure = new Structure(addedStructure);
 
