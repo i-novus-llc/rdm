@@ -10,6 +10,7 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
+    private static final String CRITERIA_CLASS_NAME = DataRecordCriteria.class.getName();
 
     @Override
     public String getCode() {
@@ -78,7 +80,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
         Argument criteriaArgument = new Argument();
         criteriaArgument.setType(Argument.Type.CRITERIA);
-        criteriaArgument.setClassName("ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria");
+        criteriaArgument.setClassName(CRITERIA_CLASS_NAME);
         provider.setArguments(new Argument[]{ criteriaArgument });
 
         N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
