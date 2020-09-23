@@ -106,6 +106,8 @@ public class StructureTest {
 
         Structure structure = new Structure();
         assertNotNull(structure);
+        assertObjects(Assert::assertEquals, Structure.EMPTY, structure);
+
         assertTrue(structure.isEmpty());
         assertSpecialEquals(structure);
 

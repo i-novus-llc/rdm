@@ -26,6 +26,8 @@ import static java.util.stream.Collectors.toList;
 @JsonPropertyOrder({"references", "attributes"})
 public class Structure implements Serializable {
 
+    public static final Structure EMPTY = new Structure();
+
     private static final String PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "primary.attribute.not.found";
     private static final String PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE = "primary.attribute.is.multiple";
 
