@@ -21,7 +21,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     @Override
     public boolean isSatisfied(String dataAction) {
-        return DATA_ACTION_LOCALIZE.contains(dataAction);
+        return DATA_ACTION_LOCALIZE.equals(dataAction);
     }
 
     @Override
