@@ -153,7 +153,8 @@
                             enabling-condition="!version.isEmptyStructure">
                         <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
                                     upload="query" route="/create"
-                                    submit-operation-id="create" refresh-widget-id="version_select">
+                                    submit-operation-id="create" submit-label="Сохранить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="0"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
@@ -166,7 +167,8 @@
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
                                     upload="query" route="/update"
-                                    submit-operation-id="update" refresh-widget-id="version_select">
+                                    submit-operation-id="update" submit-label="Изменить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
@@ -216,7 +218,8 @@
                             widget-id="version_select" model="resolve" enabling-condition="localeCode.id != null">
                         <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                     upload="query" route="/localize"
-                                    submit-operation-id="localize" refresh-widget-id="version_select">
+                                    submit-operation-id="localize" submit-label="Сохранить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
@@ -241,7 +244,8 @@
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
                                     upload="query" route="/update"
-                                    submit-operation-id="update" refresh-widget-id="version_select">
+                                    submit-operation-id="update" submit-label="Изменить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>

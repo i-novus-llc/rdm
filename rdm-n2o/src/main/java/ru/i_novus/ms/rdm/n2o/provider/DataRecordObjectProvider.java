@@ -79,7 +79,6 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("create");
-        operation.setFormSubmitLabel("Сохранить");
 
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
@@ -95,7 +94,6 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("update");
-        operation.setFormSubmitLabel("Изменить");
 
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
@@ -139,7 +137,6 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("localize");
-        operation.setFormSubmitLabel("Сохранить перевод");
 
         operation.setInvocation(createLocalizeInvocation());
         operation.setInParameters(Stream.concat(
