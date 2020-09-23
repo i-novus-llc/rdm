@@ -71,7 +71,7 @@ public class DataRecordController {
 
         switch (dataAction) {
             case DATA_ACTION_CREATE: return getCreatedRow(version, map);
-            case DATA_ACTION_EDIT: return getUpdatedRow(version, criteria.getId(), map);
+            case DATA_ACTION_UPDATE: return getUpdatedRow(version, criteria.getId(), map);
             default: return emptyMap();
         }
     }

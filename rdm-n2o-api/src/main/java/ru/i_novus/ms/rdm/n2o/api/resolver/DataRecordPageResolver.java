@@ -13,4 +13,6 @@ public interface DataRecordPageResolver {
     boolean isSatisfied(String dataAction);
 
     List<N2oField> createRegularFields(Integer versionId, Structure structure, String dataAction);
+
+    void processDynamicFields(Integer versionId, Structure structure, String dataAction, List<N2oField> list);
 }

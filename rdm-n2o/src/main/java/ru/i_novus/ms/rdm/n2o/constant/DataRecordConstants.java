@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.n2o.constant;
 public class DataRecordConstants {
 
     public static final String DATA_ACTION_CREATE = "create";
-    public static final String DATA_ACTION_EDIT = "edit";
+    public static final String DATA_ACTION_UPDATE = "update";
 
     public static final String FIELD_SYSTEM_ID = "id";
     public static final String FIELD_VERSION_ID = "versionId";
