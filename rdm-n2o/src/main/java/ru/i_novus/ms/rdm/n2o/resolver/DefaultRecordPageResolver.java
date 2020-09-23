@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
-import net.n2oapp.framework.api.metadata.control.N2oField;
+import net.n2oapp.framework.api.metadata.SourceComponent;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
@@ -22,12 +22,13 @@ public class DefaultRecordPageResolver implements DataRecordPageResolver {
     }
 
     @Override
-    public List<N2oField> createRegularFields(Integer versionId, Structure structure, String dataAction) {
+    public List<SourceComponent> createRegularFields(Integer versionId, Structure structure, String dataAction) {
         return emptyList();
     }
 
     @Override
-    public void processDynamicFields(Integer versionId, Structure structure, String dataAction, List<N2oField> list) {
+    public void processDynamicFields(Integer versionId, Structure structure, String dataAction,
+                                     List<SourceComponent> list) {
         // Nothing to do.
     }
 }

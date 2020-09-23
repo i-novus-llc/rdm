@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.criteria.filters.FilterType;
+import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
@@ -105,7 +106,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return n2oForm;
     }
 
-    private N2oField[] createPageFields(Integer versionId, Structure structure, String dataAction) {
+    private SourceComponent[] createPageFields(Integer versionId, Structure structure, String dataAction) {
 
         if (isEmptyStructure(structure)) {
             return new N2oField[0];
@@ -114,19 +115,19 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return Stream.concat(
                 createRegularFields(versionId, structure, dataAction).stream(),
                 createDynamicFields(versionId, structure, dataAction).stream())
-                .toArray(N2oField[]::new);
+                .toArray(SourceComponent[]::new);
     }
 
-    private List<N2oField> createRegularFields(Integer versionId, Structure structure, String dataAction) {
+    private List<SourceComponent> createRegularFields(Integer versionId, Structure structure, String dataAction) {
 
         return getSatisfiedResolvers(dataAction)
                 .map(resolver -> resolver.createRegularFields(versionId, structure, dataAction))
                 .flatMap(Collection::stream).collect(toList());
     }
 
-    private List<N2oField> createDynamicFields(Integer versionId, Structure structure, String dataAction) {
+    private List<SourceComponent> createDynamicFields(Integer versionId, Structure structure, String dataAction) {
 
-        List<N2oField> list = new ArrayList<>();
+        List<SourceComponent> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             N2oStandardField n2oField;
@@ -178,6 +179,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
             case BOOLEAN:
                 n2oField = new N2oCheckbox();
+                n2oField.setNoLabelBlock(Boolean.TRUE);
                 break;
 
             default:
