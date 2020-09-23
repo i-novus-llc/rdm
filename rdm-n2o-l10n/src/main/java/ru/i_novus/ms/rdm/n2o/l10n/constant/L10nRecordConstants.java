@@ -5,7 +5,9 @@ public class L10nRecordConstants {
     public static final String DATA_ACTION_LOCALIZE = "localize";
 
     public static final String SYS_LOCALIZED = "SYS_LOCALIZED"; // from l10n-vds L10nConstants
+
     public static final String FIELD_LOCALE_CODE = "localeCode";
+    public static final String DEFAULT_LOCALE_CODE = "";
     public static final String FIELD_LOCALE_NAME = "localeName";
 
     private L10nRecordConstants() {

@@ -7,10 +7,12 @@ import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordQueryResolver;
 import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
@@ -21,6 +23,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addFieldProperty;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
@@ -37,6 +40,9 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private static final String CONTROLLER_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONTROLLER_METHOD = "getRow";
     private static final String CRITERIA_CLASS_NAME = DataRecordCriteria.class.getName();
+
+    @Autowired
+    private Collection<DataRecordQueryResolver> resolvers;
 
     @Override
     public String getCode() {
@@ -88,12 +94,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private N2oQuery.Field[] createQueryFields(DataRecordRequest request) {
 
         return Stream.concat(
-                createRegularFields(request.getVersionId()).stream(),
+                createRegularFields(request).stream(),
                 createDynamicFields(request.getStructure()).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
 
-    private List<N2oQuery.Field> createRegularFields(Integer versionId) {
+    private List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
 
         N2oQuery.Field idField = new N2oQuery.Field();
         idField.setId(FIELD_SYSTEM_ID);
@@ -114,7 +120,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         versionIdFilter.setFilterField(FIELD_VERSION_ID);
         versionIdFilter.setMapping(FIELD_VERSION_ID);
         versionIdFilter.setDomain(N2oDomain.INTEGER);
-        versionIdFilter.setDefaultValue(String.valueOf(versionId));
+        versionIdFilter.setDefaultValue(String.valueOf(request.getVersionId()));
         versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
 
         N2oQuery.Field optLockValueField = new N2oQuery.Field();
@@ -149,7 +155,16 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         dataActionFilter.setDomain(N2oDomain.STRING);
         dataActionField.setFilterList(new N2oQuery.Filter[]{ dataActionFilter });
 
-        return List.of(idField, versionIdField, optLockValueField, localeCodeField, dataActionField);
+        List<N2oQuery.Field> list = new ArrayList<>(List.of(
+                idField, versionIdField, optLockValueField, localeCodeField, dataActionField
+        ));
+
+        getSatisfiedResolvers(request.getDataAction())
+                .map(resolver -> resolver.createRegularFields(request))
+                .filter(fields -> !isEmpty(fields))
+                .forEach(list::addAll);
+
+        return list;
     }
 
     private List<N2oQuery.Field> createDynamicFields(Structure structure) {
@@ -213,5 +228,14 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
     private String getAttributeMapping(String attributeCode) {
         return "#this.get('" + attributeCode + "')";
+    }
+
+    private Stream<DataRecordQueryResolver> getSatisfiedResolvers(String dataAction) {
+
+        if (isEmpty(resolvers))
+            return Stream.empty();
+
+        return resolvers.stream()
+                .filter(resolver -> resolver.isSatisfied(dataAction));
     }
 }
