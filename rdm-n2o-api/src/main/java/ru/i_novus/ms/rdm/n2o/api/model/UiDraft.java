@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.model;
+package ru.i_novus.ms.rdm.n2o.api.model;
 
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
@@ -12,7 +12,9 @@ public class UiDraft extends Draft {
     private Integer refBookId;
 
     public UiDraft(Integer id, Integer refBookId, Integer optLockValue) {
+
         super(id, null, optLockValue);
+
         this.refBookId = refBookId;
     }
 

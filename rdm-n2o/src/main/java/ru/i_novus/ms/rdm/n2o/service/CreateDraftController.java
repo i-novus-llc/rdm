@@ -17,8 +17,8 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
-import ru.i_novus.ms.rdm.n2o.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 
 import java.util.HashMap;
@@ -161,7 +161,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
-    public UiDraft updateDataRecord(Integer versionId, Row row, Integer optLockValue) {
+    public UiDraft updateDataRecord(Integer versionId, Integer optLockValue, Row row) {
 
         validatePresent(row);
 
