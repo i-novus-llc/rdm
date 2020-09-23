@@ -17,8 +17,12 @@ import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.constant.N2oDomain;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
@@ -34,11 +38,6 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
     private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
 
     private static final String PAGE_PROVIDER_ID = "dataRecordPage";
-
-    private static final Map<String, String> pageNames = Map.of(
-            DATA_ACTION_CREATE, "Добавление новой записи",
-            DATA_ACTION_EDIT, "Редактирование записи"
-    );
 
     /**
      * @return Код провайдера
@@ -69,11 +68,10 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         Integer versionId = Integer.parseInt(params[0]);
         Structure structure = getStructureOrNull(versionId);
 
-        N2oSimplePage page = createPage(context);
-        page.setWidget(createForm(versionId, structure));
-
         String dataAction = params[1];
-        page.setName(pageNames.get(dataAction));
+
+        N2oSimplePage page = createPage(context);
+        page.setWidget(createForm(versionId, structure, dataAction));
 
         return singletonList(page);
     }
@@ -91,23 +89,31 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return page;
     }
 
-    private N2oForm createForm(Integer versionId, Structure structure) {
+    private N2oForm createForm(Integer versionId, Structure structure, String dataAction) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createPageFields(versionId, structure));
+        n2oForm.setItems(createPageFields(versionId, structure, dataAction));
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
 
         return n2oForm;
     }
 
-    private N2oField[] createPageFields(Integer versionId, Structure structure) {
+    private N2oField[] createPageFields(Integer versionId, Structure structure, String dataAction) {
 
         if (isEmptyStructure(structure)) {
             return new N2oField[0];
         }
 
-        return createDynamicFields(versionId, structure).toArray(N2oField[]::new);
+        return Stream.concat(
+                createRegularFields(versionId, structure, dataAction).stream(),
+                createDynamicFields(versionId, structure).stream())
+                .toArray(N2oField[]::new);
+    }
+
+    private List<N2oField> createRegularFields(Integer versionId, Structure structure, String dataAction) {
+
+        return emptyList();
     }
 
     private List<N2oField> createDynamicFields(Integer versionId, Structure structure) {
