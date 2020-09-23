@@ -97,6 +97,9 @@
             <row>
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
+                    <pre-filters>
+                        <eq field-id="versionId" value="{referenceRefBook.version.id}" />
+                    </pre-filters>
                     <dependencies>
                         <visibility on="attrType,referenceRefBook">
                             (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
@@ -105,9 +108,6 @@
                             if (attrType.id != 'REFERENCE') return null;
                         </set-value>
                     </dependencies>
-                    <pre-filters>
-                        <eq field-id="versionId" value="{referenceRefBook.version.id}" />
-                    </pre-filters>
                     <validations>
                         <condition id="hasAttribute" severity="danger"
                                    message="Атрибут не выбран">
