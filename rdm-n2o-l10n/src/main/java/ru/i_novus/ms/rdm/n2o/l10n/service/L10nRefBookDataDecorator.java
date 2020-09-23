@@ -18,13 +18,12 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.SYS_LOCALIZED;
 
 @Primary
 @Service
 @SuppressWarnings("java:S3740")
 public class L10nRefBookDataDecorator implements RefBookDataDecorator {
-
-    public static final String SYS_LOCALIZED = "SYS_LOCALIZED"; // from l10n-vds L10nConstants
 
     private static final String ATTRIBUTE_LOCALIZED_NAME = "attribute.localized.name";
     private static final String ATTRIBUTE_LOCALIZED_DESCRIPTION = "attribute.localized.description";
