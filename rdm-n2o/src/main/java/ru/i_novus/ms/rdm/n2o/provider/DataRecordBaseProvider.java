@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 
 /**
  * Провайдер для формирования метаданных.
@@ -15,11 +16,37 @@ public class DataRecordBaseProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DataRecordBaseProvider.class);
 
+    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
+
     protected VersionRestService versionService;
 
     @Autowired
     public void setVersionService(VersionRestService versionService) {
         this.versionService = versionService;
+    }
+
+    /**
+     * Получение запроса из контекста провайдера.
+     *
+     * @param context параметры провайдера в формате versionId_pageType, где
+     *                  versionId - идентификатор версии справочника,
+     *                  pageType - тип действия (string)
+     * @return Запрос
+     */
+    protected DataRecordRequest toRequest(String context) {
+        
+        DataRecordRequest request = new DataRecordRequest();
+
+        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
+
+        Integer versionId = Integer.parseInt(params[0]);
+        Structure structure = getStructureOrNull(versionId);
+
+        request.setVersionId(versionId);
+        request.setStructure(structure);
+        request.setDataAction(params[1]);
+
+        return request;
     }
 
     protected Structure getStructureOrNull(Integer versionId) {
@@ -29,11 +56,7 @@ public class DataRecordBaseProvider {
         } catch (Exception e) {
             logger.error("Structure is not received for metadata", e);
 
-            return null;
+            return Structure.EMPTY;
         }
-    }
-
-    protected boolean isEmptyStructure(Structure structure) {
-        return structure == null || structure.isEmpty();
     }
 }

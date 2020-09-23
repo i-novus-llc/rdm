@@ -72,6 +72,7 @@ public class DataRecordController {
         switch (dataAction) {
             case DATA_ACTION_CREATE: return getCreatedRow(version, map);
             case DATA_ACTION_UPDATE: return getUpdatedRow(version, criteria.getId(), map);
+            case "localize": return getUpdatedRow(version, criteria.getId(), map);
             default: return emptyMap();
         }
     }
@@ -80,7 +81,7 @@ public class DataRecordController {
     private Map<String, Object> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
 
         int atributeCount = version.getStructure().getAttributes().size();
-        Map<String, Object> map = new HashMap<>(4 + atributeCount);
+        Map<String, Object> map = new HashMap<>(5 + atributeCount);
 
         map.put(FIELD_VERSION_ID, version.getId());
         map.put(FIELD_OPT_LOCK_VALUE, criteria.getOptLockValue());

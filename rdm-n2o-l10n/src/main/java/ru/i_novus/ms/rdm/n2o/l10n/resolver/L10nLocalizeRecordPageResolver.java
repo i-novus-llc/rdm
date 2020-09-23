@@ -6,8 +6,8 @@ import net.n2oapp.framework.api.metadata.control.plain.N2oCheckbox;
 import net.n2oapp.framework.api.metadata.control.plain.N2oOutputText;
 import net.n2oapp.framework.api.metadata.global.view.fieldset.N2oFieldsetRow;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
     }
 
     @Override
-    public List<SourceComponent> createRegularFields(Integer versionId, Structure structure, String dataAction) {
+    public List<SourceComponent> createRegularFields(DataRecordRequest request) {
 
         N2oFieldsetRow row = new N2oFieldsetRow();
         row.setItems(createLocalizeFields());
@@ -34,8 +34,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
     }
 
     @Override
-    public void processDynamicFields(Integer versionId, Structure structure, String dataAction,
-                                     List<SourceComponent> list) {
+    public void processDynamicFields(DataRecordRequest request, List<SourceComponent> list) {
         // Nothing to do.
     }
 

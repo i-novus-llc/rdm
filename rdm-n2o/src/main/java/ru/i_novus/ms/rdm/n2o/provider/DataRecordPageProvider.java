@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
 
 import java.util.ArrayList;
@@ -39,27 +40,16 @@ import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 @SuppressWarnings("unused")
 public class DataRecordPageProvider extends DataRecordBaseProvider implements DynamicMetadataProvider {
 
-    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
-
     private static final String PAGE_PROVIDER_ID = "dataRecordPage";
 
     @Autowired
     private Collection<DataRecordPageResolver> resolvers;
 
-    /**
-     * @return Код провайдера
-     */
     @Override
     public String getCode() {
         return PAGE_PROVIDER_ID;
     }
 
-    /**
-     * @param context параметры провайдера в формате versionId_pageType, где
-     *                  versionId - идентификатор версии справочника,
-     *                  pageType - тип действия:
-     *                      create (Добавление новой записи) или edit (Редактирование записи)
-     */
     @Override
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
@@ -70,15 +60,13 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
-
-        Integer versionId = Integer.parseInt(params[0]);
-        Structure structure = getStructureOrNull(versionId);
-
-        String dataAction = params[1];
+        DataRecordRequest request = toRequest(context);
 
         N2oSimplePage page = createPage(context);
-        page.setWidget(createForm(versionId, structure, dataAction));
+        N2oForm form = createForm(context);
+
+        form.setItems(createPageFields(request));
+        page.setWidget(form);
 
         return singletonList(page);
     }
@@ -96,36 +84,38 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return page;
     }
 
-    private N2oForm createForm(Integer versionId, Structure structure, String dataAction) {
+    private N2oForm createForm(String context) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createPageFields(versionId, structure, dataAction));
-        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
-        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
+        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
+        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
 
         return n2oForm;
     }
 
-    private SourceComponent[] createPageFields(Integer versionId, Structure structure, String dataAction) {
+    private SourceComponent[] createPageFields(DataRecordRequest request) {
 
-        if (isEmptyStructure(structure)) {
+        if (request.getStructure().isEmpty()) {
             return new N2oField[0];
         }
 
         return Stream.concat(
-                createRegularFields(versionId, structure, dataAction).stream(),
-                createDynamicFields(versionId, structure, dataAction).stream())
+                createRegularFields(request).stream(),
+                createDynamicFields(request).stream())
                 .toArray(SourceComponent[]::new);
     }
 
-    private List<SourceComponent> createRegularFields(Integer versionId, Structure structure, String dataAction) {
+    private List<SourceComponent> createRegularFields(DataRecordRequest request) {
 
-        return getSatisfiedResolvers(dataAction)
-                .map(resolver -> resolver.createRegularFields(versionId, structure, dataAction))
+        return getSatisfiedResolvers(request.getDataAction())
+                .map(resolver -> resolver.createRegularFields(request))
                 .flatMap(Collection::stream).collect(toList());
     }
 
-    private List<SourceComponent> createDynamicFields(Integer versionId, Structure structure, String dataAction) {
+    private List<SourceComponent> createDynamicFields(DataRecordRequest request) {
+
+        Integer versionId = request.getVersionId();
+        Structure structure = request.getStructure();
 
         List<SourceComponent> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
@@ -145,8 +135,8 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
             list.add(n2oField);
         }
 
-        getSatisfiedResolvers(dataAction).forEach(resolver ->
-                resolver.processDynamicFields(versionId, structure, dataAction, list)
+        getSatisfiedResolvers(request.getDataAction()).forEach(resolver ->
+                resolver.processDynamicFields(request, list)
         );
 
         return list;

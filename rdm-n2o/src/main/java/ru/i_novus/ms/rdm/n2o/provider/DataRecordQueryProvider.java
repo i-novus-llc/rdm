@@ -10,6 +10,7 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
@@ -42,18 +43,13 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return QUERY_PROVIDER_ID;
     }
 
-    /**
-     * @param context параметры провайдера в формате versionId, где
-     *                  versionId - идентификатор версии справочника
-     */
     @Override
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        Integer versionId = Integer.parseInt(context);
-        Structure structure = getStructureOrNull(versionId);
+        DataRecordRequest request = toRequest(context);
 
-        return singletonList(createQuery(versionId, structure));
+        return singletonList(createQuery(request));
     }
 
     @Override
@@ -62,11 +58,11 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     }
 
     @SuppressWarnings("WeakerAccess")
-    public N2oQuery createQuery(Integer versionId, Structure structure) {
+    public N2oQuery createQuery(DataRecordRequest request) {
 
         N2oQuery n2oQuery = new N2oQuery();
         n2oQuery.setUniques(new N2oQuery.Selection[]{ createSelection() });
-        n2oQuery.setFields(createQueryFields(versionId, structure));
+        n2oQuery.setFields(createQueryFields(request));
 
         return n2oQuery;
     }
@@ -89,11 +85,11 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return selection;
     }
 
-    private N2oQuery.Field[] createQueryFields(Integer versionId, Structure structure) {
+    private N2oQuery.Field[] createQueryFields(DataRecordRequest request) {
 
         return Stream.concat(
-                createRegularFields(versionId).stream(),
-                createDynamicFields(structure).stream())
+                createRegularFields(request.getVersionId()).stream(),
+                createDynamicFields(request.getStructure()).stream())
                 .toArray(N2oQuery.Field[]::new);
     }
 
@@ -158,7 +154,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
     private List<N2oQuery.Field> createDynamicFields(Structure structure) {
 
-        if (isEmptyStructure(structure))
+        if (structure.isEmpty())
             return emptyList();
 
         List<N2oQuery.Field> list = new ArrayList<>();

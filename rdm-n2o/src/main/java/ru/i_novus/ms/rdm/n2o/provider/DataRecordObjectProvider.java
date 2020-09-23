@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
@@ -48,18 +49,13 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         return OBJECT_PROVIDER_ID;
     }
 
-    /**
-     * @param context параметры провайдера в формате versionId, где
-     *                  versionId - идентификатор версии справочника
-     */
     @Override
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        Integer versionId = Integer.parseInt(context);
-        Structure structure = getStructureOrNull(versionId);
+        DataRecordRequest request = toRequest(context);
 
-        return singletonList(createObject(versionId, structure));
+        return singletonList(createObject(request));
     }
 
     @Override
@@ -67,19 +63,19 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         return singletonList(N2oObject.class);
     }
 
-    private N2oObject createObject(Integer versionId, Structure structure) {
+    private N2oObject createObject(DataRecordRequest request) {
 
         N2oObject n2oObject = new N2oObject();
         n2oObject.setOperations(new N2oObject.Operation[]{
-                getCreateOperation(versionId, structure),
-                getUpdateOperation(versionId, structure),
-                getLocalizeOperation(versionId, structure) // to-do: Убрать в Resolver
+                getCreateOperation(request),
+                getUpdateOperation(request),
+                getLocalizeOperation(request) // to-do: Убрать в Resolver
         });
 
         return n2oObject;
     }
 
-    private N2oObject.Operation getCreateOperation(Integer versionId, Structure structure) {
+    private N2oObject.Operation getCreateOperation(DataRecordRequest request) {
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("create");
@@ -87,15 +83,15 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(createVersionIdParameter(versionId),
+                Stream.of(createVersionIdParameter(request.getVersionId()),
                         createOptLockValueParameter()),
-                createDynamicParams(structure).stream())
+                createDynamicParams(request.getStructure()).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
         return operation;
     }
 
-    private N2oObject.Operation getUpdateOperation(Integer versionId, Structure structure) {
+    private N2oObject.Operation getUpdateOperation(DataRecordRequest request) {
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("update");
@@ -103,11 +99,11 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         operation.setInvocation(createInvocation());
         operation.setInParameters(Stream.concat(
-                createRegularParams(versionId).stream(),
-                createDynamicParams(structure).stream())
+                createRegularParams(request.getVersionId()).stream(),
+                createDynamicParams(request.getStructure()).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
-        addDataConflictValidation(versionId, operation);
+        addDataConflictValidation(request.getVersionId(), operation);
 
         return operation;
     }
@@ -139,7 +135,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         return invocation;
     }
 
-    private N2oObject.Operation getLocalizeOperation(Integer versionId, Structure structure) {
+    private N2oObject.Operation getLocalizeOperation(DataRecordRequest request) {
 
         N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("localize");
@@ -147,14 +143,12 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         operation.setInvocation(createLocalizeInvocation());
         operation.setInParameters(Stream.concat(
-                Stream.of(createVersionIdParameter(versionId),
+                Stream.of(createVersionIdParameter(request.getVersionId()),
                         createSystemIdParameter(),
                         createOptLockValueParameter(),
                         createLocaleCodeParameter()),
-                createDynamicParams(structure).stream())
+                createDynamicParams(request.getStructure()).stream())
                 .toArray(N2oObject.Parameter[]::new));
-
-        addDataConflictValidation(versionId, operation);
 
         return operation;
     }
@@ -237,13 +231,13 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         localeCodeParameter.setId(FIELD_LOCALE_CODE);
         localeCodeParameter.setMapping("[3]");
         localeCodeParameter.setDomain(N2oDomain.STRING);
-        localeCodeParameter.setDefaultValue(String.valueOf(DEFAULT_LOCALE_CODE));
+        localeCodeParameter.setDefaultValue(DEFAULT_LOCALE_CODE);
         return localeCodeParameter;
     }
 
     private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
 
-        if (isEmptyStructure(structure)) {
+        if (structure.isEmpty()) {
             return emptyList();
         }
 
