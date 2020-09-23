@@ -61,14 +61,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
             return singletonList(new N2oSimplePage());
 
         DataRecordRequest request = toRequest(context);
-
-        N2oSimplePage page = createPage(context);
-        N2oForm form = createForm(context);
-
-        form.setItems(createPageFields(request));
-        page.setWidget(form);
-
-        return singletonList(page);
+        return singletonList(createPage(context, request));
     }
 
     @Override
@@ -76,19 +69,23 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return singletonList(N2oPage.class);
     }
 
-    private N2oSimplePage createPage(String context) {
+    private N2oSimplePage createPage(String context, DataRecordRequest request) {
 
         N2oSimplePage page = new N2oSimplePage();
         page.setId(PAGE_PROVIDER_ID + "?" + context);
 
+        page.setWidget(createForm(context, request));
+
         return page;
     }
 
-    private N2oForm createForm(String context) {
+    private N2oForm createForm(String context, DataRecordRequest request) {
 
         N2oForm n2oForm = new N2oForm();
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+
+        n2oForm.setItems(createPageFields(request));
 
         return n2oForm;
     }

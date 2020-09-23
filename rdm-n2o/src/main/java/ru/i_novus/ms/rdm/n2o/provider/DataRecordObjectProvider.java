@@ -54,7 +54,6 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     public List<? extends SourceMetadata> read(String context) {
 
         DataRecordRequest request = toRequest(context);
-
         return singletonList(createObject(request));
     }
 

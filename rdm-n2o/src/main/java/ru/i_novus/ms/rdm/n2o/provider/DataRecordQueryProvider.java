@@ -54,7 +54,6 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     public List<? extends SourceMetadata> read(String context) {
 
         DataRecordRequest request = toRequest(context);
-
         return singletonList(createQuery(request));
     }
 
