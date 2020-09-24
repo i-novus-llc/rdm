@@ -43,7 +43,7 @@ services:
           memory: 500M
       placement:
         constraints:
-        - node.labels.dc == hetzner
+        - node.labels.type == service
     healthcheck:
       test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
       interval: 1m
@@ -66,7 +66,7 @@ services:
           memory: 700M
       placement:
         constraints:
-        - node.labels.dc == hetzner
+        - node.labels.type == service
     healthcheck:
       test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
       interval: 1m
@@ -95,7 +95,7 @@ services:
           memory: 500M
       placement:
         constraints:
-        - node.labels.dc == hetzner
+        - node.labels.type == service
 
   security-admin-frontend:
     environment:
@@ -115,7 +115,7 @@ services:
           memory: 700M
       placement:
         constraints:
-        - node.labels.dc == hetzner
+        - node.labels.type == service
 
   esnsi:
     environment:
@@ -139,7 +139,7 @@ services:
           memory: 500M
       placement:
         constraints:
-          - node.labels.dc == hetzner
+          - node.labels.type == service
     healthcheck:
       test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
       interval: 1m
