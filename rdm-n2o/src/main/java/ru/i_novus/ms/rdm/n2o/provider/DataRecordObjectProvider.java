@@ -12,7 +12,6 @@ import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
@@ -27,7 +26,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.FIELD_SYSTEM_ID;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.FIELD_VERSION_ID;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 
 /**
@@ -46,6 +46,9 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     private static final String CONFLICT_VALIDATION_CLASS_NAME = DataRecordController.class.getName();
     private static final String CONFLICT_VALIDATION_CLASS_METHOD = "getDataConflicts";
     private static final String CONFLICT_TEXT_RESULT = "conflictText";
+
+    @Autowired
+    private Collection<DataRecordObjectResolver> resolvers;
 
     @Override
     public String getCode() {
@@ -68,149 +71,50 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     private N2oObject createObject(DataRecordRequest request) {
 
         N2oObject n2oObject = new N2oObject();
-        n2oObject.setOperations(new N2oObject.Operation[]{
-                getCreateOperation(request),
-                getUpdateOperation(request),
-                getLocalizeOperation(request) // to-do: Убрать в Resolver
-        });
+        n2oObject.setOperations(createOperations(request));
 
         return n2oObject;
     }
 
-    private N2oObject.Operation getCreateOperation(DataRecordRequest request) {
+    private N2oObject.Operation[] createOperations(DataRecordRequest request) {
 
-        N2oObject.Operation operation = new N2oObject.Operation();
-        operation.setId("create");
+        List<N2oObject.Operation> operations = getSatisfiedResolvers(request.getDataAction())
+                .map(resolver -> createOperation(resolver, request))
+                .collect(toList());
 
-        operation.setInvocation(createInvocation());
+        return operations.toArray(N2oObject.Operation[]::new);
+    }
+
+    private N2oObject.Operation createOperation(DataRecordObjectResolver resolver, DataRecordRequest request) {
+
+        N2oObject.Operation operation = resolver.createOperation(request);
         operation.setInParameters(Stream.concat(
-                Stream.of(createVersionIdParameter(request.getVersionId()),
-                        createOptLockValueParameter()),
-                createDynamicParams(request.getStructure()).stream())
+                resolver.createRegularParams(request).stream(),
+                createDynamicParams(request, resolver.getRecordMappingIndex(request)).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
         return operation;
     }
 
-    private N2oObject.Operation getUpdateOperation(DataRecordRequest request) {
+    private List<N2oObject.Parameter> createDynamicParams(DataRecordRequest request, int mappingIndex) {
 
-        N2oObject.Operation operation = new N2oObject.Operation();
-        operation.setId("update");
-
-        operation.setInvocation(createInvocation());
-        operation.setInParameters(Stream.concat(
-                createRegularParams(request.getVersionId()).stream(),
-                createDynamicParams(request.getStructure()).stream())
-                .toArray(N2oObject.Parameter[]::new));
-
-        return operation;
-    }
-
-    private N2oObject.Operation getLocalizeOperation(DataRecordRequest request) {
-
-        N2oObject.Operation operation = new N2oObject.Operation();
-        operation.setId("localize");
-
-        operation.setInvocation(createLocalizeInvocation());
-        operation.setInParameters(Stream.concat(
-                Stream.of(createVersionIdParameter(request.getVersionId()),
-                        createSystemIdParameter(),
-                        createOptLockValueParameter(),
-                        createLocaleCodeParameter()),
-                createDynamicParams(request.getStructure()).stream())
-                .toArray(N2oObject.Parameter[]::new));
-
-        return operation;
-    }
-
-    private N2oJavaDataProvider createLocalizeInvocation() {
-
-        N2oJavaDataProvider invocation = new N2oJavaDataProvider();
-        invocation.setClassName(CONTROLLER_CLASS_NAME);
-        invocation.setMethod(CONTROLLER_CLASS_METHOD);
-        invocation.setSpringProvider(new SpringProvider());
-
-        Argument versionIdArgument = new Argument();
-        versionIdArgument.setType(Argument.Type.PRIMITIVE);
-        versionIdArgument.setName("versionId");
-        versionIdArgument.setClassName(Integer.class.getName());
-
-        Argument rowArgument = new Argument();
-        rowArgument.setType(Argument.Type.CLASS);
-        rowArgument.setName("row");
-        rowArgument.setClassName(Row.class.getName());
-
-        Argument optLockValueArgument = new Argument();
-        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
-        optLockValueArgument.setName(FIELD_OPT_LOCK_VALUE);
-        optLockValueArgument.setClassName(Integer.class.getName());
-
-        Argument localeCodeArgument = new Argument();
-        localeCodeArgument.setType(Argument.Type.PRIMITIVE);
-        localeCodeArgument.setName(FIELD_LOCALE_CODE);
-        localeCodeArgument.setClassName(String.class.getName());
-
-        invocation.setArguments(new Argument[]{
-                versionIdArgument, rowArgument, optLockValueArgument, localeCodeArgument
-        });
-
-        return invocation;
-    }
-
-    private N2oObject.Parameter createVersionIdParameter(Integer versionId) {
-
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(FIELD_VERSION_ID);
-        parameter.setMapping("[0]");
-        parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setDefaultValue(String.valueOf(versionId));
-        return parameter;
-    }
-
-    private N2oObject.Parameter createSystemIdParameter() {
-
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setId(FIELD_SYSTEM_ID);
-        parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setMapping("[1].systemId");
-        return parameter;
-    }
-
-    private N2oObject.Parameter createOptLockValueParameter() {
-
-        N2oObject.Parameter optLockValueParameter = new N2oObject.Parameter();
-        optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
-        optLockValueParameter.setMapping("[2]");
-        optLockValueParameter.setDomain(N2oDomain.INTEGER);
-        optLockValueParameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
-        return optLockValueParameter;
-    }
-
-    private N2oObject.Parameter createLocaleCodeParameter() {
-
-        N2oObject.Parameter localeCodeParameter = new N2oObject.Parameter();
-        localeCodeParameter.setId(FIELD_LOCALE_CODE);
-        localeCodeParameter.setMapping("[3]");
-        localeCodeParameter.setDomain(N2oDomain.STRING);
-        localeCodeParameter.setDefaultValue(DEFAULT_LOCALE_CODE);
-        return localeCodeParameter;
-    }
-
-    private List<N2oObject.Parameter> createDynamicParams(Structure structure) {
-
-        if (structure.isEmpty()) {
+        Structure structure = request.getStructure();
+        if (structure.isEmpty())
             return emptyList();
-        }
 
-        return structure.getAttributes().stream().map(this::createParam).collect(toList());
+        return structure.getAttributes().stream()
+                .map(attribute ->  createParam(attribute, mappingIndex))
+                .collect(toList());
     }
 
-    private N2oObject.Parameter createParam(Structure.Attribute attribute) {
+    private N2oObject.Parameter createParam(Structure.Attribute attribute, int mappingIndex) {
+
+        final String mappingArgumentFormat = "[%1$d].data['%2$s']";
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
         N2oObject.Parameter parameter = new N2oObject.Parameter();
-        parameter.setMapping("[1].data['" + attribute.getCode() + "']");
+        parameter.setMapping(String.format(mappingArgumentFormat, mappingIndex, attribute.getCode()));
 
         switch (attribute.getType()) {
             case STRING:
@@ -307,5 +211,14 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         N2oObject.Operation.Validations validations = new N2oObject.Operation.Validations();
         validations.setInlineValidations(new N2oValidation[]{ constraint });
         operation.setValidations(validations);
+    }
+
+    private Stream<DataRecordObjectResolver> getSatisfiedResolvers(String dataAction) {
+
+        if (isEmpty(resolvers))
+            return Stream.empty();
+
+        return resolvers.stream()
+                .filter(resolver -> resolver.isSatisfied(dataAction));
     }
 }

@@ -40,7 +40,10 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     private SourceComponent[] createLocalizeFields() {
 
-        return new SourceComponent[] { createLocaleCodeField(), createHideUnlocalizableField() };
+        return new SourceComponent[]{
+                createLocaleCodeField(),
+                createHideUnlocalizableField()
+        };
     }
 
     private N2oField createLocaleCodeField() {
