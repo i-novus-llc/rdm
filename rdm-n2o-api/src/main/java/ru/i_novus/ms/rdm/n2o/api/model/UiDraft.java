@@ -1,14 +1,21 @@
 package ru.i_novus.ms.rdm.n2o.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 
 import java.util.Objects;
 
-/** Модель черновика для отображения. */
+/**
+ * Модель черновика для отображения.
+ */
+@ApiModel("Черновик для отображения")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UiDraft extends Draft {
 
-    /** Идентификатор справочника. */
+    @ApiModelProperty("Идентификатор справочника")
     private Integer refBookId;
 
     public UiDraft(Integer id, Integer refBookId, Integer optLockValue) {
