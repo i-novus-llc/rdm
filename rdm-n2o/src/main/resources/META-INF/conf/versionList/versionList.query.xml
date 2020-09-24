@@ -78,8 +78,16 @@
             <select/>
         </field>
 
-        <field id="isEmptyStructure" domain="boolean">
-            <select mapping="structure == null || structure.isEmpty()"/>
+        <field id="hasStructure" domain="boolean">
+            <select mapping="!!!hasEmptyStructure()"/>
+        </field>
+
+        <field id="hasEmptyStructure" domain="boolean">
+            <select mapping="hasEmptyStructure()"/>
+        </field>
+
+        <field id="isLocalizable" domain="boolean">
+            <select mapping="!structure.getLocalizables().isEmpty()"/>
         </field>
 
         <field id="excludeDraft" domain="boolean">
