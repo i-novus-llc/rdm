@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
-import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
+import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.io.Serializable;

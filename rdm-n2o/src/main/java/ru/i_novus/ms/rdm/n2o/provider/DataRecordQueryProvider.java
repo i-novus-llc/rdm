@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordQueryResolver;
-import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.ArrayList;

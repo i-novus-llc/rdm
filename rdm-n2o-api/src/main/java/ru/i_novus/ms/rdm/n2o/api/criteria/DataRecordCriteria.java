@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.criteria;
+package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
