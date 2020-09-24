@@ -32,7 +32,7 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 
 @Controller
-@SuppressWarnings("unused") // used in: DataRecordQueryProvider
+@SuppressWarnings("unused") // used in: *RecordQueryResolver
 public class DataRecordController {
 
     private static final Logger logger = LoggerFactory.getLogger(DataRecordController.class);
@@ -41,6 +41,8 @@ public class DataRecordController {
     private static final String CONFLICT_TEXT_UPDATED = "conflict.text.updated";
     private static final String CONFLICT_TEXT_DELETED = "conflict.text.deleted";
     private static final String CONFLICT_TEXT_ALTERED = "conflict.text.altered";
+
+    private static final int MAX_FIXED_FIELD_COUNT = 5;
 
     @Autowired
     private VersionRestService versionService;
@@ -81,7 +83,7 @@ public class DataRecordController {
     private Map<String, Object> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
 
         int atributeCount = version.getStructure().getAttributes().size();
-        Map<String, Object> map = new HashMap<>(5 + atributeCount);
+        Map<String, Object> map = new HashMap<>(MAX_FIXED_FIELD_COUNT + atributeCount);
 
         map.put(FIELD_VERSION_ID, version.getId());
         map.put(FIELD_OPT_LOCK_VALUE, criteria.getOptLockValue());

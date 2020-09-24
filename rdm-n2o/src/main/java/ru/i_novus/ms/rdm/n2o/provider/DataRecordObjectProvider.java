@@ -15,7 +15,6 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
-import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
 import java.util.Collection;
@@ -38,9 +37,6 @@ import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 public class DataRecordObjectProvider extends DataRecordBaseProvider implements DynamicMetadataProvider {
 
     static final String OBJECT_PROVIDER_ID = "dataRecordObject";
-
-    private static final String CONTROLLER_CLASS_NAME = CreateDraftController.class.getName();
-    private static final String CONTROLLER_CLASS_METHOD = "updateDataRecord";
 
     private static final String CONFLICT_VALIDATION_NAME = "checkDataConflicts";
     private static final String CONFLICT_VALIDATION_CLASS_NAME = DataRecordController.class.getName();

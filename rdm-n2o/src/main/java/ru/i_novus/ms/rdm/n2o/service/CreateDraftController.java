@@ -30,7 +30,7 @@ import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 @Controller
-@SuppressWarnings("unused") // used in: *.object.xml, *ObjectProvider, *ObjectResolver
+@SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver
 public class CreateDraftController {
 
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
