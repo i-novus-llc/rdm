@@ -227,6 +227,10 @@
                                 <eq field-id="dataAction" value="localize"/>
                             </pre-filters>
                         </show-modal>
+
+                        <dependencies>
+                            <visibility>return ${rdm.l10n.support}</visibility>
+                        </dependencies>
                     </button>
                 </toolbar>
             </table>
