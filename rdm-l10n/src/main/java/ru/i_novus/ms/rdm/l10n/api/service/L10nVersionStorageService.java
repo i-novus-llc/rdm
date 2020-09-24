@@ -59,6 +59,16 @@ public interface L10nVersionStorageService {
                                        @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 
     @GET
+    @ApiOperation("Получение наименования локали версии по коду")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Локаль версии"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/locale/name/{localeCode}")
+    String getLocaleName(@ApiParam("Код локали") @PathParam("localeCode") String localeCode);
+
+    @GET
     @ApiOperation("Получение кода хранилища с учётом локали")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Код хранилища с учётом локали"),

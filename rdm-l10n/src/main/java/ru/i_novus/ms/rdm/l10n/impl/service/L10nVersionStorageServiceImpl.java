@@ -158,6 +158,13 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         return toVersionLocale(versionId, localeInfo);
     }
 
+    @Override
+    public String getLocaleName(String localeCode) {
+
+        L10nLocaleInfo localeInfo = localeInfoService.find(localeCode);
+        return localeInfo != null ? localeInfo.getName() : null;
+    }
+
     private L10nLocaleInfo findLocaleInfo(String localeCode, List<L10nLocaleInfo> localeInfos) {
 
         return localeInfos.stream()
