@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.*;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -410,8 +409,8 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         Structure structure = entity.getStructure();
-        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimaries() : null;
-        model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+        List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
+        model.setHasPrimaryAttribute(!primaries.isEmpty());
 
         model.setHasReferrer(hasReferrerVersions);
 
