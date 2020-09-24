@@ -46,7 +46,8 @@ public class L10nRefBookDataDecorator implements RefBookDataDecorator {
     public Structure getDataStructure(Integer versionId, DataCriteria criteria) {
 
         Structure structure = versionService.getStructure(versionId);
-        if (criteria == null || criteria.getLocaleCode() == null)
+        if (criteria == null || criteria.getLocaleCode() == null ||
+                structure == null || structure.isEmpty())
             return structure;
 
         return toL10nDataStructure(structure);
