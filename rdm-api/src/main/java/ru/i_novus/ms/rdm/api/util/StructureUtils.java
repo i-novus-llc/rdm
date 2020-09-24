@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,11 +17,12 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class StructureUtils {
 
     private StructureUtils() {
+        throw new UnsupportedOperationException();
     }
 
     /** Проверка на наличие атрибута-ссылки. */
     public static boolean isReference(Structure.Reference reference) {
-        return Objects.nonNull(reference) && !reference.isNull();
+        return reference != null && !reference.isNull();
     }
 
     /** Получение кодов атрибутов структуры. */
@@ -72,7 +73,7 @@ public class StructureUtils {
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
         return expression.getPlaceholders().keySet().stream()
-                .anyMatch(placeholder -> Objects.isNull(structure.getAttribute(placeholder)));
+                .anyMatch(placeholder -> structure.getAttribute(placeholder) == null);
     }
 
     /**
@@ -89,7 +90,7 @@ public class StructureUtils {
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
         return expression.getPlaceholders().keySet().stream()
-                .filter(placeholder -> Objects.isNull(structure.getAttribute(placeholder)))
+                .filter(placeholder -> structure.getAttribute(placeholder) == null)
                 .collect(toList());
     }
 
@@ -107,10 +108,10 @@ public class StructureUtils {
         DisplayExpression expression = new DisplayExpression(displayExpression);
         Collection<String> placeholders = expression.getPlaceholders().keySet();
         if (placeholders.size() == 1) {
+
             String placeholder = placeholders.iterator().next();
-            if (DisplayExpression.toPlaceholder(placeholder).equals(displayExpression)) {
+            if (DisplayExpression.toPlaceholder(placeholder).equals(displayExpression))
                 return placeholder;
-            }
         }
         return null;
     }
