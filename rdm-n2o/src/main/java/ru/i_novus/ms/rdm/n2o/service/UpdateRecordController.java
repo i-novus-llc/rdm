@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Controller
-@SuppressWarnings("unused") // used in: UpdateRecordQueryResolver
 public class UpdateRecordController {
 
     private static final Logger logger = LoggerFactory.getLogger(UpdateRecordController.class);
@@ -49,6 +48,7 @@ public class UpdateRecordController {
      * @param id        идентификатор записи этой версии
      * @return Строка со всеми конфликтами
      */
+    @SuppressWarnings("unused") // used in: UpdateRecordQueryResolver
     public String getDataConflicts(Integer versionId, Long id) {
 
         final Structure structure = getStructureOrNull(versionId);

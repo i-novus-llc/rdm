@@ -23,7 +23,6 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 @Controller
-@SuppressWarnings("unused") // used in: *RecordQueryResolver
 public class DataRecordController {
 
     private static final Logger logger = LoggerFactory.getLogger(DataRecordController.class);
@@ -41,6 +40,7 @@ public class DataRecordController {
      *
      * @param criteria критерий поиска
      */
+    @SuppressWarnings("unused") // used in: *RecordQueryResolver
     public Map<String, Serializable> getRow(DataRecordCriteria criteria) {
 
         String dataAction = criteria.getDataAction();
@@ -63,7 +63,7 @@ public class DataRecordController {
     private Map<String, Serializable> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
 
         int atributeCount = version.getStructure().getAttributes().size();
-        Map<String, Serializable> map = new HashMap<>(MAX_FIXED_FIELD_COUNT + atributeCount);
+        Map<String, Serializable> map = new HashMap<>(MAX_FIXED_FIELD_COUNT);
 
         map.put(FIELD_VERSION_ID, version.getId());
         map.put(FIELD_OPT_LOCK_VALUE, criteria.getOptLockValue());
