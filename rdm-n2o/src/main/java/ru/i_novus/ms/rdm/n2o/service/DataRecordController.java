@@ -20,6 +20,7 @@ import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.n2o.criteria.DataRecordCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -61,7 +62,7 @@ public class DataRecordController {
      *
      * @param criteria критерий поиска
      */
-    public Map<String, Object> getRow(DataRecordCriteria criteria) {
+    public Map<String, Serializable> getRow(DataRecordCriteria criteria) {
 
         String dataAction = criteria.getDataAction();
         if (StringUtils.isEmpty(dataAction))
@@ -69,7 +70,7 @@ public class DataRecordController {
 
         RefBookVersion version = versionService.getById(criteria.getVersionId());
 
-        Map<String, Object> map = createRowMap(version, criteria);
+        Map<String, Serializable> map = createRowMap(version, criteria);
 
         switch (dataAction) {
             case DATA_ACTION_CREATE: return getCreatedRow(version, map);
@@ -80,10 +81,10 @@ public class DataRecordController {
     }
 
     /** Создание набора для заполнения. */
-    private Map<String, Object> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
+    private Map<String, Serializable> createRowMap(RefBookVersion version, DataRecordCriteria criteria) {
 
         int atributeCount = version.getStructure().getAttributes().size();
-        Map<String, Object> map = new HashMap<>(MAX_FIXED_FIELD_COUNT + atributeCount);
+        Map<String, Serializable> map = new HashMap<>(MAX_FIXED_FIELD_COUNT + atributeCount);
 
         map.put(FIELD_VERSION_ID, version.getId());
         map.put(FIELD_OPT_LOCK_VALUE, criteria.getOptLockValue());
@@ -94,7 +95,7 @@ public class DataRecordController {
     }
 
     /** Заполнение набора для создания записи. */
-    private Map<String, Object> getCreatedRow(RefBookVersion version, Map<String, Object> map) {
+    private Map<String, Serializable> getCreatedRow(RefBookVersion version, Map<String, Serializable> map) {
 
         // id == null, поэтому не указывается.
 
@@ -109,7 +110,8 @@ public class DataRecordController {
     }
 
     /** Заполнение набора для изменения записи. */
-    private Map<String, Object> getUpdatedRow(RefBookVersion version, Integer id, Map<String, Object> map) {
+    private Map<String, Serializable> getUpdatedRow(RefBookVersion version, Integer id,
+                                                    Map<String, Serializable> map) {
 
         map.put(FIELD_SYSTEM_ID, id);
 
