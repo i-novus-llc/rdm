@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.deletePrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
 
 /**
  * Критерий поиска записей версии справочника.

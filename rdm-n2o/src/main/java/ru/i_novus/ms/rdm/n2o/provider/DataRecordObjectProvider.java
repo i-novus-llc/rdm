@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.FIELD_SYSTEM_ID;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.FIELD_VERSION_ID;
-import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 /**
  * Провайдер для формирования объекта по выполнению операции
