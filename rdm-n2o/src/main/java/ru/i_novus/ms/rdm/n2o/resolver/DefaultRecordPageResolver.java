@@ -2,9 +2,9 @@ package ru.i_novus.ms.rdm.n2o.resolver;
 
 import net.n2oapp.framework.api.metadata.SourceComponent;
 import org.springframework.stereotype.Component;
+import ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
-import ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants;
 
 import java.util.List;
 

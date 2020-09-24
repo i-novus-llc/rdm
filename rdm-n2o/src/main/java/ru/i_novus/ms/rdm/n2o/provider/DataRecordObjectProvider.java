@@ -9,11 +9,13 @@ import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
 import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 import ru.i_novus.ms.rdm.n2o.service.DataRecordController;
 
@@ -24,8 +26,9 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
-import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 
 /**
  * Провайдер для формирования объекта по выполнению операции
@@ -100,36 +103,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
                 createDynamicParams(request.getStructure()).stream())
                 .toArray(N2oObject.Parameter[]::new));
 
-        addDataConflictValidation(request.getVersionId(), operation);
-
         return operation;
-    }
-
-    private N2oJavaDataProvider createInvocation() {
-
-        N2oJavaDataProvider invocation = new N2oJavaDataProvider();
-        invocation.setClassName(CONTROLLER_CLASS_NAME);
-        invocation.setMethod(CONTROLLER_CLASS_METHOD);
-        invocation.setSpringProvider(new SpringProvider());
-
-        Argument versionIdArgument = new Argument();
-        versionIdArgument.setType(Argument.Type.PRIMITIVE);
-        versionIdArgument.setName("versionId");
-        versionIdArgument.setClassName(Integer.class.getName());
-
-        Argument rowArgument = new Argument();
-        rowArgument.setType(Argument.Type.CLASS);
-        rowArgument.setName("row");
-        rowArgument.setClassName(Row.class.getName());
-
-        Argument optLockValueArgument = new Argument();
-        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
-        optLockValueArgument.setName(FIELD_OPT_LOCK_VALUE);
-        optLockValueArgument.setClassName(Integer.class.getName());
-
-        invocation.setArguments(new Argument[]{ versionIdArgument, rowArgument, optLockValueArgument });
-
-        return invocation;
     }
 
     private N2oObject.Operation getLocalizeOperation(DataRecordRequest request) {
@@ -181,15 +155,6 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         });
 
         return invocation;
-    }
-
-    private List<N2oObject.Parameter> createRegularParams(Integer versionId) {
-
-        return List.of(
-                createVersionIdParameter(versionId),
-                createSystemIdParameter(),
-                createOptLockValueParameter()
-        );
     }
 
     private N2oObject.Parameter createVersionIdParameter(Integer versionId) {

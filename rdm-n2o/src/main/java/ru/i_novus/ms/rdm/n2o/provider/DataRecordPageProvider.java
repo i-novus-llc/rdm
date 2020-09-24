@@ -29,8 +29,8 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
-import static ru.i_novus.ms.rdm.n2o.constant.DataRecordConstants.*;
 
 /**
  * Провайдер для формирования страницы по отображению данных
