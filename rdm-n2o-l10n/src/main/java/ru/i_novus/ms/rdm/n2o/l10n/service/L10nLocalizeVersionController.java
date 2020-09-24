@@ -1,10 +1,12 @@
 package ru.i_novus.ms.rdm.n2o.l10n.service;
 
 import net.n2oapp.platform.i18n.UserException;
+import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 
+@Controller
 @SuppressWarnings("unused") // used in: L10nLocalizeRecordObjectResolver
 public class L10nLocalizeVersionController {
 
