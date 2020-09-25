@@ -59,24 +59,22 @@ public class ConverterUtil {
                 : fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
-    /** Получение записи из plain-записи с учётом структуры. */
+    /** Получение записи из plain-записи на основе структуры. */
     public static RowValue rowValue(Row row, Structure structure) {
 
         if (structure == null || structure.isEmpty())
             return new LongRowValue(row.getSystemId(), emptyList());
 
-        final Map<String, Object> data = row.getData();
-        List<Field> fields = fields(toDataStructure(structure, data));
+        List<Field> fields = fields(structure);
 
-        List<FieldValue> fieldValues = fields.stream()
-                .map(field -> toFieldValue(data, field))
-                .collect(toList());
+        final Map<String, Object> data = row.getData();
+        List<FieldValue> fieldValues = fields.stream().map(field -> toFieldValue(data, field)).collect(toList());
 
         return new LongRowValue(row.getSystemId(), fieldValues);
     }
 
     /** Формирование структуры из имеющейся структуры по данным plain-записи. */
-    private static Structure toDataStructure(Structure structure, Map<String, Object> data) {
+    public static Structure toDataStructure(Structure structure, Map<String, Object> data) {
 
         List<Structure.Attribute> attributes = structure.getAttributes().stream()
                     .filter(attribute -> data.containsKey(attribute.getCode()))
