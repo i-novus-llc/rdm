@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -33,6 +34,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StructureUtils.toLocalizableStructure;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isValidSchemaName;
 
@@ -86,23 +88,29 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         if (isEmpty(request.getLocaleCode()))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
+        if (CollectionUtils.isEmpty(request.getRows()))
+            return;
+
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
         validateOptLockValue(versionEntity, request);
 
         String targetCode = localizeTable(versionEntity, request);
 
-        if (CollectionUtils.isEmpty(request.getRows()))
-            return;
+        Structure structure = toLocalizableStructure(versionEntity.getStructure());
 
-        Structure structure = versionEntity.getStructure();
-        List<RowValue> updatedRowValues = request.getRows().stream()
-                .map(row -> ConverterUtil.rowValue(row, structure))
-                .filter(rowValue -> rowValue.getSystemId() != null)
-                .collect(toList());
+        List<RowValue> updatedRowValues = toRowValues(request.getRows(), structure);
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;
 
         draftDataService.updateRows(targetCode, updatedRowValues);
+    }
+
+    private List<RowValue> toRowValues(List<Row> rows, Structure structure) {
+
+        return rows.stream()
+                .map(row -> ConverterUtil.rowValue(row, structure))
+                .filter(rowValue -> rowValue.getSystemId() != null)
+                .collect(toList());
     }
 
     /**
