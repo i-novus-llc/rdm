@@ -41,9 +41,7 @@ public class ConverterUtil {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Получение списка полей на основе структуры справочника.
-     */
+    /** Получение списка полей на основе структуры справочника. */
     public static List<Field> fields(Structure structure) {
 
         List<Field> fields = new ArrayList<>();
@@ -61,20 +59,48 @@ public class ConverterUtil {
                 : fieldFactory.createField(attribute.getCode(), attribute.getType());
     }
 
+    /** Получение записи из plain-записи с учётом структуры. */
     public static RowValue rowValue(Row row, Structure structure) {
 
-        List<Field> fields = fields(structure);
-        return new LongRowValue(row.getSystemId(),
-                fields.stream().map(field -> toFieldValue(row, field)).collect(toList())
-        );
+        if (structure == null || structure.isEmpty())
+            return new LongRowValue(row.getSystemId(), emptyList());
+
+        final Map<String, Object> data = row.getData();
+        List<Field> fields = fields(toDataStructure(structure, data));
+
+        List<FieldValue> fieldValues = fields.stream()
+                .map(field -> toFieldValue(data, field))
+                .collect(toList());
+
+        return new LongRowValue(row.getSystemId(), fieldValues);
     }
 
-    /**
-     * Получение значения поля на основе записи справочника и самого поля.
-     */
-    private static FieldValue toFieldValue(Row row, Field field) {
+    /** Формирование структуры из имеющейся структуры по данным plain-записи. */
+    private static Structure toDataStructure(Structure structure, Map<String, Object> data) {
 
-        return field.valueOf(row.getData().get(field.getName()));
+        List<Structure.Attribute> attributes = structure.getAttributes().stream()
+                    .filter(attribute -> data.containsKey(attribute.getCode()))
+                    .collect(toList());
+        if (attributes.size() == structure.getAttributes().size())
+            return structure;
+
+        List<Structure.Reference> references = structure.getReferences();
+        if (references.isEmpty())
+            return new Structure(attributes, null);
+
+        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
+        references = structure.getReferences().stream()
+                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
+                .collect(toList());
+
+        return new Structure(attributes, references);
+    }
+
+    /** Получение значения поля на основе данных plain-записи справочника и самого поля. */
+    @SuppressWarnings("unchecked")
+    private static FieldValue toFieldValue(Map<String, Object> data, Field field) {
+
+        return field.valueOf(data.get(field.getName()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -121,7 +147,9 @@ public class ConverterUtil {
         if (attribute == null) return null;
 
         Field field = field(attribute);
-        return new FieldSearchCriteria(field, SearchTypeEnum.LIKE, singletonList(toSearchValue(field, filter.getValue())));
+        return new FieldSearchCriteria(field, SearchTypeEnum.LIKE,
+                singletonList(toSearchValue(field, filter.getValue()))
+        );
     }
 
     public static Row toRow(RowValue rowValue) {
