@@ -2,8 +2,9 @@ package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
 import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.control.N2oField;
+import net.n2oapp.framework.api.metadata.control.plain.CheckboxDefaultValueEnum;
 import net.n2oapp.framework.api.metadata.control.plain.N2oCheckbox;
-import net.n2oapp.framework.api.metadata.control.plain.N2oOutputText;
+import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.global.view.fieldset.N2oFieldsetRow;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
@@ -18,6 +19,8 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.FIELD_LOCA
 
 @Component
 public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
+
+    private static final String FIELD_HIDE_UNLOCALIZABLE_LABEL = "field.hide.unlocalizable.label";
 
     @Override
     public boolean isSatisfied(String dataAction) {
@@ -48,11 +51,12 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     private N2oField createLocaleCodeField() {
 
-        N2oOutputText n2oField = new N2oOutputText();
+        N2oInputText n2oField = new N2oInputText();
         n2oField.setId(FIELD_LOCALE_NAME);
         n2oField.setDomain(N2oDomain.STRING);
         n2oField.setNoLabelBlock(Boolean.TRUE);
-        
+        n2oField.setEnabled(Boolean.FALSE);
+
         return n2oField;
     }
 
@@ -61,7 +65,8 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
         N2oCheckbox n2oField = new N2oCheckbox();
         n2oField.setId("hideUnlocalizable");
         n2oField.setNoLabelBlock(Boolean.TRUE);
-        n2oField.setLabel("Скрыть поля, не требующие перевода");
+        n2oField.setUnchecked(CheckboxDefaultValueEnum.FALSE);
+        n2oField.setLabel(FIELD_HIDE_UNLOCALIZABLE_LABEL);
 
         return n2oField;
     }
