@@ -40,7 +40,7 @@ public class DataRecordBaseProvider {
         String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
 
         Integer versionId = Integer.parseInt(params[0]);
-        Structure structure = getStructureOrNull(versionId);
+        Structure structure = getStructureOrEmpty(versionId);
 
         request.setVersionId(versionId);
         request.setStructure(structure);
@@ -49,7 +49,7 @@ public class DataRecordBaseProvider {
         return request;
     }
 
-    protected Structure getStructureOrNull(Integer versionId) {
+    protected Structure getStructureOrEmpty(Integer versionId) {
         try {
             return versionService.getStructure(versionId);
 

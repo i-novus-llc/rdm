@@ -51,8 +51,8 @@ public class UpdateRecordController {
     @SuppressWarnings("unused") // used in: UpdateRecordQueryResolver
     public String getDataConflicts(Integer versionId, Long id) {
 
-        final Structure structure = getStructureOrNull(versionId);
-        if (structure == null || isEmpty(structure.getReferences()))
+        final Structure structure = getStructureOrEmpty(versionId);
+        if (structure.isEmpty() || structure.getReferences().isEmpty())
             return null;
 
         List<String> refFieldCodes = StructureUtils.getReferenceAttributeCodes(structure).collect(toList());
@@ -66,14 +66,14 @@ public class UpdateRecordController {
                 .collect(joining(" \n"));
     }
 
-    private Structure getStructureOrNull(Integer versionId) {
+    private Structure getStructureOrEmpty(Integer versionId) {
         try {
             return versionService.getStructure(versionId);
 
         } catch (Exception e) {
             logger.error("Structure is not received for data", e);
 
-            return null;
+            return Structure.EMPTY;
         }
     }
 
@@ -99,7 +99,7 @@ public class UpdateRecordController {
         return (conflicts != null) ? conflicts.getContent() : emptyList();
     }
 
-    /** Получение названия атрибута с конфликтом. */
+    /** Получение наименования атрибута с конфликтом. */
     private String getConflictRefFieldName(RefBookConflict conflict, Structure structure) {
 
         Structure.Attribute attribute = structure.getAttribute(conflict.getRefFieldCode());

@@ -171,6 +171,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
             default:
                 n2oField = new N2oInputText();
+                break;
         }
 
         n2oField.setId(addPrefix(attribute.getCode()));

@@ -5,10 +5,10 @@ public class DataRecordUtils {
     /** Префикс для полей (колонок) справочника, чтобы отличать их от системных. */
     private static final String FIELD_PREFIX = "_refBook_";
 
-    /** Разделитель названий частей в составном названии поля. */
+    /** Разделитель наименований частей в составном наименовании поля. */
     private static final char FIELD_PART_SEPARATOR = '_';
 
-    /** Разделитель названия поля и названия свойства. */
+    /** Разделитель наименования поля и наименования свойства. */
     private static final char FIELD_PROPERTY_SEPARATOR = '.';
 
     private DataRecordUtils() {
@@ -16,46 +16,56 @@ public class DataRecordUtils {
     }
 
     /**
-     * Добавление префикса к названию поля.
+     * Добавление префикса к наименованию поля.
      *
-     * @param string название поля без префикса
-     * @return Название поля с префиксом
+     * @param fieldName наименование поля без префикса
+     * @return Наименование поля с префиксом
      */
-    public static String addPrefix(String string) {
-        return FIELD_PREFIX + string;
+    public static String addPrefix(String fieldName) {
+        return FIELD_PREFIX + fieldName;
     }
 
     /**
-     * Удаление префикса из названия поля.
+     * Удаление префикса из наименования поля.
      *
-     * @param string название поля с префиксом
-     * @return Название поля без префикса
+     * @param fieldName наименование поля с префиксом
+     * @return Наименование поля без префикса
      */
-    public static String deletePrefix(String string) {
-        if (string != null
-                && string.startsWith(FIELD_PREFIX)) {
-            string = string.replace(FIELD_PREFIX, "");
+    public static String deletePrefix(String fieldName) {
+
+        if (hasPrefix(fieldName)) {
+            fieldName = fieldName.replace(FIELD_PREFIX, "");
         }
-        return string;
+        return fieldName;
     }
 
     /**
-     * Добавление названия части к названию поля.
+     * Проверка наличия префикса в наименовании поля.
      *
-     * @param fieldName название поля
-     * @param partName  название части
-     * @return Название поля с частью
+     * @param fieldName наименование поля
+     * @return Результат проверки
+     */
+    public static boolean hasPrefix(String fieldName) {
+        return fieldName != null && fieldName.startsWith(FIELD_PREFIX);
+    }
+
+    /**
+     * Добавление наименования части к наименованию поля.
+     *
+     * @param fieldName наименование поля
+     * @param partName  наименование части
+     * @return Наименование поля с частью
      */
     public static String addFieldPart(String fieldName, String partName) {
         return fieldName + FIELD_PART_SEPARATOR + partName;
     }
 
     /**
-     * Добавление названия свойства к названию поля.
+     * Добавление наименования свойства к наименованию поля.
      *
-     * @param fieldName    название поля
-     * @param propertyName название свойства
-     * @return Название поля со свойством
+     * @param fieldName    наименование поля
+     * @param propertyName наименование свойства
+     * @return Наименование поля со свойством
      */
     public static String addFieldProperty(String fieldName, String propertyName) {
         return fieldName + FIELD_PROPERTY_SEPARATOR + propertyName;
