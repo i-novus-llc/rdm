@@ -13,7 +13,6 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.*;
 
@@ -119,8 +118,8 @@ public class StructureTest {
         assertNull(structure.getAttribute(ID_ATTRIBUTE_CODE));
         assertNull(structure.getReference(ID_ATTRIBUTE_CODE));
 
-        assertEquals(emptyList(), structure.getRefCodeAttributes(ID_ATTRIBUTE_CODE));
-        assertEquals(emptyList(), structure.getRefCodeReferences(ID_ATTRIBUTE_CODE));
+        assertEmptyList(structure.getRefCodeAttributes(ID_ATTRIBUTE_CODE));
+        assertEmptyList(structure.getRefCodeReferences(ID_ATTRIBUTE_CODE));
 
         assertFalse(structure.hasPrimary());
         structure.clearPrimary();
@@ -315,6 +314,12 @@ public class StructureTest {
     public void testGetByRefCode() {
 
         Structure structure = createStructure();
+
+        assertEmptyList(structure.getRefCodeAttributes(null));
+        assertEmptyList(structure.getRefCodeReferences(null));
+
+        assertEmptyList(structure.getRefCodeAttributes(""));
+        assertEmptyList(structure.getRefCodeReferences(""));
 
         IntStream.range(0, REFERRED_BOOK_CODES.size()).forEach(index -> {
 

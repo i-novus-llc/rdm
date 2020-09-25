@@ -200,7 +200,7 @@ public class Structure implements Serializable {
      */
     public List<Reference> getRefCodeReferences(String referenceCode) {
 
-        if (CollectionUtils.isEmpty(references))
+        if (StringUtils.isEmpty(referenceCode) || CollectionUtils.isEmpty(references))
             return emptyList();
 
         return references.stream()
@@ -216,7 +216,7 @@ public class Structure implements Serializable {
      */
     public List<Attribute> getRefCodeAttributes(String referenceCode) {
 
-        if (CollectionUtils.isEmpty(attributes))
+        if (StringUtils.isEmpty(referenceCode) || CollectionUtils.isEmpty(attributes))
             return emptyList();
 
         return getRefCodeReferences(referenceCode).stream()

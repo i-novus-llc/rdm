@@ -5,8 +5,11 @@ import org.junit.Assert;
 import org.springframework.util.StringUtils;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.function.BiConsumer;
 
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -20,7 +23,7 @@ public class RefBookTestUtils {
     }
 
     /**
-     * Сравнение объектов с учётом хеша и преобразования в строку.
+     * Проверка объектов с учётом хеша и преобразования в строку.
      */
     public static void assertObjects(BiConsumer<Object, Object> objectAssert, Object current, Object actual) {
 
@@ -30,6 +33,14 @@ public class RefBookTestUtils {
             objectAssert.accept(current.hashCode(), actual.hashCode());
             objectAssert.accept(current.toString(), actual.toString());
         }
+    }
+
+    /**
+     * Проверка списка на пустоту.
+     */
+    public static void assertEmptyList(List<?> list) {
+
+        assertEquals(emptyList(), list);
     }
 
     /**
