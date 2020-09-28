@@ -20,7 +20,7 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Controller
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class CategoryController {
 
     private static final String CATEGORY_REFBOOK_CODE = "CAT";

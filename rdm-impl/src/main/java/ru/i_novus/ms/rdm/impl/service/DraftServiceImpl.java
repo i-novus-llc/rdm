@@ -67,7 +67,7 @@ import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportT
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";

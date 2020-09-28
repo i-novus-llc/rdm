@@ -22,7 +22,7 @@ import java.util.List;
 
 @Primary
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nVersionServiceImpl extends VersionServiceImpl {
 
     private L10nVersionStorageService versionStorageService;

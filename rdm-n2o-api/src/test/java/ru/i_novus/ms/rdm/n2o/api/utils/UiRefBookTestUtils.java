@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class UiRefBookTestUtils {
 
     private static final String WAITING_ERROR = "Ожидается ошибка ";

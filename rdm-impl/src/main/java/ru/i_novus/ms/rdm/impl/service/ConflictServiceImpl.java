@@ -59,7 +59,7 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 
 @Primary
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ConflictServiceImpl implements ConflictService {
 
     private static final int REF_BOOK_VERSION_PAGE_SIZE = 100;

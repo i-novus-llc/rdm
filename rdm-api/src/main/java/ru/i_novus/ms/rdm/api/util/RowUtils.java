@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class RowUtils {
 
     private RowUtils() {

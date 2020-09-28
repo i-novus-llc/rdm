@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class RefBookTestUtils {
 
     private static final String WAITING_ERROR = "Ожидается ошибка ";

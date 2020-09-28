@@ -39,7 +39,7 @@ import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUti
 
 @Primary
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nVersionStorageServiceImpl implements L10nVersionStorageService {
 
     private static final String LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE = "locale.code.not.found";

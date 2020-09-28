@@ -25,7 +25,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class FieldValueUtils {
 
     private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";

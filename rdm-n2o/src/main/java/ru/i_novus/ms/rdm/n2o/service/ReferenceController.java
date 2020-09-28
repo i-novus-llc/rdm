@@ -25,7 +25,7 @@ import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.toDisplayValue;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 
 @Controller
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceController {
 
     @Autowired

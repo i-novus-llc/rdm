@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ConverterUtil {
 
     private static final FieldFactory fieldFactory = new FieldFactoryImpl();
