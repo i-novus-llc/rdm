@@ -37,10 +37,8 @@ import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
@@ -54,7 +52,8 @@ public class L10nVersionStorageServiceTest {
     private static final String TEST_REFBOOK_CODE = "L10N_TEST";
 
     private static final String TEST_LOCALE_CODE = "test";
-    private static final L10nLocaleInfo TEST_LOCALE_INFO = new L10nLocaleInfo(TEST_LOCALE_CODE, "Тест", null);
+    private static final String TEST_LOCALE_NAME = "Тест";
+    private static final L10nLocaleInfo TEST_LOCALE_INFO = new L10nLocaleInfo(TEST_LOCALE_CODE, TEST_LOCALE_NAME, null);
 
     private static final String TEST_SCHEMA_NAME = L10nConstants.SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
     private static final String TEST_STORAGE_NAME = TEST_REFBOOK_CODE + "_storage";
@@ -106,6 +105,7 @@ public class L10nVersionStorageServiceTest {
         String schemaName = TEST_SCHEMA_NAME;
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
         String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.storageExists(eq(testStorageCode))).thenReturn(false);
         when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
 
         LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
@@ -113,6 +113,24 @@ public class L10nVersionStorageServiceTest {
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
+    }
+
+    @Test
+    public void testLocalizeTableWhenExists() {
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
+
+        String schemaName = TEST_SCHEMA_NAME;
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(schemaName);
+        String testStorageCode = toStorageCode(schemaName, TEST_STORAGE_NAME);
+        when(draftDataService.storageExists(eq(testStorageCode))).thenReturn(true);
+
+        LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
+        versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+
+        verify(draftDataService, times(0)).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
+        verify(draftDataService, times(0)).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
     }
 
     @Test
@@ -337,6 +355,68 @@ public class L10nVersionStorageServiceTest {
 
         L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertLocales(TEST_LOCALE_INFO, actualVersionLocale);
+    }
+
+    @Test
+    public void testGetVersionLocaleOnNull() {
+
+        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(null);
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
+
+        List<String> existentSchemaNames = List.of(TEST_SCHEMA_NAME);
+        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
+
+        L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+        assertNull(actualVersionLocale);
+    }
+
+    @Test
+    public void testGetVersionLocaleOnDefaultFailed() {
+
+        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(null);
+
+        try {
+            versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+            fail(getFailedMessage(UserException.class));
+
+        } catch (UserException e) {
+            assertEquals(UserException.class, e.getClass());
+            assertEquals("locale.code.is.default", getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testGetVersionLocaleOnSchemaFailed() {
+
+        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
+        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
+
+        List<String> existentSchemaNames = emptyList();
+        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
+
+        try {
+            versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+            fail(getFailedMessage(UserException.class));
+
+        } catch (UserException e) {
+            assertEquals(UserException.class, e.getClass());
+            assertEquals("locale.schema.not.found", getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testGetLocaleName() {
+
+        when(localeInfoService.find(isNull())).thenReturn(null);
+
+        String localeName = versionStorageService.getLocaleName(null);
+        assertNull(localeName);
+
+        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
+
+        localeName = versionStorageService.getLocaleName(TEST_LOCALE_CODE);
+        assertEquals(TEST_LOCALE_NAME, localeName);
     }
 
     private String toSchemaName(String localeCode) {
