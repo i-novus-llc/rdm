@@ -50,7 +50,9 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
     private UpdateValue<String> displayExpression;
 
-    public UpdateAttributeRequest(){}
+    public UpdateAttributeRequest() {
+        // Nothing to do.
+    }
 
     public UpdateAttributeRequest(Integer optLockValue,
                                   Structure.Attribute attribute,
