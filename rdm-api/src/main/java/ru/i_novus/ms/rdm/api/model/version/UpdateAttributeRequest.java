@@ -124,11 +124,8 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         return localizable;
     }
 
-    public boolean hasIsPrimary() {
-
-        return getIsPrimary() != null
-                && getIsPrimary().isPresent()
-                && Boolean.TRUE.equals(getIsPrimary().get());
+    public void setLocalizable(UpdateValue<Boolean> localizable) {
+        this.localizable = localizable;
     }
 
     public String getDescription() {
@@ -163,15 +160,18 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         this.displayExpression = displayExpression;
     }
 
+    public boolean hasIsPrimary() {
+
+        return getIsPrimary() != null
+                && getIsPrimary().isPresent()
+                && Boolean.TRUE.equals(getIsPrimary().get());
+    }
+
     public boolean isLocalizable() {
 
         return getLocalizable() != null
                 && getLocalizable().isPresent()
                 && Boolean.TRUE.equals(getLocalizable().get());
-    }
-
-    public void setLocalizable(UpdateValue<Boolean> localizable) {
-        this.localizable = localizable;
     }
 
     public boolean isReferenceType() {
@@ -195,11 +195,11 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     public void fillAttribute(Structure.Attribute attribute) {
 
         attribute.setType(getType());
-        attribute.setDescription(this.getDescription());
-
         setValueIfExists(this::getName, attribute::setName);
+
         setValueIfExists(this::getIsPrimary, attribute::setIsPrimary);
         setValueIfExists(this::getLocalizable, attribute::setLocalizable);
+        attribute.setDescription(this.getDescription());
     }
 
     public void fillReference(Structure.Reference reference) {
