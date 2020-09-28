@@ -220,7 +220,7 @@
                         <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                     upload="query" route="/localize"
                                     submit-operation-id="localize" submit-label="Сохранить"
-                                    refresh-widget-id="version_select">
+                                    refresh-widget-id="dataTableWithLocales">
                             <pre-filters>
                                 <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
                                 <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
