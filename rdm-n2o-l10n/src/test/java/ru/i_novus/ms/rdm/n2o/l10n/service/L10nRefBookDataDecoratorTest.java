@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.stream.LongStream;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmptyList;
 
 /**
  * Тестирование работы с данными справочника.
@@ -59,12 +60,9 @@ public class L10nRefBookDataDecoratorTest {
         Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, null);
-        assertEquals(structure, dataStructure);
-
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
         assertEquals(structure.getAttributes().size() + 1, dataStructure.getAttributes().size());
 
         assertTrue(dataStructure.getAttributes().stream().anyMatch(attribute -> SYS_LOCALIZED.equals(attribute.getCode())));
@@ -74,16 +72,44 @@ public class L10nRefBookDataDecoratorTest {
     }
 
     @Test
+    public void testGetDataStructureOnSpecials() {
+
+        Structure structure = createStructure();
+        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
+
+        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, null);
+        assertEquals(structure, dataStructure);
+
+        dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, new DataCriteria());
+        assertEquals(structure, dataStructure);
+    }
+
+    @Test
+    public void testGetDataStructureWhenNull() {
+
+        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(null);
+
+        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        assertNull(dataStructure);
+    }
+
+    @Test
+    public void testGetDataStructureWhenEmpty() {
+
+        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Structure.EMPTY);
+
+        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        assertEquals(Structure.EMPTY, dataStructure);
+    }
+
+    @Test
     public void testGetDataContent() {
 
         List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
 
-        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, null);
-        assertEquals(searchContent, dataContent);
-
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        dataContent = refBookDataService.getDataContent(searchContent, createLocaleCriteria());
+        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, createLocaleCriteria());
         assertEquals(searchContent.size(), dataContent.size());
         assertEquals(searchContent, dataContent);
         assertTrue(dataContent.stream().allMatch(
@@ -91,6 +117,21 @@ public class L10nRefBookDataDecoratorTest {
                         .anyMatch(fieldValue -> SYS_LOCALIZED.equals(fieldValue.getField()) &&
                                 fieldValue instanceof StringFieldValue)
         ));
+    }
+
+    @Test
+    public void testGetDataContentOnSpecials() {
+
+        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(emptyList(), createLocaleCriteria());
+        assertEmptyList(dataContent);
+
+        List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
+
+        dataContent = refBookDataService.getDataContent(searchContent, null);
+        assertEquals(searchContent, dataContent);
+
+        dataContent = refBookDataService.getDataContent(searchContent, new DataCriteria());
+        assertEquals(searchContent, dataContent);
     }
 
     private Structure createStructure() {
