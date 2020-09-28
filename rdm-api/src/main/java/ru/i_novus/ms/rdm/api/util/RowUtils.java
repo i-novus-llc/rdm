@@ -23,11 +23,19 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 public class RowUtils {
 
     private RowUtils() {
+        // Nothing to do.
     }
 
-    /** Проверка строки данных на отсутствие значений. */
+    /** Проверка набора данных на отсутствие значений. */
+    public static boolean isEmptyData(final Map< ?, ? > map) {
+
+        return map == null || map.isEmpty();
+    }
+
+    /** Проверка plain-записи данных на отсутствие значений. */
     public static boolean isEmptyRow(Row row) {
-        return row == null
+
+        return row == null || isEmptyData(row.getData())
                 || row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
     }
 
