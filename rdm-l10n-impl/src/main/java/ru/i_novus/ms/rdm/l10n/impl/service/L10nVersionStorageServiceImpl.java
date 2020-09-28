@@ -121,10 +121,15 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         String targetSchemaName = toValidSchemaName(request.getLocaleCode());
-        String targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
+        String targetCode = toStorageCode(targetSchemaName, sourceTableName);
 
-        // Копирование всех колонок записей, FTS обновляется по триггеру.
-        draftDataService.copyAllData(sourceTableName, targetCode);
+        if (!draftDataService.storageExists(targetCode)) {
+
+            targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
+
+            // Копирование всех колонок записей, FTS обновляется по триггеру.
+            draftDataService.copyAllData(sourceTableName, targetCode);
+        }
 
         return targetCode;
     }
