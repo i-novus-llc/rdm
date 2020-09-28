@@ -1,23 +1,20 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,14 +31,12 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.FIELD_LOCA
 @SuppressWarnings("java:S3740")
 public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolver {
 
-    @SuppressWarnings("java:S1075")
-    private static final String GET_LOCALE_NAME_FORMAT = "/l10n/locale/name/%s";
-
     @Autowired
     private VersionRestService versionService;
 
-    @Value("${rdm.backend.path}")
-    private String restUrl;
+    @Autowired
+    @Qualifier("l10nVersionStorageServiceJaxRsProxyClient")
+    private L10nVersionStorageService versionStorageService;
 
     @Override
     public boolean isSatisfied(String dataAction) {
@@ -68,26 +63,7 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
         if (StringUtils.isEmpty(localeCode))
             throw new IllegalArgumentException("Locale code is empty");
 
-        try {
-            RestTemplate restTemplate = createRestTemplate();
-
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(restUrl)
-                    .path(String.format(GET_LOCALE_NAME_FORMAT, localeCode));
-            String localeName = restTemplate.getForObject(builder.toUriString(), String.class);
-
-            return StringUtils.isEmpty(localeName) ? localeCode : localeName;
-
-        } catch (RuntimeException e) {
-            return localeCode;
-        }
-    }
-
-    private RestTemplate createRestTemplate() {
-
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        return restTemplate;
+        return versionStorageService.getLocaleName(localeCode);
     }
 
     @Override

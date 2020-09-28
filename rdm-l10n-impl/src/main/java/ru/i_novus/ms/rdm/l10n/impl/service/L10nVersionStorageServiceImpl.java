@@ -10,10 +10,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.api.l10n.service.L10nVersionStorageService;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -35,8 +35,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.toLocalizableStructure;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
-import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isValidSchemaName;
+import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
 @Primary
 @Service
@@ -97,7 +96,6 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         String targetCode = localizeTable(versionEntity, request);
 
         Structure structure = toLocalizableStructure(versionEntity.getStructure());
-
         List<RowValue> updatedRowValues = toRowValues(request.getRows(), structure);
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;

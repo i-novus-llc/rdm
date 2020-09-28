@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.api.l10n.service;
+package ru.i_novus.ms.rdm.api.service.l10n;
 
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
