@@ -44,7 +44,7 @@ public class RefBookTestUtils {
     }
 
     /**
-     * Сравнение объектов по особым условиям.
+     * Проверка объектов по особым условиям.
      */
     public static void assertSpecialEquals(Object current) {
 
