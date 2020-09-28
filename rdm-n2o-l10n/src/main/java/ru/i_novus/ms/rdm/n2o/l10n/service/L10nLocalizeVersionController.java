@@ -8,7 +8,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
-import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 
 import static java.util.Collections.singletonList;
 
@@ -22,18 +21,17 @@ public class L10nLocalizeVersionController {
     @Qualifier("l10nVersionStorageServiceJaxRsProxyClient")
     private L10nVersionStorageService versionStorageService;
 
-    public UiDraft localizeDataRecord(Integer versionId, Integer optLockValue, String localeCode, Row row) {
+    public void localizeDataRecord(Integer versionId, Integer optLockValue, String localeCode, Row row) {
 
         validatePresent(row);
 
         LocalizeDataRequest request = new LocalizeDataRequest(optLockValue, localeCode, singletonList(row));
         versionStorageService.localizeData(versionId, request);
-
-        return null;
     }
 
     /** Проверка на заполненность хотя бы одного поля в записи. */
     private void validatePresent(Row row) {
+
         if (RowUtils.isEmptyRow(row))
             throw new UserException(DATA_ROW_IS_EMPTY_EXCEPTION_CODE);
     }
