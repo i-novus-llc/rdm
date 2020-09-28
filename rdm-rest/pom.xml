@@ -161,7 +161,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-l10n</artifactId>
+                    <artifactId>rdm-l10n-impl</artifactId>
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
