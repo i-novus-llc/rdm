@@ -46,6 +46,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private static final String LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE = "locale.code.is.default";
     private static final String LOCALE_CODE_IS_INVALID_EXCEPTION_CODE = "locale.code.is.invalid";
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
+    private static final String LOCALE_SCHEMA_NOT_FOUND_EXCEPTION_CODE = "locale.schema.not.found";
 
     private L10nDraftDataService draftDataService;
     private L10nLocaleInfoService localeInfoService;
@@ -162,9 +163,12 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         L10nLocaleInfo localeInfo = localeInfoService.find(localeCode);
 
         String localeSchemaName = storageCodeService.toSchemaName(localeCode);
+        if (isDefaultSchema(localeSchemaName))
+            throw new UserException(new Message(LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE, localeCode));
+
         List<String> existentSchemaNames = draftDataService.getExistentSchemaNames(List.of(localeSchemaName));
         if (CollectionUtils.isEmpty(existentSchemaNames))
-            throw new UserException(new Message(LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE, localeCode));
+            throw new UserException(new Message(LOCALE_SCHEMA_NOT_FOUND_EXCEPTION_CODE, localeCode));
 
         return toVersionLocale(versionId, localeInfo);
     }
