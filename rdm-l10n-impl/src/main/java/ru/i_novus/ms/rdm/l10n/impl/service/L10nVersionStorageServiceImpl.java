@@ -100,7 +100,7 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         if (CollectionUtils.isEmpty(updatedRowValues))
             return;
 
-        draftDataService.updateRows(targetCode, updatedRowValues);
+        draftDataService.localizeRows(targetCode, updatedRowValues);
     }
 
     private List<RowValue> toRowValues(List<Row> rows, Structure structure) {

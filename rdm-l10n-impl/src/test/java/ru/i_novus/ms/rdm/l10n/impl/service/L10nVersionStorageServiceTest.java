@@ -208,7 +208,7 @@ public class L10nVersionStorageServiceTest {
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
-        verify(draftDataService).updateRows(eq(testStorageCode), any());
+        verify(draftDataService).localizeRows(eq(testStorageCode), any());
     }
 
     @Test
