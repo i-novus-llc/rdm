@@ -119,13 +119,24 @@ public class ConverterUtil {
         if (isEmpty(attributeFilters))
             return emptySet();
 
-        return attributeFilters.stream().map(attrFilterList ->
-                attrFilterList.stream().map(attrFilter ->
-                        new FieldSearchCriteria(
-                                fieldFactory.createField(attrFilter.getAttributeName(), attrFilter.getFieldType()),
-                                attrFilter.getSearchType(),
-                                singletonList(attrFilter.getValue()))).collect(toList())
-        ).collect(toSet());
+        return attributeFilters.stream()
+                .map(ConverterUtil::toFieldSearchCriterias)
+                .filter(list -> !isEmpty(list))
+                .collect(toSet());
+    }
+
+    public static List<FieldSearchCriteria> toFieldSearchCriterias(List<AttributeFilter> attributeFilterList) {
+
+        if (isEmpty(attributeFilterList))
+            return emptyList();
+
+        return attributeFilterList.stream().map(ConverterUtil::toFieldSearchCriteria).collect(toList());
+    }
+
+    private static FieldSearchCriteria toFieldSearchCriteria(AttributeFilter filter) {
+
+        Field field = fieldFactory.createField(filter.getAttributeName(), filter.getFieldType());
+        return new FieldSearchCriteria(field, filter.getSearchType(), singletonList(filter.getValue()));
     }
 
     public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Map<String, String> filters, Structure structure) {
