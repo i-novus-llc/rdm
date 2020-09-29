@@ -1,10 +1,16 @@
 package ru.i_novus.ms.rdm.n2o.api.utils;
 
 import net.n2oapp.platform.i18n.UserException;
+import org.junit.Assert;
 import org.springframework.util.StringUtils;
 
+import java.math.BigInteger;
+import java.util.List;
 import java.util.function.BiConsumer;
 
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
@@ -17,7 +23,7 @@ public class UiRefBookTestUtils {
     }
 
     /**
-     * Сравнение объектов с учётом хеша и преобразования в строку.
+     * Проверка объектов с учётом хеша и преобразования в строку.
      */
     public static void assertObjects(BiConsumer<Object, Object> objectAssert, Object current, Object actual) {
 
@@ -27,6 +33,27 @@ public class UiRefBookTestUtils {
             objectAssert.accept(current.hashCode(), actual.hashCode());
             objectAssert.accept(current.toString(), actual.toString());
         }
+    }
+
+    /**
+     * Проверка списка на пустоту.
+     */
+    public static void assertEmptyList(List<?> list) {
+
+        assertEquals(emptyList(), list);
+    }
+
+    /**
+     * Проверка объектов по особым условиям.
+     */
+    public static void assertSpecialEquals(Object current) {
+
+        assertNotNull(current);
+        assertObjects(Assert::assertEquals, current, current);
+        assertObjects(Assert::assertNotEquals, current, null);
+
+        Object other = (!BigInteger.ZERO.equals(current)) ? BigInteger.ZERO : BigInteger.ONE;
+        assertObjects(Assert::assertNotEquals, current, other);
     }
 
     /**
