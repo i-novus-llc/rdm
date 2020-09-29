@@ -69,7 +69,7 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
     @Override
     public Map<String, Serializable> createDynamicValues(DataRecordCriteria criteria, RefBookVersion version) {
 
-        List<RefBookRowValue> rowValues = findRowValues(version.getId(), criteria.getId());
+        List<RefBookRowValue> rowValues = findRowValues(criteria);
         if (isEmpty(rowValues))
             return emptyMap();
 
@@ -85,12 +85,13 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
     /**
      * Получение записи из указанной версии справочника по системному идентификатору.
      */
-    private List<RefBookRowValue> findRowValues(Integer versionId, Integer id) {
+    private List<RefBookRowValue> findRowValues(DataRecordCriteria criteria) {
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setRowSystemIds(singletonList(id.longValue()));
+        SearchDataCriteria dataCriteria = new SearchDataCriteria();
+        dataCriteria.setLocaleCode(criteria.getLocaleCode());
+        dataCriteria.setRowSystemIds(singletonList(criteria.getId().longValue()));
 
-        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(criteria.getVersionId(), dataCriteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
     }
 }
