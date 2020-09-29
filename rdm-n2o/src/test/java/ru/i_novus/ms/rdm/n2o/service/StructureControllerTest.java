@@ -40,7 +40,7 @@ import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 /**
- * Тестирование работы с атрибутами
+ * Тестирование работы с атрибутами.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class StructureControllerTest extends TestCase {
@@ -102,11 +102,12 @@ public class StructureControllerTest extends TestCase {
 
     /**
      * Тест получения атрибута без проверок
+     * (для списка атрибутов или для изменения атрибута).
      */
     @Test
     public void testReadSimple() {
 
-        Structure structure = new Structure(singletonList(build(testCode, null, FieldType.INTEGER, null)), null);
+        Structure structure = createStructure(FieldType.INTEGER);
         RefBookVersion version = createVersion(versionId, structure);
         when(versionService.getById(eq(versionId))).thenReturn(version);
 
@@ -127,7 +128,7 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadValidations() {
 
-        Structure structure = new Structure(singletonList(build(testCode, null, null, null)), null);
+        Structure structure = createStructure(null);
         RefBookVersion version = createVersion(versionId, structure);
         when(versionService.getById(eq(versionId))).thenReturn(version);
 
@@ -142,6 +143,24 @@ public class StructureControllerTest extends TestCase {
         assertEquals(1, page.getTotalElements());
         assertEquals(testCode, actual.getCode());
         assertValidationPartEquals(expectedValidation, actual);
+    }
+
+    /**
+     * Тест получения по умолчанию (для создания атрибута).
+     */
+    @Test
+    public void testReadDefault() {
+
+        Structure structure = createStructure(FieldType.INTEGER);
+        RefBookVersion version = createVersion(versionId, structure);
+        when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
+
+        ReadAttribute actual = structureController.getDefault(versionId, 0);
+
+        assertNotNull(actual);
+        assertEquals(Integer.valueOf(versionId), actual.getVersionId());
+        assertEquals(Integer.valueOf(0), actual.getOptLockValue());
+        assertValidationPartEquals(new FormAttribute(), actual);
     }
 
     /**
@@ -323,8 +342,17 @@ public class StructureControllerTest extends TestCase {
         }
     }
 
+    private Structure createStructure(FieldType fieldType) {
+
+        return new Structure(
+                singletonList(build(testCode, null, fieldType, null)),
+                null
+        );
+    }
+
     @SuppressWarnings("SameParameterValue")
     private RefBookVersion createVersion(Integer versionId, Structure structure) {
+
         RefBookVersion version = new RefBookVersion();
         version.setId(versionId);
         version.setStructure(structure);
