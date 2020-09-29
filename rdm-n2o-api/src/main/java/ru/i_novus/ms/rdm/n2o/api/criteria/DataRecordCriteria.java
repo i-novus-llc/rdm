@@ -15,7 +15,7 @@ public class DataRecordCriteria extends AbstractCriteria {
 
     @ApiParam("Идентификатор записи")
     @QueryParam("id")
-    private Integer id;
+    private Long id;
 
     @ApiParam("Идентификатор версии")
     @QueryParam("versionId")
@@ -42,11 +42,11 @@ public class DataRecordCriteria extends AbstractCriteria {
         super(pageNumber, pageSize);
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

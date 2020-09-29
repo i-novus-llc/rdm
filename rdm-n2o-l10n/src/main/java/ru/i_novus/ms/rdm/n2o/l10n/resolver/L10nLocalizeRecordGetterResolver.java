@@ -89,7 +89,7 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
 
         SearchDataCriteria dataCriteria = new SearchDataCriteria();
         dataCriteria.setLocaleCode(criteria.getLocaleCode());
-        dataCriteria.setRowSystemIds(singletonList(criteria.getId().longValue()));
+        dataCriteria.setRowSystemIds(singletonList(criteria.getId()));
 
         Page<RefBookRowValue> rowValues = versionService.search(criteria.getVersionId(), dataCriteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();

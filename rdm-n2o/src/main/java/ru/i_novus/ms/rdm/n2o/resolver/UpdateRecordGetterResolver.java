@@ -23,6 +23,7 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.FIELD_SYSTE
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 @Component
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class UpdateRecordGetterResolver implements DataRecordGetterResolver {
 
     @Autowired
@@ -62,10 +63,10 @@ public class UpdateRecordGetterResolver implements DataRecordGetterResolver {
     /**
      * Получение записи из указанной версии справочника по системному идентификатору.
      */
-    private List<RefBookRowValue> findRowValues(Integer versionId, Integer id) {
+    private List<RefBookRowValue> findRowValues(Integer versionId, Long id) {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setRowSystemIds(singletonList(id.longValue()));
+        criteria.setRowSystemIds(singletonList(id));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
