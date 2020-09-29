@@ -556,11 +556,12 @@ public class DraftServiceImpl implements DraftService {
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(rows.size());
 
-        List<AttributeFilter> filters = rows.stream()
+        Set<List<AttributeFilter>> filterSet = rows.stream()
                 .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
-                .flatMap(Collection::stream).collect(toList());
-        criteria.addAttributeFilterList(filters);
+                .filter(list -> !isEmpty(list))
+                .collect(toSet());
+        criteria.setAttributeFilters(filterSet);
 
         Page<RefBookRowValue> rowValues = versionService.search(draftVersion.getId(), criteria);
         if (rowValues == null || isEmpty(rowValues.getContent()))
