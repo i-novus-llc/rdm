@@ -402,8 +402,9 @@ public class DraftServiceImpl implements DraftService {
             List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
             validateDataByStructure(draftEntity, rows);
+
+            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
