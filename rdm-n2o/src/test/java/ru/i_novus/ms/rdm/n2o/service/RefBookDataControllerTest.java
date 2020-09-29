@@ -179,6 +179,7 @@ public class RefBookDataControllerTest {
     private DataCriteria createCriteria(int versionId, boolean hasDataConflict) {
 
         DataCriteria criteria = new DataCriteria();
+
         criteria.setVersionId(versionId);
         criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
         criteria.setHasDataConflict(hasDataConflict);
@@ -200,7 +201,6 @@ public class RefBookDataControllerTest {
     private void assertVersions(RefBookVersion expected, RefBookVersion actual) {
 
         assertEquals(expected.getId(), actual.getId());
-
         assertObjects(Assert::assertEquals, expected.getStructure(), actual.getStructure());
     }
 
