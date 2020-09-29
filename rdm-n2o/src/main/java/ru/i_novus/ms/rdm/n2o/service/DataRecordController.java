@@ -12,12 +12,14 @@ import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
+import static ru.i_novus.ms.rdm.api.util.RowUtils.prepareRowValues;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 
 @Controller
@@ -77,9 +79,8 @@ public class DataRecordController {
      */
     @SuppressWarnings("WeakerAccess")
     public void updateData(Integer draftId, Row row, Integer optLockValue) {
-        row.getData().entrySet().stream()
-                .filter(e -> e.getValue() instanceof Date)
-                .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
+
+        prepareRowValues(row);
 
         UpdateDataRequest request = new UpdateDataRequest(optLockValue, singletonList(row));
         draftService.updateData(draftId, request);

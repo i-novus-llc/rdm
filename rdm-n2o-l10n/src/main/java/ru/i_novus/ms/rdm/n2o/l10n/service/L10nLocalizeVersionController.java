@@ -10,6 +10,7 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 
 import static java.util.Collections.singletonList;
+import static ru.i_novus.ms.rdm.api.util.RowUtils.prepareRowValues;
 
 @Controller
 @SuppressWarnings("unused") // used in: L10nLocalizeRecordObjectResolver
@@ -24,6 +25,7 @@ public class L10nLocalizeVersionController {
     public void localizeDataRecord(Integer versionId, Integer optLockValue, String localeCode, Row row) {
 
         validatePresent(row);
+        prepareRowValues(row);
 
         LocalizeDataRequest request = new LocalizeDataRequest(optLockValue, localeCode, singletonList(row));
         versionStorageService.localizeData(versionId, request);
