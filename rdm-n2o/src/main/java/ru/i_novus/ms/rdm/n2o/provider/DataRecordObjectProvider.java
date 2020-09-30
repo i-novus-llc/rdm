@@ -18,6 +18,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.REFERENCE_VALUE;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addFieldProperty;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 /**
@@ -110,7 +112,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
                 break;
 
             case REFERENCE:
-                parameter.setId(codeWithPrefix + ".value");
+                parameter.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
                 parameter.setDomain(N2oDomain.STRING);
                 break;
 
