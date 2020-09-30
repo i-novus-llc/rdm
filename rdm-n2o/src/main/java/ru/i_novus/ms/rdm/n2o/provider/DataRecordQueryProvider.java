@@ -62,8 +62,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return singletonList(N2oQuery.class);
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public N2oQuery createQuery(DataRecordRequest request) {
+    private N2oQuery createQuery(DataRecordRequest request) {
 
         N2oQuery n2oQuery = new N2oQuery();
         n2oQuery.setUniques(new N2oQuery.Selection[]{ createSelection() });
