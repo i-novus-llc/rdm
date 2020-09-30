@@ -44,8 +44,8 @@ public class StructureTest {
         assertNull(structure.getAttribute(ID_ATTRIBUTE_CODE));
         assertNull(structure.getReference(ID_ATTRIBUTE_CODE));
 
-        assertEmptyList(structure.getRefCodeAttributes(ID_ATTRIBUTE_CODE));
-        assertEmptyList(structure.getRefCodeReferences(ID_ATTRIBUTE_CODE));
+        assertEmpty(structure.getRefCodeAttributes(ID_ATTRIBUTE_CODE));
+        assertEmpty(structure.getRefCodeReferences(ID_ATTRIBUTE_CODE));
 
         assertFalse(structure.hasPrimary());
         structure.clearPrimary();
@@ -241,11 +241,11 @@ public class StructureTest {
 
         Structure structure = createStructure();
 
-        assertEmptyList(structure.getRefCodeAttributes(null));
-        assertEmptyList(structure.getRefCodeReferences(null));
+        assertEmpty(structure.getRefCodeAttributes(null));
+        assertEmpty(structure.getRefCodeReferences(null));
 
-        assertEmptyList(structure.getRefCodeAttributes(""));
-        assertEmptyList(structure.getRefCodeReferences(""));
+        assertEmpty(structure.getRefCodeAttributes(""));
+        assertEmpty(structure.getRefCodeReferences(""));
 
         IntStream.range(0, REFERRED_BOOK_CODES.size()).forEach(index -> {
 

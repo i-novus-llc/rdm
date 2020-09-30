@@ -22,7 +22,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -35,6 +34,7 @@ import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
+import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateRecordGetterResolverTest {
@@ -48,7 +48,6 @@ public class UpdateRecordGetterResolverTest {
     private static final int TEST_OPT_LOCK_VALUE = 10;
 
     private static final long TEST_SYSTEM_ID = 51;
-    private static final Map<String, Serializable> EMPTY_VALUES = new HashMap<>();
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -122,7 +121,7 @@ public class UpdateRecordGetterResolverTest {
 
         Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
-        assertEquals(EMPTY_VALUES, values);
+        assertEmpty(values);
     }
 
     private DataRecordCriteria createCriteria() {

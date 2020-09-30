@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmptyList;
+import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmpty;
 
 /**
  * Тестирование работы с данными справочника.
@@ -123,7 +123,7 @@ public class L10nRefBookDataDecoratorTest {
     public void testGetDataContentOnSpecials() {
 
         List<RefBookRowValue> dataContent = refBookDataService.getDataContent(emptyList(), createLocaleCriteria());
-        assertEmptyList(dataContent);
+        assertEmpty(dataContent);
 
         List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
 

@@ -13,7 +13,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_CREATE;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_UPDATE;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertEmptyList;
+import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultRecordQueryResolverTest {
@@ -38,6 +38,6 @@ public class DefaultRecordQueryResolverTest {
         DataRecordRequest request = new DataRecordRequest();
 
         List<N2oQuery.Field> fields = resolver.createRegularFields(request);
-        assertEmptyList(fields);
+        assertEmpty(fields);
     }
 }

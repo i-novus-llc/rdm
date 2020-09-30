@@ -5,10 +5,11 @@ import org.junit.Assert;
 import org.springframework.util.StringUtils;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
-import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -38,9 +39,15 @@ public class RefBookTestUtils {
     /**
      * Проверка списка на пустоту.
      */
-    public static void assertEmptyList(List<?> list) {
+    public static <T> void assertEmpty(List<T> list) {
+        assertEquals(Collections.<T>emptyList(), list);
+    }
 
-        assertEquals(emptyList(), list);
+    /**
+     * Проверка набора на пустоту.
+     */
+    public static <K, V> void assertEmpty(Map<K, V> map) {
+        assertEquals(Collections.<K, V>emptyMap(), map);
     }
 
     /**
