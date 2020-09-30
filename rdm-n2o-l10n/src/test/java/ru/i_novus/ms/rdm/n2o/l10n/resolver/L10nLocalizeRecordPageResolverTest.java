@@ -69,18 +69,18 @@ public class L10nLocalizeRecordPageResolverTest {
         assertEquals(REGULAR_FIELD_IDS.size(), n2oRow.getItems().length);
 
         REGULAR_FIELD_IDS.forEach(id ->
-                assertTrue(existsField(Arrays.asList(n2oRow.getItems()), id))
+                assertTrue(existsItem(Arrays.asList(n2oRow.getItems()), id))
         );
     }
 
-    private boolean existsField(List<SourceComponent> fields, String id) {
+    private boolean existsItem(List<SourceComponent> items, String id) {
 
-        return fields.stream().anyMatch(field -> id.equals(getFieldId(field)));
+        return items.stream().anyMatch(item -> id.equals(getFieldId(item)));
     }
 
-    private String getFieldId(SourceComponent field) {
+    private String getFieldId(SourceComponent item) {
 
-        return (field instanceof N2oField) ? ((N2oField) field).getId() : null;
+        return (item instanceof N2oField) ? ((N2oField) item).getId() : null;
     }
 
     @Test
