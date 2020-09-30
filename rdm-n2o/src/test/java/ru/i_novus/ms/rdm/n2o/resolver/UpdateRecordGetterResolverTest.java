@@ -90,9 +90,8 @@ public class UpdateRecordGetterResolverTest {
         DataRecordCriteria criteria = createCriteria();
         RefBookVersion version = createVersion();
 
-        RefBookRowValue rowValue = createRowValue(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(0, 1);
-        searchDataCriteria.setRowSystemIds(singletonList(TEST_SYSTEM_ID));
+        RefBookRowValue rowValue = createRowValue();
+        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(singletonList(rowValue), searchDataCriteria, 1);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
@@ -114,8 +113,7 @@ public class UpdateRecordGetterResolverTest {
         DataRecordCriteria criteria = createCriteria();
         RefBookVersion version = createVersion();
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(0, 1);
-        searchDataCriteria.setRowSystemIds(singletonList(TEST_SYSTEM_ID));
+        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(emptyList(), searchDataCriteria, 0);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
@@ -157,14 +155,21 @@ public class UpdateRecordGetterResolverTest {
         return new Structure(structure);
     }
 
-    private RefBookRowValue createRowValue(int versionId, long systemId) {
+    private RefBookRowValue createRowValue() {
 
-        LongRowValue longRowValue = new LongRowValue(systemId, asList(
-                new IntegerFieldValue(ID_ATTRIBUTE_CODE, BigInteger.valueOf(systemId)),
-                new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + systemId),
-                new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + systemId)
+        LongRowValue longRowValue = new LongRowValue(TEST_SYSTEM_ID, asList(
+                new IntegerFieldValue(ID_ATTRIBUTE_CODE, BigInteger.valueOf(TEST_SYSTEM_ID)),
+                new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + TEST_SYSTEM_ID),
+                new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + TEST_SYSTEM_ID)
         ));
 
-        return new RefBookRowValue(longRowValue, versionId);
+        return new RefBookRowValue(longRowValue, TEST_REFBOOK_VERSION_ID);
+    }
+
+    private SearchDataCriteria createSearchDataCriteria() {
+
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(0, 1);
+        searchDataCriteria.setRowSystemIds(singletonList(TEST_SYSTEM_ID));
+        return searchDataCriteria;
     }
 }
