@@ -11,13 +11,16 @@ public class StructureTestConstants {
     public static final String ID_ATTRIBUTE_CODE = "ID";
     public static final String NAME_ATTRIBUTE_CODE = "NAME";
     public static final String STRING_ATTRIBUTE_CODE = "CHAR";
-    public static final String NUMBER_ATTRIBUTE_CODE = "NUMB";
+    public static final String INTEGER_ATTRIBUTE_CODE = "INT";
+    public static final String FLOAT_ATTRIBUTE_CODE = "REAL";
     public static final String BOOLEAN_ATTRIBUTE_CODE = "BOOL";
     public static final String DATE_ATTRIBUTE_CODE = "DATE";
 
     public static final List<String> ATTRIBUTE_CODES = List.of(
             ID_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE,
-            STRING_ATTRIBUTE_CODE, NUMBER_ATTRIBUTE_CODE, BOOLEAN_ATTRIBUTE_CODE, DATE_ATTRIBUTE_CODE
+            STRING_ATTRIBUTE_CODE,
+            INTEGER_ATTRIBUTE_CODE, FLOAT_ATTRIBUTE_CODE,
+            BOOLEAN_ATTRIBUTE_CODE, DATE_ATTRIBUTE_CODE
     );
 
     public static final String REFERENCE_ATTRIBUTE_CODE = "REFER";
@@ -36,17 +39,19 @@ public class StructureTestConstants {
     );
 
     public static final Structure.Attribute ID_ATTRIBUTE = Structure.Attribute.buildPrimary(
-            ID_ATTRIBUTE_CODE, ID_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "primary");
+            ID_ATTRIBUTE_CODE, ID_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "primary key");
     public static final Structure.Attribute NAME_ATTRIBUTE = Structure.Attribute.buildLocalizable(
-            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "name");
+            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "name field");
     public static final Structure.Attribute STRING_ATTRIBUTE = Structure.Attribute.build(
-            STRING_ATTRIBUTE_CODE, STRING_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "string");
-    public static final Structure.Attribute NUMBER_ATTRIBUTE = Structure.Attribute.build(
-            NUMBER_ATTRIBUTE_CODE, NUMBER_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "number");
+            STRING_ATTRIBUTE_CODE, STRING_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "string-typed");
+    public static final Structure.Attribute INTEGER_ATTRIBUTE = Structure.Attribute.build(
+            INTEGER_ATTRIBUTE_CODE, INTEGER_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "integer-typed");
+    public static final Structure.Attribute FLOAT_ATTRIBUTE = Structure.Attribute.build(
+            FLOAT_ATTRIBUTE_CODE, FLOAT_ATTRIBUTE_CODE.toLowerCase(), FieldType.FLOAT, "float-typed");
     public static final Structure.Attribute BOOLEAN_ATTRIBUTE = Structure.Attribute.build(
-            BOOLEAN_ATTRIBUTE_CODE, BOOLEAN_ATTRIBUTE_CODE.toLowerCase(), FieldType.BOOLEAN, "boolean");
+            BOOLEAN_ATTRIBUTE_CODE, BOOLEAN_ATTRIBUTE_CODE.toLowerCase(), FieldType.BOOLEAN, "boolean-typed");
     public static final Structure.Attribute DATE_ATTRIBUTE = Structure.Attribute.build(
-            DATE_ATTRIBUTE_CODE, DATE_ATTRIBUTE_CODE.toLowerCase(), FieldType.DATE, "date");
+            DATE_ATTRIBUTE_CODE, DATE_ATTRIBUTE_CODE.toLowerCase(), FieldType.DATE, "date-typed");
     public static final Structure.Attribute REFERENCE_ATTRIBUTE = Structure.Attribute.build(
             REFERENCE_ATTRIBUTE_CODE, REFERENCE_ATTRIBUTE_CODE.toLowerCase(), FieldType.REFERENCE, "reference");
     public static final Structure.Attribute SELF_REFER_ATTRIBUTE = Structure.Attribute.build(
@@ -63,7 +68,9 @@ public class StructureTestConstants {
 
     public static final List<Structure.Attribute> ATTRIBUTE_LIST = List.of(
             ID_ATTRIBUTE, NAME_ATTRIBUTE,
-            STRING_ATTRIBUTE, NUMBER_ATTRIBUTE, BOOLEAN_ATTRIBUTE, DATE_ATTRIBUTE,
+            STRING_ATTRIBUTE,
+            INTEGER_ATTRIBUTE, FLOAT_ATTRIBUTE,
+            BOOLEAN_ATTRIBUTE, DATE_ATTRIBUTE,
             REFERENCE_ATTRIBUTE, SELF_REFER_ATTRIBUTE
     );
     public static final List<Structure.Reference> REFERENCE_LIST = List.of(
