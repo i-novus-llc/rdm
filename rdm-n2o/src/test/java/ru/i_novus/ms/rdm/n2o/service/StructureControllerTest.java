@@ -151,8 +151,6 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadDefault() {
 
-        Structure structure = createStructure(FieldType.INTEGER);
-        RefBookVersion version = createVersion(versionId, structure);
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
         ReadAttribute actual = structureController.getDefault(versionId, 0);
