@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
+import net.n2oapp.framework.api.metadata.global.dao.invocation.model.N2oInvocation;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,11 +47,12 @@ public class UpdateRecordObjectResolverTest {
         assertNotNull(operation);
         assertEquals("update", operation.getId());
 
-        assertNotNull(operation.getInvocation());
-        assertTrue(operation.getInvocation() instanceof N2oJavaDataProvider);
+        N2oInvocation invocation = operation.getInvocation();
+        assertNotNull(invocation);
+        assertTrue(invocation instanceof N2oJavaDataProvider);
 
-        N2oJavaDataProvider invocation = (N2oJavaDataProvider) operation.getInvocation();
-        assertEquals(TEST_ARGUMENT_COUNT, invocation.getArguments().length);
+        N2oJavaDataProvider provider = (N2oJavaDataProvider) invocation;
+        assertEquals(TEST_ARGUMENT_COUNT, provider.getArguments().length);
     }
 
     @Test
