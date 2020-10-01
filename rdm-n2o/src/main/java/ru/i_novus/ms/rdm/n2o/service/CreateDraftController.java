@@ -64,24 +64,6 @@ public class CreateDraftController {
         this.dataRecordController = dataRecordController;
     }
 
-    private UiDraft getOrCreateDraft(Integer versionId) {
-
-        final RefBookVersion version = versionService.getById(versionId);
-        final Integer refBookId = version.getRefBookId();
-
-        if (version.isDraft()) {
-            return new UiDraft(version);
-        }
-
-        Draft draft = draftService.findDraft(version.getCode());
-        if (draft != null) {
-            return new UiDraft(draft, refBookId);
-        }
-
-        Draft newDraft = draftService.createFromVersion(versionId);
-        return new UiDraft(newDraft, refBookId);
-    }
-
     public UiDraft editPassport(Integer versionId, Integer optLockValue, UiPassport uiPassport) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
@@ -176,7 +158,7 @@ public class CreateDraftController {
 
         validatePrimaryKeys(uiDraft.getId(), row);
 
-        dataRecordController.updateData(uiDraft.getId(), row, optLockValue);
+        dataRecordController.updateData(uiDraft.getId(), optLockValue, row);
         return uiDraft;
     }
 
@@ -306,5 +288,24 @@ public class CreateDraftController {
         draftService.updateFromFile(versionId, request);
 
         return new UiDraft(version);
+    }
+
+    /** Получение черновика или создание на основе текущей версии. */
+    private UiDraft getOrCreateDraft(Integer versionId) {
+
+        final RefBookVersion version = versionService.getById(versionId);
+        final Integer refBookId = version.getRefBookId();
+
+        if (version.isDraft()) {
+            return new UiDraft(version);
+        }
+
+        Draft draft = draftService.findDraft(version.getCode());
+        if (draft != null) {
+            return new UiDraft(draft, refBookId);
+        }
+
+        Draft newDraft = draftService.createFromVersion(versionId);
+        return new UiDraft(newDraft, refBookId);
     }
 }

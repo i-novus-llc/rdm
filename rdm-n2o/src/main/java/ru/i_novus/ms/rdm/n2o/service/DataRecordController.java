@@ -72,13 +72,12 @@ public class DataRecordController {
 
     /**
      * Обновление строки данных версии справочника.
-     *
      * @param draftId      идентификатор черновика справочника
-     * @param row          строка данных для добавления/изменения
      * @param optLockValue значение оптимистической блокировки версии-черновика
+     * @param row          строка данных для добавления/изменения
      */
     @SuppressWarnings("WeakerAccess")
-    public void updateData(Integer draftId, Row row, Integer optLockValue) {
+    public void updateData(Integer draftId, Integer optLockValue, Row row) {
 
         prepareRowValues(row);
 

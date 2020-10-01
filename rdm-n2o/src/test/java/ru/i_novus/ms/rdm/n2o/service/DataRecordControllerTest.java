@@ -96,7 +96,7 @@ public class DataRecordControllerTest {
         Row row = createUpdatingRow();
         UpdateDataRequest expected = new UpdateDataRequest(TEST_OPT_LOCK_VALUE, singletonList(row));
 
-        controller.updateData(TEST_REFBOOK_DRAFT_ID, row, TEST_OPT_LOCK_VALUE);
+        controller.updateData(TEST_REFBOOK_DRAFT_ID, TEST_OPT_LOCK_VALUE, row);
 
         ArgumentCaptor<UpdateDataRequest> captor = ArgumentCaptor.forClass(UpdateDataRequest.class);
         verify(draftService, times(1)).updateData(eq(TEST_REFBOOK_DRAFT_ID), captor.capture());
