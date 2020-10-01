@@ -68,10 +68,11 @@ public class UpdateRecordControllerTest {
 
         String[] lines = actual.split("\n");
         assertNotNull(lines);
-        assertEquals(conflicts.size(), lines.length);
+
+        long expectedLength = conflicts.stream().filter(conflict -> conflict.getRefRecordId() > 0).count();
+        assertEquals(expectedLength, lines.length);
 
         for (String line : lines) {
-            assertFalse(line.contains("null"));
             assertTrue(line.contains("conflict.text"));
         }
     }
@@ -120,11 +121,22 @@ public class UpdateRecordControllerTest {
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, 1L,
                 REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, LocalDateTime.now()
         );
+
         RefBookConflict deletedConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, 2L,
                 REFERENCE_ATTRIBUTE_CODE, ConflictType.DELETED, LocalDateTime.now()
         );
 
-        return List.of(updatedConflict, deletedConflict);
+        RefBookConflict alteredConflict = new RefBookConflict(
+                TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -3L,
+                SELF_REFER_ATTRIBUTE_CODE, ConflictType.ALTERED, LocalDateTime.now()
+        );
+
+        RefBookConflict nullConflict = new RefBookConflict(
+                TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -4L,
+                SELF_REFER_ATTRIBUTE_CODE, ConflictType.DISPLAY_DAMAGED, LocalDateTime.now()
+        );
+
+        return List.of(updatedConflict, deletedConflict, alteredConflict, nullConflict);
     }
 }
