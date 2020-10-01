@@ -8,6 +8,7 @@ import java.util.List;
 
 public class StructureTestConstants {
 
+    public static final String UNKNOWN_ATTRIBUTE_CODE = "Unknown";
     public static final String ID_ATTRIBUTE_CODE = "ID";
     public static final String NAME_ATTRIBUTE_CODE = "NAME";
     public static final String STRING_ATTRIBUTE_CODE = "CHAR";
