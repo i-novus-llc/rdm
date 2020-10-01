@@ -27,6 +27,7 @@ import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCo
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.dao.StorageConstants;
+import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -324,24 +325,24 @@ public class L10nVersionStorageServiceTest {
 
         List<String> localeCodes = LOCALE_INFOS.stream().map(L10nLocaleInfo::getCode).collect(toList());
         Map<String, String> localeSchemas = localeCodes.stream().collect(toMap(identity(), this::toSchemaName));
+        localeSchemas.put(LOCALE_INFOS.get(0).getCode(), "data");
         when(storageCodeService.toSchemaNames(eq(localeCodes))).thenReturn(localeSchemas);
 
-        List<String> existentSchemaNames = localeSchemas.entrySet().stream()
-                .filter(e -> !localeCodes.get(localeCodes.size() - 1).equals(e.getKey()))
-                .map(Map.Entry::getValue)
-                .collect(toList());
-        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
-
         List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
-                .filter(info -> existentSchemaNames.contains(toSchemaName(info.getCode())))
+                .filter(info -> !StorageUtils.isDefaultSchema(localeSchemas.get(info.getCode())))
                 .collect(toList());
         List<L10nVersionLocale> actualVersionLocales = versionStorageService
                 .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
 
-        IntStream.range(0, expectedLocaleInfos.size()).forEach(index ->
-                assertLocales(expectedLocaleInfos.get(index), actualVersionLocales.get(index))
-        );
+        IntStream.range(0, expectedLocaleInfos.size()).forEach(index -> {
+
+            L10nVersionLocale actual = actualVersionLocales.get(index);
+            L10nLocaleInfo expected = expectedLocaleInfos.stream()
+                    .filter(info -> actual.getLocaleCode().equals(info.getCode()))
+                    .findFirst().orElse(null);
+            assertLocales(expected, actual);
+        });
     }
 
     @Test
@@ -349,9 +350,6 @@ public class L10nVersionStorageServiceTest {
 
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-
-        List<String> existentSchemaNames = List.of(TEST_SCHEMA_NAME);
-        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
 
         L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertLocales(TEST_LOCALE_INFO, actualVersionLocale);
@@ -362,9 +360,6 @@ public class L10nVersionStorageServiceTest {
 
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(null);
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-
-        List<String> existentSchemaNames = List.of(TEST_SCHEMA_NAME);
-        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
 
         L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertNull(actualVersionLocale);
@@ -383,25 +378,6 @@ public class L10nVersionStorageServiceTest {
         } catch (UserException e) {
             assertEquals(UserException.class, e.getClass());
             assertEquals("locale.code.is.default", getExceptionMessage(e));
-        }
-    }
-
-    @Test
-    public void testGetVersionLocaleOnSchemaFailed() {
-
-        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-
-        List<String> existentSchemaNames = emptyList();
-        when(draftDataService.getExistentSchemaNames(any())).thenReturn(existentSchemaNames);
-
-        try {
-            versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
-            fail(getFailedMessage(UserException.class));
-
-        } catch (UserException e) {
-            assertEquals(UserException.class, e.getClass());
-            assertEquals("locale.schema.not.found", getExceptionMessage(e));
         }
     }
 

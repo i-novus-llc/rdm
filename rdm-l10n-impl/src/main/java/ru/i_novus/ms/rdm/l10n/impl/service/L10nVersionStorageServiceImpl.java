@@ -30,7 +30,9 @@ import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.criteria.L10nLocaleCriteria;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
@@ -46,7 +48,6 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private static final String LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE = "locale.code.is.default";
     private static final String LOCALE_CODE_IS_INVALID_EXCEPTION_CODE = "locale.code.is.invalid";
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
-    private static final String LOCALE_SCHEMA_NOT_FOUND_EXCEPTION_CODE = "locale.schema.not.found";
 
     private L10nDraftDataService draftDataService;
     private L10nLocaleInfoService localeInfoService;
@@ -144,12 +145,9 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         List<String> localeCodes = localeInfos.stream().map(L10nLocaleInfo::getCode).collect(toList());
 
         Map<String, String> localeSchemas = storageCodeService.toSchemaNames(localeCodes);
-        List<String> localeSchemaNames = new ArrayList<>(localeSchemas.values());
-        List<String> existentSchemaNames = draftDataService.getExistentSchemaNames(localeSchemaNames);
 
         List<L10nVersionLocale> list = localeSchemas.entrySet().stream()
                 .filter(e -> !StorageUtils.isDefaultSchema(e.getValue()))
-                .filter(e -> existentSchemaNames.contains(e.getValue()))
                 .map(e -> toVersionLocale(versionId, findLocaleInfo(e.getKey(), localeInfos)))
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -165,10 +163,6 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
         String localeSchemaName = storageCodeService.toSchemaName(localeCode);
         if (isDefaultSchema(localeSchemaName))
             throw new UserException(new Message(LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE, localeCode));
-
-        List<String> existentSchemaNames = draftDataService.getExistentSchemaNames(List.of(localeSchemaName));
-        if (CollectionUtils.isEmpty(existentSchemaNames))
-            throw new UserException(new Message(LOCALE_SCHEMA_NOT_FOUND_EXCEPTION_CODE, localeCode));
 
         return toVersionLocale(versionId, localeInfo);
     }
