@@ -18,7 +18,7 @@ import static ru.i_novus.ms.rdm.impl.util.RefBookTestUtils.getFailedMessage;
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncPublishResolverTest {
 
-    private static final String TEST_REF_BOOK_CODE = "test";
+    private static final String TEST_REFBOOK_CODE = "test";
     private static final int TEST_REFBOOK_VERSION_ID = -10;
 
     @InjectMocks
@@ -37,7 +37,7 @@ public class AsyncPublishResolverTest {
     @Test
     public void testResolve() {
 
-        Serializable result = resolver.resolve(TEST_REF_BOOK_CODE,
+        Serializable result = resolver.resolve(TEST_REFBOOK_CODE,
                 new Serializable[]{TEST_REFBOOK_VERSION_ID, new PublishRequest()}
         );
         assertNull(result);
@@ -47,7 +47,7 @@ public class AsyncPublishResolverTest {
     public void testResolveFailed() {
 
         try {
-            resolver.resolve(TEST_REF_BOOK_CODE, new Serializable[]{TEST_REFBOOK_VERSION_ID, null});
+            resolver.resolve(TEST_REFBOOK_CODE, new Serializable[]{TEST_REFBOOK_VERSION_ID, null});
             fail(getFailedMessage(IllegalArgumentException.class));
 
         } catch (RuntimeException e) {

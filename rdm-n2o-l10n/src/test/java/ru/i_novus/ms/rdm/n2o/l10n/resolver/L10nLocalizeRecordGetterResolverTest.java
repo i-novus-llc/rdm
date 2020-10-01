@@ -50,7 +50,7 @@ public class L10nLocalizeRecordGetterResolverTest {
     );
 
     private static final int TEST_REFBOOK_ID = -10;
-    private static final String TEST_REF_BOOK_CODE = "test";
+    private static final String TEST_REFBOOK_CODE = "test";
 
     private static final int TEST_REFBOOK_VERSION_ID = -100;
     private static final int TEST_OPT_LOCK_VALUE = 10;
@@ -177,7 +177,7 @@ public class L10nLocalizeRecordGetterResolverTest {
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
 
         version.setRefBookId(TEST_REFBOOK_ID);
-        version.setCode(TEST_REF_BOOK_CODE);
+        version.setCode(TEST_REFBOOK_CODE);
 
         version.setStructure(createStructure());
 
