@@ -15,12 +15,13 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.joinNumerated;
 
 @Controller
 public class UpdateRecordController {
@@ -60,10 +61,12 @@ public class UpdateRecordController {
         if (isEmpty(conflicts))
             return null;
 
-        return conflicts.stream()
-                .map(conflict -> getConflictText(conflict.getConflictType(),
-                        () -> getConflictRefFieldName(conflict, structure)))
-                .collect(joining(" \n"));
+        List<String> conflictTexts = conflicts.stream()
+                .map(conflict -> getConflictText(conflict, structure))
+                .filter(Objects::nonNull)
+                .collect(toList());
+
+        return joinNumerated(conflictTexts);
     }
 
     private Structure getStructureOrEmpty(Integer versionId) {
@@ -97,6 +100,12 @@ public class UpdateRecordController {
 
         Page<RefBookConflict> conflicts = conflictService.search(criteria);
         return (conflicts != null) ? conflicts.getContent() : emptyList();
+    }
+
+    /** Получение описания конфликта. */
+    private String getConflictText(RefBookConflict conflict, Structure structure) {
+
+        return getConflictText(conflict.getConflictType(), () -> getConflictRefFieldName(conflict, structure));
     }
 
     /** Получение наименования атрибута с конфликтом. */
