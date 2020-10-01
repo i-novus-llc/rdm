@@ -84,19 +84,18 @@ public class CreateDraftController {
         request.setVersionId(versionId);
         request.setOptLockValue(optLockValue);
 
-        request.setCode(uiPassport.getCode());
-        request.setCategory(uiPassport.getCategory());
+        if (uiPassport != null) {
+            request.setCode(uiPassport.getCode());
+            request.setCategory(uiPassport.getCategory());
 
-        Map<String, String> passport = toPassport(uiPassport);
-        request.setPassport(passport);
+            Map<String, String> passport = toPassport(uiPassport);
+            request.setPassport(passport);
+        }
 
         return request;
     }
 
     private Map<String, String> toPassport(UiPassport uiPassport) {
-
-        if (uiPassport == null)
-            return null;
 
         Map<String, String> passport = new HashMap<>();
 
