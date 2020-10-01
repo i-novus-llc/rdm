@@ -82,7 +82,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
         list.stream()
                 .filter(item -> isUnlocalizable(item, structure))
-                .forEach(this::dependOnHideUnlocalizable);
+                .forEach(this::processUnlocalizable);
     }
 
     /** Проверка поля формы на соответствие непереводимому атрибуту. */
@@ -100,9 +100,10 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
         return attribute != null && !attribute.isLocalizable();
     }
 
-    private void dependOnHideUnlocalizable(SourceComponent component) {
+    private void processUnlocalizable(SourceComponent component) {
 
         N2oStandardField field = (N2oStandardField) component;
+        field.setEnabled(Boolean.FALSE);
 
         N2oField.VisibilityDependency dependency = new N2oField.VisibilityDependency();
         dependency.setOn(new String[]{FIELD_HIDE_UNLOCALIZABLE});
