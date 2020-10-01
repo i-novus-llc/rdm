@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.stringPassportToValues;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
@@ -266,7 +267,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = versionEntity.getRefBook();
 
         final String newCode = request.getCode();
-        if (!refBookEntity.getCode().equals(newCode)) {
+        if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
             versionValidation.validateRefBookCode(newCode);
             versionValidation.validateRefBookCodeNotExists(newCode);
 
