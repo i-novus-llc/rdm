@@ -88,6 +88,15 @@ public class UpdateRecordControllerTest {
     }
 
     @Test
+    public void getDataConflictsWhenFailed() {
+
+        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenThrow(new IllegalArgumentException());
+
+        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        assertNull(actual);
+    }
+
+    @Test
     public void getDataConflictsWithoutReferences() {
 
         Structure structure = new Structure();
@@ -137,6 +146,11 @@ public class UpdateRecordControllerTest {
                 SELF_REFER_ATTRIBUTE_CODE, ConflictType.DISPLAY_DAMAGED, LocalDateTime.now()
         );
 
-        return List.of(updatedConflict, deletedConflict, alteredConflict, nullConflict);
+        RefBookConflict unknownConflict = new RefBookConflict(
+                TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -5L,
+                UNKNOWN_ATTRIBUTE_CODE, ConflictType.DELETED, LocalDateTime.now()
+        );
+
+        return List.of(updatedConflict, deletedConflict, alteredConflict, nullConflict, unknownConflict);
     }
 }
