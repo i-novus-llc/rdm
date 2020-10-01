@@ -22,14 +22,15 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
+import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.LongStream;
 
 import static java.util.Arrays.asList;
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.n2o.service.RefBookDataController.EMPTY_SEARCH_DATA_CRITERIA;
+import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
 import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,14 +51,10 @@ public class RefBookDataControllerTest {
     private static final int TEST_OPT_LOCK_VALUE = 10;
     private static final int NEW_OPT_LOCK_VALUE = TEST_OPT_LOCK_VALUE + 1;
 
-    private static final String ATTRIBUTE_ID_CODE = "id";
-    private static final String ATTRIBUTE_NAME_CODE = "name";
-    private static final String ATTRIBUTE_TEXT_CODE = "text";
-
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
-    private RefBookDataController refBookDataController;
+    private RefBookDataController controller;
 
     @Mock
     private DataFieldFilterProvider dataFieldFilterProvider;
@@ -79,10 +77,11 @@ public class RefBookDataControllerTest {
     @Test
     public void testGetList() {
 
-        RefBookVersion version = createRefBookVersion(TEST_REFBOOK_VERSION_ID);
+        RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        DataCriteria criteria = createCriteria(TEST_REFBOOK_VERSION_ID, false);
+        DataCriteria criteria = createCriteria(false);
+        criteria.setFilter(createCriteriaFilter());
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
 
         List<RefBookRowValue> rowValues = createContent(TEST_REFBOOK_VERSION_ID);
@@ -94,7 +93,7 @@ public class RefBookDataControllerTest {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<RefBookDataController.DataGridRow> dataGridRows = refBookDataController.getList(criteria);
+        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -104,13 +103,13 @@ public class RefBookDataControllerTest {
     @Test
     public void testGetConflictedListWithoutConflicts() {
 
-        RefBookVersion version = createRefBookVersion(TEST_REFBOOK_VERSION_ID);
+        RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(0L);
 
-        DataCriteria criteria = createCriteria(TEST_REFBOOK_VERSION_ID, true);
-        Page<RefBookDataController.DataGridRow> dataGridRows = refBookDataController.getList(criteria);
+        DataCriteria criteria = createCriteria(true);
+        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         assertEquals(0, dataGridRows.getContent().size());
@@ -119,7 +118,7 @@ public class RefBookDataControllerTest {
     @Test
     public void testGetConflictedListWithConflict() {
 
-        RefBookVersion version = createRefBookVersion(TEST_REFBOOK_VERSION_ID);
+        RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(1L);
@@ -133,7 +132,7 @@ public class RefBookDataControllerTest {
         when(conflictService.searchConflictedRowIds(any(RefBookConflictCriteria.class)))
                 .thenReturn(new PageImpl<>(conflictedRowIds, conflictCriteria, 1));
 
-        DataCriteria criteria = createCriteria(TEST_REFBOOK_VERSION_ID, true);
+        DataCriteria criteria = createCriteria(true);
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
         searchDataCriteria.addAttributeFilterList(emptyList());
         searchDataCriteria.setRowSystemIds(conflictedRowIds);
@@ -148,7 +147,7 @@ public class RefBookDataControllerTest {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<RefBookDataController.DataGridRow> dataGridRows = refBookDataController.getList(criteria);
+        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -158,40 +157,55 @@ public class RefBookDataControllerTest {
     @Test
     public void testGetVersion() {
 
-        RefBookVersion version = createRefBookVersion(TEST_REFBOOK_VERSION_ID);
+        RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
         RefBookVersion expected = new RefBookVersion(version);
 
-        RefBookVersion actual1 = refBookDataController.getVersion(TEST_REFBOOK_VERSION_ID, null);
+        RefBookVersion actual1 = controller.getVersion(TEST_REFBOOK_VERSION_ID, null);
         assertVersions(expected, actual1);
         assertEquals(expected.getOptLockValue(), actual1.getOptLockValue());
         assertVersions(expected, version);
         assertEquals(expected.getOptLockValue(), actual1.getOptLockValue());
 
-        RefBookVersion actual2 = refBookDataController.getVersion(TEST_REFBOOK_VERSION_ID, NEW_OPT_LOCK_VALUE);
+        RefBookVersion actual2 = controller.getVersion(TEST_REFBOOK_VERSION_ID, NEW_OPT_LOCK_VALUE);
         assertVersions(expected, actual2);
         assertNotEquals(expected.getOptLockValue(), actual2.getOptLockValue());
         assertVersions(expected, version);
         assertNotEquals(expected.getOptLockValue(), version.getOptLockValue());
     }
 
-    private DataCriteria createCriteria(int versionId, boolean hasDataConflict) {
+    private DataCriteria createCriteria(boolean hasDataConflict) {
 
         DataCriteria criteria = new DataCriteria();
 
-        criteria.setVersionId(versionId);
+        criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
         criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
         criteria.setHasDataConflict(hasDataConflict);
 
         return criteria;
     }
 
-    private RefBookVersion createRefBookVersion(int versionId) {
+    private Map<String, Serializable> createCriteriaFilter() {
+
+        Map<String, Serializable> filter = new HashMap<>();
+        filter.put(ID_ATTRIBUTE_CODE, "1");
+        filter.put(NAME_ATTRIBUTE_CODE, null);
+        filter.put(STRING_ATTRIBUTE_CODE, "text_1");
+        filter.put(INTEGER_ATTRIBUTE_CODE, "11");
+        filter.put(BOOLEAN_ATTRIBUTE_CODE, "false");
+        filter.put(DATE_ATTRIBUTE_CODE, "11.11.1111 11:11:11");
+        filter.put(REFERENCE_ATTRIBUTE_CODE, "REFER_1");
+        filter.put(SELF_REFER_ATTRIBUTE_CODE, "SELF_1");
+
+        return filter;
+    }
+
+    private RefBookVersion createRefBookVersion() {
 
         RefBookVersion version = new RefBookVersion();
 
-        version.setId(versionId);
+        version.setId(TEST_REFBOOK_VERSION_ID);
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
         version.setStructure(createStructure());
 
@@ -204,13 +218,11 @@ public class RefBookDataControllerTest {
         assertObjects(Assert::assertEquals, expected.getStructure(), actual.getStructure());
     }
 
+    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        return new Structure(asList(
-                Structure.Attribute.buildPrimary(ATTRIBUTE_ID_CODE, "Идентификатор", FieldType.INTEGER, null),
-                Structure.Attribute.build(ATTRIBUTE_NAME_CODE, "Наименование", FieldType.STRING, null),
-                Structure.Attribute.build(ATTRIBUTE_TEXT_CODE, "Текст", FieldType.STRING, null)
-        ), null);
+        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
+        return new Structure(structure);
     }
 
     private List<RefBookRowValue> createContent(int versionId) {
@@ -219,15 +231,27 @@ public class RefBookDataControllerTest {
 
         List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
 
-        LongStream.range(1, rowValueCount + 1).forEach(systemId -> {
-            LongRowValue longRowValue = new LongRowValue(systemId, asList(
-                    new IntegerFieldValue(ATTRIBUTE_ID_CODE, BigInteger.valueOf(systemId)),
-                    new StringFieldValue(ATTRIBUTE_NAME_CODE, "name_" + systemId),
-                    new StringFieldValue(ATTRIBUTE_TEXT_CODE, "text with id = " + systemId)
-            ));
-            rowValues.add(new RefBookRowValue(longRowValue, versionId));
-        });
+        LongStream.range(1, rowValueCount + 1).forEach(systemId ->
+                rowValues.add(new RefBookRowValue(createLongRowValue(systemId), versionId))
+        );
 
         return rowValues;
+    }
+
+    private LongRowValue createLongRowValue(long systemId) {
+
+        return new LongRowValue(systemId, asList(
+                new IntegerFieldValue(ID_ATTRIBUTE_CODE, BigInteger.valueOf(systemId)),
+                new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + systemId),
+                new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + systemId),
+                new IntegerFieldValue(INTEGER_ATTRIBUTE_CODE, Math.toIntExact(systemId)),
+                new FloatFieldValue(FLOAT_ATTRIBUTE_CODE, systemId * 1.0 / 10),
+                new BooleanFieldValue(BOOLEAN_ATTRIBUTE_CODE, systemId > 10),
+                new DateFieldValue(DATE_ATTRIBUTE_CODE, LocalDate.now(ZoneId.of("UTC"))),
+                new ReferenceFieldValue(REFERENCE_ATTRIBUTE_CODE,
+                        new Reference(String.valueOf(systemId), "display_" + systemId)),
+                new ReferenceFieldValue(SELF_REFER_ATTRIBUTE_CODE,
+                        new Reference(null, null))
+        ));
     }
 }
