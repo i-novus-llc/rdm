@@ -271,7 +271,7 @@ public class CreateDraftController {
         return new UiDraft(draft, version.getRefBookId());
     }
 
-    public UiDraft uploadData(Integer versionId, FileModel fileModel, Integer optLockValue) {
+    public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
