@@ -62,12 +62,9 @@ public class ConverterUtil {
     /** Получение записи из plain-записи на основе структуры. */
     public static RowValue rowValue(Row row, Structure structure) {
 
-        if (structure == null || structure.isEmpty())
-            return new LongRowValue(row.getSystemId(), emptyList());
+        final Map<String, Object> data = row.getData();
 
         List<Field> fields = fields(structure);
-
-        final Map<String, Object> data = row.getData();
         List<FieldValue> fieldValues = fields.stream().map(field -> toFieldValue(data, field)).collect(toList());
 
         return new LongRowValue(row.getSystemId(), fieldValues);
