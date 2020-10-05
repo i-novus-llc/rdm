@@ -655,7 +655,7 @@ public class DraftServiceImpl implements DraftService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
 
-        String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
+        String storageCode = toStorageCode(draft, criteria);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -1081,13 +1081,13 @@ public class DraftServiceImpl implements DraftService {
     /**
      * Преобразование кода хранилища с учётом локали.
      *
-     * @param storageCode исходный код хранилища
-     * @param localeCode  код локали
+     * @param draft    черновик
+     * @param criteria критерий поиска
      * @return Код хранилища с учётом локали
      */
     @SuppressWarnings("UnusedParameter")
-    protected String toLocaleStorageCode(String storageCode, String localeCode) {
-        return storageCode;
+    protected String toStorageCode(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+        return draft.getStorageCode();
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

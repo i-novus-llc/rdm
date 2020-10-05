@@ -408,16 +408,6 @@ public class L10nServiceTest {
         assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
     }
 
-    @Test
-    public void testGetLocaleStorageCode() {
-
-        String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
-        when(storageCodeService.toStorageCode(eq(TEST_STORAGE_NAME), eq(TEST_LOCALE_CODE))).thenReturn(testStorageCode);
-
-        String localeStorageCode = l10nService.getLocaleStorageCode(TEST_STORAGE_NAME, TEST_LOCALE_CODE);
-        assertEquals(testStorageCode, localeStorageCode);
-    }
-
     private RefBookVersionEntity createVersionEntity() {
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();

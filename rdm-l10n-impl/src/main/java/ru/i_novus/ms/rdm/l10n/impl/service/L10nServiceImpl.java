@@ -215,12 +215,6 @@ public class L10nServiceImpl implements L10nService {
         return model;
     }
 
-    @Override
-    public String getLocaleStorageCode(String storageCode, String localeCode) {
-
-        return storageCodeService.toStorageCode(storageCode, localeCode);
-    }
-
     private String toValidSchemaName(String localeCode) {
 
         String schemaName = storageCodeService.toSchemaName(localeCode);
