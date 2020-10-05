@@ -12,7 +12,6 @@
             <name>string</name>
             <type>STRING</type>
             <primary>true</primary>
-            <localizable>false</localizable>
             <description>строка</description>
             <validation>
                 <type>PLAIN_SIZE</type>
@@ -28,7 +27,6 @@
             <name>integer</name>
             <type>INTEGER</type>
             <primary>false</primary>
-            <localizable>false</localizable>
             <description>число</description>
             <validation>
                 <type>INT_RANGE</type>
@@ -43,7 +41,6 @@
             <name>date</name>
             <type>DATE</type>
             <primary>false</primary>
-            <localizable>false</localizable>
             <description>дата</description>
             <validation>
                 <type>DATE_RANGE</type>
@@ -55,7 +52,6 @@
             <name>boolean</name>
             <type>BOOLEAN</type>
             <primary>false</primary>
-            <localizable>false</localizable>
             <description>булево</description>
             <validation>
                 <type>REQUIRED</type>
@@ -66,7 +62,6 @@
             <name>float</name>
             <type>FLOAT</type>
             <primary>false</primary>
-            <localizable>false</localizable>
             <description>дробное</description>
             <validation>
                 <type>FLOAT_SIZE</type>
@@ -82,7 +77,6 @@
             <name>reference</name>
             <type>REFERENCE</type>
             <primary>false</primary>
-            <localizable>false</localizable>
             <description>ссылка</description>
             <referenceCode>REF_CODE_TO_REFERENCE</referenceCode>
         </row>

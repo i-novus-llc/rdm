@@ -152,7 +152,10 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         writeElement("name", attribute.getName());
         writeElement("type", attribute.getType().name());
         writeElement("primary", "" + attribute.hasIsPrimary());
-        writeElement("localizable", "" + attribute.isLocalizable());
+
+        if (attribute.isLocalizable()) {
+            writeElement("localizable", "true");
+        }
         writeElement("description", attribute.getDescription());
 
         addReference(attribute);
