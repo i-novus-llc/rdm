@@ -76,42 +76,63 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
         reader.nextEvent();
         while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
-            Map<String, Object> attribute = new LinkedHashMap<>();
+
+            Map<String, Object> values = new LinkedHashMap<>();
             reader.nextEvent();// current is <row> in <structure>
 
-            XmlParseUtils.parseValues(reader, attribute, ROW_TAG_NAME);
-            Structure.Attribute structureAttribute = new Structure.Attribute();
+            XmlParseUtils.parseValues(reader, values, ROW_TAG_NAME);
 
-            String code = (String) attribute.get("code");
-            structureAttribute.setCode(code);
-            structureAttribute.setDescription((String) attribute.get("description"));
-            structureAttribute.setName((String) attribute.get("name"));
-            structureAttribute.setType(FieldType.valueOf((String) attribute.get("type")));
-            structureAttribute.setIsPrimary(Boolean.valueOf((String) attribute.get("primary")));
-            structure.getAttributes().add(structureAttribute);
+            Structure.Attribute attribute = parseStructureAttribute(values);
+            Structure.Reference reference = parseStructureReference(attribute, values);
+            structure.add(attribute, reference);
 
-            if(FieldType.REFERENCE.equals(structureAttribute.getType())) {
-                String referenceCode = (String) attribute.get("referenceCode");
-                if(referenceCode != null) {
-                    Structure.Reference structureReference = new Structure.Reference();
-                    structureReference.setAttribute(structureAttribute.getCode());
-                    structureReference.setReferenceCode(referenceCode);
-                    structureReference.setDisplayExpression((String) attribute.get("displayExpression"));
-                    structure.getReferences().add(structureReference);
-                }
-            }
-
-            Object obj = attribute.get("validation");
+            Object obj = values.get("validation");
             if (obj == null)
                 continue;
+
             if (obj instanceof Map) {
+
                 Map<String, Object> map = (Map<String, Object>) obj;
                 AttributeValidation validation = AttributeValidation.of((String) map.get("type"), (String) map.get("value"));
-                validations.put(code, singletonList(validation));
+                validations.put(attribute.getCode(), singletonList(validation));
+
             } else { // List
-                groupValidationsByCode(code, (List<Map<String, Object>>) obj, validations);
+                groupValidationsByCode(attribute.getCode(), (List<Map<String, Object>>) obj, validations);
             }
         }
+    }
+
+    private Structure.Attribute parseStructureAttribute(Map<String, Object> values) {
+
+        Structure.Attribute result = new Structure.Attribute();
+
+        result.setCode((String) values.get("code"));
+        result.setName((String) values.get("name"));
+        result.setType(FieldType.valueOf((String) values.get("type")));
+
+        result.setIsPrimary(Boolean.valueOf((String) values.get("primary")));
+        result.setLocalizable(Boolean.valueOf((String) values.get("localizable")));
+        result.setDescription((String) values.get("description"));
+
+        return result;
+    }
+
+    private Structure.Reference parseStructureReference(Structure.Attribute attribute, Map<String, Object> values) {
+
+        if (!attribute.isReferenceType())
+            return null;
+
+        String referenceCode = (String) values.get("referenceCode");
+        if (referenceCode == null)
+            return null;
+
+        Structure.Reference result = new Structure.Reference();
+
+        result.setAttribute(attribute.getCode());
+        result.setReferenceCode(referenceCode);
+        result.setDisplayExpression((String) values.get("displayExpression"));
+
+        return result;
     }
 
     private void groupValidationsByCode(String code, List<Map<String, Object>> list,
