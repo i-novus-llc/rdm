@@ -36,7 +36,6 @@ import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.StructureUtils.toLocalizableStructure;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
 @Primary
@@ -103,6 +102,27 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
             return;
 
         draftDataService.localizeRows(targetCode, updatedRowValues);
+    }
+
+    /** Получение структуры для перевода на основе структуры версии. */
+    private Structure toLocalizableStructure(Structure structure) {
+
+        List<Structure.Attribute> attributes = structure.getAttributes().stream()
+                    .filter(Structure.Attribute::isLocalizable)
+                    .collect(toList());
+        if (attributes.size() == structure.getAttributes().size())
+            return structure;
+
+        List<Structure.Reference> references = structure.getReferences();
+        if (references.isEmpty())
+            return new Structure(attributes, null);
+
+        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
+        references = structure.getReferences().stream()
+                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
+                .collect(toList());
+
+        return new Structure(attributes, references);
     }
 
     private List<RowValue> toRowValues(List<Row> rows, Structure structure) {
