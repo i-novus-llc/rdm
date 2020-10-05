@@ -16,11 +16,11 @@ import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.DraftServiceImpl;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
+import ru.i_novus.ms.rdm.l10n.api.model.L10nConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.BooleanField;
 
 import java.util.List;
