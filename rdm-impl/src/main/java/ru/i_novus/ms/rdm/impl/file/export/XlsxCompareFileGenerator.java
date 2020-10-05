@@ -247,7 +247,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         structureColumnIndexes.put("name", 1);
         structureColumnIndexes.put("type", 2);
         structureColumnIndexes.put("primary", 3);
-        structureColumnIndexes.put("localizable", 4);
         structureColumnIndexes.put("description", 5);
 
         Row row = createNextRow(sheet);
@@ -255,7 +254,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         row.createCell(1).setCellValue("Наименование");
         row.createCell(2).setCellValue("Тип данных");
         row.createCell(3).setCellValue("Первичный ключ");
-        row.createCell(4).setCellValue("Переводимый атрибут");
         row.createCell(5).setCellValue("Описание");
         row.forEach(cell -> cell.setCellStyle(headStyle));
         return row;
@@ -272,7 +270,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
         diffs.put("type", new XlsxComparedCell(oldAttr.getType(), newAttr.getType(), diffStatus));
 
         diffs.put("primary", new XlsxComparedCell(oldAttr.hasIsPrimary(), newAttr.hasIsPrimary(), diffStatus));
-        diffs.put("localizable", new XlsxComparedCell(oldAttr.isLocalizable(), newAttr.isLocalizable(), diffStatus));
         diffs.put("description", new XlsxComparedCell(oldAttr.getDescription(), newAttr.getDescription(), diffStatus));
 
         return new XlsxComparedRow(diffs, diffStatus);
