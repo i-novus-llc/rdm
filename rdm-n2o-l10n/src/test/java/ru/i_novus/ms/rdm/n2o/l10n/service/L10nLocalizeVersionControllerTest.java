@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 
@@ -43,7 +43,7 @@ public class L10nLocalizeVersionControllerTest {
     private L10nLocalizeVersionController controller;
 
     @Mock
-    private L10nVersionStorageService versionStorageService;
+    private L10nService l10nService;
 
     @Before
     @SuppressWarnings("java:S2696")
@@ -64,7 +64,7 @@ public class L10nLocalizeVersionControllerTest {
         controller.localizeDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, row);
 
         ArgumentCaptor<LocalizeDataRequest> captor = ArgumentCaptor.forClass(LocalizeDataRequest.class);
-        verify(versionStorageService, times(1))
+        verify(l10nService, times(1))
                 .localizeData(eq(TEST_REFBOOK_VERSION_ID), captor.capture());
 
         LocalizeDataRequest actual = captor.getValue();

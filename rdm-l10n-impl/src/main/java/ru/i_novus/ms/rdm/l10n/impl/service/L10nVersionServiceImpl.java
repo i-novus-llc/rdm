@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -25,11 +25,11 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nVersionServiceImpl extends VersionServiceImpl {
 
-    private L10nVersionStorageService versionStorageService;
+    private L10nService l10nService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public L10nVersionServiceImpl(L10nVersionStorageService versionStorageService,
+    public L10nVersionServiceImpl(L10nService l10nService,
                                   RefBookVersionRepository versionRepository,
                                   SearchDataService searchDataService,
                                   FileStorage fileStorage, FileNameGenerator fileNameGenerator,
@@ -41,7 +41,7 @@ public class L10nVersionServiceImpl extends VersionServiceImpl {
                 versionFileRepository, versionFileService,
                 auditLogService);
 
-        this.versionStorageService = versionStorageService;
+        this.l10nService = l10nService;
     }
 
     @Override
@@ -59,6 +59,6 @@ public class L10nVersionServiceImpl extends VersionServiceImpl {
     @Override
     protected String toLocaleStorageCode(String storageCode, String localeCode) {
 
-        return versionStorageService.getLocaleStorageCode(storageCode, localeCode);
+        return l10nService.getLocaleStorageCode(storageCode, localeCode);
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -30,11 +30,11 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nDraftServiceImpl extends DraftServiceImpl {
 
-    private L10nVersionStorageService versionStorageService;
+    private L10nService l10nService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public L10nDraftServiceImpl(L10nVersionStorageService versionStorageService,
+    public L10nDraftServiceImpl(L10nService l10nService,
                                 RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
                                 DraftDataService draftDataService, DropDataService dropDataService,
                                 SearchDataService searchDataService,
@@ -55,7 +55,7 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                 passportValueRepository, attributeValidationRepository, structureChangeValidator,
                 auditLogService);
 
-        this.versionStorageService = versionStorageService;
+        this.l10nService = l10nService;
     }
 
     @Override
@@ -73,6 +73,6 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
     @Override
     protected String toLocaleStorageCode(String storageCode, String localeCode) {
 
-        return versionStorageService.getLocaleStorageCode(storageCode, localeCode);
+        return l10nService.getLocaleStorageCode(storageCode, localeCode);
     }
 }

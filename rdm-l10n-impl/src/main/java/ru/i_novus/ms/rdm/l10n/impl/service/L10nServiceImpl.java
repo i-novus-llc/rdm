@@ -13,7 +13,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -41,7 +41,7 @@ import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUti
 @Primary
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class L10nVersionStorageServiceImpl implements L10nVersionStorageService {
+public class L10nServiceImpl implements L10nService {
 
     private static final String LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE = "locale.code.not.found";
     private static final String LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE = "locale.code.is.default";
@@ -56,11 +56,11 @@ public class L10nVersionStorageServiceImpl implements L10nVersionStorageService 
     private VersionValidation versionValidation;
 
     @Autowired
-    public L10nVersionStorageServiceImpl(L10nDraftDataService draftDataService,
-                                         L10nLocaleInfoService localeInfoService,
-                                         L10nStorageCodeService storageCodeService,
-                                         RefBookVersionRepository versionRepository,
-                                         VersionValidation versionValidation) {
+    public L10nServiceImpl(L10nDraftDataService draftDataService,
+                           L10nLocaleInfoService localeInfoService,
+                           L10nStorageCodeService storageCodeService,
+                           RefBookVersionRepository versionRepository,
+                           VersionValidation versionValidation) {
 
         this.draftDataService = draftDataService;
         this.localeInfoService = localeInfoService;

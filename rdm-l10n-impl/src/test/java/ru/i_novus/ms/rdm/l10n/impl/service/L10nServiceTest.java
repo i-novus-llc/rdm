@@ -46,7 +46,7 @@ import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nVersionStorageServiceTest {
+public class L10nServiceTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
@@ -74,7 +74,7 @@ public class L10nVersionStorageServiceTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
-    private L10nVersionStorageServiceImpl versionStorageService;
+    private L10nServiceImpl l10nService;
 
     @Mock
     private L10nDraftDataService draftDataService;
@@ -110,7 +110,7 @@ public class L10nVersionStorageServiceTest {
         when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
 
         LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
-        versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+        l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
@@ -128,7 +128,7 @@ public class L10nVersionStorageServiceTest {
         when(draftDataService.storageExists(eq(testStorageCode))).thenReturn(true);
 
         LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
-        versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+        l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
 
         verify(draftDataService, times(0)).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService, times(0)).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
@@ -139,7 +139,7 @@ public class L10nVersionStorageServiceTest {
 
         LocalizeTableRequest request = new LocalizeTableRequest(null, null);
         try {
-            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
             fail(getFailedMessage(IllegalArgumentException.class));
 
         } catch (RuntimeException e) {
@@ -155,7 +155,7 @@ public class L10nVersionStorageServiceTest {
 
         LocalizeTableRequest request = new LocalizeTableRequest(null, TEST_LOCALE_CODE);
         try {
-            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
             fail(getFailedMessage(NotFoundException.class));
 
         } catch (UserException e) {
@@ -173,7 +173,7 @@ public class L10nVersionStorageServiceTest {
 
         LocalizeTableRequest request = new LocalizeTableRequest(null, TEST_LOCALE_CODE);
         try {
-            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
             fail(getFailedMessage(IllegalArgumentException.class));
 
         } catch (RuntimeException e) {
@@ -199,7 +199,7 @@ public class L10nVersionStorageServiceTest {
 
         LocalizeTableRequest request = new LocalizeTableRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE);
         try {
-            versionStorageService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
+            l10nService.localizeTable(TEST_REFBOOK_VERSION_ID, request);
             fail(getFailedMessage(expectedExceptionClass));
 
         } catch (UserException e) {
@@ -223,7 +223,7 @@ public class L10nVersionStorageServiceTest {
         List<Row> rows = IntStream.range(0, rowCount - 1).mapToObj(this::createRow).collect(toList());
 
         LocalizeDataRequest request = new LocalizeDataRequest(versionEntity.getOptLockValue(), TEST_LOCALE_CODE, rows);
-        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+        l10nService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
         verify(draftDataService).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
         verify(draftDataService).copyAllData(eq(TEST_STORAGE_NAME), eq(testStorageCode));
@@ -263,7 +263,7 @@ public class L10nVersionStorageServiceTest {
         when(draftDataService.createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName))).thenReturn(testStorageCode);
 
         LocalizeDataRequest request = new LocalizeDataRequest(null, TEST_LOCALE_CODE, rows);
-        versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+        l10nService.localizeData(TEST_REFBOOK_VERSION_ID, request);
 
         int callCount = isEmpty(rows) ? 0 : 1;
         verify(draftDataService, times(callCount)).createLocalizedTable(eq(TEST_STORAGE_NAME), eq(schemaName));
@@ -276,7 +276,7 @@ public class L10nVersionStorageServiceTest {
 
         LocalizeDataRequest request = new LocalizeDataRequest(null, null, null);
         try {
-            versionStorageService.localizeData(TEST_REFBOOK_VERSION_ID, request);
+            l10nService.localizeData(TEST_REFBOOK_VERSION_ID, request);
             fail(getFailedMessage(IllegalArgumentException.class));
 
         } catch (RuntimeException e) {
@@ -331,7 +331,7 @@ public class L10nVersionStorageServiceTest {
         List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
                 .filter(info -> !StorageUtils.isDefaultSchema(localeSchemas.get(info.getCode())))
                 .collect(toList());
-        List<L10nVersionLocale> actualVersionLocales = versionStorageService
+        List<L10nVersionLocale> actualVersionLocales = l10nService
                 .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
 
@@ -351,7 +351,7 @@ public class L10nVersionStorageServiceTest {
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
 
-        L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+        L10nVersionLocale actualVersionLocale = l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertLocales(TEST_LOCALE_INFO, actualVersionLocale);
     }
 
@@ -361,7 +361,7 @@ public class L10nVersionStorageServiceTest {
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(null);
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
 
-        L10nVersionLocale actualVersionLocale = versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+        L10nVersionLocale actualVersionLocale = l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
         assertNull(actualVersionLocale);
     }
 
@@ -372,7 +372,7 @@ public class L10nVersionStorageServiceTest {
         when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(null);
 
         try {
-            versionStorageService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
+            l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
             fail(getFailedMessage(UserException.class));
 
         } catch (UserException e) {
@@ -386,12 +386,12 @@ public class L10nVersionStorageServiceTest {
 
         when(localeInfoService.find(isNull())).thenReturn(null);
 
-        String localeName = versionStorageService.getLocaleName(null);
+        String localeName = l10nService.getLocaleName(null);
         assertNull(localeName);
 
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
 
-        localeName = versionStorageService.getLocaleName(TEST_LOCALE_CODE);
+        localeName = l10nService.getLocaleName(TEST_LOCALE_CODE);
         assertEquals(TEST_LOCALE_NAME, localeName);
     }
 
@@ -414,7 +414,7 @@ public class L10nVersionStorageServiceTest {
         String testStorageCode = toStorageCode(TEST_SCHEMA_NAME, TEST_STORAGE_NAME);
         when(storageCodeService.toStorageCode(eq(TEST_STORAGE_NAME), eq(TEST_LOCALE_CODE))).thenReturn(testStorageCode);
 
-        String localeStorageCode = versionStorageService.getLocaleStorageCode(TEST_STORAGE_NAME, TEST_LOCALE_CODE);
+        String localeStorageCode = l10nService.getLocaleStorageCode(TEST_STORAGE_NAME, TEST_LOCALE_CODE);
         assertEquals(testStorageCode, localeStorageCode);
     }
 
