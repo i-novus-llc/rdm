@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.api.service.l10n;
 
 import io.swagger.annotations.*;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
-import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -12,17 +11,6 @@ import javax.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы локализации версии", hidden = true)
 public interface L10nService {
-
-    @POST
-    @ApiOperation("Создание копии таблицы версии для локализации записей")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Код локализованной таблицы"),
-            @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    @Path("/{versionId}/table")
-    String localizeTable(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                         @ApiParam("Модель локализации таблицы") LocalizeTableRequest request);
 
     @POST
     @ApiOperation("Локализация записей версии")

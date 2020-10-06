@@ -58,18 +58,6 @@ public class L10nServiceImpl implements L10nService {
     }
 
     @Override
-    public String localizeTable(Integer versionId, LocalizeTableRequest request) {
-
-        if (isEmpty(request.getLocaleCode()))
-            throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
-
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-        validateOptLockValue(versionEntity, request);
-
-        return localizeTable(versionEntity, request);
-    }
-
-    @Override
     public void localizeData(Integer versionId, LocalizeDataRequest request) {
 
         if (isEmpty(request.getLocaleCode()))
