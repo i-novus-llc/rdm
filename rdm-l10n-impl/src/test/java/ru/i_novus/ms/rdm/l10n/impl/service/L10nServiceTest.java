@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.l10n.impl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,17 +16,14 @@ import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
-import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
-import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.dao.StorageConstants;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -35,14 +31,15 @@ import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
+import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getExceptionMessage;
+import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getFailedMessage;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -78,9 +75,6 @@ public class L10nServiceTest {
 
     @Mock
     private L10nDraftDataService draftDataService;
-
-    @Mock
-    private L10nLocaleInfoService localeInfoService;
 
     @Mock
     private L10nStorageCodeService storageCodeService;
@@ -316,96 +310,6 @@ public class L10nServiceTest {
         assertEquals(request.getOptLockValue(), sameRequest.getOptLockValue());
         assertEquals(request.getLocaleCode(), sameRequest.getLocaleCode());
         assertEquals(request.getRows(), sameRequest.getRows());
-    }
-
-    @Test
-    public void testSearchVersionLocales() {
-
-        when(localeInfoService.search(any())).thenReturn(LOCALE_INFOS);
-
-        List<String> localeCodes = LOCALE_INFOS.stream().map(L10nLocaleInfo::getCode).collect(toList());
-        Map<String, String> localeSchemas = localeCodes.stream().collect(toMap(identity(), this::toSchemaName));
-        localeSchemas.put(LOCALE_INFOS.get(0).getCode(), "data");
-        when(storageCodeService.toSchemaNames(eq(localeCodes))).thenReturn(localeSchemas);
-
-        List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
-                .filter(info -> !StorageUtils.isDefaultSchema(localeSchemas.get(info.getCode())))
-                .collect(toList());
-        List<L10nVersionLocale> actualVersionLocales = l10nService
-                .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
-        assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());
-
-        IntStream.range(0, expectedLocaleInfos.size()).forEach(index -> {
-
-            L10nVersionLocale actual = actualVersionLocales.get(index);
-            L10nLocaleInfo expected = expectedLocaleInfos.stream()
-                    .filter(info -> actual.getLocaleCode().equals(info.getCode()))
-                    .findFirst().orElse(null);
-            assertLocales(expected, actual);
-        });
-    }
-
-    @Test
-    public void testGetVersionLocale() {
-
-        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-
-        L10nVersionLocale actualVersionLocale = l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
-        assertLocales(TEST_LOCALE_INFO, actualVersionLocale);
-    }
-
-    @Test
-    public void testGetVersionLocaleOnNull() {
-
-        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(null);
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_SCHEMA_NAME);
-
-        L10nVersionLocale actualVersionLocale = l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
-        assertNull(actualVersionLocale);
-    }
-
-    @Test
-    public void testGetVersionLocaleOnDefaultFailed() {
-
-        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
-        when(storageCodeService.toSchemaName(eq(TEST_LOCALE_CODE))).thenReturn(null);
-
-        try {
-            l10nService.getVersionLocale(TEST_REFBOOK_VERSION_ID, TEST_LOCALE_CODE);
-            fail(getFailedMessage(UserException.class));
-
-        } catch (UserException e) {
-            assertEquals(UserException.class, e.getClass());
-            assertEquals("locale.code.is.default", getExceptionMessage(e));
-        }
-    }
-
-    @Test
-    public void testGetLocaleName() {
-
-        when(localeInfoService.find(isNull())).thenReturn(null);
-
-        String localeName = l10nService.getLocaleName(null);
-        assertNull(localeName);
-
-        when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
-
-        localeName = l10nService.getLocaleName(TEST_LOCALE_CODE);
-        assertEquals(TEST_LOCALE_NAME, localeName);
-    }
-
-    private String toSchemaName(String localeCode) {
-        return L10nConstants.SCHEMA_NAME_PREFIX + localeCode;
-    }
-
-    private void assertLocales(L10nLocaleInfo localeInfo, L10nVersionLocale versionLocale) {
-
-        assertObjects(Assert::assertNotEquals, localeInfo, versionLocale);
-        assertEquals(Integer.valueOf(TEST_REFBOOK_VERSION_ID), versionLocale.getVersionId());
-        assertEquals(localeInfo.getCode(), versionLocale.getLocaleCode());
-        assertEquals(localeInfo.getName(), versionLocale.getLocaleName());
-        assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
     }
 
     private RefBookVersionEntity createVersionEntity() {
