@@ -13,7 +13,6 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
-import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
@@ -32,14 +31,15 @@ import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 @RunWith(MockitoJUnitRunner.class)
 public class VersionLocaleServiceTest {
 
+    public static final String SCHEMA_NAME_PREFIX = "l10n_"; // from l10n-vds::L10nConstants
+
     private static final int TEST_REFBOOK_VERSION_ID = -10;
-    private static final String TEST_REFBOOK_CODE = "L10N_TEST";
 
     private static final String TEST_LOCALE_CODE = "test";
     private static final String TEST_LOCALE_NAME = "Тест";
     private static final L10nLocaleInfo TEST_LOCALE_INFO = new L10nLocaleInfo(TEST_LOCALE_CODE, TEST_LOCALE_NAME, null);
 
-    private static final String TEST_SCHEMA_NAME = L10nConstants.SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
+    private static final String TEST_SCHEMA_NAME = SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
 
     private static final List<L10nLocaleInfo> LOCALE_INFOS = List.of(
             new L10nLocaleInfo("rus", "Русский (по умолчанию)", null),
@@ -142,7 +142,7 @@ public class VersionLocaleServiceTest {
     }
 
     private String toSchemaName(String localeCode) {
-        return L10nConstants.SCHEMA_NAME_PREFIX + localeCode;
+        return SCHEMA_NAME_PREFIX + localeCode;
     }
 
     private void assertLocales(L10nLocaleInfo localeInfo, L10nVersionLocale versionLocale) {

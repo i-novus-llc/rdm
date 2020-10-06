@@ -19,7 +19,7 @@ import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
-import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
+import ru.i_novus.platform.l10n.versioned_data_storage.pg_impl.dao.L10nConstants;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.dao.StorageConstants;
 
 import java.math.BigDecimal;
