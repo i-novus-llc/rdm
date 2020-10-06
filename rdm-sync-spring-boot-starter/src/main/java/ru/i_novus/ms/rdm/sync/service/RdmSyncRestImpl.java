@@ -8,10 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
@@ -26,25 +22,23 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.ms.rdm.sync.criteria.LogCriteria;
-import ru.i_novus.ms.rdm.sync.model.DataTypeEnum;
-import ru.i_novus.ms.rdm.sync.model.FieldMapping;
-import ru.i_novus.ms.rdm.sync.model.Log;
-import ru.i_novus.ms.rdm.sync.model.VersionMapping;
+import ru.i_novus.ms.rdm.sync.model.*;
 import ru.i_novus.ms.rdm.sync.model.loader.XmlMapping;
 import ru.i_novus.ms.rdm.sync.model.loader.XmlMappingField;
 import ru.i_novus.ms.rdm.sync.model.loader.XmlMappingRefBook;
 import ru.i_novus.ms.rdm.sync.rest.RdmSyncRest;
 import ru.i_novus.ms.rdm.sync.util.RefBookReferenceSort;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -217,9 +211,9 @@ public class RdmSyncRestImpl implements RdmSyncRest {
         if (page.getContent().size() > 1)
             throw new IllegalStateException(format(MORE_THAN_ONE_REFBOOK_FOUND, code));
         RefBook last = page.getContent().iterator().next();
-        if (last.getStructure().getPrimary().isEmpty())
+        if (last.getStructure().getPrimaries().isEmpty())
             throw new IllegalStateException(format(NO_PRIMARY_KEY_FOUND, code));
-        if (last.getStructure().getPrimary().size() > 1)
+        if (last.getStructure().getPrimaries().size() > 1)
             throw new UnsupportedOperationException(String.format(COMPOSITE_PK_NOT_SUPPORTED, code));
         return last;
     }

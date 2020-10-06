@@ -65,20 +65,12 @@
                                 </pre-filters>
                             </show-modal>
                         </menu-item>
+
                         <menu-item label="Обновить ссылки"
                                    visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
                             <invoke operation-id="refreshReferrer"/>
                         </menu-item>
 
-                        <menu-item label="Загрузить данные" visibility-condition="version.status=='DRAFT'">
-                            <show-modal page-id="uploadData" submit-operation-id="uploadData" upload="defaults"
-                                        redirect-target="application"
-                                        redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
-                            </show-modal>
-                        </menu-item>
                         <menu-item label="Загрузить из файла">
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target="application"
@@ -124,8 +116,8 @@
                         <show-modal page-id="attribute" upload="defaults"
                                     submit-operation-id="createAttribute" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve" ref-widget-id="version_select"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -134,7 +126,7 @@
                                     submit-operation-id="updateAttribute" refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="versionId" value="{versionId}"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="code" value="{code}"/>
                             </pre-filters>
                         </show-modal>
@@ -150,39 +142,42 @@
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                     <eq field-id="localeCode" value=""/>
                 </pre-filters>
 
                 <toolbar place="topRight">
                     <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить строку" icon="fa fa-plus"
+                    <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
                             widget-id="version_select" model="resolve"
-                            enabling-condition="!version.isEmptyStructure">
-                        <show-modal page-id="dataRecordPage?{id}_create" upload="query" route="/create"
-                                    submit-operation-id="create" refresh-widget-id="version_select">
+                            enabling-condition="version.hasStructure">
+                        <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
+                                    upload="query" route="/create"
+                                    submit-operation-id="create" submit-label="Сохранить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
                                 <eq field-id="id" value="0"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <eq field-id="dataAction" value="create"/>
                             </pre-filters>
                         </show-modal>
                     </button>
 
-                    <button id="updateRecord_r" label="Изменить строку" icon="fa fa-pencil"
+                    <button id="updateRecord_r" label="Изменить" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
-                                    submit-operation-id="update" refresh-widget-id="version_select">
+                        <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
+                                    upload="query" route="/update"
+                                    submit-operation-id="update" submit-label="Изменить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTable"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
-                                <eq field-id="dataAction" value="edit"/>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="dataAction" value="update"/>
                             </pre-filters>
                         </show-modal>
                     </button>
 
-                    <button id="deleteRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
+                    <button id="deleteRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
                         <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
 
@@ -190,10 +185,19 @@
                         <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
                                     submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-model="resolve"
-                                    ref-widget-id="version_select"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                                    ref-widget-id="version_select"/>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                            </pre-filters>
+                        </show-modal>
+                    </button>
+
+                    <button id="uploadData_r" label="Загрузить данные"
+                            widget-id="version_select" model="resolve"
+                            visibility-condition="version.status=='DRAFT'">
+                        <show-modal page-id="uploadData" upload="defaults"
+                                    submit-operation-id="uploadData" refresh-widget-id="version_select">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}"/>
                             </pre-filters>
                         </show-modal>
                     </button>
@@ -203,38 +207,59 @@
             <table src="DataGrid" name="Переведённые данные" id="dataTableWithLocales"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data"
-                   visible="{${rdm.l10n.support}}">
+                   visible="{${rdm.l10n.support}">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
-                    <eq field-id="localeCode" value="{localeCode.id}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                    <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
                 </pre-filters>
+
+                <toolbar place="topRight">
+                    <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
+                            widget-id="version_select" model="resolve"
+                            enabling-condition="localeCode.id != null &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable">
+                        <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
+                                    upload="query" route="/localize"
+                                    submit-operation-id="localize" submit-label="Сохранить"
+                                    refresh-widget-id="dataTableWithLocales">
+                            <pre-filters>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="dataAction" value="localize"/>
+                            </pre-filters>
+                        </show-modal>
+
+                        <dependencies>
+                            <visibility>return ${rdm.l10n.support}</visibility>
+                        </dependencies>
+                    </button>
+                </toolbar>
             </table>
 
             <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data">
                 <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve"
-                        ref-widget-id="version_select"/>
+                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                     <eq field-id="hasDataConflict" value="true"/>
                 </pre-filters>
 
                 <toolbar place="topRight">
-                    <button id="updateConflictedRecord_r" label="Изменить строку" icon="fa fa-pencil"
+                    <button id="updateConflictedRecord_r" label="Исправить" icon="fa fa-pencil"
                             widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_edit" upload="query" route="/update"
-                                    submit-operation-id="update" refresh-widget-id="version_select">
+                        <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
+                                    upload="query" route="/update"
+                                    submit-operation-id="update" submit-label="Изменить"
+                                    refresh-widget-id="version_select">
                             <pre-filters>
-                                <eq field-id="id" value="{id}" ref-model="resolve" ref-widget-id="dataTableWithConflicts"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-model="resolve" ref-widget-id="version_select"/>
-                                <eq field-id="dataAction" value="edit"/>
+                                <eq field-id="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
+                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <eq field-id="dataAction" value="update"/>
                             </pre-filters>
                         </show-modal>
                     </button>
 
-                    <button id="deleteConflictedRecord_r" label="Удалить строку" color="danger" icon="fa fa-trash">
+                    <button id="deleteConflictedRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
                         <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                     </button>
                 </toolbar>

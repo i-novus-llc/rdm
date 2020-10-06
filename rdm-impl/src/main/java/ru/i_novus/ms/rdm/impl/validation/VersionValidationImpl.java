@@ -457,7 +457,7 @@ public class VersionValidationImpl implements VersionValidation {
         RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
         validateReferredStructure(draftStructure, referredCode);
 
-        if (!equalsPrimaries(referredEntity.getStructure().getPrimary(), draftStructure.getPrimary()))
+        if (!equalsPrimaries(referredEntity.getStructure().getPrimaries(), draftStructure.getPrimaries()))
             throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
     }
 
@@ -485,7 +485,7 @@ public class VersionValidationImpl implements VersionValidation {
         if (structure == null)
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
 
-        int primaryCount = structure.getPrimary().size();
+        int primaryCount = structure.getPrimaries().size();
         if (primaryCount == 0)
             throw new UserException(new Message(REFERRED_BOOK_HAS_NO_PRIMARY_EXCEPTION_CODE, referredCode));
         else

@@ -6,16 +6,26 @@
             <case value="true">bg-danger</case>
         </switch>
     </rows>
+
     <columns>
-        <column text-field-id="keyAttribute" label="Ключевой атрибут"/>
+        <column text-field-id="isPrimary" label="" type="icon" tooltip-field-id="isPrimaryText">
+            <icon>
+                <switch value-field-id="isPrimary">
+                    <case value="true">fa fa-key</case>
+                </switch>
+            </icon>
+        </column>
+
         <column text-field-id="code" label="Код"/>
         <column text-field-id="name" label="Наименование"/>
         <column text-field-id="attrType.name" label="Тип данных"/>
-        <column text-field-id="description" label="Описание"/>
-        <column text-field-id="isReference" label="Ссылка">
+        <column text-field-id="required" label="Обязательность">
             <checkbox/>
         </column>
+        <column text-field-id="description" label="Описание"/>
+
         <column text-field-id="referenceData" label="Ссылочное поле"/>
+
         <column text-field-id="hasStructureConflict" label="" type="icon" tooltip-field-id="hasStructureConflictMsg">
             <icon>
                 <switch value-field-id="hasStructureConflict">

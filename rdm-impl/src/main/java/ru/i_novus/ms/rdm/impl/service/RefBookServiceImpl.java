@@ -10,9 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.ms.rdm.api.enumeration.*;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -35,6 +32,8 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
 import java.io.InputStream;
 import java.util.*;
@@ -44,6 +43,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.stringPassportToValues;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
@@ -267,7 +267,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = versionEntity.getRefBook();
 
         final String newCode = request.getCode();
-        if (!refBookEntity.getCode().equals(newCode)) {
+        if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
             versionValidation.validateRefBookCode(newCode);
             versionValidation.validateRefBookCodeNotExists(newCode);
 
@@ -278,7 +278,7 @@ public class RefBookServiceImpl implements RefBookService {
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
 
-        forceUpdateVersionOptLockValue(versionEntity);
+        forceUpdateOptLockValue(versionEntity);
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
 
@@ -384,8 +384,8 @@ public class RefBookServiceImpl implements RefBookService {
                                  List<RefBookVersionEntity> draftVersions, List<RefBookVersionEntity> lastPublishVersions) {
         if (entity == null) return null;
 
-        RefBookVersionEntity draftVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), draftVersions);
-        RefBookVersionEntity lastPublishedVersion = getRefBookSourceTypeVersion(entity.getRefBook().getId(), lastPublishVersions);
+        RefBookVersionEntity draftVersion = getRefBookVersion(entity.getRefBook().getId(), draftVersions);
+        RefBookVersionEntity lastPublishedVersion = getRefBookVersion(entity.getRefBook().getId(), lastPublishVersions);
 
         return refBookModel(entity, false, draftVersion, lastPublishedVersion);
     }
@@ -410,8 +410,8 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         Structure structure = entity.getStructure();
-        List<Structure.Attribute> primaryAttributes = (structure != null) ? structure.getPrimary() : null;
-        model.setHasPrimaryAttribute(!CollectionUtils.isEmpty(primaryAttributes));
+        List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
+        model.setHasPrimaryAttribute(!primaries.isEmpty());
 
         model.setHasReferrer(hasReferrerVersions);
 
@@ -469,7 +469,7 @@ public class RefBookServiceImpl implements RefBookService {
         passportValueRepository.deleteAll(toRemove);
         correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
 
-        Set<Map.Entry> toUpdate = correctUpdatePassport.entrySet().stream()
+        Set<Map.Entry<String, String>> toUpdate = correctUpdatePassport.entrySet().stream()
                 .filter(e -> newPassportValues.stream()
                         .anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
                 .peek(e -> newPassportValues.stream()
@@ -503,10 +503,10 @@ public class RefBookServiceImpl implements RefBookService {
     private RefBookVersionEntity getSourceTypeVersion(Integer refBookId, RefBookSourceType refBookSourceType) {
 
         List<RefBookVersionEntity> versions = getSourceTypeVersions(singletonList(refBookId), refBookSourceType);
-        return getRefBookSourceTypeVersion(refBookId, versions);
+        return getRefBookVersion(refBookId, versions);
     }
 
-    private RefBookVersionEntity getRefBookSourceTypeVersion(Integer refBookId, List<RefBookVersionEntity> versions) {
+    private RefBookVersionEntity getRefBookVersion(Integer refBookId, List<RefBookVersionEntity> versions) {
         return versions.stream()
                 .filter(v -> v.getRefBook().getId().equals(refBookId))
                 .findAny().orElse(null);
@@ -524,8 +524,8 @@ public class RefBookServiceImpl implements RefBookService {
         return result;
     }
 
-    /** Принудительное обновление значения оптимистической блокировки версии. */
-    private void forceUpdateVersionOptLockValue(RefBookVersionEntity versionEntity) {
+    /** Принудительное сохранение для обновления значения оптимистической блокировки версии. */
+    private void forceUpdateOptLockValue(RefBookVersionEntity versionEntity) {
         try {
             versionEntity.refreshLastActionDate();
             versionRepository.save(versionEntity);

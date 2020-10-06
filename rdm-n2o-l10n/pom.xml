@@ -32,6 +32,11 @@
         </dependency>
 
         <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-l10n-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-web</artifactId>
         </dependency>

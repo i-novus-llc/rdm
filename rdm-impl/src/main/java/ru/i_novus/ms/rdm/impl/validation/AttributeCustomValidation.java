@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Пользовательские проверки значений атрибутов.
  */
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class AttributeCustomValidation extends AppendRowValidation {
 
     private final Structure structure;

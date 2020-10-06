@@ -15,7 +15,7 @@ import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.getFailedMessage;
 
 public class AsyncOperationHandlerTest {
 
-    private static final String TEST_REF_BOOK_CODE = "test";
+    private static final String TEST_REFBOOK_CODE = "test";
     private static final int TEST_REFBOOK_VERSION_ID = -10;
 
     private static final String SUCCESS_RESULT = "ok";
@@ -29,7 +29,7 @@ public class AsyncOperationHandlerTest {
         AsyncOperationHandler handler = new AsyncOperationHandler(emptyResolverList);
 
         try {
-            handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REF_BOOK_CODE,
+            handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REFBOOK_CODE,
                     new Serializable[]{TEST_REFBOOK_VERSION_ID});
             fail(getFailedMessage(NotFoundException.class));
 
@@ -48,7 +48,7 @@ public class AsyncOperationHandlerTest {
 
         AsyncOperationHandler handler = new AsyncOperationHandler(singleResolverList);
 
-        Serializable result = handler.handle(AsyncOperationTypeEnum.PUBLICATION, TEST_REF_BOOK_CODE,
+        Serializable result = handler.handle(AsyncOperationTypeEnum.PUBLICATION, TEST_REFBOOK_CODE,
                 new Serializable[]{TEST_REFBOOK_VERSION_ID});
         assertNull(result);
     }
@@ -63,7 +63,7 @@ public class AsyncOperationHandlerTest {
 
         AsyncOperationHandler handler = new AsyncOperationHandler(doubleResolverList);
 
-        Serializable result = handler.handle(AsyncOperationTypeEnum.PUBLICATION, TEST_REF_BOOK_CODE,
+        Serializable result = handler.handle(AsyncOperationTypeEnum.PUBLICATION, TEST_REFBOOK_CODE,
                 new Serializable[]{TEST_REFBOOK_VERSION_ID});
         assertTrue(result instanceof List);
         assertEquals(0,  ((List) result).size());
@@ -80,7 +80,7 @@ public class AsyncOperationHandlerTest {
 
         AsyncOperationHandler handler = new AsyncOperationHandler(resolvers);
 
-        Serializable result = handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REF_BOOK_CODE,
+        Serializable result = handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REFBOOK_CODE,
                 new Serializable[]{TEST_REFBOOK_VERSION_ID});
         assertNotNull(result);
         assertEquals(SUCCESS_RESULT,  result);
@@ -98,7 +98,7 @@ public class AsyncOperationHandlerTest {
         AsyncOperationHandler handler = new AsyncOperationHandler(resolvers);
 
         try {
-            handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REF_BOOK_CODE,
+            handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REFBOOK_CODE,
                     new Serializable[]{TEST_REFBOOK_VERSION_ID});
             fail(getFailedMessage(IllegalArgumentException.class));
 

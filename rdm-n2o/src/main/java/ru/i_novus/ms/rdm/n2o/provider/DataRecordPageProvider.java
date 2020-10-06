@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.criteria.filters.FilterType;
+import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
@@ -13,13 +14,23 @@ import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
+import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
-import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 /**
  * Провайдер для формирования страницы по отображению данных
@@ -29,29 +40,16 @@ import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
 @SuppressWarnings("unused")
 public class DataRecordPageProvider extends DataRecordBaseProvider implements DynamicMetadataProvider {
 
-    private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
-
     private static final String PAGE_PROVIDER_ID = "dataRecordPage";
 
-    private static final Map<String, String> pageNames = Map.of(
-            DataRecordConstants.DATA_ACTION_CREATE, "Добавление новой записи",
-            DataRecordConstants.DATA_ACTION_EDIT, "Редактирование записи"
-    );
+    @Autowired
+    private Collection<DataRecordPageResolver> resolvers;
 
-    /**
-     * @return Код провайдера
-     */
     @Override
     public String getCode() {
         return PAGE_PROVIDER_ID;
     }
 
-    /**
-     * @param context параметры провайдера в формате versionId_pageType, где
-     *                  versionId - идентификатор версии справочника,
-     *                  pageType - тип действия:
-     *                      create (Добавление новой записи) или edit (Редактирование записи)
-     */
     @Override
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
@@ -62,18 +60,8 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
-
-        Integer versionId = Integer.parseInt(params[0]);
-        Structure structure = getStructureOrNull(versionId);
-
-        N2oSimplePage page = createPage(context);
-        page.setWidget(createForm(versionId, structure));
-
-        String dataAction = params[1];
-        page.setName(pageNames.get(dataAction));
-
-        return singletonList(page);
+        DataRecordRequest request = toRequest(context);
+        return singletonList(createPage(context, request));
     }
 
     @Override
@@ -81,36 +69,52 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return singletonList(N2oPage.class);
     }
 
-    private N2oSimplePage createPage(String context) {
+    private N2oSimplePage createPage(String context, DataRecordRequest request) {
 
         N2oSimplePage page = new N2oSimplePage();
         page.setId(PAGE_PROVIDER_ID + "?" + context);
 
+        page.setWidget(createForm(context, request));
+
         return page;
     }
 
-    private N2oForm createForm(Integer versionId, Structure structure) {
+    private N2oForm createForm(String context, DataRecordRequest request) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setItems(createPageFields(versionId, structure));
-        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + versionId);
-        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + versionId);
+        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
+        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+
+        n2oForm.setItems(createPageFields(request));
 
         return n2oForm;
     }
 
-    private N2oField[] createPageFields(Integer versionId, Structure structure) {
+    private SourceComponent[] createPageFields(DataRecordRequest request) {
 
-        if (isEmptyStructure(structure)) {
+        if (request.getStructure().isEmpty()) {
             return new N2oField[0];
         }
 
-        return createDynamicFields(versionId, structure).toArray(N2oField[]::new);
+        return Stream.concat(
+                createRegularFields(request).stream(),
+                createDynamicFields(request).stream())
+                .toArray(SourceComponent[]::new);
     }
 
-    private List<N2oField> createDynamicFields(Integer versionId, Structure structure) {
+    private List<SourceComponent> createRegularFields(DataRecordRequest request) {
 
-        List<N2oField> list = new ArrayList<>();
+        return getSatisfiedResolvers(request.getDataAction())
+                .map(resolver -> resolver.createRegularFields(request))
+                .flatMap(Collection::stream).collect(toList());
+    }
+
+    private List<SourceComponent> createDynamicFields(DataRecordRequest request) {
+
+        Integer versionId = request.getVersionId();
+        Structure structure = request.getStructure();
+
+        List<SourceComponent> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             N2oStandardField n2oField;
@@ -127,6 +131,11 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
             list.add(n2oField);
         }
+
+        getSatisfiedResolvers(request.getDataAction()).forEach(resolver ->
+                resolver.processDynamicFields(request, list)
+        );
+
         return list;
     }
 
@@ -157,10 +166,12 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
             case BOOLEAN:
                 n2oField = new N2oCheckbox();
+                n2oField.setNoLabelBlock(Boolean.TRUE);
                 break;
 
             default:
                 n2oField = new N2oInputText();
+                break;
         }
 
         n2oField.setId(addPrefix(attribute.getCode()));
@@ -177,10 +188,10 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
-        referenceField.setQueryId(DataRecordConstants.REFERENCE_QUERY_ID);
+        referenceField.setQueryId(REFERENCE_QUERY_ID);
         // NB: value-field-id is deprecated:
-        referenceField.setValueFieldId(DataRecordConstants.REFERENCE_VALUE);
-        referenceField.setLabelFieldId(DataRecordConstants.REFERENCE_DISPLAY_VALUE);
+        referenceField.setValueFieldId(REFERENCE_VALUE);
+        referenceField.setLabelFieldId(REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
         N2oPreFilter versionFilter = new N2oPreFilter();
@@ -196,5 +207,14 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceField.setPreFilters(new N2oPreFilter[]{ versionFilter, referenceFilter });
 
         return referenceField;
+    }
+
+    private Stream<DataRecordPageResolver> getSatisfiedResolvers(String dataAction) {
+
+        if (isEmpty(resolvers))
+            return Stream.empty();
+
+        return resolvers.stream()
+                .filter(resolver -> resolver.isSatisfied(dataAction));
     }
 }

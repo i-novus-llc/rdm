@@ -25,7 +25,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceValidation implements RdmValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);

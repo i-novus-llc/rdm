@@ -56,7 +56,7 @@ import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersi
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionServiceImpl implements VersionService {
 
     private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
@@ -168,7 +168,7 @@ public class VersionServiceImpl implements VersionService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), version.getStructure()));
 
-        String storageCode = toLocaleStorageCode(version.getStorageCode(), criteria.getLocaleCode());
+        String storageCode = toStorageCode(version, criteria);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, version.getFromDate(), version.getToDate(),
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -345,12 +345,12 @@ public class VersionServiceImpl implements VersionService {
     /**
      * Преобразование кода хранилища с учётом локали.
      *
-     * @param storageCode исходный код хранилища
-     * @param localeCode  код локали
+     * @param version  версия
+     * @param criteria критерий поиска
      * @return Код хранилища с учётом локали
      */
     @SuppressWarnings("UnusedParameter")
-    protected String toLocaleStorageCode(String storageCode, String localeCode) {
-        return storageCode;
+    protected String toStorageCode(RefBookVersionEntity version, SearchDataCriteria criteria) {
+        return version.getStorageCode();
     }
 }

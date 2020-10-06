@@ -4,10 +4,16 @@ import net.n2oapp.criteria.api.Criteria;
 
 public class ReferenceCriteria extends Criteria {
 
+    /** Идентификатор версии. */
     private Integer versionId;
+
+    /** Код атрибута-ссылки. */
     private String reference;
 
+    /** Ссылочное значение. */
     private String value;
+
+    /** Отображаемое ссылочное значение. */
     private String displayValue;
 
     public Integer getVersionId() {

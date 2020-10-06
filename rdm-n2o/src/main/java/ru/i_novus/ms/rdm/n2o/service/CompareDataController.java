@@ -46,7 +46,7 @@ public class CompareDataController {
         Page<ComparableRow> commonComparableRows = compareService.getCommonComparableRows(criteria);
         List<ComparableRow> resultComparableRows = new ArrayList<>();
         data.getContent().forEach(rowValue -> {
-            ComparableRow comparableRow = ComparableUtils.findComparableRow(structure.getPrimary(), rowValue, commonComparableRows.getContent(), status);
+            ComparableRow comparableRow = ComparableUtils.findComparableRow(structure.getPrimaries(), rowValue, commonComparableRows.getContent(), status);
             ComparableRow resultComparableRow = new ComparableRow(
                     structure.getAttributes().stream()
                             .map(attribute -> getComparableFieldValue(comparableRow, attribute, status))

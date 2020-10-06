@@ -63,6 +63,18 @@
             </filters>
         </field>
 
+        <field id="isPrimary" domain="boolean">
+            <select/>
+        </field>
+
+        <field id="isPrimaryText" domain="string">
+            <select mapping="isPrimary ? 'Ключевой атрибут' : null"/>
+        </field>
+
+        <field id="localizable" domain="boolean">
+            <select/>
+        </field>
+
         <field id="attrType.id" domain="string" name="Тип данных">
             <select mapping="type.name()"/>
         </field>
@@ -79,10 +91,6 @@
 
         <field id="description" domain="string">
             <select/>
-        </field>
-
-        <field id="keyAttribute" name="Ключевой атрибут" domain="string">
-            <select mapping="isPrimary ? 'Первичный ключ' : null"/>
         </field>
 
         <field id="isReference" name="Ссылка" domain="boolean">
@@ -129,10 +137,6 @@
             <select mapping="
                 (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
                 "/>
-        </field>
-
-        <field id="isPrimary" domain="boolean">
-            <select/>
         </field>
 
         <!-- Пользовательские проверки -->

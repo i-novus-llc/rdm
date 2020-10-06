@@ -67,7 +67,7 @@ import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportT
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class DraftServiceImpl implements DraftService {
 
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
@@ -402,8 +402,9 @@ public class DraftServiceImpl implements DraftService {
             List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
             validateDataByStructure(draftEntity, rows);
+
+            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
@@ -550,17 +551,18 @@ public class DraftServiceImpl implements DraftService {
     /** Заполнение systemId из имеющихся записей, совпадающих по первичным ключам. */
     private void fillSystemIdsByPrimaries(RefBookVersionEntity draftVersion, List<Row> rows) {
 
-        List<Structure.Attribute> primaries = draftVersion.getStructure().getPrimary();
+        List<Structure.Attribute> primaries = draftVersion.getStructure().getPrimaries();
         if (primaries.isEmpty()) return;
 
         SearchDataCriteria criteria = new SearchDataCriteria();
         criteria.setPageSize(rows.size());
 
-        List<AttributeFilter> filters = rows.stream()
+        Set<List<AttributeFilter>> filterSet = rows.stream()
                 .filter(row -> row.getSystemId() == null)
                 .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
-                .flatMap(Collection::stream).collect(toList());
-        criteria.addAttributeFilterList(filters);
+                .filter(list -> !isEmpty(list))
+                .collect(toSet());
+        criteria.setAttributeFilters(filterSet);
 
         Page<RefBookRowValue> rowValues = versionService.search(draftVersion.getId(), criteria);
         if (rowValues == null || isEmpty(rowValues.getContent()))
@@ -653,7 +655,7 @@ public class DraftServiceImpl implements DraftService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
 
-        String storageCode = toLocaleStorageCode(draft.getStorageCode(), criteria.getLocaleCode());
+        String storageCode = toStorageCode(draft, criteria);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -912,7 +914,7 @@ public class DraftServiceImpl implements DraftService {
     private void validateOldAttribute(Structure.Attribute oldAttribute,
                                       Structure oldStructure, String refBookCode) {
 
-        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimary().size() == 1)
+        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimaries().size() == 1)
             throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 
@@ -1079,13 +1081,13 @@ public class DraftServiceImpl implements DraftService {
     /**
      * Преобразование кода хранилища с учётом локали.
      *
-     * @param storageCode исходный код хранилища
-     * @param localeCode  код локали
+     * @param draft    черновик
+     * @param criteria критерий поиска
      * @return Код хранилища с учётом локали
      */
     @SuppressWarnings("UnusedParameter")
-    protected String toLocaleStorageCode(String storageCode, String localeCode) {
-        return storageCode;
+    protected String toStorageCode(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+        return draft.getStorageCode();
     }
 
     private void auditStructureEdit(RefBookVersionEntity refBook, String action, Structure.Attribute attribute) {

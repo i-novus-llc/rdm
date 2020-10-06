@@ -9,7 +9,7 @@ import javax.ws.rs.QueryParam;
 import java.util.*;
 
 /**
- * Критерий поиска данных справочника.
+ * Критерий поиска записей справочника.
  */
 public class SearchDataCriteria extends AbstractCriteria {
 

@@ -17,7 +17,7 @@
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="primitive" name="sysRecordId" class="java.lang.Long"/>
+                        <argument type="primitive" name="id" class="java.lang.Long"/>
                     </arguments>
                 </java>
             </invocation>

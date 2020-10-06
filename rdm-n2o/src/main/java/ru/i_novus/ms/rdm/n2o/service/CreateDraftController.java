@@ -17,8 +17,8 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
-import ru.i_novus.ms.rdm.n2o.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
 @Controller
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver
 public class CreateDraftController {
 
     private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
@@ -64,24 +64,6 @@ public class CreateDraftController {
         this.dataRecordController = dataRecordController;
     }
 
-    private UiDraft getOrCreateDraft(Integer versionId) {
-
-        final RefBookVersion version = versionService.getById(versionId);
-        final Integer refBookId = version.getRefBookId();
-
-        if (version.isDraft()) {
-            return new UiDraft(version);
-        }
-
-        Draft draft = draftService.findDraft(version.getCode());
-        if (draft != null) {
-            return new UiDraft(draft, refBookId);
-        }
-
-        Draft newDraft = draftService.createFromVersion(versionId);
-        return new UiDraft(newDraft, refBookId);
-    }
-
     public UiDraft editPassport(Integer versionId, Integer optLockValue, UiPassport uiPassport) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
@@ -102,19 +84,18 @@ public class CreateDraftController {
         request.setVersionId(versionId);
         request.setOptLockValue(optLockValue);
 
-        request.setCode(uiPassport.getCode());
-        request.setCategory(uiPassport.getCategory());
+        if (uiPassport != null) {
+            request.setCode(uiPassport.getCode());
+            request.setCategory(uiPassport.getCategory());
 
-        Map<String, String> passport = toPassport(uiPassport);
-        request.setPassport(passport);
+            Map<String, String> passport = toPassport(uiPassport);
+            request.setPassport(passport);
+        }
 
         return request;
     }
 
     private Map<String, String> toPassport(UiPassport uiPassport) {
-
-        if (uiPassport == null)
-            return null;
 
         Map<String, String> passport = new HashMap<>();
 
@@ -161,7 +142,7 @@ public class CreateDraftController {
         return uiDraft;
     }
 
-    public UiDraft updateDataRecord(Integer versionId, Row row, Integer optLockValue) {
+    public UiDraft updateDataRecord(Integer versionId, Integer optLockValue, Row row) {
 
         validatePresent(row);
 
@@ -176,7 +157,7 @@ public class CreateDraftController {
 
         validatePrimaryKeys(uiDraft.getId(), row);
 
-        dataRecordController.updateData(uiDraft.getId(), row, optLockValue);
+        dataRecordController.updateData(uiDraft.getId(), optLockValue, row);
         return uiDraft;
     }
 
@@ -198,7 +179,7 @@ public class CreateDraftController {
             return;
 
         Structure structure = versionService.getStructure(versionId);
-        List<Structure.Attribute> primaries = structure.getPrimary();
+        List<Structure.Attribute> primaries = structure.getPrimaries();
         if (primaries.isEmpty())
             return;
 
@@ -218,16 +199,16 @@ public class CreateDraftController {
         }
     }
 
-    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long sysRecordId) {
+    public UiDraft deleteDataRecord(Integer versionId, Integer optLockValue, Long id) {
 
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!uiDraft.isVersionDraft(versionId)) {
             optLockValue = uiDraft.getOptLockValue();
-            sysRecordId = findNewSystemId(sysRecordId, versionId, uiDraft.getId());
+            id = findNewSystemId(id, versionId, uiDraft.getId());
         }
 
-        Row row = new Row(sysRecordId, emptyMap());
+        Row row = new Row(id, emptyMap());
         DeleteDataRequest request = new DeleteDataRequest(optLockValue, row);
         draftService.deleteData(uiDraft.getId(), request);
         return uiDraft;
@@ -290,7 +271,7 @@ public class CreateDraftController {
         return new UiDraft(draft, version.getRefBookId());
     }
 
-    public UiDraft uploadData(Integer versionId, FileModel fileModel, Integer optLockValue) {
+    public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
         if (version == null)
@@ -306,5 +287,24 @@ public class CreateDraftController {
         draftService.updateFromFile(versionId, request);
 
         return new UiDraft(version);
+    }
+
+    /** Получение черновика или создание на основе текущей версии. */
+    private UiDraft getOrCreateDraft(Integer versionId) {
+
+        final RefBookVersion version = versionService.getById(versionId);
+        final Integer refBookId = version.getRefBookId();
+
+        if (version.isDraft()) {
+            return new UiDraft(version);
+        }
+
+        Draft draft = draftService.findDraft(version.getCode());
+        if (draft != null) {
+            return new UiDraft(draft, refBookId);
+        }
+
+        Draft newDraft = draftService.createFromVersion(versionId);
+        return new UiDraft(newDraft, refBookId);
     }
 }

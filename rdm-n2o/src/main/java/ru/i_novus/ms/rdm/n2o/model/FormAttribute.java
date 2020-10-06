@@ -22,6 +22,9 @@ public class FormAttribute {
     /** Признак первичного атрибута. */
     private Boolean isPrimary;
 
+    /** Признак переводимого атрибута. */
+    private Boolean localizable;
+
     /** Описание атрибута. */
     private String description;
 
@@ -84,6 +87,14 @@ public class FormAttribute {
 
     public void setIsPrimary(Boolean isPrimary) {
         this.isPrimary = isPrimary;
+    }
+
+    public Boolean getLocalizable() {
+        return localizable;
+    }
+
+    public boolean isLocalizable() {
+        return localizable != null && localizable;
     }
 
     public String getDescription() {
@@ -212,6 +223,10 @@ public class FormAttribute {
 
     public boolean hasIsPrimary() {
         return getIsPrimary() != null && getIsPrimary();
+    }
+
+    public void setLocalizable(Boolean localizable) {
+        this.localizable = localizable;
     }
 
     public boolean isReferenceType() {

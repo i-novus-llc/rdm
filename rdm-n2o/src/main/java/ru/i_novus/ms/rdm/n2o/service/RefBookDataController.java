@@ -27,12 +27,11 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
+import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
-import ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil;
+import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
-import ru.i_novus.ms.rdm.n2o.provider.DataRecordConstants;
-import ru.i_novus.ms.rdm.n2o.provider.N2oDomain;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -55,7 +54,8 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.n2o.api.util.RdmUiUtil.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -218,7 +218,7 @@ public class RefBookDataController {
         if (filterValue == null || isEmpty(filterName))
             return null;
 
-        String attributeCode = RdmUiUtil.deletePrefix(filterName);
+        String attributeCode = DataRecordUtils.deletePrefix(filterName);
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
             throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
@@ -315,14 +315,13 @@ public class RefBookDataController {
         LongRowValue longRowValue = (LongRowValue) rowValue;
 
         longRowValue.getFieldValues().forEach(fieldValue ->
-                rowMap.put(addPrefix(fieldValue.getField()),
-                        fieldValueToCell(fieldValue, isDataConflict))
+                rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
         );
 
-        rowMap.put(DataRecordConstants.FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
-        rowMap.put(DataRecordConstants.FIELD_VERSION_ID, String.valueOf(version.getId()));
-        rowMap.put(DataRecordConstants.FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
-        rowMap.put(DataRecordConstants.FIELD_LOCALE_CODE, String.valueOf(criteria.getLocaleCode()));
+        rowMap.put(FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
+        rowMap.put(FIELD_VERSION_ID, String.valueOf(version.getId()));
+        rowMap.put(FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
+        rowMap.put(FIELD_LOCALE_CODE, criteria.getLocaleCode());
 
         return new DataGridRow(longRowValue.getSystemId(), rowMap);
     }

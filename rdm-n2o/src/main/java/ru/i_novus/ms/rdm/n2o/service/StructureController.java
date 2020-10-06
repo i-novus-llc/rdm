@@ -278,7 +278,7 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(optLockValue, oldAttribute, oldReference);
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(null, oldAttribute, oldReference);
             draftService.updateAttribute(versionId, rollbackRequest);
             throw re;
         }
@@ -335,9 +335,11 @@ public class StructureController {
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
         readAttribute.setName(attribute.getName());
-        readAttribute.setDescription(attribute.getDescription());
         readAttribute.setType(attribute.getType());
+
         readAttribute.setIsPrimary(attribute.getIsPrimary());
+        readAttribute.setLocalizable(attribute.getLocalizable());
+        readAttribute.setDescription(attribute.getDescription());
 
         if (Objects.nonNull(reference)) {
             readAttribute.setReferenceCode(reference.getReferenceCode());
@@ -364,10 +366,15 @@ public class StructureController {
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
 
-        if (request.hasIsPrimary())
+        if (request.hasIsPrimary()) {
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
-        else {
+
+        } else if (request.isLocalizable()) {
+            return Structure.Attribute.buildLocalizable(request.getCode(),
+                    request.getName(), request.getType(), request.getDescription());
+
+        } else {
             return Structure.Attribute.build(request.getCode(), request.getName(),
                     request.getType(), request.getDescription());
         }
@@ -396,6 +403,7 @@ public class StructureController {
 
         setUpdateValueIfExists(formAttribute::getName, attribute::setName);
         setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
+        setUpdateValueIfExists(formAttribute::getLocalizable, attribute::setLocalizable);
 
         // reference fields:
         setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);

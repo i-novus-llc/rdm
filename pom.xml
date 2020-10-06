@@ -19,9 +19,9 @@
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>3.3</vds.version>
-        <l10n.vds.version>3.8</l10n.vds.version>
-        <n2o.version>7.9.5</n2o.version>
+        <vds.version>3.4</vds.version>
+        <l10n.vds.version>3.9</l10n.vds.version>
+        <n2o.version>7.9.6</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
@@ -89,7 +89,13 @@
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-l10n</artifactId>
+                <artifactId>rdm-l10n-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-l10n-impl</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -253,14 +259,15 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>rdm-impl</module>
-                <module>rdm-l10n</module>
+                <module>rdm-esnsi</module>
                 <module>rdm-n2o-api</module>
-                <module>rdm-n2o-l10n</module>
+                <module>rdm-impl</module>
+                <module>rdm-l10n-api</module>
+                <module>rdm-l10n-impl</module>
                 <module>rdm-rest</module>
+                <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
                 <module>rdm-frontend</module>
-                <module>rdm-esnsi</module>
             </modules>
         </profile>
 

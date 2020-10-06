@@ -1,20 +1,20 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.springframework.data.domain.Page;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
+import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
-import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
-import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
-import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 
 import java.util.List;
 import java.util.Objects;
@@ -184,7 +184,7 @@ public class ComparableUtils {
 
         return refBookDataDiff.getRows().getContent().stream()
                 .map(row ->
-                        structure.getPrimary().stream()
+                        structure.getPrimaries().stream()
                                 .map(pk ->
                                         new AttributeFilter(
                                                 pk.getCode(),
@@ -206,7 +206,7 @@ public class ComparableUtils {
 
         return data.getContent().stream()
                 .map(row ->
-                        structure.getPrimary().stream()
+                        structure.getPrimaries().stream()
                                 .map(pk ->
                                         new AttributeFilter(pk.getCode(), row.getFieldValue(pk.getCode()).getValue(), pk.getType())
                                 )

@@ -25,7 +25,7 @@ import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.toDisplayValue;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 
 @Controller
-@SuppressWarnings("java:S3740")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceController {
 
     @Autowired
@@ -56,7 +56,7 @@ public class ReferenceController {
         SearchDataCriteria criteria = toSearchDataCriteria(referenceAttribute, referenceCriteria);
         Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
-        List<String> primaryKeyCodes = referenceStructure.getPrimary().stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> primaryKeyCodes = referenceStructure.getPrimaries().stream().map(Structure.Attribute::getCode).collect(toList());
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
                 .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, primaryKeyCodes));

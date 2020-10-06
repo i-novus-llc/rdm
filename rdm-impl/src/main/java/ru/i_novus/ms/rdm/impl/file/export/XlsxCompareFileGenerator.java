@@ -160,6 +160,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private void addPassportCompare() {
+
         List<PassportAttributeEntity> attributes = passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc();
         PassportDiff passportDiff = compareService.comparePassports(oldVersion.getId(), newVersion.getId());
         Map<String, String> newPassport = newVersion.getPassport();
@@ -177,8 +178,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
                 )
         )));
 
-
-        SXSSFSheet sheet = wb.createSheet("Пасспорт справочника");
+        SXSSFSheet sheet = wb.createSheet("Паспорт справочника");
         sheet.trackColumnForAutoSizing(0);
         createStatusCells(sheet);
         attributes.forEach(attribute -> {
@@ -201,14 +201,20 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private DiffStatusEnum calculateEditStatus(Object oldValue, Object newValue) {
+
         if (oldValue == null) {
             return DiffStatusEnum.INSERTED;
+
         } else if (newValue == null) {
             return DiffStatusEnum.DELETED;
-        }else return DiffStatusEnum.UPDATED;
+
+        } else {
+            return DiffStatusEnum.UPDATED;
+        }
     }
 
     private void addStructureCompare() {
+
         SXSSFSheet sheet = wb.createSheet("Структура справочника");
         createStatusCells(sheet);
         Row headRow = createStructureHead(sheet);
@@ -216,7 +222,6 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
         Structure newStructure = newVersion.getStructure();
         StructureDiff structureDiff = compareService.compareStructures(oldVersion.getId(), newVersion.getId());
-
 
         newStructure.getAttributes().stream()
                 .map(attribute -> structureDiff.getInserted().stream()
@@ -228,9 +233,11 @@ class XlsxCompareFileGenerator implements FileGenerator {
                                 .findAny().orElse(
                                         createComparedRow(null, attribute, null))))
                 .forEach(rowDiff -> insertRowDiff(rowDiff, sheet, structureColumnIndexes));
+
         structureDiff.getDeleted().stream()
                 .map(diff -> createComparedRow(diff.getOldAttribute(), diff.getNewAttribute(), DiffStatusEnum.DELETED))
                 .forEach(rowDiff -> insertRowDiff(rowDiff, sheet, structureColumnIndexes));
+
         headRow.cellIterator().forEachRemaining(cell -> sheet.autoSizeColumn(cell.getColumnIndex(), true));
     }
 
@@ -240,7 +247,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         structureColumnIndexes.put("name", 1);
         structureColumnIndexes.put("type", 2);
         structureColumnIndexes.put("primary", 3);
-        structureColumnIndexes.put("description", 4);
+        structureColumnIndexes.put("description", 5);
 
         Row row = createNextRow(sheet);
         row.createCell(0).setCellValue("Поле");
@@ -253,14 +260,18 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private XlsxComparedRow createComparedRow(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
+
         oldAttr = oldAttr != null ? oldAttr : new Structure.Attribute();
         newAttr = newAttr != null ? newAttr : new Structure.Attribute();
+
         Map<String, XlsxComparedCell> diffs = new HashMap<>();
         diffs.put("code", new XlsxComparedCell(oldAttr.getCode(), newAttr.getCode(), diffStatus));
         diffs.put("name", new XlsxComparedCell(oldAttr.getName(), newAttr.getName(), diffStatus));
         diffs.put("type", new XlsxComparedCell(oldAttr.getType(), newAttr.getType(), diffStatus));
-        diffs.put("primary", new XlsxComparedCell(oldAttr.getIsPrimary(), newAttr.getIsPrimary(), diffStatus));
+
+        diffs.put("primary", new XlsxComparedCell(oldAttr.hasIsPrimary(), newAttr.hasIsPrimary(), diffStatus));
         diffs.put("description", new XlsxComparedCell(oldAttr.getDescription(), newAttr.getDescription(), diffStatus));
+
         return new XlsxComparedRow(diffs, diffStatus);
     }
 
@@ -292,13 +303,15 @@ class XlsxCompareFileGenerator implements FileGenerator {
                                             new XlsxComparedCell(cfv.getOldValue(), cfv.getNewValue(), cfv.getStatus())));
                             return new XlsxComparedRow(diffValueMap, comparableRow.getStatus());
                         })
-                        .peek(rowDiffValue -> {
+                        .forEach(rowDiffValue -> {
+
                             if (rowDiffValue.getCells().values().stream()
                                     .anyMatch(cellDiffValue -> DiffStatusEnum.UPDATED.equals(cellDiffValue.getStatus()))) {
                                 rowDiffValue.setDiffStatus(DiffStatusEnum.UPDATED);
                             }
+
+                            insertRowDiff(rowDiffValue, sheet, dataColumnIndexes);
                         })
-                        .forEach(rowDiffValue -> insertRowDiff(rowDiffValue, sheet, dataColumnIndexes))
         );
 
         headRow.cellIterator().forEachRemaining(cell -> sheet.autoSizeColumn(cell.getColumnIndex(), true));
@@ -311,8 +324,9 @@ class XlsxCompareFileGenerator implements FileGenerator {
         Stream.concat(oldVersion.getStructure().getAttributes().stream(), newVersion.getStructure().getAttributes().stream())
                 .forEach(a -> allAttributes.put(a.getCode(), a.getName()));
         Stream.concat(StructureUtils.getAttributeCodes(newVersion.getStructure()), deletedColumns.stream())
-                .peek(attribute -> dataColumnIndexes.put(attribute, dataColumnIndexes.size()))
                 .forEach(attribute -> {
+                    dataColumnIndexes.put(attribute, dataColumnIndexes.size());
+
                     Cell cell = headRow.createCell(dataColumnIndexes.get(attribute));
                     cell.setCellValue(allAttributes.get(attribute));
                     if (deletedColumns.contains(attribute)) cell.setCellStyle(headDeleteStyle);
@@ -324,6 +338,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private void insertRowDiff(XlsxComparedRow rowDiff, SXSSFSheet sheet, Map<String, Integer> indexes) {
+
         Set<Integer> notInserted = new HashSet<>();
         notInserted.addAll(indexes.values());
         Row row = createNextRow(sheet);

@@ -86,7 +86,7 @@ public interface DraftService {
      * Получение записей черновика по параметрам критерия.
      *
      * @param draftId  идентификатор черновика
-     * @param criteria критерий
+     * @param criteria критерий поиска
      * @return Страница записей черновика
      */
     Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria);
