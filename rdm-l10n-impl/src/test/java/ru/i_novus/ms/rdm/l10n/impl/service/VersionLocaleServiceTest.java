@@ -15,7 +15,6 @@ import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInf
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nConstants;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.dao.StorageConstants;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
 import java.util.List;
@@ -34,7 +33,6 @@ import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 public class VersionLocaleServiceTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
-    private static final int TEST_OPT_LOCK_VALUE = 10;
     private static final String TEST_REFBOOK_CODE = "L10N_TEST";
 
     private static final String TEST_LOCALE_CODE = "test";
@@ -42,13 +40,6 @@ public class VersionLocaleServiceTest {
     private static final L10nLocaleInfo TEST_LOCALE_INFO = new L10nLocaleInfo(TEST_LOCALE_CODE, TEST_LOCALE_NAME, null);
 
     private static final String TEST_SCHEMA_NAME = L10nConstants.SCHEMA_NAME_PREFIX + TEST_LOCALE_CODE;
-    private static final String TEST_STORAGE_NAME = TEST_REFBOOK_CODE + "_storage";
-    private static final String DEFAULT_SCHEMA_NAME = StorageConstants.DATA_SCHEMA_NAME;
-    private static final String BAD_SCHEMA_NAME = "#bad-schema^name";
-
-    private static final String ATTRIBUTE_ID_CODE = "id";
-    private static final String ATTRIBUTE_NAME_CODE = "name";
-    private static final String ATTRIBUTE_TEXT_CODE = "text";
 
     private static final List<L10nLocaleInfo> LOCALE_INFOS = List.of(
             new L10nLocaleInfo("rus", "Русский (по умолчанию)", null),

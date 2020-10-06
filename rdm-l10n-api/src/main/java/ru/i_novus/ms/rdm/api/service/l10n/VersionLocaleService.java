@@ -7,7 +7,7 @@ import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
-@Path("/l10n")
+@Path("/locale")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы локализации версии", hidden = true)
@@ -20,7 +20,7 @@ public interface VersionLocaleService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/{versionId}/locale")
+    @Path("/{versionId}")
     Page<L10nVersionLocale> searchVersionLocales(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
@@ -30,7 +30,7 @@ public interface VersionLocaleService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/{versionId}/locale/{localeCode}")
+    @Path("/{versionId}/{localeCode}")
     L10nVersionLocale getVersionLocale(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                        @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 
@@ -41,6 +41,6 @@ public interface VersionLocaleService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/locale/name/{localeCode}")
+    @Path("/name/{localeCode}")
     String getLocaleName(@ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 }
