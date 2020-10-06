@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 
@@ -19,8 +19,8 @@ public class L10nLocalizeVersionController {
     private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
 
     @Autowired
-    @Qualifier("l10nVersionStorageServiceJaxRsProxyClient")
-    private L10nVersionStorageService versionStorageService;
+    @Qualifier("l10nServiceJaxRsProxyClient")
+    private L10nService l10nService;
 
     public void localizeDataRecord(Integer versionId, Integer optLockValue, String localeCode, Row row) {
 
@@ -28,7 +28,7 @@ public class L10nLocalizeVersionController {
         prepareRowValues(row);
 
         LocalizeDataRequest request = new LocalizeDataRequest(optLockValue, localeCode, singletonList(row));
-        versionStorageService.localizeData(versionId, request);
+        l10nService.localizeData(versionId, request);
     }
 
     /** Проверка на заполненность хотя бы одного поля в записи. */

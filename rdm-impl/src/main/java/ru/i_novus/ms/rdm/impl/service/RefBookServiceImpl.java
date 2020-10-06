@@ -278,7 +278,7 @@ public class RefBookServiceImpl implements RefBookService {
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
 
-        forceSaveVersion(versionEntity);
+        forceUpdateOptLockValue(versionEntity);
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
 
@@ -525,7 +525,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     /** Принудительное сохранение для обновления значения оптимистической блокировки версии. */
-    private void forceSaveVersion(RefBookVersionEntity versionEntity) {
+    private void forceUpdateOptLockValue(RefBookVersionEntity versionEntity) {
         try {
             versionEntity.refreshLastActionDate();
             versionRepository.save(versionEntity);

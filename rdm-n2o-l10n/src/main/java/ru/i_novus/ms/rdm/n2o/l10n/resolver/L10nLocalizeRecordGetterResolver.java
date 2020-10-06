@@ -9,7 +9,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -35,8 +35,8 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
     private VersionRestService versionService;
 
     @Autowired
-    @Qualifier("l10nVersionStorageServiceJaxRsProxyClient")
-    private L10nVersionStorageService versionStorageService;
+    @Qualifier("versionLocaleServiceJaxRsProxyClient")
+    private VersionLocaleService versionLocaleService;
 
     @Override
     public boolean isSatisfied(String dataAction) {
@@ -63,7 +63,7 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
         if (StringUtils.isEmpty(localeCode))
             throw new IllegalArgumentException("Locale code is empty");
 
-        return versionStorageService.getLocaleName(localeCode);
+        return versionLocaleService.getLocaleName(localeCode);
     }
 
     @Override

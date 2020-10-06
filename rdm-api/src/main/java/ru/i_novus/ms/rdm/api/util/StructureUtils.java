@@ -35,30 +35,6 @@ public class StructureUtils {
         return structure.getReferences().stream().map(Structure.Reference::getAttribute);
     }
 
-    /** Получение структуры для перевода на основе структуры версии. */
-    public static Structure toLocalizableStructure(Structure structure) {
-
-        if (structure == null || structure.isEmpty())
-            return structure;
-        
-        List<Structure.Attribute> attributes = structure.getAttributes().stream()
-                    .filter(Structure.Attribute::isLocalizable)
-                    .collect(toList());
-        if (attributes.size() == structure.getAttributes().size())
-            return structure;
-
-        List<Structure.Reference> references = structure.getReferences();
-        if (references.isEmpty())
-            return new Structure(attributes, null);
-
-        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
-        references = structure.getReferences().stream()
-                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
-                .collect(toList());
-
-        return new Structure(attributes, references);
-    }
-
     /** Сравнение displayExpression двух ссылок. */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isDisplayExpressionEquals(Structure.Reference reference1,

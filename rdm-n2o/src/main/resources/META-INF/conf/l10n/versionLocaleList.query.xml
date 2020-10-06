@@ -2,11 +2,11 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionLocaleList">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <rest method="GET">${rdm.backend.path}/l10n/{versionId}/locale</rest>
+        <rest method="GET">${rdm.backend.path}/locale/{versionId}</rest>
     </list>
 
     <unique>
-        <rest method="GET">${rdm.backend.path}/l10n/{versionId}/locale/{localeCode}</rest>
+        <rest method="GET">${rdm.backend.path}/locale/{versionId}/{localeCode}</rest>
     </unique>
 
     <!--<list result-mapping="content" count-mapping="totalElements" filters="versionId">-->
@@ -33,7 +33,6 @@
             <select mapping="['localeCode']"/>
             <filters>
                 <eq filter-id="localeCode" domain="string"/>
-                <!--<eq filter-id="localeCode" mapping="[1]" domain="string"/>-->
             </filters>
         </field>
 
@@ -41,7 +40,6 @@
             <select/>
             <filters>
                 <eq filter-id="versionId" domain="integer"/>
-                <!--<eq filter-id="versionId" mapping="[0]" domain="integer"/>-->
             </filters>
         </field>
 

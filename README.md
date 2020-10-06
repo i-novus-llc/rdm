@@ -1,3 +1,23 @@
+# Требования
+- Openjdk 11
+- PostgreSQL 11
+- Artemis или ActiveMQ
+- N2O Security Admin 4
+- N2O Audit 2
+
+# Cтек технологий
+- Java 11
+- JDBC
+- JPA 2
+- JAX-RS
+- JMS
+- Spring Boot 2.1
+- Spring Cloud Greenwich
+- Liquibase 3.6.2
+- N2O Platform 3
+- N2O UI Framework 7
+- React
+
 # Структура проекта
 - `rdm-frontend` - запускаемый модуль UI
 - `rdm-n2o` - конфигурационные файлы N2O 

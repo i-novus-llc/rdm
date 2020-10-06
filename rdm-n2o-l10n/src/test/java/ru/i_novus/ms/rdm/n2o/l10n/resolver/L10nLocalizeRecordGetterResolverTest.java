@@ -14,7 +14,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nVersionStorageService;
+import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -69,7 +69,7 @@ public class L10nLocalizeRecordGetterResolverTest {
     private VersionRestService versionService;
 
     @Mock
-    private L10nVersionStorageService versionStorageService;
+    private VersionLocaleService versionLocaleService;
 
     @Before
     @SuppressWarnings("java:S2696")
@@ -88,7 +88,7 @@ public class L10nLocalizeRecordGetterResolverTest {
     @Test
     public void testCreateRegularValues() {
 
-        when(versionStorageService.getLocaleName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_NAME);
+        when(versionLocaleService.getLocaleName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_NAME);
 
         DataRecordCriteria criteria = createCriteria();
         RefBookVersion version = createVersion();
