@@ -82,6 +82,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
+                "spring.main.allow-bean-definition-overriding=true",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
                 "rdm.audit.disabledActions=all"
