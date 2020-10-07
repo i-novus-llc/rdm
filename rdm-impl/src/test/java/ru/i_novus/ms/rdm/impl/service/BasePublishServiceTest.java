@@ -13,11 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jms.core.JmsTemplate;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -31,10 +26,8 @@ import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGenerator;
@@ -43,6 +36,8 @@ import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -120,6 +115,9 @@ public class BasePublishServiceTest {
 
     @Mock
     private JmsTemplate jmsTemplate;
+
+    @Mock
+    private AsyncOperationQueue queue;
 
     @Before
     public void setUp() {

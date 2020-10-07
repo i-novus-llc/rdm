@@ -8,15 +8,13 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.async.AsyncOperation;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationStatus;
-import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
-import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationHandler;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
 import ru.i_novus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
-import ru.i_novus.ms.rdm.impl.util.AsyncOperationLogEntryUtils;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.UUID;
 
@@ -30,70 +28,66 @@ class AsyncOperationQueueListener {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationQueueListener.class);
 
-    private final PublishService publishService;
+    private static final String OPERATION_LOG_FORMAT = "id: %s, type: %s";
 
-    private final AsyncOperationLogEntryRepository asyncOperationLogEntryRepository;
+    private static final String LOG_OPERATION_FROM_QUEUE_IS_RECEIVED = "Message for operation ({}) from internal async operation queue is received";
+    private static final String LOG_OPERATION_HANDLING_ERROR = "Error while handling deferred operation (%s)";
+    private static final String LOG_OPERATION_COMPLETED_WITH_STATUS = "Async operation ({}) is completed with status {}";
+    private static final String LOG_OPERATION_FORCING_SAVE = "Async operation ({}) is not yet committed, forcing save.";
+
+    private final AsyncOperationLogEntryRepository repository;
+
+    private final AsyncOperationHandler handler;
 
     private final Messages messages;
 
-    public AsyncOperationQueueListener(PublishService publishService,
-                                       AsyncOperationLogEntryRepository asyncOperationLogEntryRepository,
+    public AsyncOperationQueueListener(AsyncOperationLogEntryRepository repository,
+                                       AsyncOperationHandler handler,
                                        Messages messages) {
-        this.publishService = publishService;
-        this.asyncOperationLogEntryRepository = asyncOperationLogEntryRepository;
+        this.repository = repository;
+        this.handler = handler;
         this.messages = messages;
     }
 
     @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
-        AsyncOperation operation = message.getOperation();
-        UUID uuid = message.getOperationId();
-        Object[] args = message.getArgs();
-        logger.info("Message from internal async operation queue is received. Operation id: {}", uuid);
+        if (logger.isInfoEnabled()) {
+            logger.info(LOG_OPERATION_FROM_QUEUE_IS_RECEIVED, toOperationLogText(message));
+        }
 
-        AsyncOperationLogEntryEntity logEntity = asyncOperationLogEntryRepository.findByUuid(uuid);
+        AsyncOperationLogEntryEntity logEntity = repository.findByUuid(message.getOperationId());
         if (logEntity == null) {
             logEntity = forceSave(message);
         }
 
         setSecurityContext(message.getUserName());
-        logEntity.setStatus(AsyncOperationStatus.IN_PROGRESS);
-        logEntity = asyncOperationLogEntryRepository.save(logEntity);
+        logEntity.setStatus(AsyncOperationStatusEnum.IN_PROGRESS);
+        logEntity = repository.save(logEntity);
 
         try {
-            AsyncOperationLogEntryUtils.setResult(handle(operation, args), logEntity);
-            logEntity.setStatus(AsyncOperationStatus.DONE);
+            logEntity.setSerializableResult(handle(message));
+            logEntity.setStatus(AsyncOperationStatusEnum.DONE);
 
         } catch (Exception e) {
-            logger.error("Error while handling deferred operation. Operation type: {}, Operation id: {}", operation, uuid, e);
+
+            if (logger.isErrorEnabled()) {
+                logger.error(String.format(LOG_OPERATION_HANDLING_ERROR, toOperationLogText(message)), e);
+            }
+
             setErrorContext(e, logEntity);
-            logEntity.setStatus(AsyncOperationStatus.ERROR);
+            logEntity.setStatus(AsyncOperationStatusEnum.ERROR);
         }
-        asyncOperationLogEntryRepository.save(logEntity);
+        repository.save(logEntity);
 
-        logger.info("Async operation with id {} is completed with status {}", logEntity.getUuid(), logEntity.getStatus());
+        if (logger.isInfoEnabled()) {
+            logger.info(LOG_OPERATION_COMPLETED_WITH_STATUS, toOperationLogText(message), logEntity.getStatus());
+        }
     }
 
-    private Object handle(AsyncOperation operation, Object[] args) {
+    private Serializable handle(AsyncOperationMessage message) {
 
-        if (operation == AsyncOperation.PUBLICATION) {
-            return handlePublication(args);
-        }
-
-        throw new IllegalArgumentException(String.format("Operation '%s' is not implemented", operation.toString()));
-    }
-
-    private Object handlePublication(Object[] args) {
-
-        Integer draftId = (Integer) args[0];
-
-        Object request = args[1];
-        if (request instanceof PublishRequest) {
-            publishService.publish(draftId, (PublishRequest) request);
-        }
-
-        throw new IllegalArgumentException(String.format("Request for publication is not found in: %s = %s", draftId, request));
+        return handler.handle(message.getOperationType(), message.getCode(), message.getArgs());
     }
 
     private void setSecurityContext(String user) {
@@ -114,13 +108,15 @@ class AsyncOperationQueueListener {
 
     private AsyncOperationLogEntryEntity forceSave(AsyncOperationMessage message) {
 
-        logger.warn("The log entity is not yet committed. Forcing save.");
+        if (logger.isWarnEnabled()) {
+            logger.warn(LOG_OPERATION_FORCING_SAVE, toOperationLogText(message));
+        }
 
-        UUID uuid = message.getOperationId();
-        asyncOperationLogEntryRepository.saveConflictFree(uuid, message.getCode(),
-                message.getOperation().name(), message.getPayloadAsJson());
+        UUID operationId = message.getOperationId();
+        repository.saveWithoutConflict(operationId, message.getOperationType().name(),
+                message.getCode(), message.getPayloadAsJson());
 
-        return asyncOperationLogEntryRepository.findByUuid(uuid);
+        return repository.findByUuid(operationId);
     }
 
     private void setErrorContext(Exception error, AsyncOperationLogEntryEntity logEntity) {
@@ -151,5 +147,10 @@ class AsyncOperationQueueListener {
         }
 
         return error.toString();
+    }
+
+    private String toOperationLogText(AsyncOperationMessage message) {
+
+        return String.format(OPERATION_LOG_FORMAT, message.getOperationId(), message.getOperationType());
     }
 }

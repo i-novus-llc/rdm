@@ -49,12 +49,23 @@
             BEFORE UPDATE ON
                 n2o_rdm_management.async_log_entry
             FOR EACH ROW EXECUTE PROCEDURE
-                update_ts_utc();
+            update_ts_utc();
 
             CREATE INDEX ON n2o_rdm_management.async_log_entry (op_enum);
             CREATE INDEX ON n2o_rdm_management.async_log_entry (status);
         </sql>
 
+    </changeSet>
+
+    <changeSet id="202008210743_RDM-432" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+            <columnExists columnName="payload" tableName="async_log_entry" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <sql>
+            COMMENT ON COLUMN n2o_rdm_management.async_log_entry.payload IS 'Полезная нагрузка в формате JSON (аргументы
+            операции)';
+        </sql>
     </changeSet>
 
 </databaseChangeLog>

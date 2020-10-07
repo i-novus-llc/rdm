@@ -5,14 +5,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -60,7 +60,11 @@ public class StructureRowMapperTest {
         testField(mapper, "STRING", "str", "str");
         testField(mapper, "FLOAT", BigDecimal.valueOf(123.6), 123.6f, 123.6d, "123.6", "123,6", BigDecimal.valueOf(123.6));
         testField(mapper, "BOOLEAN", true, "true", true);
-        testField(mapper, "DATE", LocalDate.of(2019, 12, 12), "2019-12-12", "12.12.2019", LocalDate.of(2019, 12, 12), LocalDate.of(2019, 12, 12).atStartOfDay(), new Date(2019 - 1900, Calendar.DECEMBER, 12));
+        testField(mapper, "DATE", LocalDate.of(2019, 12, 12),
+                "2019-12-12", "12.12.2019",
+                LocalDate.of(2019, 12, 12), LocalDate.of(2019, 12, 12).atStartOfDay(),
+                new GregorianCalendar(2019, Calendar.DECEMBER, 12).getTime() // util.Date
+        );
         testField(mapper, "REFERENCE", new Reference(refererStorageCode, refererPublishDateTime, "REF_HERE", new DisplayExpression("-"), "2"), "2", 2, (short) 2, (byte) 2, BigInteger.valueOf(2), 2L);
     }
 

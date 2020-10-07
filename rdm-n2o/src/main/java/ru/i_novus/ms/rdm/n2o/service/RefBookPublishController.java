@@ -10,7 +10,10 @@ import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookPublish;
 
 import java.util.Map;
@@ -37,14 +40,14 @@ public class RefBookPublishController {
     private static final String REFERRER_NAME_LIST_END = ".";
 
     private RefBookService refBookService;
-    private DraftService draftService;
+    private DraftRestService draftService;
     private PublishService publishService;
     private ConflictService conflictService;
 
     private Messages messages;
 
     @Autowired
-    public RefBookPublishController(RefBookService refBookService, DraftService draftService,
+    public RefBookPublishController(RefBookService refBookService, DraftRestService draftService,
                                     PublishService publishService, ConflictService conflictService,
                                     Messages messages) {
         this.refBookService = refBookService;
@@ -91,7 +94,7 @@ public class RefBookPublishController {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
 
-        if (refBook.getStructure() == null || refBook.getStructure().isEmpty()) {
+        if (refBook.hasEmptyStructure()) {
             return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
         }
 

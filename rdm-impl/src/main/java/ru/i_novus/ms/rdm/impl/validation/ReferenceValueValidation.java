@@ -5,11 +5,6 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -21,7 +16,13 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -153,7 +154,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         criteria.setPageSize(rows.size());
 
         Set<List<AttributeFilter>> attributeFilters = createSearchFilters(reference, rows, referredAttribute);
-        criteria.setAttributeFilter(attributeFilters);
+        criteria.setAttributeFilters(attributeFilters);
 
         return criteria;
     }
@@ -166,7 +167,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
                 .distinct().collect(toList());
 
         Field referredField = field(referredAttribute);
-        List<Object> referredValues = referenceValues.stream()
+        List<Serializable> referredValues = referenceValues.stream()
                 .map(referenceValue -> castReferenceValue(referredField, referenceValue))
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -195,7 +196,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         }
     }
 
-    private AttributeFilter toAttributeFilter(Structure.Attribute referredAttribute, Object referredValue) {
+    private AttributeFilter toAttributeFilter(Structure.Attribute referredAttribute, Serializable referredValue) {
         return new AttributeFilter(referredAttribute.getCode(), referredValue, referredAttribute.getType(), SearchTypeEnum.EXACT);
     }
 

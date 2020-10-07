@@ -1,20 +1,17 @@
 package ru.i_novus.ms.rdm.impl.file.process;
 
+import ru.i_novus.ms.rdm.api.model.Result;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.ms.rdm.api.model.Result;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.model.Structure;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
@@ -50,7 +47,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
         if (!isFirstRowAppended) {
             allKeys.addAll(row.getData().keySet());
             structure = stringStructure(allKeys);
-            storageCode = draftDataService.createDraft(fields(structure));
+            storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
             this.bufferedRowsPersister = new BufferedRowsPersister(bufferSize, draftDataService, storageCode, structure);
             isFirstRowAppended = true;
 

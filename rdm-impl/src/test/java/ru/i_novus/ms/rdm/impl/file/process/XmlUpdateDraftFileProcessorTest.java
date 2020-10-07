@@ -7,10 +7,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.ms.rdm.api.model.validation.*;
-import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class XmlUpdateDraftFileProcessorTest {
 
-    private final Integer TEST_REF_BOOK_ID = 1;
+    private final Integer TEST_REFBOOK_ID = 1;
 
     private final static String XML_FILE = "/file/uploadFile.xml";
 
@@ -37,7 +37,7 @@ public class XmlUpdateDraftFileProcessorTest {
 
     @Test
     public void testProcess() {
-        CreateDraftRequest expected = new CreateDraftRequest(TEST_REF_BOOK_ID,
+        CreateDraftRequest expected = new CreateDraftRequest(TEST_REFBOOK_ID,
                 UploadFileTestData.createStructure(), UploadFileTestData.createPassport(),
                 Map.of(
                         "string", List.of(new PlainSizeAttributeValidation(40), new RegExpAttributeValidation("[а-яА-я]*")),
@@ -49,7 +49,7 @@ public class XmlUpdateDraftFileProcessorTest {
         );
         expected.setReferrerValidationRequired(true);
 
-        try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REF_BOOK_ID, draftService)) {
+        try(XmlUpdateDraftFileProcessor fileProcessor = new XmlUpdateDraftFileProcessor(TEST_REFBOOK_ID, draftService)) {
             fileProcessor.process(() -> getClass().getResourceAsStream(XML_FILE));
             ArgumentCaptor<CreateDraftRequest> captor = ArgumentCaptor.forClass(CreateDraftRequest.class);
             verify(draftService, times(1)).create(captor.capture());

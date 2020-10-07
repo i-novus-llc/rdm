@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
+import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.Objects;
@@ -17,19 +18,26 @@ public class AttributeDiff {
 
     private AttributeFieldDiff isPrimary;
 
+    private AttributeFieldDiff localizable;
+
     private AttributeFieldDiff description;
 
     private DiffStatusEnum diffStatus;
 
     public AttributeDiff() {
+        // Nothing to do.
     }
 
-    public AttributeDiff(String code, AttributeFieldDiff name, AttributeFieldDiff type, AttributeFieldDiff isPrimary, AttributeFieldDiff description, DiffStatusEnum diffStatus) {
-        this.code = code;
-        this.name = name;
-        this.type = type;
-        this.isPrimary = isPrimary;
-        this.description = description;
+    public AttributeDiff(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
+
+        this.code = newAttr.getCode() != null ? newAttr.getCode() : oldAttr.getCode();
+        this.name = new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName());
+        this.type = new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType());
+
+        this.isPrimary = new AttributeDiff.AttributeFieldDiff(oldAttr.hasIsPrimary(), newAttr.hasIsPrimary());
+        this.localizable = new AttributeDiff.AttributeFieldDiff(oldAttr.isLocalizable(), newAttr.isLocalizable());
+        this.description = new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription());
+
         this.diffStatus = diffStatus;
     }
 
@@ -65,6 +73,14 @@ public class AttributeDiff {
         this.isPrimary = isPrimary;
     }
 
+    public AttributeFieldDiff getLocalizable() {
+        return localizable;
+    }
+
+    public void setLocalizable(AttributeFieldDiff localizable) {
+        this.localizable = localizable;
+    }
+
     public AttributeFieldDiff getDescription() {
         return description;
     }
@@ -87,36 +103,34 @@ public class AttributeDiff {
         if (o == null || getClass() != o.getClass()) return false;
 
         AttributeDiff that = (AttributeDiff) o;
+        return Objects.equals(code, that.code) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(type, that.type) &&
 
-        if (code != null ? !code.equals(that.code) : that.code != null) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (isPrimary != null ? !isPrimary.equals(that.isPrimary) : that.isPrimary != null) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        return diffStatus == that.diffStatus;
+                Objects.equals(isPrimary, that.isPrimary) &&
+                Objects.equals(localizable, that.localizable) &&
+                Objects.equals(description, that.description) &&
 
+                diffStatus == that.diffStatus;
     }
 
     @Override
     public int hashCode() {
-        int result = code != null ? code.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (isPrimary != null ? isPrimary.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (diffStatus != null ? diffStatus.hashCode() : 0);
-        return result;
+        return Objects.hash(code, name, type, isPrimary, localizable, description, diffStatus);
     }
 
     public static class AttributeFieldDiff {
 
         private Object oldValue;
+
         private Object newValue;
 
         public AttributeFieldDiff() {
+            // Nothing to do.
         }
 
         public AttributeFieldDiff(Object oldValue, Object newValue) {
+
             this.oldValue = oldValue;
             this.newValue = newValue;
         }
@@ -141,6 +155,7 @@ public class AttributeDiff {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
+
             AttributeFieldDiff that = (AttributeFieldDiff) o;
             return Objects.equals(oldValue, that.oldValue) &&
                     Objects.equals(newValue, that.newValue);

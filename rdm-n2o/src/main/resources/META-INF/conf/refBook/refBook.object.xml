@@ -50,7 +50,7 @@
 
         <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
-                   confirm="true" confirm-text="Вы уверены, что хотите удалить этот справочник?">
+                   confirm="true" confirm-text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?">
             <invocation>
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
@@ -135,17 +135,17 @@
 
                     <arguments>
                         <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                         <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in-parameters>
                 <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="file.path" mapping="[1].path" domain="string"/>
-                <param id="file.name" mapping="[1].name" domain="string"/>
-                <param id="optLockValue" mapping="[2]" domain="integer" mapper="spel"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+                <param id="file.path" mapping="[2].path" domain="string"/>
+                <param id="file.name" mapping="[2].name" domain="string"/>
             </in-parameters>
 
             <out-parameters>

@@ -2,9 +2,12 @@ package ru.i_novus.ms.rdm.api.util;
 
 import com.google.common.base.CaseFormat;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.joining;
 import static org.springframework.util.StringUtils.isEmpty;
 
 public class StringUtils {
@@ -17,6 +20,7 @@ public class StringUtils {
     private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
     private StringUtils() {
+        // Nothing to do.
     }
 
     public static String addDoubleQuotes(String value) {
@@ -48,5 +52,31 @@ public class StringUtils {
             return UUID.fromString(s);
 
         return NULL_UUID;
+    }
+
+    /**
+     * Соединение строк в одну с автонумерацией.
+     *
+     * @param values список соединяемых строк
+     * @return Соединённая строка
+     */
+    public static String joinNumerated(List<String> values) {
+
+        return joinNumerated(values, "%1$d) %2$s", "\n");
+    }
+
+    /**
+     * Соединение строк в одну с автонумерацией.
+     *
+     * @param values    список соединяемых строк
+     * @param format    формат автонумерации строки
+     * @param delimiter разделитель строк при соединении
+     * @return Соединённая строка
+     */
+    public static String joinNumerated(List<String> values, String format, String delimiter) {
+
+        return IntStream.rangeClosed(1, values.size())
+                .mapToObj(index -> String.format(format, index, values.get(index - 1)))
+                .collect(joining(delimiter));
     }
 }

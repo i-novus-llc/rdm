@@ -21,19 +21,39 @@
             </row>
 
             <row>
-                <checkbox id="isPrimary" label="Первичный ключ">
-                    <dependencies>
-                        <set-value on="attrType">
-                            if (attrType != null &amp;&amp; attrType.id == 'BOOLEAN' &amp;&amp; attrType.id == 'REFERENCE') return null;
-                        </set-value>
-                        <enabling on="attrType,hasReferrer">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; attrType.id != 'REFERENCE'
-                                &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
-                        </enabling>
-                    </dependencies>
-                </checkbox>
+                <col>
+                    <checkbox id="isPrimary" label="Первичный ключ" no-label-block="true">
+                        <dependencies>
+                            <set-value on="attrType">
+                                if (attrType?.id == 'BOOLEAN' || attrType?.id == 'REFERENCE') return null;
+                            </set-value>
+                            <enabling on="attrType,hasReferrer">
+                                (attrType?.id != 'BOOLEAN' &amp;&amp; attrType?.id != 'REFERENCE'
+                                    &amp;&amp; (typeof hasReferrer == 'undefined' || !hasReferrer))
+                            </enabling>
+                        </dependencies>
+                    </checkbox>
 
-                <select id="attrType" label="Тип" required="true" label-field-id="name">
+                    <checkbox id="localizable" label="Переводимый атрибут" no-label-block="true">
+                        <dependencies>
+                            <visibility on="attrType">return ${rdm.l10n.support}</visibility>
+                            <set-value on="attrType,isPrimary">
+                                if (isPrimary)
+                                    return false;
+                                else if (attrType?.id != 'STRING')
+                                    return null;
+                                else
+                                    return;
+                            </set-value>
+                            <enabling on="attrType,isPrimary">
+                                (attrType?.id == 'STRING'
+                                    &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
+                            </enabling>
+                        </dependencies>
+                    </checkbox>
+                </col>
+
+                <select id="attrType" label="Тип" required="true" label-field-id="name" cleanable="false">
                     <options>
                         <option id="STRING" name="Строковый"/>
                         <option id="INTEGER" name="Целочисленный"/>
@@ -49,13 +69,13 @@
                           query-id="referenceRefBook" label-field-id="displayCode">
                 <dependencies>
                     <visibility on="attrType">
-                        attrType.id == 'REFERENCE'
+                        attrType?.id == 'REFERENCE'
                     </visibility>
                     <set-value on="attrType">
-                        if (attrType.id != 'REFERENCE') return null;
+                        if (attrType?.id != 'REFERENCE') return null;
                     </set-value>
                     <requiring on="attrType">
-                        attrType.id == 'REFERENCE'
+                        attrType?.id == 'REFERENCE'
                     </requiring>
                 </dependencies>
                 <pre-filters>
@@ -77,17 +97,17 @@
             <row>
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
-                    <dependencies>
-                        <visibility on="attrType,referenceRefBook">
-                            (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
-                        </visibility>
-                        <set-value on="attrType">
-                            if (attrType.id != 'REFERENCE') return null;
-                        </set-value>
-                    </dependencies>
                     <pre-filters>
                         <eq field-id="versionId" value="{referenceRefBook.version.id}" />
                     </pre-filters>
+                    <dependencies>
+                        <visibility on="attrType,referenceRefBook">
+                            (attrType?.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
+                        </visibility>
+                        <set-value on="attrType">
+                            if (attrType?.id != 'REFERENCE') return null;
+                        </set-value>
+                    </dependencies>
                     <validations>
                         <condition id="hasAttribute" severity="danger"
                                    message="Атрибут не выбран">
@@ -99,16 +119,16 @@
                 <input-text id="displayExpression" label="Отображаемое поле">
                     <dependencies>
                         <visibility on="attrType,referenceRefBook">
-                            (attrType.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
+                            (attrType?.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
                         </visibility>
                         <set-value on="attrType,displayAttribute">
-                            if (attrType.id != 'REFERENCE') return null;
+                            if (attrType?.id != 'REFERENCE') return null;
 
                             if (displayAttribute != null &amp;&amp; displayAttribute.codeExpression != null)
                                 return displayAttribute.codeExpression;
                         </set-value>
                         <requiring on="attrType">
-                            attrType.id == 'REFERENCE'
+                            attrType?.id == 'REFERENCE'
                         </requiring>
                     </dependencies>
                     <validations>
@@ -125,7 +145,7 @@
             <!-- Пользовательские проверки -->
             
             <row>
-                <checkbox id="required" label="Обязательный атрибут">
+                <checkbox id="required" label="Обязательный атрибут" no-label-block="true">
                     <dependencies>
                         <visibility on="attrType,isPrimary">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
@@ -134,7 +154,7 @@
                         <set-value on="attrType,isPrimary">
                             if (isPrimary)
                                 return false;
-                            else if (attrType.id == 'BOOLEAN')
+                            else if (attrType?.id == 'BOOLEAN')
                                 return null;
                             else
                                 return;
@@ -142,7 +162,7 @@
                     </dependencies>
                 </checkbox>
 
-                <checkbox id="unique" label="Уникальный атрибут">
+                <checkbox id="unique" label="Уникальный атрибут" no-label-block="true">
                     <dependencies>
                         <visibility on="attrType,isPrimary">
                             (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
@@ -151,7 +171,7 @@
                         <set-value on="attrType,isPrimary">
                             if (isPrimary)
                                 return false;
-                            else if (attrType.id == 'BOOLEAN')
+                            else if (attrType?.id == 'BOOLEAN')
                                 return null;
                             else
                                 return;
@@ -164,10 +184,10 @@
                 <input-text id="plainSize" domain="integer" label="Максимальная длина" min="1">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'STRING' || attrType.id == 'INTEGER'
+                            attrType?.id == 'STRING' || attrType?.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'STRING' &amp;&amp; attrType.id != 'INTEGER')
+                            if (attrType?.id != 'STRING' &amp;&amp; attrType?.id != 'INTEGER')
                                 return null;
                             else return;
                         </set-value>
@@ -177,10 +197,10 @@
                 <input-text id="regExp" domain="string" label="Регулярное выражение">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'STRING'
+                            attrType?.id == 'STRING'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'STRING') return null; else return;
+                            if (attrType?.id != 'STRING') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -190,10 +210,10 @@
                 <input-text id="intPartSize" domain="integer" label="Максимальная длина целой части" min="1">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'FLOAT'
+                            attrType?.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'FLOAT') return null; else return;
+                            if (attrType?.id != 'FLOAT') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -201,10 +221,10 @@
                 <input-text id="fracPartSize" domain="integer" label="Максимальная длина дробной части" min="1">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'FLOAT'
+                            attrType?.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'FLOAT') return null; else return;
+                            if (attrType?.id != 'FLOAT') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -214,10 +234,10 @@
                 <input-text id="minInteger" domain="integer" label="Минимальное значение">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'INTEGER'
+                            attrType?.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'INTEGER') return null; else return;
+                            if (attrType?.id != 'INTEGER') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -225,10 +245,10 @@
                 <input-text id="maxInteger" domain="integer" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'INTEGER'
+                            attrType?.id == 'INTEGER'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'INTEGER') return null; else return;
+                            if (attrType?.id != 'INTEGER') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -237,10 +257,10 @@
                 <input-text id="minFloat" domain="numeric" label="Минимальное значение">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'FLOAT'
+                            attrType?.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'FLOAT') return null; else return;
+                            if (attrType?.id != 'FLOAT') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -248,10 +268,10 @@
                 <input-text id="maxFloat" domain="numeric" label="Максимальное значение">
                     <dependencies>
                         <visibility on="attrType">
-                            attrType.id == 'FLOAT'
+                            attrType?.id == 'FLOAT'
                         </visibility>
                         <set-value on="attrType">
-                            if (attrType.id != 'FLOAT') return null; else return;
+                            if (attrType?.id != 'FLOAT') return null; else return;
                         </set-value>
                     </dependencies>
                 </input-text>
@@ -260,10 +280,10 @@
             <date-interval id="dateInterval" label="Интервал значений" date-format="DD.MM.YYYY">
                 <dependencies>
                     <visibility on="attrType">
-                        attrType.id == 'DATE'
+                        attrType?.id == 'DATE'
                     </visibility>
                     <set-value on="attrType">
-                        if (attrType.id != 'DATE') return null; else return;
+                        if (attrType?.id != 'DATE') return null; else return;
                     </set-value>
                 </dependencies>
             </date-interval>

@@ -6,14 +6,14 @@ import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.List;
 
@@ -89,8 +89,8 @@ public class StructureChangeValidator {
         if (!request.isReferenceType())
             return;
 
-        if ((oldAttribute.isReferenceType() && !request.isNullOrPresentReference())
-                || (!oldAttribute.isReferenceType() && !request.isNotNullAndPresentReference())
+        if ((oldAttribute.isReferenceType() && !request.isReferenceUpdating())
+                || (!oldAttribute.isReferenceType() && !request.isReferenceFilling())
                 || !request.getCode().equals(request.getAttribute().get()))
             throw new IllegalArgumentException(ATTRIBUTE_UPDATE_ILLEGAL_REFERENCE_VALUE_EXCEPTION_CODE);
     }

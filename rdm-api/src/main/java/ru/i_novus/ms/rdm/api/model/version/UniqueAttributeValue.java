@@ -1,12 +1,14 @@
 package ru.i_novus.ms.rdm.api.model.version;
 
+import java.io.Serializable;
+
 public class UniqueAttributeValue {
 
     private Long systemId;
 
-    private Object value;
+    private Serializable value;
 
-    public UniqueAttributeValue(Long systemId, Object value) {
+    public UniqueAttributeValue(Long systemId, Serializable value) {
         this.systemId = systemId;
         this.value = value;
     }
@@ -19,11 +21,11 @@ public class UniqueAttributeValue {
         this.systemId = systemId;
     }
 
-    public Object getValue() {
+    public Serializable getValue() {
         return value;
     }
 
-    public void setValue(Object value) {
+    public void setValue(Serializable value) {
         this.value = value;
     }
 

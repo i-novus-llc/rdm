@@ -1,14 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Типы операций">
-    <list count-mapping="[totalElements]" result-mapping="[content]">
+
+    <list result-mapping="['content']" count-mapping="['totalElements']">
         <rest>${rdm.backend.path}/asynclog/statuses</rest>
     </list>
+
     <fields>
         <field id="id" domain="string">
             <select mapping="toString()"/>
         </field>
+
         <field id="statusDisplay" domain="string">
-            <select mapping="(#this == 'QUEUED' ? 'В очереди' : #this == 'IN_PROGRESS' ? 'Выполняется' : #this == 'DONE' ? 'Завершено' : 'Ошибка')"/>
+            <select mapping="#this == 'QUEUED' ? 'В очереди' :
+                             #this == 'IN_PROGRESS' ? 'Выполняется' :
+                             #this == 'DONE' ? 'Завершено' :
+                             #this == 'ERROR' ? 'Ошибка' :
+                             #this"/>
         </field>
     </fields>
 </query>

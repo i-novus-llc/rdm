@@ -1,34 +1,52 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.springframework.util.ObjectUtils;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class RowUtils {
 
     private RowUtils() {
+        // Nothing to do.
     }
 
-    /** Проверка строки данных на отсутствие значений. */
+    /** Проверка набора данных на отсутствие значений. */
+    public static boolean isEmptyData(final Map< ?, ? > map) {
+
+        return map == null || map.isEmpty();
+    }
+
+    /** Проверка plain-записи данных на отсутствие значений. */
     public static boolean isEmptyRow(Row row) {
-        return row == null
+
+        return row == null || isEmptyData(row.getData())
                 || row.getData().values().stream().allMatch(ObjectUtils::isEmpty);
+    }
+
+    /** Подготовка значений plain-записи к выполнению операции над записью. */
+    public static void prepareRowValues(Row row) {
+
+        if (isEmptyRow(row))
+            return;
+
+        row.getData().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Date)
+                .forEach(e -> e.setValue(parseLocalDate(e.getValue())));
     }
 
     /**
@@ -129,12 +147,13 @@ public class RowUtils {
     public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
         return primaries.stream()
                 .map(key -> {
-                    Object value = row.getData().get(key.getCode());
+                    Serializable value = (Serializable) row.getData().get(key.getCode());
                     if (value == null)
                         return null;
 
-                    if (value instanceof Reference)
+                    if (value instanceof Reference) {
                         value = ((Reference) value).getValue();
+                    }
 
                     return new AttributeFilter(key.getCode(), value, key.getType(), SearchTypeEnum.EXACT);
                 })

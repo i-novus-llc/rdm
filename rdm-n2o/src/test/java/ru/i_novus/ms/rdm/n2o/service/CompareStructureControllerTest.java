@@ -8,14 +8,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
+import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
-import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +31,7 @@ public class CompareStructureControllerTest {
     private CompareStructureController compareStructureController;
 
     @Mock
-    private VersionService versionService;
+    private VersionRestService versionService;
     @Mock
     private CompareService compareService;
 
@@ -217,15 +217,10 @@ public class CompareStructureControllerTest {
     }
 
     private AttributeDiff createDiff(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
+
         oldAttr = oldAttr != null ? oldAttr : new Structure.Attribute();
         newAttr = newAttr != null ? newAttr : new Structure.Attribute();
-        return new AttributeDiff(
-                newAttr.getCode() != null ? newAttr.getCode() : oldAttr.getCode(),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription()),
-                diffStatus
-        );
+
+        return new AttributeDiff(oldAttr, newAttr, diffStatus);
     }
 }

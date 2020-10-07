@@ -2,12 +2,11 @@ package ru.i_novus.ms.rdm.impl.file.export;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
-import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
-import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 
@@ -135,12 +134,13 @@ public class XmlFileGenerator extends PerRowFileGenerator {
                     addAttribute(attribute);
                     addAttributeValidation(attribute.getCode());
                     writer.writeEndElement();
+
                 } catch (XMLStreamException e) {
                     throwXmlGenerateError(e);
                 }
-
             });
             writer.writeEndElement();
+
         } catch (XMLStreamException e) {
             throwXmlGenerateError(e);
         }
@@ -151,31 +151,35 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         writeElement("code", attribute.getCode());
         writeElement("name", attribute.getName());
         writeElement("type", attribute.getType().name());
+        writeElement("primary", "" + attribute.hasIsPrimary());
+
+        if (attribute.isLocalizable()) {
+            writeElement("localizable", "true");
+        }
         writeElement("description", attribute.getDescription());
-        writeElement("primary", "" + Boolean.TRUE.equals(attribute.getIsPrimary()));
 
         addReference(attribute);
     }
 
     private void addReference(Structure.Attribute attribute) {
 
-        if(!attribute.getType().equals(FieldType.REFERENCE)) {
+        if(!attribute.isReferenceType())
             return;
-        }
 
         Structure.Reference reference = attributeToReferenceMap.get(attribute.getCode());
         if (reference == null)
             throw new RdmException("reference.not.found");
 
         writeElement("referenceCode", reference.getReferenceCode());
-        if (reference.getDisplayExpression() != null)
+        if (reference.getDisplayExpression() != null) {
             writeElement("displayExpression", reference.getDisplayExpression());
+        }
     }
 
     private void addAttributeValidation(String attributeCode) {
-        if(attributeValidations == null) {
+
+        if(attributeValidations == null)
             return;
-        }
 
         attributeValidations.stream()
                 .filter(validation -> validation.getAttribute().equals(attributeCode))
@@ -183,11 +187,13 @@ public class XmlFileGenerator extends PerRowFileGenerator {
                     try {
                         writer.writeStartElement("validation");
                         writeElement("type", validation.getType().name());
+
                         final String value = validation.valuesToString();
                         if (value != null) {
                             writeElement("value", value);
                         }
                         writer.writeEndElement();
+
                     } catch (XMLStreamException e) {
                         throwXmlGenerateError(e);
                     }
@@ -209,6 +215,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     }
 
     private void throwXmlGenerateError(XMLStreamException e) {
+
         logger.error(XML_GENERATE_ERROR_MESSAGE, e);
         throw new RdmException(XML_GENERATE_ERROR_MESSAGE);
     }

@@ -20,8 +20,8 @@ import java.util.UUID;
 @Primary
 public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntryService {
 
-    private static final List<AsyncOperation> ASYNC_OPERATION_LIST = List.of(AsyncOperation.values());
-    private static final List<AsyncOperationStatus> ASYNC_OPERATION_STATUS_LIST = List.of(AsyncOperationStatus.values());
+    private static final List<AsyncOperationTypeEnum> ASYNC_OPERATION_LIST = List.of(AsyncOperationTypeEnum.values());
+    private static final List<AsyncOperationStatusEnum> ASYNC_OPERATION_STATUS_LIST = List.of(AsyncOperationStatusEnum.values());
 
     @Autowired
     private AsyncOperationLogEntryRepository repository;
@@ -60,8 +60,11 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         if (criteria.getId() != null)
             builder.and(q.uuid.eq(criteria.getId()));
 
-        if (criteria.getOperation() != null)
-            builder.and(q.operation.eq(criteria.getOperation()));
+        if (criteria.getOperationType() != null)
+            builder.and(q.operationType.eq(criteria.getOperationType()));
+
+        if (criteria.getCode() != null)
+            builder.and(q.code.startsWithIgnoreCase(criteria.getCode().toUpperCase()));
 
         if (criteria.getStatus() != null)
             builder.and(q.status.eq(criteria.getStatus()));
@@ -71,34 +74,38 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public AsyncOperationLogEntry get(UUID id) {
-        return toModel(repository.findById(id).orElse(null));
+        return toModel(repository.findByUuid(id));
     }
 
     @Override
-    public Page<AsyncOperation> getOpTypes() {
+    public Page<AsyncOperationTypeEnum> getOperationTypes() {
         return new PageImpl<>(ASYNC_OPERATION_LIST);
     }
 
     @Override
-    public Page<AsyncOperationStatus> getStatuses() {
+    public Page<AsyncOperationStatusEnum> getOperationStatuses() {
         return new PageImpl<>(ASYNC_OPERATION_STATUS_LIST);
     }
 
     private AsyncOperationLogEntry toModel(AsyncOperationLogEntryEntity entity) {
+
         if (entity == null)
             return null;
 
-        AsyncOperationLogEntry logEntry = new AsyncOperationLogEntry();
-        logEntry.setId(entity.getUuid());
-        logEntry.setCode(entity.getCode());
-        logEntry.setError(entity.getError());
-        logEntry.setOperation(entity.getOperation());
-        logEntry.setPayload(entity.getPayload());
-        logEntry.setStatus(entity.getStatus());
-        logEntry.setTsStart(entity.getTsStart());
-        logEntry.setTsEnd(entity.getTsEnd());
-        logEntry.setResult(entity.getResult());
-        logEntry.setStackTrace(entity.getStackTrace());
-        return logEntry;
+        AsyncOperationLogEntry model = new AsyncOperationLogEntry();
+        model.setId(entity.getUuid());
+        model.setOperationType(entity.getOperationType());
+        model.setCode(entity.getCode());
+
+        model.setStatus(entity.getStatus());
+        model.setTsStart(entity.getTsStart());
+        model.setTsEnd(entity.getTsEnd());
+
+        model.setPayload(entity.getPayload());
+        model.setResult(entity.getResult());
+        model.setError(entity.getError());
+        model.setStackTrace(entity.getStackTrace());
+
+        return model;
     }
 }

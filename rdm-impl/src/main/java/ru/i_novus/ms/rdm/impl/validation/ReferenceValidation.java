@@ -5,31 +5,27 @@ import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.util.StructureUtils;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceValidation implements RdmValidation {
 
     private static final Logger logger = LoggerFactory.getLogger(ReferenceValidation.class);
@@ -67,9 +63,10 @@ public class ReferenceValidation implements RdmValidation {
     @Override
     @Transactional(readOnly = true)
     public List<Message> validate() {
+
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
         Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
-        Field draftField = field(draftAttribute);
+        Field draftField = ConverterUtil.field(draftAttribute);
 
         // Использовать VersionValidationImpl.validateReferenceCode
         RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
@@ -86,7 +83,7 @@ public class ReferenceValidation implements RdmValidation {
             logger.info(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, e);
             return singletonList(new Message(VERSION_PRIMARY_KEY_NOT_FOUND_EXCEPTION_CODE, referredEntity.getId()));
         }
-        Field referredField = field(referredAttribute);
+        Field referredField = ConverterUtil.field(referredAttribute);
 
         // Поля из вычисляемого выражения, отсутствующие в версии, на которую ссылаемся.
         List<String> incorrectFields = StructureUtils.getAbsentPlaceholders(reference.getDisplayExpression(), referredEntity.getStructure());
@@ -96,9 +93,9 @@ public class ReferenceValidation implements RdmValidation {
                     .collect(toList());
         }
 
-        DataCriteria draftDataCriteria = new DataCriteria(draftEntity.getStorageCode(), null, null,
+        StorageDataCriteria draftDataCriteria = new StorageDataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
-        draftDataCriteria.setPage(1);
+        draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
         draftDataCriteria.setSize(bufSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,
@@ -112,35 +109,35 @@ public class ReferenceValidation implements RdmValidation {
     }
 
     // NB: Странный рекурсивный проход по страницам.
-    private void validateData(DataCriteria draftDataCriteria, List<String> incorrectValues,
+    private void validateData(StorageDataCriteria draftDataCriteria, List<String> incorrectValues,
                               RefBookVersionEntity referredEntity, Field referredField) {
         CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // Значения, которые приведены к типу атрибута из ссылки
-        List<Object> castedValues = new ArrayList<>();
+        List<Serializable> castedValues = new ArrayList<>();
 
         (draftRowValues.getCollection()).forEach(rowValue -> {
             String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
-            Object castedValue;
+            Serializable castedValue;
             try {
                 castedValue = ConverterUtil.castReferenceValue(referredField, value);
                 castedValues.add(castedValue);
 
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
                 incorrectValues.add(value);
-                logger.error("Can not parse value " + value, e);
+                logger.error(String.format("Can not parse value %s", value), e);
             }
         });
 
         if (!isEmpty(castedValues)) {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
-            DataCriteria referredDataCriteria =
-                    new DataCriteria(referredEntity.getStorageCode(),
-                            referredEntity.getFromDate(), referredEntity.getToDate(),
-                            singletonList(referredField), singletonList(refFieldSearchCriteria), null);
-            CollectionPage<RowValue> refRowValues = searchDataService.getPagedData(referredDataCriteria);
+            StorageDataCriteria referredDataCriteria = new StorageDataCriteria(referredEntity.getStorageCode(),
+                    referredEntity.getFromDate(), referredEntity.getToDate(),
+                    singletonList(referredField), singletonList(refFieldSearchCriteria), null);
+            CollectionPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
+            Collection<RowValue> refRowValues = (refRowValuePage.getCollection() != null) ? refRowValuePage.getCollection() : emptyList();
 
             castedValues.forEach(castedValue -> {
-                if (refRowValues.getCollection().stream()
+                if (refRowValues.stream()
                         .noneMatch(rowValue ->
                                 castedValue.equals(rowValue.getFieldValue(referredField.getName()).getValue())
                         ))

@@ -5,10 +5,7 @@ import net.n2oapp.framework.api.metadata.reader.NamespaceReaderFactory;
 import net.n2oapp.framework.config.N2oApplicationBuilder;
 import net.n2oapp.framework.config.io.IOProcessorImpl;
 import net.n2oapp.framework.config.metadata.compile.N2oCompileProcessor;
-import net.n2oapp.framework.config.metadata.pack.N2oAllDataPack;
-import net.n2oapp.framework.config.metadata.pack.N2oAllPagesPack;
-import net.n2oapp.framework.config.metadata.pack.N2oAllValidatorsPack;
-import net.n2oapp.framework.config.metadata.pack.N2oHeaderPack;
+import net.n2oapp.framework.config.metadata.pack.*;
 import net.n2oapp.framework.config.reader.XmlMetadataLoader;
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
 import net.n2oapp.framework.config.test.N2oTestBase;
@@ -29,12 +26,13 @@ public class RdmMetadataTest extends N2oTestBase {
     private static final Logger logger = LoggerFactory.getLogger(RdmMetadataTest.class);
 
     private static final List<String> RDM_CUSTOM_PROPERTIES = asList(
-        "server.servlet.context-path= ",
-        "rdm.context-path=/#",
-        "rdm.backend.path=http://localhost:8080/rdm/api",
-        "rdm.user.admin.url=http://docker.one:8182/",
-        "rdm.permissions.refbook.status.list= "
-    ); 
+            "server.servlet.context-path= ",
+            "rdm.context-path=/#",
+            "rdm.backend.path=http://localhost:8080/rdm/api",
+            "rdm.user.admin.url=http://docker.one:8182/",
+            "rdm.permissions.refbook.status.list= ",
+            "rdm.l10n.support=false"
+    );
 
     @Override
     @Before

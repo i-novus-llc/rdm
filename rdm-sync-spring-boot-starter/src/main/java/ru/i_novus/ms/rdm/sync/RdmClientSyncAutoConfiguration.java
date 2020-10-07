@@ -50,6 +50,9 @@ import java.time.OffsetDateTime;
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
 @EnableJms
 @ComponentScan({"ru.i_novus.ms.rdm.sync.service.init"})
+@ConditionalOnProperty(
+        value="rdm_sync.enabled",
+        matchIfMissing = true)
 public class RdmClientSyncAutoConfiguration {
 
     @Bean
@@ -193,7 +196,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync", matchIfMissing = true)
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "sync")
     public RdmChangeDataClient syncRdmChangeDataClient() {
         return new SyncRdmChangeDataClient();
     }
@@ -222,6 +225,7 @@ public class RdmClientSyncAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "rdm_sync.change_data_mode", havingValue = "")
     @SuppressWarnings("squid:S2440")
     public RdmSyncJobContext rdmSyncJobContext(RdmSyncDao rdmSyncDao, RdmChangeDataClient rdmChangeDataClient, @Value("${rdm_sync.export_from_local.batch_size:100}") int exportToRdmBatchSize) {
         return new RdmSyncJobContext(rdmSyncDao, rdmChangeDataClient, exportToRdmBatchSize);

@@ -25,6 +25,7 @@
                 <param id="name" mapping="[2].name" domain="string"/>
                 <param id="attrType.id" mapping="[2].type" domain="string"/>
                 <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <param id="localizable" mapping="[2].localizable" domain="boolean"/>
                 <param id="description" mapping="[2].description" domain="string"/>
                 <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
                 <param id="displayExpression" mapping="[2].displayExpression"/>
@@ -73,6 +74,7 @@
                 <param id="name" mapping="[2].name" domain="string"/>
                 <param id="attrType.id" mapping="[2].type" domain="string"/>
                 <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <param id="localizable" mapping="[2].localizable" domain="boolean"/>
                 <param id="description" mapping="[2].description" domain="string"/>
                 <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
                 <param id="displayExpression" mapping="[2].displayExpression"/>

@@ -9,12 +9,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
@@ -28,16 +22,13 @@ import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.sync.model.DataTypeEnum;
 import ru.i_novus.ms.rdm.sync.model.FieldMapping;
 import ru.i_novus.ms.rdm.sync.model.VersionMapping;
-import ru.i_novus.ms.rdm.sync.service.RdmLoggingService;
-import ru.i_novus.ms.rdm.sync.service.RdmMappingService;
-import ru.i_novus.ms.rdm.sync.service.RdmSyncDao;
-import ru.i_novus.ms.rdm.sync.service.RdmSyncRestImpl;
+import ru.i_novus.ms.rdm.sync.service.*;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
+import java.time.*;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -274,7 +265,7 @@ public class RdmSyncRestTest {
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
-        idAttribute.setPrimary(true);
+        idAttribute.setIsPrimary(true);
         refBook.setStructure(new Structure(asList(idAttribute, nameAttribute), null));
         return refBook;
     }
@@ -287,7 +278,7 @@ public class RdmSyncRestTest {
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
-        idAttribute.setPrimary(true);
+        idAttribute.setIsPrimary(true);
         refBook.setStructure(new Structure(asList(idAttribute, nameAttribute), null));
         return refBook;
     }
@@ -300,7 +291,7 @@ public class RdmSyncRestTest {
         refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
-        idAttribute.setPrimary(true);
+        idAttribute.setIsPrimary(true);
         refBook.setStructure(new Structure(asList(idAttribute, nameAttribute), null));
         return refBook;
     }

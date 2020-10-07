@@ -15,16 +15,16 @@ public interface AsyncOperationLogEntryRepository extends
         QuerydslPredicateExecutor<AsyncOperationLogEntryEntity> {
 
     @Transactional
-    AsyncOperationLogEntryEntity findByUuid(UUID uuid);
+    AsyncOperationLogEntryEntity findByUuid(@Param("id") UUID id);
 
     @Transactional
     @Modifying
     @Query(nativeQuery = true,
             value = "INSERT INTO n2o_rdm_management.async_log_entry \n" +
-                    "      (id, code, op_enum, payload) \n" +
-                    "VALUES(:id, :code, :op_enum, :payload) \n" +
+                    "       (id, op_enum, code, payload) \n" +
+                    "VALUES (:id, :op_enum, :code, :payload) \n" +
                     "ON CONFLICT (id) DO \n" +
-                    "   UPDATE SET status = 'IN_PROGRESS'")
-    void saveConflictFree(@Param("id") UUID uuid, @Param("code") String code,
-                          @Param("op_enum") String op, @Param("payload") String payload);
+                    "       UPDATE SET status = 'IN_PROGRESS'")
+    void saveWithoutConflict(@Param("id") UUID id, @Param("op_enum") String operationType,
+                             @Param("code") String code, @Param("payload") String payload);
 }

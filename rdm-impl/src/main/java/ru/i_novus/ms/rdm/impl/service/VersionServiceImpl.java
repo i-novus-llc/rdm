@@ -3,23 +3,16 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
+import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -27,7 +20,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.RowValuePage;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
-import ru.i_novus.ms.rdm.api.service.ExistsData;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
@@ -43,6 +35,13 @@ import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,10 +50,13 @@ import java.util.*;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
-@Primary
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionServiceImpl implements VersionService {
 
     private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
@@ -97,15 +99,9 @@ public class VersionServiceImpl implements VersionService {
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
 
         RefBookVersionEntity version = getVersionOrThrow(versionId);
-        return getRowValuesOfVersion(criteria, version);
+        return getRowValuesOfVersion(version, criteria);
     }
 
-    /**
-     * Получение списка версий справочника по параметрам критерия.
-     *
-     * @param criteria критерий поиска
-     * @return Список версий справочника
-     */
     @Override
     @Transactional
     public Page<RefBookVersion> getVersions(VersionCriteria criteria) {
@@ -156,7 +152,7 @@ public class VersionServiceImpl implements VersionService {
         if (version == null)
             throw new NotFoundException(new Message(VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE));
 
-        return getRowValuesOfVersion(criteria, version);
+        return getRowValuesOfVersion(version, criteria);
     }
 
     @Override
@@ -164,35 +160,49 @@ public class VersionServiceImpl implements VersionService {
         return search(refBookCode, TimeUtils.now(), criteria);
     }
 
-    private Page<RefBookRowValue> getRowValuesOfVersion(SearchDataCriteria criteria, RefBookVersionEntity version) {
-        List<Field> fields = ConverterUtil.fields(version.getStructure());
-        Set<List<FieldSearchCriteria>> fieldSearchCriteriaList = new HashSet<>();
-        fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getAttributeFilter()));
-        fieldSearchCriteriaList.addAll(ConverterUtil.getFieldSearchCriteriaList(criteria.getPlainAttributeFilter(), version.getStructure()));
+    private Page<RefBookRowValue> getRowValuesOfVersion(RefBookVersionEntity version, SearchDataCriteria criteria) {
 
-        DataCriteria dataCriteria = new DataCriteria(version.getStorageCode(), version.getFromDate(), version.getToDate(),
-                fields, fieldSearchCriteriaList, criteria.getRowSystemIds(), criteria.getCommonFilter());
-        dataCriteria.setPage(criteria.getPageNumber() + 1);
+        List<Field> fields = makeOutputFields(version, criteria.getLocaleCode());
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), version.getStructure()));
+
+        String storageCode = toStorageCode(version, criteria);
+
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, version.getFromDate(), version.getToDate(),
+                fields, fieldSearchCriterias, criteria.getCommonFilter());
+        dataCriteria.setHashList(criteria.getRowHashList());
+        dataCriteria.setSystemIds(criteria.getRowSystemIds());
+
+        dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return pagedData.getCollection() != null
-                ? new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()))
-                : null;
+        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()));
     }
 
     @Override
     @Transactional
     public Structure getStructure(Integer versionId) {
-        
+
         RefBookVersionEntity entity = getVersionOrThrow(versionId);
         return entity.getStructure();
     }
 
     @Override
     @Transactional
+    public String getStorageCode(Integer versionId) {
+
+        RefBookVersionEntity entity = getVersionOrThrow(versionId);
+        return entity.getStorageCode();
+    }
+
+    @Override
+    @Transactional
     public ExistsData existsData(List<String> rowIds) {
+
         List<String> notExistent = new ArrayList<>();
         Map<Integer, List<String>> hashes = new HashMap<>();
 
@@ -206,20 +216,26 @@ public class VersionServiceImpl implements VersionService {
             if (!versionRepository.exists(hasVersionId(versionId))) {
                 notExistent.add(rowId);
             } else {
+                String hash = split[0];
                 if (hashes.containsKey(versionId))
-                    hashes.get(versionId).add(split[0]);
-                else hashes.put(versionId, new ArrayList<>(singleton(split[0])));
+                    hashes.get(versionId).add(hash);
+                else
+                    hashes.put(versionId, new ArrayList<>(singleton(hash)));
             }
         }
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
-            RefBookVersionEntity versionEntity = versionRepository.getOne(entry.getKey());
-            notExistent.addAll(searchDataService.getNotExists(
-                    versionEntity.getStorageCode(),
-                    versionEntity.getFromDate(),
-                    versionEntity.getToDate(),
-                    entry.getValue()));
+            Integer versionId = entry.getKey();
+            RefBookVersionEntity entity = versionRepository.getOne(versionId);
+
+            List<String> versionHashes = new ArrayList<>(entry.getValue());
+            List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),
+                    entity.getFromDate(), entity.getToDate(), versionHashes);
+
+            versionHashes.removeAll(existentHashes);
+            notExistent.addAll(versionHashes.stream().map(hash -> hash + "$" + versionId).collect(toList()));
         }
+
         return new ExistsData(notExistent.isEmpty(), notExistent);
     }
 
@@ -233,15 +249,15 @@ public class VersionServiceImpl implements VersionService {
         final Integer versionId = Integer.parseInt(split[1]);
         RefBookVersionEntity version = getVersionOrThrow(versionId);
 
-        DataCriteria dataCriteria = new DataCriteria(
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(
                 version.getStorageCode(),
                 version.getFromDate(),
                 version.getToDate(),
-                ConverterUtil.fields(version.getStructure()),
-                singletonList(split[0])
-        );
+                ConverterUtil.fields(version.getStructure()));
+        dataCriteria.setHashList(singletonList(split[0]));
+
         List<RowValue> data = searchDataService.getData(dataCriteria);
-        if (CollectionUtils.isEmpty(data))
+        if (isEmpty(data))
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
         if (data.size() > 1)
@@ -308,7 +324,33 @@ public class VersionServiceImpl implements VersionService {
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
+
         VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
         return versionFileService.generate(versionModel, fileType, dataIterator);
+    }
+
+    /**
+     * Формирование списка полей, выводимых в результате запроса данных в хранилище версии.
+     *
+     * @param version    версия справочника
+     * @param localeCode код локали
+     * @return Список выводимых полей
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected List<Field> makeOutputFields(RefBookVersionEntity version, String localeCode) {
+
+        return ConverterUtil.fields(version.getStructure());
+    }
+
+    /**
+     * Преобразование кода хранилища с учётом локали.
+     *
+     * @param version  версия
+     * @param criteria критерий поиска
+     * @return Код хранилища с учётом локали
+     */
+    @SuppressWarnings("UnusedParameter")
+    protected String toStorageCode(RefBookVersionEntity version, SearchDataCriteria criteria) {
+        return version.getStorageCode();
     }
 }

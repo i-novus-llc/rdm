@@ -2,11 +2,11 @@ package ru.i_novus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.UpdatableDto;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -26,28 +26,33 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     private String code;
 
     @ApiModelProperty("Наименование атрибута")
-    private UpdateValue<String> name; // NOSONAR
+    private UpdateValue<String> name;
 
     @ApiModelProperty("Тип атрибута")
     private FieldType type;
 
     @ApiModelProperty("Признак первичного атрибута")
-    private UpdateValue<Boolean> isPrimary; // NOSONAR
+    private UpdateValue<Boolean> isPrimary;
+
+    @ApiModelProperty("Признак переводимого атрибута")
+    private UpdateValue<Boolean> localizable;
 
     @ApiModelProperty("Описание атрибута")
     private String description;
 
     // Поля Structure.Reference:
     @ApiModelProperty("Код атрибута, который ссылается")
-    private UpdateValue<String> attribute; // NOSONAR
+    private UpdateValue<String> attribute;
 
     @ApiModelProperty("Код справочника, на который ссылаются")
-    private UpdateValue<String> referenceCode; // NOSONAR
+    private UpdateValue<String> referenceCode;
 
     @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
-    private UpdateValue<String> displayExpression; // NOSONAR
+    private UpdateValue<String> displayExpression;
 
-    public UpdateAttributeRequest(){}
+    public UpdateAttributeRequest() {
+        // Nothing to do.
+    }
 
     public UpdateAttributeRequest(Integer optLockValue,
                                   Structure.Attribute attribute,
@@ -64,6 +69,7 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
 
         setUpdateValueIfExists(attribute::getName, this::setName);
         setUpdateValueIfExists(attribute::getIsPrimary, this::setIsPrimary);
+        setUpdateValueIfExists(attribute::getLocalizable, this::setLocalizable);
 
         // Поля Structure.Reference:
         if (reference == null)
@@ -116,6 +122,14 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         this.isPrimary = isPrimary;
     }
 
+    public UpdateValue<Boolean> getLocalizable() {
+        return localizable;
+    }
+
+    public void setLocalizable(UpdateValue<Boolean> localizable) {
+        this.localizable = localizable;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -149,22 +163,32 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     }
 
     public boolean hasIsPrimary() {
+
         return getIsPrimary() != null
                 && getIsPrimary().isPresent()
                 && Boolean.TRUE.equals(getIsPrimary().get());
+    }
+
+    public boolean isLocalizable() {
+
+        return getLocalizable() != null
+                && getLocalizable().isPresent()
+                && Boolean.TRUE.equals(getLocalizable().get());
     }
 
     public boolean isReferenceType() {
         return FieldType.REFERENCE.equals(getType());
     }
 
-    public boolean isNullOrPresentReference() {
+    public boolean isReferenceUpdating() {
+
         return isNullOrPresent(getAttribute())
                 && isNullOrPresent(getReferenceCode())
                 && isNullOrPresent(getDisplayExpression());
     }
 
-    public boolean isNotNullAndPresentReference() {
+    public boolean isReferenceFilling() {
+
         return isNotNullAndPresent(getAttribute())
                 && isNotNullAndPresent(getReferenceCode())
                 && isNotNullAndPresent(getDisplayExpression());
@@ -173,10 +197,11 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     public void fillAttribute(Structure.Attribute attribute) {
 
         attribute.setType(getType());
-        attribute.setDescription(this.getDescription());
-
         setValueIfExists(this::getName, attribute::setName);
-        setValueIfExists(this::getIsPrimary, attribute::setPrimary);
+
+        setValueIfExists(this::getIsPrimary, attribute::setIsPrimary);
+        setValueIfExists(this::getLocalizable, attribute::setLocalizable);
+        attribute.setDescription(this.getDescription());
     }
 
     public void fillReference(Structure.Reference reference) {

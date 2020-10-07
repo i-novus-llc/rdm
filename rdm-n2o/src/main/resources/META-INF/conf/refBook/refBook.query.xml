@@ -2,8 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
-        <java class="ru.i_novus.ms.rdm.api.service.RefBookService"
-              method="search">
+        <java method="search">
             <spring bean="refBookServiceJaxRsProxyClient"/>
             <arguments>
                 <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
@@ -199,7 +198,7 @@
 
         <field id="lastHasConflictMsg" domain="string">
             <select mapping="
-                (lastHasConflict ? 'В опубликованной версии справочника есть ссылки на неактуальные данные' : '')
+                (lastHasConflict ? 'В опубликованной версии есть ссылки на неактуальные данные' : '')
                 "/>
         </field>
 

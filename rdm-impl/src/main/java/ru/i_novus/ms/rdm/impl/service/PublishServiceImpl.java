@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.async.AsyncOperation;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
@@ -19,6 +19,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,8 +40,7 @@ public class PublishServiceImpl implements PublishService {
 
     private AuditLogService auditLogService;
 
-    @Autowired
-    private AsyncOperationQueue queue;
+    private AsyncOperationQueue asyncQueue;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -48,7 +48,8 @@ public class PublishServiceImpl implements PublishService {
                               RefBookConflictRepository conflictRepository,
                               BasePublishService basePublishService,
                               ReferenceService referenceService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              AsyncOperationQueue asyncQueue) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -56,6 +57,7 @@ public class PublishServiceImpl implements PublishService {
         this.referenceService = referenceService;
 
         this.auditLogService = auditLogService;
+        this.asyncQueue = asyncQueue;
     }
 
     /**
@@ -83,7 +85,7 @@ public class PublishServiceImpl implements PublishService {
     public UUID publishAsync(Integer draftId, PublishRequest request) {
 
         String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return queue.add(AsyncOperation.PUBLICATION, code, new Object[] { draftId, request });
+        return asyncQueue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
     }
 
     /**

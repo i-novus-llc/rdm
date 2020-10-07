@@ -4,12 +4,18 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
+/** Строка - запись справочника. */
 public class Row implements Serializable {
 
+    /** Системный идентификатор записи. */
     private Long systemId;
+
+    /** Набор значений полей записи. */
     private Map<String, Object> data; // NOSONAR
 
-    public Row() {}
+    public Row() {
+        // Nothing to do.
+    }
 
     public Row(Map<String, Object> data) {
         this.data = data;

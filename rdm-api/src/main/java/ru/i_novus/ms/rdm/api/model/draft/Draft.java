@@ -1,17 +1,25 @@
 package ru.i_novus.ms.rdm.api.model.draft;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Objects;
 
-/** Модель черновика. */
+/**
+ * Модель черновика.
+ */
+@ApiModel("Черновик")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Draft {
 
-    /** Идентификатор черновика. */
+    @ApiModelProperty("Идентификатор черновика")
     private Integer id;
 
-    /** storage_code. */
+    @ApiModelProperty("Код хранилища")
     private String storageCode;
 
-    /** Значение оптимистической блокировки версии-черновика. */
+    @ApiModelProperty("Значение оптимистической блокировки версии-черновика")
     private Integer optLockValue;
 
     public Draft(Integer id, String storageCode, Integer optLockValue) {
@@ -47,6 +55,7 @@ public class Draft {
         this.optLockValue = optLockValue;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isVersionDraft(Integer versionId) {
         return Objects.equals(getId(), versionId);
     }

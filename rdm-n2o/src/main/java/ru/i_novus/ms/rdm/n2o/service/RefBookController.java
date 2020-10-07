@@ -29,19 +29,19 @@ public class RefBookController {
     private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
     private static final String REFBOOK_STATUS_PUBLISHED = "refbook.status.published";
 
-    private Messages messages;
-
     private RefBookService refBookService;
+
+    private Messages messages;
 
     private RdmPermission rdmPermission;
 
     @Autowired
-    public RefBookController(Messages messages,
-                             RefBookService refBookService,
+    public RefBookController(RefBookService refBookService,
+                             Messages messages,
                              RdmPermission rdmPermission) {
-        this.messages = messages;
         this.refBookService = refBookService;
 
+        this.messages = messages;
         this.rdmPermission = rdmPermission;
     }
 

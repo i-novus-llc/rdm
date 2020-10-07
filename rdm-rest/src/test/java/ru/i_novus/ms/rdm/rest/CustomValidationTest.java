@@ -19,7 +19,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersionAttribute;
-import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 
 import java.util.Iterator;
@@ -31,10 +31,10 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 import static ru.i_novus.ms.rdm.api.model.Structure.Attribute.build;
 import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
 import static ru.i_novus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
+import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -42,7 +42,7 @@ import static ru.i_novus.ms.rdm.impl.validation.resolver.IntRangeAttributeValida
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
                 "cxf.jaxrs.client.classes-scan=true",
-                "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.service",
+                "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
@@ -56,9 +56,10 @@ public class CustomValidationTest {
     @Autowired
     @Qualifier("refBookServiceJaxRsProxyClient")
     private RefBookService refBookService;
+
     @Autowired
-    @Qualifier("draftServiceJaxRsProxyClient")
-    private DraftService draftService;
+    @Qualifier("draftRestServiceJaxRsProxyClient")
+    private DraftRestService draftService;
 
     private String STRING_ATTR = "stringAttr";
     private String INTEGER_ATTR = "integerAttr";
@@ -72,7 +73,7 @@ public class CustomValidationTest {
     public void testAddDeleteValidation() {
 
         String REF_BOOK_NAME = "CustomValidationTest";
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null));
 
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
         final Integer draftId = draft.getId();
@@ -119,7 +120,7 @@ public class CustomValidationTest {
     @Test
     public void testUpdateValidation() {
         String REF_BOOK_NAME = "CustomValidationUpdateTest";
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null));
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
 
         RefBookVersionAttribute versionAttribute = new RefBookVersionAttribute(draft.getId(), new Structure.Attribute(), new Structure.Reference());

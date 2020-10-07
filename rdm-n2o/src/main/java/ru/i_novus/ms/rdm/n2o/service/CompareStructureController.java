@@ -5,25 +5,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
+import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Controller
 public class CompareStructureController {
 
     @Autowired
     CompareService compareService;
+
     @Autowired
-    VersionService versionService;
+    VersionRestService versionService;
 
     public Page<AttributeDiff> getCommonDiff(CompareCriteria criteria) {
 
@@ -84,16 +84,11 @@ public class CompareStructureController {
     }
 
     private AttributeDiff createDiff(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
+
         oldAttr = oldAttr != null ? oldAttr : new Structure.Attribute();
         newAttr = newAttr != null ? newAttr : new Structure.Attribute();
-        return new AttributeDiff(
-                newAttr.getCode() != null ? newAttr.getCode() : oldAttr.getCode(),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getName(), newAttr.getName()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getType(), newAttr.getType()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getIsPrimary(), newAttr.getIsPrimary()),
-                new AttributeDiff.AttributeFieldDiff(oldAttr.getDescription(), newAttr.getDescription()),
-                diffStatus
-        );
+
+        return new AttributeDiff(oldAttr, newAttr, diffStatus);
     }
 
     private Map<String, AttributeDiff> createDiffMap(StructureDiff structureDiff, DiffStatusEnum... statuses) {

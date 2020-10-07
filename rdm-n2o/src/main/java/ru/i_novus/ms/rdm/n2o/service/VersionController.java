@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
-import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 
 @Controller
 public class VersionController {
 
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
 
     /**
      * Получение версии справочника для открытия на просмотр/редактирование.

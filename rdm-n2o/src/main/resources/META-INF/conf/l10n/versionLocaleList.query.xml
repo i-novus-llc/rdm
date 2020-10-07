@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionLocaleList">
+
+    <list result-mapping="['content']" count-mapping="['totalElements']">
+        <rest method="GET">${rdm.backend.path}/locale/{versionId}</rest>
+    </list>
+
+    <unique>
+        <rest method="GET">${rdm.backend.path}/locale/{versionId}/{localeCode}</rest>
+    </unique>
+
+    <!--<list result-mapping="content" count-mapping="totalElements" filters="versionId">-->
+    <!--    <java method="searchVersionLocales">-->
+    <!--        <spring bean="l10nVersionStorageServiceJaxRsProxyClient"/>-->
+    <!--        <arguments>-->
+    <!--            <argument type="primitive" name="versionId" class="java.lang.Integer"/>-->
+    <!--        </arguments>-->
+    <!--    </java>-->
+    <!--</list>-->
+
+    <!--<unique filters="versionId,localeCode" result-mapping="['content'][0]">-->
+    <!--    <java method="getVersionLocale">-->
+    <!--        <spring bean="l10nVersionStorageServiceJaxRsProxyClient"/>-->
+    <!--        <arguments>-->
+    <!--            <argument type="primitive" name="versionId" class="java.lang.Integer"/>-->
+    <!--            <argument type="primitive" name="localeCode" class="java.lang.String"/>-->
+    <!--        </arguments>-->
+    <!--    </java>-->
+    <!--</unique>-->
+
+    <fields>
+        <field id="id" domain="string">
+            <select mapping="['localeCode']"/>
+            <filters>
+                <eq filter-id="localeCode" domain="string"/>
+            </filters>
+        </field>
+
+        <field id="versionId" domain="integer">
+            <select/>
+            <filters>
+                <eq filter-id="versionId" domain="integer"/>
+            </filters>
+        </field>
+
+        <field id="code" domain="string">
+            <select mapping="['localeCode']"/>
+        </field>
+
+        <field id="name" domain="string">
+            <select mapping="['localeName']"/>
+        </field>
+
+        <field id="fullName" domain="string">
+            <select
+                mapping="['localeSelfName']?.length() == 0 ? ['localeName'] : ['localeName'] + '(' + ['localeSelfName'] + ')'"/>
+        </field>
+    </fields>
+</query>

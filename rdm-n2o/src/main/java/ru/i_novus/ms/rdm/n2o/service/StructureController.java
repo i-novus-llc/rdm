@@ -9,20 +9,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.*;
 
@@ -39,10 +42,10 @@ public class StructureController {
     private RefBookService refBookService;
 
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
 
     @Autowired
-    private DraftService draftService;
+    private DraftRestService draftService;
 
     @Autowired
     private ConflictService conflictService;
@@ -51,7 +54,7 @@ public class StructureController {
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
-        RefBookVersion version = versionService.getById(criteria.getVersionId());
+        RefBookVersion version = versionService.getById(versionId);
         if (version.hasEmptyStructure()) {
             return new RestPage<>(new ArrayList<>(), Pageable.unpaged(), 0);
         }
@@ -275,7 +278,7 @@ public class StructureController {
             draftService.updateAttributeValidations(versionId, validationRequest);
 
         } catch (RestException re) {
-            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(optLockValue, oldAttribute, oldReference);
+            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(null, oldAttribute, oldReference);
             draftService.updateAttribute(versionId, rollbackRequest);
             throw re;
         }
@@ -332,9 +335,11 @@ public class StructureController {
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
         readAttribute.setName(attribute.getName());
-        readAttribute.setDescription(attribute.getDescription());
         readAttribute.setType(attribute.getType());
+
         readAttribute.setIsPrimary(attribute.getIsPrimary());
+        readAttribute.setLocalizable(attribute.getLocalizable());
+        readAttribute.setDescription(attribute.getDescription());
 
         if (Objects.nonNull(reference)) {
             readAttribute.setReferenceCode(reference.getReferenceCode());
@@ -361,10 +366,15 @@ public class StructureController {
 
     private Structure.Attribute buildAttribute(FormAttribute request) {
 
-        if (request.hasIsPrimary())
+        if (request.hasIsPrimary()) {
             return Structure.Attribute.buildPrimary(request.getCode(),
                     request.getName(), request.getType(), request.getDescription());
-        else {
+
+        } else if (request.isLocalizable()) {
+            return Structure.Attribute.buildLocalizable(request.getCode(),
+                    request.getName(), request.getType(), request.getDescription());
+
+        } else {
             return Structure.Attribute.build(request.getCode(), request.getName(),
                     request.getType(), request.getDescription());
         }
@@ -393,6 +403,7 @@ public class StructureController {
 
         setUpdateValueIfExists(formAttribute::getName, attribute::setName);
         setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
+        setUpdateValueIfExists(formAttribute::getLocalizable, attribute::setLocalizable);
 
         // reference fields:
         setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);

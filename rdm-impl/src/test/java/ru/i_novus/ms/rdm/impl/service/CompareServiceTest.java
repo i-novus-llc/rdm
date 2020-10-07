@@ -14,23 +14,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
-import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
-import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.compare.*;
 import ru.i_novus.ms.rdm.api.model.diff.PassportAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.PassportDiff;
 import ru.i_novus.ms.rdm.api.model.field.CommonField;
@@ -44,6 +30,14 @@ import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -52,7 +46,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
@@ -148,13 +143,13 @@ public class CompareServiceTest {
         final Structure newStructure = new Structure(asList(id, code, common, name, upd2, typeI), emptyList());
         when(versionService.getStructure(OLD_ID)).thenReturn(oldStructure);
         when(versionService.getStructure(NEW_ID)).thenReturn(newStructure);
-        when(versionValidation.equalsPrimaries(eq(oldStructure.getPrimary()), eq(newStructure.getPrimary()))).thenReturn(true);
+        when(versionValidation.equalsPrimaries(eq(oldStructure.getPrimaries()), eq(newStructure.getPrimaries()))).thenReturn(true);
 
         final Structure oldStructure1 = new Structure(asList(id, common), emptyList());
         final Structure newStructure1 = new Structure(asList(id, common), emptyList());
         when(versionService.getStructure(OLD_ID_1)).thenReturn(oldStructure1);
         when(versionService.getStructure(NEW_ID_1)).thenReturn(newStructure1);
-        when(versionValidation.equalsPrimaries(eq(oldStructure1.getPrimary()), eq(newStructure1.getPrimary()))).thenReturn(true);
+        when(versionValidation.equalsPrimaries(eq(oldStructure1.getPrimaries()), eq(newStructure1.getPrimaries()))).thenReturn(true);
     }
 
     private void initPassportAttributes() {
@@ -485,7 +480,7 @@ public class CompareServiceTest {
                         new StringFieldValue(typeS.getCode(), "1")
                 ), NEW_ID)
         ), PageRequest.of(0, 10), 1);
-        when(versionService.search(eq(OLD_ID), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 1, emptySet())))))
+        when(versionService.search(eq(OLD_ID), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 1)))))
                 .thenReturn(deletedRows);
 
         List<DiffRowValue> diffRowValuesList = new ArrayList<>();
@@ -548,11 +543,11 @@ public class CompareServiceTest {
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(emptyList(), PageRequest.of(0, DEF_PAGE_SIZE), 4));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
+                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), PageRequest.of(0, DEF_PAGE_SIZE), 4));
 
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
+                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(oldVersionRows, PageRequest.of(0, DEF_PAGE_SIZE), 4));
 
 //        test first page
@@ -613,20 +608,20 @@ public class CompareServiceTest {
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(emptyList(), PageRequest.of(0, DEF_PAGE_SIZE), 5));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE, emptySet())))))
+                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), PageRequest.of(0, DEF_PAGE_SIZE), 5));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(1, DEF_PAGE_SIZE, emptySet())))))
+                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(1, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(4, 5), PageRequest.of(1, DEF_PAGE_SIZE), 5));
 
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 3, emptySet())))))
+                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 3)))))
                 .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 3), PageRequest.of(0, 3), 8));
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 7, emptySet())))))
+                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 7)))))
                 .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 7), PageRequest.of(0, 7), 8));
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11, emptySet())))))
+                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11)))))
                 .thenReturn(new PageImpl<>(oldVersionRows, PageRequest.of(0, 11), 8));
 
         ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
@@ -783,13 +778,14 @@ public class CompareServiceTest {
     }
 
     private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria createVdsDeletedCompareDataCriteria(Integer oldId, Integer newId) {
-        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria();
-        compareDataCriteria.setStorageCode("storage" + oldId);
-        compareDataCriteria.setNewStorageCode("storage" + newId);
+
+        ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteria = new ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria("storage" + oldId, "storage" + newId);
+
         compareDataCriteria.setCountOnly(false);
         compareDataCriteria.setStatus(DiffStatusEnum.DELETED);
         compareDataCriteria.setPage(1);
         compareDataCriteria.setSize(10);
+
         return compareDataCriteria;
     }
 
@@ -809,6 +805,7 @@ public class CompareServiceTest {
         public boolean matches(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria actual) {
             if (actual == null)
                 return false;
+
             return expected.getStorageCode().equals(actual.getStorageCode()) &&
                     expected.getNewStorageCode().equals(actual.getNewStorageCode()) &&
                     expected.getCountOnly() == actual.getCountOnly() &&
@@ -832,9 +829,9 @@ public class CompareServiceTest {
         public boolean matches(SearchDataCriteria actual) {
             if (actual == null)
                 return false;
+
             return expected.getPageSize() == actual.getPageSize() &&
                     expected.getPageNumber() == actual.getPageNumber();
         }
     }
-
 }

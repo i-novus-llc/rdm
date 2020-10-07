@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Журнал операций">
+    <regions>
+        <region place="single">
+            <table id="asyncLogTable" name="Журнал операций" query-id="asyncLog" size="10">
+                <filters>
+                    <row>
+                        <input-text id="code" label="Код справочника" domain="string"/>
+                        <input-text id="id" label="Идентификатор операции" domain="string"/>
+
+                        <input-select id="operationType" label="Тип операции" type="single"
+                                      query-id="asyncOperationTypes" label-field-id="operationTypeDisplay"
+                                      search="false"/>
+                        <input-select id="status" label="Статус операции"
+                                      query-id="asyncOperationStatuses" label-field-id="statusDisplay" search="false"/>
+                    </row>
+                </filters>
+
+                <columns>
+                    <column text-field-id="tsStart" label="Дата создания операции">
+                        <text format="date DD.MM.YYYY HH:mm:ss"/>
+                    </column>
+                    <column text-field-id="tsEnd" label="Дата окончания операции">
+                        <text format="date DD.MM.YYYY HH:mm:ss"/>
+                    </column>
+
+                    <column text-field-id="code" label="Код справочника"/>
+                    <column text-field-id="id" label="Идентификатор операции"/>
+                    <column text-field-id="operationTypeDisplay" label="Тип операции"/>
+                    <column text-field-id="statusDisplay" label="Статус операции"/>
+                </columns>
+
+                <rows>
+                    <click>
+                        <show-modal page-id="asyncLogView" detail-field-id="id" route="/:id/view"/>
+                    </click>
+                </rows>
+            </table>
+        </region>
+    </regions>
+</page>

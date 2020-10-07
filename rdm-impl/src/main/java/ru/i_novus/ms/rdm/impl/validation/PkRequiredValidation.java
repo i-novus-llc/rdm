@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class PkRequiredValidation extends ErrorAttributeHolderValidation {
 
     @Override
     public List<Message> validate() {
-        List<Structure.Attribute> primaries = structure.getPrimary();
+        List<Structure.Attribute> primaries = structure.getPrimaries();
         return structure.getAttributes().stream()
                 .filter(attribute -> !isErrorAttribute(attribute.getCode()))
                 .filter(primaries::contains)

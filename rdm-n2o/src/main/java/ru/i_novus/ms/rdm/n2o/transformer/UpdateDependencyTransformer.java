@@ -11,7 +11,7 @@ import net.n2oapp.framework.api.metadata.meta.control.ValidationType;
 import net.n2oapp.framework.api.metadata.meta.toolbar.Toolbar;
 import net.n2oapp.framework.api.metadata.meta.widget.table.Table;
 import net.n2oapp.framework.api.metadata.meta.widget.toolbar.AbstractButton;
-import net.n2oapp.framework.api.metadata.meta.widget.toolbar.ButtonCondition;
+import net.n2oapp.framework.api.metadata.meta.widget.toolbar.Condition;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -66,13 +66,13 @@ public class UpdateDependencyTransformer
 
     private void transformButton(String tableId, AbstractButton button) {
 
-        List<ButtonCondition> conditions = button.getConditions().get(ValidationType.enabled);
+        List<Condition> conditions = button.getConditions().get(ValidationType.enabled);
         if (conditions == null) {
             conditions = new ArrayList<>();
             button.getConditions().putIfAbsent(ValidationType.enabled, conditions);
         }
 
-        ButtonCondition condition = conditions.stream()
+        Condition condition = conditions.stream()
                 .filter(c -> BUTTON_CONDITION_EXPRESSION.equals(c.getExpression()))
                 .findAny().orElse(null);
 
@@ -80,7 +80,7 @@ public class UpdateDependencyTransformer
             condition.setModelLink(new ModelLink(ReduxModel.RESOLVE, tableId).getBindLink());
 
         } else {
-            condition = new ButtonCondition();
+            condition = new Condition();
             condition.setExpression(BUTTON_CONDITION_EXPRESSION);
             condition.setModelLink(new ModelLink(ReduxModel.RESOLVE, tableId).getBindLink());
             conditions.add(condition);

@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.impl.async;
 
 import ru.i_novus.ms.audit.client.model.User;
-import ru.i_novus.ms.rdm.api.async.AsyncOperation;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -9,23 +9,64 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Асинхронная операция: Сообщение.
+ */
 class AsyncOperationMessage implements Serializable {
 
     public static final String ARGS_KEY = "args";
     public static final String USER_KEY = "user";
 
-    private Object[] args; // NOSONAR
-    private String userName;
+    /**
+     * Идентификатор операции.
+     */
     private UUID operationId;
-    private AsyncOperation operation;
+
+    /**
+     * Тип операции.
+     */
+    private AsyncOperationTypeEnum operationType;
+
+    /**
+     * Код справочника.
+     */
     private String code;
 
-    public AsyncOperationMessage(Object[] args, User user, UUID operationId, AsyncOperation operation, String code) {
-        this.args = args == null ? new Object[0] : args;
-        this.userName = user.getUsername();
+    /**
+     * Аргументы операции.
+     */
+    private Serializable[] args;
+
+    /**
+     * Имя пользователя.
+     */
+    private String userName;
+
+    public AsyncOperationMessage(UUID operationId, AsyncOperationTypeEnum operationType,
+                                 String code, Serializable[] args, User user) {
+
         this.operationId = operationId;
-        this.operation = operation;
+        this.operationType = operationType;
+
         this.code = code;
+        this.args = args == null ? new Serializable[0] : args;
+        this.userName = user.getUsername();
+    }
+
+    public UUID getOperationId() {
+        return operationId;
+    }
+
+    public void setOperationId(UUID operationId) {
+        this.operationId = operationId;
+    }
+
+    public AsyncOperationTypeEnum getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(AsyncOperationTypeEnum operationType) {
+        this.operationType = operationType;
     }
 
     public String getCode() {
@@ -36,11 +77,11 @@ class AsyncOperationMessage implements Serializable {
         this.code = code;
     }
 
-    public Object[] getArgs() {
+    public Serializable[] getArgs() {
         return args;
     }
 
-    public void setArgs(Object[] args) {
+    public void setArgs(Serializable[] args) {
         this.args = args;
     }
 
@@ -52,22 +93,6 @@ class AsyncOperationMessage implements Serializable {
         this.userName = userName;
     }
 
-    public UUID getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(UUID operationId) {
-        this.operationId = operationId;
-    }
-
-    public AsyncOperation getOperation() {
-        return operation;
-    }
-
-    public void setOperation(AsyncOperation operation) {
-        this.operation = operation;
-    }
-
     public String getPayloadAsJson() {
         return JsonUtil.getAsJson(Map.of(ARGS_KEY, args, USER_KEY, userName));
     }
@@ -75,12 +100,11 @@ class AsyncOperationMessage implements Serializable {
     @Override
     public String toString() {
         return "AsyncOperationMessage{" +
-                "args=" + Arrays.toString(args) +
-                ", userName='" + userName + '\'' +
-                ", operationId=" + operationId +
-                ", operation=" + operation +
+                "operationId=" + operationId +
+                ", operationType=" + operationType +
                 ", code='" + code + '\'' +
+                ", args=" + Arrays.toString(args) +
+                ", userName='" + userName + '\'' +
                 '}';
     }
-
 }
