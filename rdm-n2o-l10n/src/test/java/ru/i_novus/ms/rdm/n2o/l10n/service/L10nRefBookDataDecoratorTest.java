@@ -27,6 +27,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.SYS_LOCALIZED;
 import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmpty;
 
 /**
@@ -34,8 +35,6 @@ import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmpt
  */
 @RunWith(MockitoJUnitRunner.class)
 public class L10nRefBookDataDecoratorTest {
-
-    private static final String SYS_LOCALIZED = "SYS_LOCALIZED"; // from l10n-vds L10nConstants
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
 

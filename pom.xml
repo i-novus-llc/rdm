@@ -4,23 +4,23 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>2.5-SNAPSHOT</version>
+    <version>3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
-        <artifactId>n2o-platform-parent</artifactId>
-        <version>3.0.6</version>
+        <artifactId>n2o-boot-platform-parent</artifactId>
+        <version>4.2.3-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>14</maven.compiler.source>
+        <maven.compiler.target>14</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>3.4</vds.version>
-        <l10n.vds.version>3.9</l10n.vds.version>
+        <vds.version>3.5</vds.version>
+        <l10n.vds.version>3.10</l10n.vds.version>
         <n2o.version>7.9.6</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>

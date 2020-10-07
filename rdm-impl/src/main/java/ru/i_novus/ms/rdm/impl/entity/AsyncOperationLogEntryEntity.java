@@ -19,7 +19,7 @@ import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getAsJson;
 public class AsyncOperationLogEntryEntity {
 
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", columnDefinition = "uuid", nullable = false)
     private UUID uuid;
 
     @Enumerated(value = EnumType.STRING)

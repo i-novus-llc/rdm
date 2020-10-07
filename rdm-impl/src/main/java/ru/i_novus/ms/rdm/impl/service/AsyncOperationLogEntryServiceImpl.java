@@ -74,7 +74,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public AsyncOperationLogEntry get(UUID id) {
-        return toModel(repository.findById(id).orElse(null));
+        return toModel(repository.findByUuid(id));
     }
 
     @Override

@@ -15,7 +15,7 @@ public interface AsyncOperationLogEntryRepository extends
         QuerydslPredicateExecutor<AsyncOperationLogEntryEntity> {
 
     @Transactional
-    AsyncOperationLogEntryEntity findByUuid(UUID uuid);
+    AsyncOperationLogEntryEntity findByUuid(@Param("id") UUID id);
 
     @Transactional
     @Modifying
@@ -25,6 +25,6 @@ public interface AsyncOperationLogEntryRepository extends
                     "VALUES (:id, :op_enum, :code, :payload) \n" +
                     "ON CONFLICT (id) DO \n" +
                     "       UPDATE SET status = 'IN_PROGRESS'")
-    void saveWithoutConflict(@Param("id") UUID operationId, @Param("op_enum") String operationType,
+    void saveWithoutConflict(@Param("id") UUID id, @Param("op_enum") String operationType,
                              @Param("code") String code, @Param("payload") String payload);
 }

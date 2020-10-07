@@ -79,6 +79,27 @@ public class L10nServiceImpl implements L10nService {
         draftDataService.localizeRows(targetCode, updatedRowValues);
     }
 
+    /** Создание копии таблицы версии для локализации записей. */
+    private String localizeTable(RefBookVersionEntity versionEntity, LocalizeTableRequest request) {
+
+        String sourceTableName = versionEntity.getStorageCode();
+        if (isEmpty(sourceTableName))
+            throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
+
+        String targetSchemaName = toValidSchemaName(request.getLocaleCode());
+        String targetCode = toStorageCode(targetSchemaName, sourceTableName);
+
+        if (!draftDataService.storageExists(targetCode)) {
+
+            targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
+
+            // Копирование всех колонок записей, FTS обновляется по триггеру.
+            draftDataService.copyAllData(sourceTableName, targetCode);
+        }
+
+        return targetCode;
+    }
+
     /** Получение структуры для перевода на основе структуры версии. */
     private Structure toLocalizableStructure(Structure structure) {
 
@@ -106,29 +127,6 @@ public class L10nServiceImpl implements L10nService {
                 .map(row -> ConverterUtil.rowValue(row, structure))
                 .filter(rowValue -> rowValue.getSystemId() != null)
                 .collect(toList());
-    }
-
-    /**
-     * Создание копии таблицы версии для локализации записей.
-     */
-    private String localizeTable(RefBookVersionEntity versionEntity, LocalizeTableRequest request) {
-
-        String sourceTableName = versionEntity.getStorageCode();
-        if (isEmpty(sourceTableName))
-            throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
-
-        String targetSchemaName = toValidSchemaName(request.getLocaleCode());
-        String targetCode = toStorageCode(targetSchemaName, sourceTableName);
-
-        if (!draftDataService.storageExists(targetCode)) {
-
-            targetCode = draftDataService.createLocalizedTable(sourceTableName, targetSchemaName);
-
-            // Копирование всех колонок записей, FTS обновляется по триггеру.
-            draftDataService.copyAllData(sourceTableName, targetCode);
-        }
-
-        return targetCode;
     }
 
     private String toValidSchemaName(String localeCode) {
