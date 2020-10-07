@@ -113,7 +113,7 @@ class AsyncOperationQueueListener {
         }
 
         UUID operationId = message.getOperationId();
-        repository.saveWithoutConflict(operationId.toString(), message.getOperationType().name(),
+        repository.saveWithoutConflict(operationId, message.getOperationType().name(),
                 message.getCode(), message.getPayloadAsJson());
 
         return repository.findByUuid(operationId);

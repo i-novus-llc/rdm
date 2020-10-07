@@ -1,6 +1,9 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.type.PostgresUUIDType;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 
@@ -16,10 +19,14 @@ import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getAsJson;
  */
 @Entity
 @Table(name = "async_log_entry", schema = "n2o_rdm_management")
+@TypeDef(name="postgres-uuid",
+          defaultForType = UUID.class,
+          typeClass = PostgresUUIDType.class)
 public class AsyncOperationLogEntryEntity {
 
     @Id
-    @Column(name = "id", nullable = false)
+    @Type(type="org.hibernate.type.PostgresUUIDType")
+    @Column(name = "id", columnDefinition = "uuid", nullable = false)
     private UUID uuid;
 
     @Enumerated(value = EnumType.STRING)

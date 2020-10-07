@@ -64,7 +64,7 @@ public class AsyncOperationQueue {
         final UUID operationId = newOperationId();
 
         AsyncOperationMessage message = new AsyncOperationMessage(operationId, operationType, code, args, userAccessor.get());
-        repository.saveWithoutConflict(operationId.toString(), operationType.name(), code, message.getPayloadAsJson());
+        repository.saveWithoutConflict(operationId, operationType.name(), code, message.getPayloadAsJson());
 
         return message;
     }
