@@ -6,7 +6,9 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +92,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
+@SuppressWarnings("rawtypes")
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
@@ -680,9 +683,7 @@ public class ApplicationTest {
             updateData(versionId, badRow, null);
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter("validation.type.error"::equals).count());
+            assertEquals(1, getErrorCount(re, "validation.type.error"));
         }
 
         // создание двух строк одновременно
@@ -727,9 +728,7 @@ public class ApplicationTest {
             updateData(versionId, row3, null);
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter("row.not.found"::equals).count());
+            assertEquals(1, getErrorCount(re, "row.not.found"));
         }
     }
 
@@ -856,9 +855,7 @@ public class ApplicationTest {
             updateData(versionId, row3, null);
             fail();
         } catch (RestException re) {
-            Assert.assertEquals(1, re.getErrors().stream()
-                    .map(RestMessage.Error::getMessage)
-                    .filter("row.not.found"::equals).count());
+            assertEquals(1, getErrorCount(re, "row.not.found"));
         }
     }
 
@@ -1094,7 +1091,7 @@ public class ApplicationTest {
 
         Structure draft1Structure = versionService.getStructure(draft1.getId());
         Structure draft2Structure = versionService.getStructure(draft2.getId());
-        Assert.assertTrue(draft1Structure.storageEquals(draft2Structure));
+        assertTrue(draft1Structure.storageEquals(draft2Structure));
 
         List<Field> draft1Fields = fields(draft1Structure);
         List<RefBookRowValue> rowValues2 = draftService.search(draft2.getId(), new SearchDataCriteria()).getContent();
@@ -1158,7 +1155,7 @@ public class ApplicationTest {
             searchDataCriteria.setCommonFilter(fullTextSearchValue);
 
             Page<RefBookRowValue> actualPage = draftService.search(draft.getId(), searchDataCriteria);
-            Assert.assertEquals("Full text search failed", 1, actualPage.getContent().size());
+            assertEquals("Full text search failed", 1, actualPage.getContent().size());
             assertRows(fields, expectedRowValues, actualPage.getContent());
         });
 
@@ -1216,11 +1213,11 @@ public class ApplicationTest {
 
         //создание нового черновика из выгруженного
         Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
-        Assert.assertNotEquals(draft1, draft2);
+        assertNotEquals(draft1, draft2);
         Page<RefBookRowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
 
         //сравнение двух черновиков
-        Assert.assertEquals(expectedPage, actualPage);
+        assertEquals(expectedPage, actualPage);
     }
 
     @Test
@@ -1638,18 +1635,21 @@ public class ApplicationTest {
             fail();
 
         } catch (RestException re) {
-            Assert.assertEquals(10, re.getErrors().size());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.db.contains.pk.err"::equals).count());
-            Assert.assertEquals(1, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.required.pk.err"::equals).count());
-            Assert.assertEquals(4, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.type.error"::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter(ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE::equals).count());
-            Assert.assertEquals(2, re.getErrors().stream().map(RestMessage.Error::getMessage)
-                    .filter("validation.not.unique.pk.err"::equals).count());
+            assertEquals(10, re.getErrors().size());
+            assertEquals(1, getErrorCount(re, "validation.db.contains.pk.err"));
+            assertEquals(1, getErrorCount(re, "validation.required.pk.err"));
+            assertEquals(4, getErrorCount(re, "validation.type.error"));
+            assertEquals(2, getErrorCount(re, ReferenceValueValidation.REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE));
+            assertEquals(2, getErrorCount(re, "validation.not.unique.pk.err"));
         }
+    }
+
+    private long getErrorCount(RestException re, String errorCode) {
+
+        return re.getErrors().stream()
+                .map(RestMessage.BaseError::getMessage)
+                .filter(errorCode::equals)
+                .count();
     }
 
     /**
@@ -1828,6 +1828,12 @@ public class ApplicationTest {
         final String CARDINAL_PRIMARY_VALUE_9_DELETED = "TEST_9";
         final String CARDINAL_PRIMARY_VALUE_0_INSERTED = "TEST_0";
 
+        final List<String> CARDINAL_PRIMARY_UNCHANGED_LIST = List.of(
+                CARDINAL_PRIMARY_VALUE_1_UNCHANGED,
+                CARDINAL_PRIMARY_VALUE_2_UNCHANGED,
+                CARDINAL_PRIMARY_VALUE_3_UNCHANGED
+        );
+
 //      1. Исходный справочник.
         // Загрузка из файла.
         FileModel cardinalFileModel = createFileModel(CARDINAL_FILE_NAME, REF_BOOK_FILE_FOLDER + CARDINAL_FILE_NAME);
@@ -1850,9 +1856,11 @@ public class ApplicationTest {
         assertEquals(CARDINAL_DATA_ROW_COUNT, cardinalContent.size());
 
         // Проверка данных.
-        RefBookRowValue cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, CARDINAL_PRIMARY_VALUE_1_UNCHANGED);
-        assertNotNull(cardinalRowValue);
-        cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, CARDINAL_PRIMARY_VALUE_0_INSERTED);
+        CARDINAL_PRIMARY_UNCHANGED_LIST.forEach(value -> {
+            RefBookRowValue cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, value);
+            assertNotNull(cardinalRowValue);
+        });
+        RefBookRowValue cardinalRowValue = getVersionRowValue(cardinalVersion.getId(), cardinalPrimary, CARDINAL_PRIMARY_VALUE_0_INSERTED);
         assertNull(cardinalRowValue);
 
         // Публикация для возможности создания ссылок на него.
@@ -2307,9 +2315,8 @@ public class ApplicationTest {
         updateFromFile(newVersionId, null, FILE_NAME, "testCompare/" + FILE_NAME);
         publish(newVersionId, "1.1", publishDate2, null, false);
 
-        List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
         RefBookDataDiff expectedRefBookDataDiff = new RefBookDataDiff(
-                new PageImpl<>(expectedDiffRowValues, PageRequest.of(0, 10), expectedDiffRowValues.size()),
+                new PageImpl<>(new ArrayList<>(), PageRequest.of(0, 10), 0),
                 emptyList(),
                 singletonList(name.getCode()),
                 emptyList()
@@ -2729,7 +2736,8 @@ public class ApplicationTest {
             boolean isPresent = values2.stream().anyMatch(val2 -> {
                 if (val2 == val1) return true;
                 if (val2.getField().equals(val1.getField())) {
-                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().get();
+                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().orElse(null);
+                    assertNotNull(field);
                     //noinspection unchecked
                     return field.valueOf(val2.getValue()).equals(val1);
                 }
@@ -2790,11 +2798,12 @@ public class ApplicationTest {
         assertEquals(expectedStrings, actualStrings);
     }
 
+    @SuppressWarnings("unchecked")
     private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<? extends RowValue> actualRows) {
-        Assert.assertEquals("result size not equals", expectedRows.size(), actualRows.size());
+        assertEquals("result size not equals", expectedRows.size(), actualRows.size());
         String expectedRowsStr = expectedRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
         String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
-        Assert.assertTrue(
+        assertTrue(
                 "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr
                 , actualRows.stream().anyMatch(actualRow ->
                         expectedRows.stream().anyMatch(expectedRow ->
@@ -2952,6 +2961,7 @@ public class ApplicationTest {
         return row;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
         StringField stringField = new StringField(fieldName);
 
@@ -2991,6 +3001,7 @@ public class ApplicationTest {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
@@ -3087,6 +3098,7 @@ public class ApplicationTest {
         draftService.updateData(draftId, request);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updateData(Integer draftId, List<Row> rows, Integer optLockValue) {
         UpdateDataRequest request = new UpdateDataRequest(optLockValue, rows);
         draftService.updateData(draftId, request);
@@ -3097,11 +3109,13 @@ public class ApplicationTest {
         draftService.deleteData(draftId, request);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void deleteAllData(Integer draftId, Integer optLockValue) {
         DeleteAllDataRequest request = new DeleteAllDataRequest(optLockValue);
         draftService.deleteAllData(draftId, request);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void updateFromFile(Integer draftId, Integer optLockValue, String filePath, String fileName) {
         FileModel fileModel = createFileModel(filePath, fileName);
         UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
