@@ -18,26 +18,27 @@
     <properties>
         <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.skip>false</jacoco.skip>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-api</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-loader-client</artifactId>
         </dependency>
 
-        <!-- TEST -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
@@ -49,6 +50,8 @@
             <artifactId>n2o-platform-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- / test -->
+
     </dependencies>
 
     <build>
