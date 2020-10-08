@@ -56,6 +56,6 @@ public class AbstractCriteria extends RestCriteria {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

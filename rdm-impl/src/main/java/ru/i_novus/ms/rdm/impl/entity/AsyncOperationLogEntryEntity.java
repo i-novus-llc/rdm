@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getAsJson;
+import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.toJsonString;
 
 /**
  * Асинхронная операция: Сущность.
@@ -134,7 +134,7 @@ public class AsyncOperationLogEntryEntity {
     @JsonIgnore
     public void setSerializableResult(Serializable result) {
 
-        String jsonResult = (result == null) ? null : getAsJson(result);
+        String jsonResult = (result == null) ? null : toJsonString(result);
         setResult(jsonResult);
     }
 }

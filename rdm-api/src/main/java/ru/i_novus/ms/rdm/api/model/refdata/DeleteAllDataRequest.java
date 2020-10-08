@@ -30,6 +30,6 @@ public class DeleteAllDataRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

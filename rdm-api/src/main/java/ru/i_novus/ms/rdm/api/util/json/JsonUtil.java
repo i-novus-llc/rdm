@@ -11,13 +11,12 @@ public final class JsonUtil {
         throw new UnsupportedOperationException();
     }
 
-    public static String getAsJson(Object obj) {
+    public static String toJsonString(Object o) {
         try {
-            return jsonMapper.writeValueAsString(obj);
+            return jsonMapper.writeValueAsString(o);
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Cannot serialize json value.", e);
         }
     }
-
 }
