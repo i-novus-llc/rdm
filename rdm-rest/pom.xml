@@ -11,6 +11,8 @@
     </parent>
 
     <properties>
+        <commons.fileupload.version>1.4</commons.fileupload.version>
+
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
     </properties>
@@ -84,18 +86,6 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>rt</artifactId>
         </dependency>
@@ -124,10 +114,23 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.4</version>
-            <scope>test</scope>
+            <version>${commons.fileupload.version}</version>
         </dependency>
         <!-- / fix NoClassDefFoundError for CommonsMultipartResolver -->
+
+        <!-- test -->
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- / test -->
 
     </dependencies>
 
