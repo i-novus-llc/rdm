@@ -30,10 +30,25 @@ public class RefBookTestUtils {
 
         objectAssert.accept(current, actual);
 
-        if (current != null && actual != null) {
-            objectAssert.accept(current.hashCode(), actual.hashCode());
+        if (current == null || actual == null)
+            return;
+
+        objectAssert.accept(current.hashCode(), actual.hashCode());
+
+        if (isOverridingToString(current)) {
             objectAssert.accept(current.toString(), actual.toString());
         }
+    }
+
+    /** Проверка перекрытия `toString` в классе. */
+    private static boolean isOverridingToString(Object o) {
+
+        String actual = o.toString();
+        if (StringUtils.isEmpty(actual))
+            return true;
+
+        String expected = o.getClass().getName() + "@" + Integer.toHexString(o.hashCode());
+        return actual.equals(expected);
     }
 
     /**
