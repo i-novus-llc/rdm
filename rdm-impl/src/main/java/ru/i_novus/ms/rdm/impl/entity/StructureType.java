@@ -13,8 +13,6 @@ import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -61,26 +59,18 @@ public class StructureType implements UserType {
 
     private Structure jsonToStructure(JsonNode attributesJson) {
 
-        List<Structure.Attribute> attributes = new ArrayList<>();
-        List<Structure.Reference> references = new ArrayList<>();
+        Structure structure = new Structure();
+        if (!attributesJson.isArray())
+            return structure;
 
-        if (attributesJson.isArray()) {
-            for (JsonNode attributeJson : attributesJson) {
+        for (JsonNode attributeJson : attributesJson) {
 
-                Structure.Attribute attribute = createAttribute(attributeJson);
-                Structure.Reference reference = createReference(attribute, attributeJson);
-
-                if (reference != null) {
-                    references.add(reference);
-                }
-
-                if (attribute != null) {
-                    attributes.add(attribute);
-                }
-            }
+            Structure.Attribute attribute = createAttribute(attributeJson);
+            Structure.Reference reference = createReference(attribute, attributeJson);
+            structure.add(attribute, reference);
         }
 
-        return new Structure(attributes, references);
+        return structure;
     }
 
     private Structure.Attribute createAttribute(JsonNode attributeJson) {
