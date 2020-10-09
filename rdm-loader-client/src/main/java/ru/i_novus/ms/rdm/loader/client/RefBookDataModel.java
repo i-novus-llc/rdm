@@ -85,7 +85,7 @@ public class RefBookDataModel {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RefBookDataModel)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         RefBookDataModel that = (RefBookDataModel) o;
         return Objects.equals(code, that.code) &&
@@ -97,7 +97,17 @@ public class RefBookDataModel {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(code, name, structure, data, file);
+    }
+
+    @Override
+    public String toString() {
+        return "RefBookDataModel{" +
+                (code != null ? "code='" + code + '\'' : "") +
+                (name != null ? ", name='" + name + '\'' : "") +
+                (structure != null ? ", structure='" + structure + '\'' : "") +
+                (data != null ? ", data='" + data + '\'' : "") +
+                (file != null ? ", file=" + file : "") +
+                '}';
     }
 }
