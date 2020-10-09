@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -59,6 +60,8 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -66,7 +69,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -3076,7 +3078,7 @@ public class ApplicationTest {
     @Test
     public void testRefBookDataServerLoader() {
 
-        final int LOADED_FILE_SUCCESS_COUNT = 2;
+        final int LOADED_FILE_SUCCESS_INDEX = 1;
         final int LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX = 3;
         final int LOADED_FILE_CODE_EXISTS_FAILURE_INDEX = 4;
 
@@ -3085,28 +3087,25 @@ public class ApplicationTest {
         final String LOADED_TARGET = "refBookData";
 
         // Успешная загрузка справочников из корректных xml.
-        MultipartBody body = createBody(IntStream.rangeClosed(1, LOADED_FILE_SUCCESS_COUNT));
+        MultipartBody body = createBody(LOADED_FILE_SUCCESS_INDEX);
 
         refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
 
-        IntStream.rangeClosed(1, LOADED_FILE_SUCCESS_COUNT).forEach(value -> {
+        String code = String.format("%s%d", LOADED_CODE, LOADED_FILE_SUCCESS_INDEX);
+        try {
+            Integer id = refBookService.getId(code);
+            assertNotNull(id);
 
-            String code = String.format("%s%d", LOADED_CODE, value);
-            try {
-                Integer id = refBookService.getId(code);
-                assertNotNull(id);
+            RefBookVersion version = versionService.getLastPublishedVersion(code);
+            assertNotNull(version);
+            assertNotNull(version.getId());
 
-                RefBookVersion version = versionService.getLastPublishedVersion(code);
-                assertNotNull(version);
-                assertNotNull(version.getId());
-
-            } catch (Exception e) {
-                fail();
-            }
-        });
+        } catch (Exception e) {
+            fail();
+        }
 
         // Ошибка загрузки справочников из ошибочной xml (невалидный код атрибута).
-        body = createBody(IntStream.of(LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX));
+        body = createBody(LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX);
         try {
             refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
             fail();
@@ -3119,7 +3118,7 @@ public class ApplicationTest {
         }
 
         // Пропуск загрузки существующих справочников из xml.
-        body = createBody(IntStream.of(LOADED_FILE_CODE_EXISTS_FAILURE_INDEX));
+        body = createBody(LOADED_FILE_CODE_EXISTS_FAILURE_INDEX);
         try {
             refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
 
@@ -3128,31 +3127,34 @@ public class ApplicationTest {
         }
     }
 
-    private MultipartBody createBody(IntStream intStream) {
+    private MultipartBody createBody(int index) {
 
         final String LOADED_FILE_NAME = "loadedData_";
         final String LOADED_FILE_EXT = ".xml";
         final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
 
-        List<Resource> resources = intStream
-                .mapToObj(value -> new FileSystemResource(String.format("%s%s%d%s", LOADED_FILE_FOLDER, LOADED_FILE_NAME, value, LOADED_FILE_EXT)))
-                .collect(toList());
+        Attachment attachment = null;
+        try {
+            Resource resource = new FileSystemResource(String.format("%s%s%d%s", LOADED_FILE_FOLDER, LOADED_FILE_NAME, index, LOADED_FILE_EXT));
+            javax.activation.DataSource dataSource = new InputStreamDataSource(resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename());
 
-        List<Attachment> attachments = resources.stream()
-                .map(resource -> {
-                    try {
-                        javax.activation.DataSource dataSource = new InputStreamDataSource(resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename());
-                        return new Attachment("file", dataSource, null);
+            String fileName = resource.getFilename();
+            assertNotNull(fileName);
 
-                    } catch (IOException e) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
+            MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + fileName));
 
-        return new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
+            attachment = new Attachment("file", dataSource, headers);
+
+        } catch (IOException e) {
+            return null;
+        }
+
+        assertNotNull(attachment);
+
+        return new MultipartBody(List.of(attachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
     }
+    
     private static String getRestExceptionMessage(RestException re) {
 
         if (!StringUtils.isEmpty(re.getMessage()))

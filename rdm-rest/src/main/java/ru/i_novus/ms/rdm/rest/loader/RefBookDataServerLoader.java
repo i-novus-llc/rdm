@@ -17,8 +17,9 @@ import java.util.List;
 
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 
+/** Загрузчик справочника. */
 @Component
-public class RefBookDataServerLoader implements ServerLoader<FileModel> {
+public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoader.class);
 
@@ -41,12 +42,12 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
     }
 
     @Override
-    public Class<FileModel> getDataType() {
-        return FileModel.class;
+    public Class<RefBookDataRequest> getDataType() {
+        return RefBookDataRequest.class;
     }
 
     @Override
-    public void load(List<FileModel> data, String subject) {
+    public void load(List<RefBookDataRequest> data, String subject) {
 
         if (isEmpty(data)) {
             logger.info("No data loading from subject = {}", subject);
@@ -66,13 +67,17 @@ public class RefBookDataServerLoader implements ServerLoader<FileModel> {
     }
 
     @SuppressWarnings("java:S2139")
-    private void createAndPublishRefBook(FileModel fileModel) {
+    private void createAndPublishRefBook(RefBookDataRequest request) {
+
+        FileModel fileModel = request.getFileModel();
+        if (fileModel == null)
+            return;
 
         logger.info("Start data loading from file '{}'", fileModel.getName());
         try {
             Draft draft = refBookService.create(fileModel);
-            PublishRequest request = new PublishRequest(null);
-            publishService.publish(draft.getId(), request);
+            PublishRequest publishRequest = new PublishRequest(null);
+            publishService.publish(draft.getId(), publishRequest);
 
             logger.info("Finish data loading from file '{}'", fileModel.getName());
 

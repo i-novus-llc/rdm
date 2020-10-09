@@ -5,8 +5,6 @@ import net.n2oapp.platform.loader.server.*;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.ContentDisposition;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -21,17 +19,14 @@ import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Запускатель загрузчиков справочников RDM.
  */
 @Service
-@Api("Загрузчики данных справочников")
+@Api("Загрузчики справочников")
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements ServerLoaderRestService {
-
-    private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoaderRunner.class);
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -58,6 +53,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     @Override
     protected List<Object> read(InputStream body, LoaderDataInfo<?> info) {
+
         throw new IllegalArgumentException(String.format("Unsupported format for %s", info.getTarget()));
     }
 
@@ -78,40 +74,57 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
             return;
 
         ServerLoader loader = find(target);
-        List<Object> fileModels = body.getAllAttachments().stream()
-                .map(file -> read(file, loader))
-                .collect(Collectors.toList());
-        execute(subject, fileModels, loader);
+        RefBookDataRequest request = toRequest(body, loader);
+        if (request == null)
+            return;
+
+        execute(subject, List.of(request), loader);
     }
 
-    protected FileModel read(Attachment file, LoaderDataInfo<?> info) {
-        try {
-            String fileName = getFileName(file);
-            return fileStorageService.save(file.getDataHandler().getDataSource().getInputStream(), fileName);
+    private RefBookDataRequest toRequest(MultipartBody body, LoaderDataInfo<?> info) {
 
-        } catch (IOException e) {
-            throw new IllegalArgumentException(String.format("Cannot read file for %s", info.getTarget()), e);
+        if (CollectionUtils.isEmpty(body.getAllAttachments()))
+            return null;
+
+        RefBookDataRequest request = new RefBookDataRequest();
+
+        for (Attachment attachment : body.getAllAttachments()) {
+
+            String fileName = getFileName(attachment);
+            if (!StringUtils.isEmpty(fileName)) {
+                FileModel fileModel = read(attachment, fileName, info);
+                request.setFileModel(fileModel);
+            }
+
+            String name = attachment.getDataHandler().getDataSource().getName();
+            String value = attachment.getObject(String.class);
+
+            if ("code".equals(name)) {
+                request.setCode(value);
+            }
         }
+
+        return request;
     }
 
-    private String getFileName(Attachment file) {
+    private String getFileName(Attachment attachment) {
 
-        String fileName = file.getDataHandler().getDataSource().getName();
-        if (!StringUtils.isEmpty(fileName))
-            return fileName;
-
-        List<String> contentDispositionHeaders = file.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
+        List<String> contentDispositionHeaders = attachment.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
         if (CollectionUtils.isEmpty(contentDispositionHeaders)
                 || StringUtils.isEmpty(contentDispositionHeaders.get(0))) {
-            logger.error("Content disposition headers are empty");
-            throw new NotFoundException();
+            return null;
         }
 
         ContentDisposition contentDisposition = new ContentDisposition(contentDispositionHeaders.get(0));
-        fileName = contentDisposition.getFilename();
-        if (!StringUtils.isEmpty(fileName))
-            return fileName;
+        return contentDisposition.getFilename();
+    }
+    
+    private FileModel read(Attachment attachment, String fileName, LoaderDataInfo<?> info) {
+        try {
+            return fileStorageService.save(attachment.getDataHandler().getDataSource().getInputStream(), fileName);
 
-        return UUID.randomUUID().toString();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format("Cannot read attachment for %s", info.getTarget()), e);
+        }
     }
 }
