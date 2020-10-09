@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.rest.loader;
 
 import ru.i_novus.ms.rdm.api.model.FileModel;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
@@ -11,7 +10,7 @@ import java.util.Objects;
 public class RefBookDataRequest extends RefBookCreateRequest {
 
     /** Структура справочника. */
-    private Structure structure;
+    private String structure;
 
     /** Данные справочника. */
     private String data;
@@ -23,11 +22,11 @@ public class RefBookDataRequest extends RefBookCreateRequest {
         // Nothing to do.
     }
 
-    public Structure getStructure() {
+    public String getStructure() {
         return structure;
     }
 
-    public void setStructure(Structure structure) {
+    public void setStructure(String structure) {
         this.structure = structure;
     }
 

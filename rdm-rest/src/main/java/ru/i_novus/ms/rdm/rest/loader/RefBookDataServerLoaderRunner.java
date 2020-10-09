@@ -18,7 +18,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Запускатель загрузчиков справочников RDM.
@@ -87,6 +89,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
             return null;
 
         RefBookDataRequest request = new RefBookDataRequest();
+        Map<String, String> passport = new HashMap<>();
 
         for (Attachment attachment : body.getAllAttachments()) {
 
@@ -102,6 +105,22 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
             if ("code".equals(name)) {
                 request.setCode(value);
             }
+
+            if ("name".equals(name)) {
+                passport.put("name", value);
+            }
+
+            if ("structure".equals(name)) {
+                request.setStructure(value);
+            }
+
+            if ("data".equals(name)) {
+                request.setData(value);
+            }
+        }
+
+        if (!passport.isEmpty()) {
+            request.setPassport(passport);
         }
 
         return request;
