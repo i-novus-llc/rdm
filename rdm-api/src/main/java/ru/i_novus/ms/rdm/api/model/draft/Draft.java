@@ -29,6 +29,7 @@ public class Draft {
     }
 
     public Draft() {
+        // Nothing to do.
     }
 
     public Integer getId() {
@@ -55,7 +56,6 @@ public class Draft {
         this.optLockValue = optLockValue;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isVersionDraft(Integer versionId) {
         return Objects.equals(getId(), versionId);
     }
@@ -74,5 +74,14 @@ public class Draft {
     @Override
     public int hashCode() {
         return Objects.hash(id, storageCode, optLockValue);
+    }
+
+    @Override
+    public String toString() {
+        return "Draft{" +
+                "id=" + id +
+                ", storageCode='" + storageCode + '\'' +
+                ", optLockValue=" + optLockValue +
+                '}';
     }
 }

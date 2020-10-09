@@ -44,7 +44,7 @@ public class UiDraft extends Draft {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UiDraft)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
         UiDraft that = (UiDraft) o;
@@ -54,5 +54,13 @@ public class UiDraft extends Draft {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), refBookId);
+    }
+
+    @Override
+    public String toString() {
+        return "UiDraft{" +
+                super.toString() +
+                ", refBookId=" + refBookId +
+                '}';
     }
 }
