@@ -61,48 +61,59 @@ public class StructureType implements UserType {
 
     private Structure jsonToStructure(JsonNode attributesJson) {
 
-        Structure structure = new Structure();
         List<Structure.Attribute> attributes = new ArrayList<>();
         List<Structure.Reference> references = new ArrayList<>();
 
         if (attributesJson.isArray()) {
             for (JsonNode attributeJson : attributesJson) {
 
-                String code = getByKey(attributeJson, "code", JsonNode::asText);
-                String name = getByKey(attributeJson, "name", JsonNode::asText);
-                String type = getByKey(attributeJson, "type", JsonNode::asText);
+                Structure.Attribute attribute = createAttribute(attributeJson);
+                Structure.Reference reference = createReference(attribute, attributeJson);
 
-                boolean isPrimary = Boolean.TRUE.equals(getByKey(attributeJson, "isPrimary", JsonNode::asBoolean));
-                boolean localizable = Boolean.TRUE.equals(getByKey(attributeJson, "localizable", JsonNode::asBoolean));
-                String description = getByKey(attributeJson, "description", JsonNode::asText);
-
-                String referenceCode = getByKey(attributeJson, "referenceCode", JsonNode::asText);
-                String displayExpression = getByKey(attributeJson, "displayExpression", JsonNode::asText);
-
-                Structure.Attribute attribute;
-                if (isPrimary) {
-                    attribute = Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
-
-                } else if (localizable) {
-                    attribute = Structure.Attribute.buildLocalizable(code, name, FieldType.valueOf(type), description);
-
-                } else {
-                    attribute = Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
-                }
-
-                if (attribute.isReferenceType()) {
-                    Structure.Reference reference = new Structure.Reference(code, referenceCode, displayExpression);
+                if (reference != null) {
                     references.add(reference);
                 }
 
-                attributes.add(attribute);
+                if (attribute != null) {
+                    attributes.add(attribute);
+                }
             }
         }
 
-        structure.setAttributes(attributes);
-        structure.setReferences(references);
+        return new Structure(attributes, references);
+    }
 
-        return structure;
+    private Structure.Attribute createAttribute(JsonNode attributeJson) {
+
+        String code = getByKey(attributeJson, "code", JsonNode::asText);
+        if (isEmpty(code))
+            return null;
+
+        String name = getByKey(attributeJson, "name", JsonNode::asText);
+        String type = getByKey(attributeJson, "type", JsonNode::asText);
+
+        boolean isPrimary = Boolean.TRUE.equals(getByKey(attributeJson, "isPrimary", JsonNode::asBoolean));
+        boolean localizable = Boolean.TRUE.equals(getByKey(attributeJson, "localizable", JsonNode::asBoolean));
+        String description = getByKey(attributeJson, "description", JsonNode::asText);
+
+        if (isPrimary)
+            return Structure.Attribute.buildPrimary(code, name, FieldType.valueOf(type), description);
+
+        if (localizable)
+            return Structure.Attribute.buildLocalizable(code, name, FieldType.valueOf(type), description);
+
+        return Structure.Attribute.build(code, name, FieldType.valueOf(type), description);
+    }
+
+    private Structure.Reference createReference(Structure.Attribute attribute, JsonNode attributeJson) {
+        
+        if (attribute == null || !attribute.isReferenceType())
+            return null;
+
+        String referenceCode = getByKey(attributeJson, "referenceCode", JsonNode::asText);
+        String displayExpression = getByKey(attributeJson, "displayExpression", JsonNode::asText);
+
+        return new Structure.Reference(attribute.getCode(), referenceCode, displayExpression);
     }
 
     @Override
@@ -114,7 +125,7 @@ public class StructureType implements UserType {
         }
 
         try {
-            ObjectNode structure = valueToJson(value);
+            ObjectNode structure = structureToJson((Structure) value);
             st.setObject(index, jsonMapper.writeValueAsString(structure), Types.OTHER);
 
         } catch (IOException ex) {
@@ -122,18 +133,19 @@ public class StructureType implements UserType {
         }
     }
 
-    private ObjectNode valueToJson(Object value) {
+    private ObjectNode structureToJson(Structure structure) {
 
-        Structure structure = (Structure) value;
         ArrayNode attributesJson = jsonMapper.createArrayNode();
-        structure.getAttributes().forEach(attribute -> attributesJson.add(createAttributeJson(attribute, structure)));
+        structure.getAttributes().forEach(attribute ->
+                attributesJson.add(createAttributeJson(attribute, structure.getReference(attribute.getCode())))
+        );
 
-        ObjectNode jsonStructure = jsonMapper.createObjectNode();
-        jsonStructure.set("attributes", attributesJson);
-        return jsonStructure;
+        ObjectNode structureJson = jsonMapper.createObjectNode();
+        structureJson.set("attributes", attributesJson);
+        return structureJson;
     }
 
-    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure structure) {
+    private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure.Reference reference) {
 
         ObjectNode attributeJson = jsonMapper.createObjectNode();
         attributeJson.put("code", attribute.getCode());
@@ -150,7 +162,6 @@ public class StructureType implements UserType {
             attributeJson.put("description", attribute.getDescription());
         }
 
-        Structure.Reference reference = structure.getReference(attribute.getCode());
         if (reference != null) {
             attributeJson.put("referenceCode", reference.getReferenceCode());
             if (reference.getDisplayExpression() != null)
