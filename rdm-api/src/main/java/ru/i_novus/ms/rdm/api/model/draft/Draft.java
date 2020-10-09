@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.api.model.draft;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
@@ -78,10 +79,6 @@ public class Draft {
 
     @Override
     public String toString() {
-        return "Draft{" +
-                "id=" + id +
-                ", storageCode='" + storageCode + '\'' +
-                ", optLockValue=" + optLockValue +
-                '}';
+        return JsonUtil.toJsonString(this);
     }
 }

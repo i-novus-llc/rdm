@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
@@ -58,9 +59,6 @@ public class UiDraft extends Draft {
 
     @Override
     public String toString() {
-        return "UiDraft{" +
-                super.toString() +
-                ", refBookId=" + refBookId +
-                '}';
+        return JsonUtil.toJsonString(this);
     }
 }
