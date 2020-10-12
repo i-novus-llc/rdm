@@ -16,11 +16,11 @@ import ru.i_novus.ms.rdm.api.service.FileStorageService;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Запускатель загрузчиков справочников RDM.
@@ -42,7 +42,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     @POST
     @Path("/json/{subject}/{target}")
-    @ApiOperation("Загрузить данные")
+    @ApiOperation("Загрузить json-данные")
     @ApiResponse(code = 200, message = "Данные загружены без ошибок")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -61,17 +61,17 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     @POST
     @Path("/{subject}/{target}")
-    @ApiOperation("Загрузить файлы с данными")
+    @ApiOperation("Загрузить справочник")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Файлы с данными загружены без ошибок"),
+            @ApiResponse(code = 200, message = "Справочник загружен без ошибок"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
-            @ApiResponse(code = 404, message = "Нет файла с данными")
+            @ApiResponse(code = 404, message = "Нет справочника")
     })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public void runFile(@ApiParam("Владелец данных") @PathParam("subject") String subject,
-                        @ApiParam("Вид данных") @PathParam("target") String target,
-                        @ApiParam("Содержимое") MultipartBody body) {
+    public void run(@ApiParam("Владелец данных") @PathParam("subject") String subject,
+                    @ApiParam("Вид данных") @PathParam("target") String target,
+                    @ApiParam("Содержимое") MultipartBody body) {
         if (!loaderEnabled)
             return;
 
@@ -83,47 +83,55 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         execute(subject, List.of(request), loader);
     }
 
+    /** Формирование запроса на загрузку справочника по полученному содержимому. */
     private RefBookDataRequest toRequest(MultipartBody body, LoaderDataInfo<?> info) {
 
         if (CollectionUtils.isEmpty(body.getAllAttachments()))
             return null;
 
         RefBookDataRequest request = new RefBookDataRequest();
-        Map<String, String> passport = new HashMap<>();
+        request.setPassport(new HashMap<>());
 
         for (Attachment attachment : body.getAllAttachments()) {
-
-            String fileName = getFileName(attachment);
-            if (!StringUtils.isEmpty(fileName)) {
-                FileModel fileModel = read(attachment, fileName, info);
-                request.setFileModel(fileModel);
-            }
-
-            String name = attachment.getDataHandler().getDataSource().getName();
-            String value = attachment.getObject(String.class);
-
-            if ("code".equals(name)) {
-                request.setCode(value);
-            }
-
-            if ("name".equals(name)) {
-                passport.put("name", value);
-            }
-
-            if ("structure".equals(name)) {
-                request.setStructure(value);
-            }
-
-            if ("data".equals(name)) {
-                request.setData(value);
-            }
-        }
-
-        if (!passport.isEmpty()) {
-            request.setPassport(passport);
+            parseAttachment(attachment, info, request);
         }
 
         return request;
+    }
+
+    /** Разбор прикрепления и заполнение запроса. */
+    private void parseAttachment(Attachment attachment, LoaderDataInfo<?> info, RefBookDataRequest request) {
+
+        String fileName = getFileName(attachment);
+        if (!StringUtils.isEmpty(fileName)) {
+            FileModel fileModel = readFile(attachment, fileName, info);
+            request.setFileModel(fileModel);
+
+            return;
+        }
+
+        String name = attachment.getDataHandler().getDataSource().getName();
+
+        String value = attachment.getObject(String.class);
+        if (value == null) {
+            value = readString(attachment, name, info);
+        }
+
+        if ("code".equals(name)) {
+            request.setCode(value);
+        }
+
+        if ("name".equals(name)) {
+            request.getPassport().put("name", value);
+        }
+
+        if ("structure".equals(name)) {
+            request.setStructure(value);
+        }
+
+        if ("data".equals(name)) {
+            request.setData(value);
+        }
     }
 
     private String getFileName(Attachment attachment) {
@@ -138,12 +146,26 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         return contentDisposition.getFilename();
     }
     
-    private FileModel read(Attachment attachment, String fileName, LoaderDataInfo<?> info) {
+    private FileModel readFile(Attachment attachment, String fileName, LoaderDataInfo<?> info) {
         try {
             return fileStorageService.save(attachment.getDataHandler().getDataSource().getInputStream(), fileName);
 
         } catch (IOException e) {
-            throw new IllegalArgumentException(String.format("Cannot read attachment for %s", info.getTarget()), e);
+            throw new IllegalArgumentException(String.format("Cannot read attachment '%s' for %s", fileName, info.getTarget()), e);
+        }
+    }
+
+    private String readString(Attachment attachment, String name, LoaderDataInfo<?> info) {
+        try {
+            InputStream inputStream = attachment.getDataHandler().getDataSource().getInputStream();
+            if (inputStream == null)
+                return null;
+
+            return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                    .lines().collect(Collectors.joining("\n"));
+
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format("Cannot read attachment '%s' for %s", name, info.getTarget()), e);
         }
     }
 }

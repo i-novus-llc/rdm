@@ -76,6 +76,7 @@ public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest>
         logger.info("Start data loading from file '{}'", fileModel.getName());
         try {
             Draft draft = refBookService.create(fileModel);
+
             PublishRequest publishRequest = new PublishRequest(null);
             publishService.publish(draft.getId(), publishRequest);
 
