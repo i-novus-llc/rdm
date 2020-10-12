@@ -6,9 +6,6 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.apache.cxf.jaxrs.ext.multipart.Attachment;
-import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
-import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -47,7 +41,6 @@ import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
-import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -59,9 +52,6 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -190,9 +180,6 @@ public class ApplicationTest {
 
     @Autowired
     private SearchDataService searchDataService;
-
-    @Autowired
-    private RefBookDataServerLoaderRunner refBookDataServerLoaderRunner;
 
     @BeforeClass
     public static void initialize() {
@@ -3075,86 +3062,6 @@ public class ApplicationTest {
         return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
     }
 
-    @Test
-    public void testRefBookDataServerLoader() {
-
-        final int LOADED_FILE_SUCCESS_INDEX = 1;
-        final int LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX = 3;
-        final int LOADED_FILE_CODE_EXISTS_FAILURE_INDEX = 4;
-
-        final String LOADED_CODE = "LOADED_DATA_";
-        final String LOADED_SUBJECT = "test";
-        final String LOADED_TARGET = "refBookData";
-
-        // Успешная загрузка справочников из корректных xml.
-        MultipartBody body = createBody(LOADED_FILE_SUCCESS_INDEX);
-
-        refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
-
-        String code = String.format("%s%d", LOADED_CODE, LOADED_FILE_SUCCESS_INDEX);
-        try {
-            Integer id = refBookService.getId(code);
-            assertNotNull(id);
-
-            RefBookVersion version = versionService.getLastPublishedVersion(code);
-            assertNotNull(version);
-            assertNotNull(version.getId());
-
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Ошибка загрузки справочников из ошибочной xml (невалидный код атрибута).
-        body = createBody(LOADED_FILE_ATTRIBUTE_CODE_FAILURE_INDEX);
-        try {
-            refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
-            fail();
-
-        } catch (UserException e) {
-            assertTrue(e.getCode().contains("attribute.code.is.invalid"));
-
-        } catch (Exception e) {
-            fail();
-        }
-
-        // Пропуск загрузки существующих справочников из xml.
-        body = createBody(LOADED_FILE_CODE_EXISTS_FAILURE_INDEX);
-        try {
-            refBookDataServerLoaderRunner.runFile(LOADED_SUBJECT, LOADED_TARGET, body);
-
-        } catch (Exception e) {
-            fail();
-        }
-    }
-
-    private MultipartBody createBody(int index) {
-
-        final String LOADED_FILE_NAME = "loadedData_";
-        final String LOADED_FILE_EXT = ".xml";
-        final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
-
-        Attachment attachment = null;
-        try {
-            Resource resource = new FileSystemResource(String.format("%s%s%d%s", LOADED_FILE_FOLDER, LOADED_FILE_NAME, index, LOADED_FILE_EXT));
-            javax.activation.DataSource dataSource = new InputStreamDataSource(resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename());
-
-            String fileName = resource.getFilename();
-            assertNotNull(fileName);
-
-            MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
-            headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + fileName));
-
-            attachment = new Attachment("file", dataSource, headers);
-
-        } catch (IOException e) {
-            return null;
-        }
-
-        assertNotNull(attachment);
-
-        return new MultipartBody(List.of(attachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
-    }
-    
     private static String getRestExceptionMessage(RestException re) {
 
         if (!StringUtils.isEmpty(re.getMessage()))
