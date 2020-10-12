@@ -23,6 +23,7 @@ public class PostPublishRequestTest extends BaseTest {
     public void testClass() {
 
         PostPublishRequest emptyRequest = new PostPublishRequest();
+        assertSpecialEquals(emptyRequest);
 
         PostPublishRequest newRequest = createRequest();
         assertObjects(Assert::assertNotEquals, emptyRequest, newRequest);
@@ -31,7 +32,7 @@ public class PostPublishRequestTest extends BaseTest {
         assertObjects(Assert::assertEquals, newRequest, cloneRequest);
         
         PostPublishRequest copyRequest = copyRequest(newRequest);
-        assertObjects(Assert::assertEquals, newRequest, cloneRequest);
+        assertObjects(Assert::assertEquals, newRequest, copyRequest);
     }
 
     private PostPublishRequest createRequest() {
