@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.api.async;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.io.Serializable;
 import java.util.List;
@@ -10,10 +11,8 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.getFailedMessage;
 
-public class AsyncOperationHandlerTest {
+public class AsyncOperationHandlerTest extends BaseTest {
 
     private static final String TEST_REFBOOK_CODE = "test";
     private static final int TEST_REFBOOK_VERSION_ID = -10;

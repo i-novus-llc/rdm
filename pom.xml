@@ -237,6 +237,13 @@
                 <artifactId>audit-client-spring-boot-starter</artifactId>
                 <version>${audit.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -259,6 +266,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>rdm-test</module>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client</module>
                 <module>rdm-n2o-api</module>

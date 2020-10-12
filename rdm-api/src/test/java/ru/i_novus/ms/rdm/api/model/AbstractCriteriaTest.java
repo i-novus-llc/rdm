@@ -6,18 +6,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.assertObjects;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.assertSpecialEquals;
 
-public class AbstractCriteriaTest {
+public class AbstractCriteriaTest extends BaseTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     @SuppressWarnings("java:S2696")

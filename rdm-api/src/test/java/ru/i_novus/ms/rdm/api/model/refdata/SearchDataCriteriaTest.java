@@ -6,17 +6,17 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.assertObjects;
 
-public class SearchDataCriteriaTest {
+public class SearchDataCriteriaTest extends BaseTest {
 
     private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     @SuppressWarnings("java:S2696")

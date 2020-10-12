@@ -18,6 +18,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
@@ -38,13 +39,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getFailedMessage;
 import static ru.i_novus.ms.rdm.l10n.impl.utils.StructureTestConstants.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nServiceTest {
+public class L10nServiceTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;

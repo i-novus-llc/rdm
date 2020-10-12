@@ -3,12 +3,11 @@ package ru.i_novus.ms.rdm.loader.client;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static ru.i_novus.ms.rdm.loader.client.util.RefBookTestUtils.assertObjects;
-import static ru.i_novus.ms.rdm.loader.client.util.RefBookTestUtils.assertSpecialEquals;
 
-public class RefBookDataModelTest {
+public class RefBookDataModelTest extends BaseTest {
 
     @Test
     public void testClass() {

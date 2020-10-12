@@ -6,15 +6,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
-import static ru.i_novus.ms.rdm.n2o.api.utils.UiRefBookTestUtils.assertObjects;
-
-public class DataCriteriaTest {
+public class DataCriteriaTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     @SuppressWarnings("java:S2696")

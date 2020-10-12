@@ -29,12 +29,13 @@ import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 @RunWith(MockitoJUnitRunner.class)
 public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
 
+    @Spy
+    private final Collection<DataRecordObjectResolver> resolvers = new ArrayList<>(1);
+
     @Mock
     protected VersionRestService versionService;
     @InjectMocks
     private DataRecordObjectProvider provider;
-    @Spy
-    private Collection<DataRecordObjectResolver> resolvers = new ArrayList<>(1);
 
     @Before
     public void setUp() {

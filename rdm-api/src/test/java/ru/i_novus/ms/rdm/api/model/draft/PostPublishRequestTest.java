@@ -5,14 +5,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.time.LocalDateTime;
 
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.assertObjects;
+public class PostPublishRequestTest extends BaseTest {
 
-public class PostPublishRequestTest {
-
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     @SuppressWarnings("java:S2696")

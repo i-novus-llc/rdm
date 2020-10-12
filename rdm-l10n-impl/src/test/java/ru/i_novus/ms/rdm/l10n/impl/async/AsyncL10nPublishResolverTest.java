@@ -7,18 +7,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.model.draft.PostPublishRequest;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 
 import java.io.Serializable;
 
 import static org.junit.Assert.*;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AsyncL10nPublishResolverTest {
+public class AsyncL10nPublishResolverTest extends BaseTest {
 
-    private static final String TESTREF_BOOK_CODE = "test";
+    private static final String TEST_REFBOOK_CODE = "test";
 
     @InjectMocks
     private AsyncL10nPublishResolver resolver;
@@ -36,7 +35,7 @@ public class AsyncL10nPublishResolverTest {
     @Test
     public void testResolve() {
 
-        Serializable result = resolver.resolve(TESTREF_BOOK_CODE, new Serializable[]{new PostPublishRequest()});
+        Serializable result = resolver.resolve(TEST_REFBOOK_CODE, new Serializable[]{new PostPublishRequest()});
         assertNull(result);
     }
 
@@ -44,7 +43,7 @@ public class AsyncL10nPublishResolverTest {
     public void testResolveFailed() {
 
         try {
-            resolver.resolve(TESTREF_BOOK_CODE, new Serializable[]{null});
+            resolver.resolve(TEST_REFBOOK_CODE, new Serializable[]{null});
             fail(getFailedMessage(IllegalArgumentException.class));
 
         } catch (RuntimeException e) {

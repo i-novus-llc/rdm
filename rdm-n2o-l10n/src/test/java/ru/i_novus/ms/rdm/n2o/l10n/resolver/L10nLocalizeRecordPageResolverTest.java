@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,10 +27,9 @@ import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.ATTRIBUTE_LIST;
 import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.REFERENCE_LIST;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nLocalizeRecordPageResolverTest {
+public class L10nLocalizeRecordPageResolverTest extends BaseTest {
 
     private static final String TEST_UNSATISFIED_ACTION = "ab";
 

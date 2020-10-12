@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,12 +27,10 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.loader.client.util.RefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.loader.client.util.RefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("rawtypes")
-public class RefBookDataClientLoaderTest {
+public class RefBookDataClientLoaderTest extends BaseTest {
 
     @InjectMocks
     private RefBookDataClientLoader loader;
