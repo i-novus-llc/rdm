@@ -14,11 +14,36 @@ RDM поддерживает создание и публикацию справ
 REST-запрос доступен по пути
 `/loaders/{subject}/{target}`, где
 `subject` -- владелец данных -- кодовое обозначение приложения, которому требуется функциональность,
-`target` -- вид данных -- значение должно быть `refBookData`.
-Содержимое запроса должно включать прикреплённые xml-файлы и иметь `content-type` = `"multipart/form-data"`.
-Для справочника xml-файл можно получить в результате выгрузки этого справочника в рамках rdm. 
+`target` -- вид данных, значение должно быть `refBookData`.
+Содержимое запроса должно включать прикреплённый xml-файл и иметь `content-type` = `"multipart/form-data"`.
+Файл справочника в формате xml можно получить в результате выгрузки этого справочника в рамках rdm.
 
-*Пример использования в приложении*:
+### Подключение
+* Добавьте зависимости:
+```xml
+<dependency>
+  <groupId>net.n2oapp.platform</groupId>
+  <artifactId>n2o-platform-starter-loader-client</artifactId>
+</dependency>
+
+<dependency>
+  <groupId>ru.i-novus.ms.rdm</groupId>
+  <artifactId>rdm-loader-client</artifactId>
+</dependency>
+```
+
+* Создайте файл конфигурации, например, `rdm.json`:
+```json
+[
+  {
+    "code" : "код справочника",
+    "file" : "путь к файлу справочника в ресурсах"
+  },
+  ...
+]  
+```
+
+* Добавьте конфигурацию для использования загрузчика справочников:
 ```java
 import net.n2oapp.platform.loader.autoconfigure.ClientLoaderConfigurer;
 import net.n2oapp.platform.loader.client.ClientLoaderRunner;
@@ -34,12 +59,12 @@ public class RefBookDataClientLoaderConfigurer implements ClientLoaderConfigurer
     @Override
     public void configure(ClientLoaderRunner runner) {
         runner.add("${rdm.backend.path}/loaders", "demo", "refBookData",
-                "RefBookData.xml", RefBookDataClientLoader.class);
+                "rdm.json", RefBookDataClientLoader.class);
     }
 }
 ```
 Здесь `rdm.backend.path` -- свойство, содержащее адрес REST-сервиса RDM,
 `demo` -- значение `subject`,
 `refBookData` -- значение `target`,
-`RefBookData.xml` -- адрес ресурса с данными в `classpath` приложения,
+`rdm.json` -- путь к json-файлу конфигурации в `classpath` приложения,
 `RefBookDataClientLoader` -- класс из модуля `rdm-loader-client` для формирования содержимого REST-запроса из ресурса с данными.
