@@ -127,7 +127,14 @@ public class LoaderTest {
 
     private MultipartBody createBody(int index) {
 
-        Attachment attachment;
+        Attachment attachment = getFileAttachment(index);
+        assertNotNull(attachment);
+
+        return new MultipartBody(List.of(attachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
+    }
+
+    private Attachment getFileAttachment(int index) {
+
         try {
             Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
             DataSource dataSource = new InputStreamDataSource(
@@ -140,15 +147,11 @@ public class LoaderTest {
             MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + fileName));
 
-            attachment = new Attachment("file", dataSource, headers);
+            return new Attachment("file", dataSource, headers);
 
         } catch (IOException e) {
             return null;
         }
-
-        assertNotNull(attachment);
-
-        return new MultipartBody(List.of(attachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
     }
 
     private String getFileName(int index) {
