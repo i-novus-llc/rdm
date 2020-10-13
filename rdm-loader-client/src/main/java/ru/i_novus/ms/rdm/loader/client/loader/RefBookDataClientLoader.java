@@ -83,9 +83,24 @@ public class RefBookDataClientLoader
     private void load(String url, MultiValueMap<String, Object> data, MultiValueMap<String, String> headers) {
 
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
-        ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
+        ResponseEntity<String> response = getCustomizedRestTemplate().postForEntity(url, request, String.class);
 
         if (!response.getStatusCode().is2xxSuccessful())
             throw new LoadingException("Loading failed status " + response.getStatusCodeValue() + " response " + response.getBody());
+    }
+
+    private RestOperations getCustomizedRestTemplate() {
+
+        RestOperations restTemplate = super.getRestTemplate();
+
+        if (restTemplate instanceof RestTemplate) {
+
+            List<HttpMessageConverter<?>> converters = ((RestTemplate) restTemplate).getMessageConverters();
+            if (converters.stream().noneMatch(converter -> converter instanceof FormHttpMessageConverter)) {
+                converters.add(new FormHttpMessageConverter());
+            }
+        }
+
+        return restTemplate;
     }
 }
