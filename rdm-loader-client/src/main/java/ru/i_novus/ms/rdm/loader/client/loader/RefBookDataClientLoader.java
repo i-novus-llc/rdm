@@ -1,21 +1,22 @@
-package ru.i_novus.ms.rdm.loader.client;
+package ru.i_novus.ms.rdm.loader.client.loader;
 
 import net.n2oapp.platform.loader.client.ClientLoader;
 import net.n2oapp.platform.loader.client.LoadingException;
 import net.n2oapp.platform.loader.client.RestClientLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
-@Component
 public class RefBookDataClientLoader
         extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 

@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client;
+package ru.i_novus.ms.rdm.loader.client.loader;
 
 import net.n2oapp.platform.loader.client.LoadingException;
 import net.n2oapp.platform.loader.client.RestClientLoader;

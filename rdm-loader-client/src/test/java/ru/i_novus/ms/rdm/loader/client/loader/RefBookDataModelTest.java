@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client;
+package ru.i_novus.ms.rdm.loader.client.loader;
 
 import org.junit.Assert;
 import org.junit.Test;
