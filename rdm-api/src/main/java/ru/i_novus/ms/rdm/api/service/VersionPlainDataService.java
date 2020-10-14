@@ -6,6 +6,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,8 @@ public interface VersionPlainDataService {
             @ApiImplicitParam(name = "sort", value = "Сортировка, sort=<код атрибута>, <ask|desc>", dataType = "string", paramType = "query")
     })
     @Path("/{versionId}/data")
-    Page<Map<String, Object>> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
-                                     @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
+    Page<Map<String, Serializable>> search(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
+                                           @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
     @GET
     @Path("/refBook/{refBookCode}/{date}")
@@ -52,7 +53,7 @@ public interface VersionPlainDataService {
             @ApiImplicitParam(name = "sort", value = "Сортировка, sort=<код атрибута>, <ask|desc>", dataType = "string", paramType = "query")
 
     })
-    Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+    Page<Map<String, Serializable>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                                      @ApiParam("Дата(в UTC) получения данных в формате yyyy-MM-ddTHH:mm:ss") @PathParam("date") LocalDateTime date,
                                      @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
@@ -71,7 +72,7 @@ public interface VersionPlainDataService {
             @ApiImplicitParam(name = "size", value = "Кол-во записей в странице", defaultValue = "10", dataType = "integer", paramType = "query"),
             @ApiImplicitParam(name = "sort", value = "Сортировка, sort=<код атрибута>, <ask|desc>", dataType = "string", paramType = "query")
     })
-    Page<Map<String, Object>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
+    Page<Map<String, Serializable>> search(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode,
                                      @ApiParam(hidden = true) @BeanParam SearchDataCriteria criteria);
 
     @GET
@@ -81,5 +82,5 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     @Path("/row/{rowId}")
-    Map<String, Object> getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
+    Map<String, Serializable> getRow(@ApiParam("Идентификатор записи") @PathParam("rowId") String rowId);
 }

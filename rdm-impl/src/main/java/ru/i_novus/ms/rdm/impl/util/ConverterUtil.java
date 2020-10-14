@@ -183,16 +183,16 @@ public class ConverterUtil {
         return String.valueOf(value);
     }
 
-    public static Map<String, Object> toStringObjectMap(RefBookRowValue rowValue) {
+    public static Map<String, Serializable> toStringObjectMap(RefBookRowValue rowValue) {
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Serializable> map = new HashMap<>();
         map.put("rowId", rowValue.getId());
 
         rowValue.getFieldValues().forEach(fieldValue -> map.put(fieldValue.getField(), toPlainValue(fieldValue)));
         return map;
     }
 
-    public static Object toPlainValue(FieldValue fieldValue) {
+    public static Serializable toPlainValue(FieldValue fieldValue) {
 
         if (fieldValue == null) return null;
 
