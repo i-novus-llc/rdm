@@ -18,9 +18,18 @@ import ru.i_novus.ms.rdm.loader.client.loader.RefBookDataClientLoader;
 @ConditionalOnProperty(value = "rdm.loader.client.enabled", matchIfMissing = true)
 @AutoConfigureBefore(ClientLoaderAutoConfiguration.class)
 @ComponentScan(basePackages = "ru.i_novus.ms.rdm.loader.client")
+@SuppressWarnings("unused")
 public class RefBookDataClientLoaderAutoConfiguration {
 
     private static final String ENDPOINT_PATTERN = "/loaders/{subject}/{target}";
+
+    @Bean
+    @ConditionalOnMissingBean
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
+    public RefBookDataRestTemplateCustomizer refBookDataRestTemplateCustomizer() {
+
+        return new RefBookDataRestTemplateCustomizer();
+    }
 
     @Bean
     @ConditionalOnMissingBean

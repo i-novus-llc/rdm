@@ -5,20 +5,16 @@ import net.n2oapp.platform.loader.client.LoadingException;
 import net.n2oapp.platform.loader.client.RestClientLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.List;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
-public class RefBookDataClientLoader
-        extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
+public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 
     public RefBookDataClientLoader(RestOperations restTemplate) {
         super(restTemplate);
@@ -83,24 +79,9 @@ public class RefBookDataClientLoader
     private void load(String url, MultiValueMap<String, Object> data, MultiValueMap<String, String> headers) {
 
         HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
-        ResponseEntity<String> response = getCustomizedRestTemplate().postForEntity(url, request, String.class);
+        ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
 
         if (!response.getStatusCode().is2xxSuccessful())
             throw new LoadingException("Loading failed status " + response.getStatusCodeValue() + " response " + response.getBody());
-    }
-
-    private RestOperations getCustomizedRestTemplate() {
-
-        RestOperations restTemplate = super.getRestTemplate();
-
-        if (restTemplate instanceof RestTemplate) {
-
-            List<HttpMessageConverter<?>> converters = ((RestTemplate) restTemplate).getMessageConverters();
-            if (converters.stream().noneMatch(converter -> converter instanceof FormHttpMessageConverter)) {
-                converters.add(new FormHttpMessageConverter());
-            }
-        }
-
-        return restTemplate;
     }
 }
