@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.autoconfigure;
+package ru.i_novus.ms.rdm.loader.client.loader;
 
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.converter.FormHttpMessageConverter;
