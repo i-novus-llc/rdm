@@ -18,6 +18,7 @@ public class DeleteDataRequest implements DraftChangeRequest {
     private List<Row> rows;
 
     public DeleteDataRequest() {
+        // Nothing to do.
     }
 
     public DeleteDataRequest(Integer optLockValue, List<Row> rows) {

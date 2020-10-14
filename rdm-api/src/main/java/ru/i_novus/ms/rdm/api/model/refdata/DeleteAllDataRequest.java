@@ -12,6 +12,7 @@ public class DeleteAllDataRequest implements DraftChangeRequest {
     private Integer optLockValue;
 
     public DeleteAllDataRequest() {
+        // Nothing to do.
     }
 
     public DeleteAllDataRequest(Integer optLockValue) {

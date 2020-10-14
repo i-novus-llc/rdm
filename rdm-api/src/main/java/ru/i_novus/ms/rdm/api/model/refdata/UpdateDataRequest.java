@@ -18,6 +18,7 @@ public class UpdateDataRequest implements DraftChangeRequest {
     private List<Row> rows;
 
     public UpdateDataRequest() {
+        // Nothing to do.
     }
 
     public UpdateDataRequest(Integer optLockValue, List<Row> rows) {

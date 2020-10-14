@@ -16,6 +16,7 @@ public class UpdateFromFileRequest implements DraftChangeRequest {
     private FileModel fileModel;
 
     public UpdateFromFileRequest() {
+        // Nothing to do.
     }
 
     public UpdateFromFileRequest(Integer optLockValue, FileModel fileModel) {
