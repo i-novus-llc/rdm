@@ -114,21 +114,9 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     public void testRunMultipartBodyWithJson() {
 
         int index = LOADED_FILE_SUCCESS_INDEX;
+        RefBookDataRequest expected = createJsonDataRequest(index);
 
-        RefBookDataRequest expected = new RefBookDataRequest();
-        expected.setCode(LOADED_CODE + index);
-        expected.setPassport(new HashMap<>(1));
-        expected.getPassport().put("name", LOADED_NAME + index);
-        expected.setStructure(LOADED_STRUCTURE);
-        expected.setData(LOADED_DATA);
-
-        List<Attachment> attachments = List.of(
-                getPlainAttachment(index, "code", LOADED_CODE + index),
-                getPlainAttachment(index, "name", LOADED_NAME + index),
-                getPlainAttachment(index, "structure", LOADED_STRUCTURE),
-                getPlainAttachment(index, "data", LOADED_DATA)
-        );
-
+        List<Attachment> attachments = createJsonAttachments(index);
         MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
@@ -147,27 +135,42 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
         assertObjects(Assert::assertEquals, expected, actual);
     }
 
+    private RefBookDataRequest createJsonDataRequest(int index) {
+
+        RefBookDataRequest expected = new RefBookDataRequest();
+
+        expected.setCode(LOADED_CODE + index);
+        expected.setPassport(new HashMap<>(1));
+        expected.getPassport().put("name", LOADED_NAME + index);
+        expected.setStructure(LOADED_STRUCTURE);
+        expected.setData(LOADED_DATA);
+
+        return expected;
+    }
+
+    private List<Attachment> createJsonAttachments(int index) {
+
+        return List.of(
+                getPlainAttachment(index, "code", LOADED_CODE + index),
+                getPlainAttachment(index, "name", LOADED_NAME + index),
+                getPlainAttachment(index, "structure", LOADED_STRUCTURE),
+                getPlainAttachment(index, "data", LOADED_DATA)
+        );
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     public void testRunMultipartBodyWithFile() {
 
         int index = LOADED_FILE_SUCCESS_INDEX;
 
-        String fileName = getFileName(index);
-        FileModel fileModel = new FileModel(null, fileName);
+        RefBookDataRequest expected = createFileDataRequest(index);
 
-        RefBookDataRequest expected = new RefBookDataRequest();
-        expected.setCode(LOADED_CODE + index);
-        expected.setPassport(emptyMap());
-        expected.setFileModel(fileModel);
+        FileModel fileModel = expected.getFileModel();
+        when(fileStorageService.save(any(InputStream.class), eq(fileModel.getName()))).thenReturn(fileModel);
 
-        when(fileStorageService.save(any(InputStream.class), eq(fileName))).thenReturn(fileModel);
-
-        Attachment codeAttachment = getPlainAttachment(index, "code", LOADED_CODE + index);
-        Attachment fileAttachment = getFileAttachment(index);
-        assertNotNull(fileAttachment);
-
-        MultipartBody body = new MultipartBody(List.of(codeAttachment, fileAttachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
+        List<Attachment> attachments = createFileAttachments(index);
+        MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
@@ -183,6 +186,29 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
 
         RefBookDataRequest actual = (RefBookDataRequest) item;
         assertObjects(Assert::assertEquals, expected, actual);
+    }
+
+    private RefBookDataRequest createFileDataRequest(int index) {
+
+        RefBookDataRequest expected = new RefBookDataRequest();
+
+        expected.setCode(LOADED_CODE + index);
+        expected.setPassport(emptyMap());
+
+        String fileName = getFileName(index);
+        FileModel fileModel = new FileModel(null, fileName);
+        expected.setFileModel(fileModel);
+
+        return expected;
+    }
+
+    private List<Attachment> createFileAttachments(int index) {
+
+        Attachment codeAttachment = getPlainAttachment(index, "code", LOADED_CODE + index);
+        Attachment fileAttachment = getFileAttachment(index);
+        assertNotNull(fileAttachment);
+
+        return List.of(codeAttachment, fileAttachment);
     }
 
     private Attachment getPlainAttachment(int index, String name, String value) {
