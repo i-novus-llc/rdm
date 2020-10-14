@@ -47,6 +47,7 @@ public class RefBookDataRequest extends RefBookCreateRequest {
     }
 
     @Override
+    @SuppressWarnings("java:S2159")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
