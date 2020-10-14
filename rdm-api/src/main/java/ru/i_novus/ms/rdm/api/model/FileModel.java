@@ -12,6 +12,8 @@ import java.util.Objects;
         description = "Набор входных параметров для сохранённого файла")
 public class FileModel implements Serializable {
 
+    private static final String SEPARATOR = "/";
+
     @ApiModelProperty("Полный путь к файлу")
     private String path;
 
@@ -19,9 +21,11 @@ public class FileModel implements Serializable {
     private String name;
 
     public FileModel() {
+        // Nothing to do.
     }
 
     public FileModel(String path, String name) {
+
         this.path = path;
         this.name = name;
     }
@@ -45,15 +49,13 @@ public class FileModel implements Serializable {
     public String generateFullPath() {
 
         Calendar calendar = Calendar.getInstance();
-        String separator = "/";
-
         return new StringBuilder()
-                .append(calendar.get(Calendar.YEAR)).append(separator)
-                .append(calendar.get(Calendar.MONTH) + 1).append(separator)
-                .append(calendar.get(Calendar.DATE)).append(separator)
-                .append(calendar.get(Calendar.HOUR_OF_DAY)).append(separator)
-                .append(calendar.get(Calendar.MINUTE)).append(separator)
-                .append(calendar.get(Calendar.SECOND)).append(separator)
+                .append(calendar.get(Calendar.YEAR)).append(SEPARATOR)
+                .append(calendar.get(Calendar.MONTH) + 1).append(SEPARATOR)
+                .append(calendar.get(Calendar.DATE)).append(SEPARATOR)
+                .append(calendar.get(Calendar.HOUR_OF_DAY)).append(SEPARATOR)
+                .append(calendar.get(Calendar.MINUTE)).append(SEPARATOR)
+                .append(calendar.get(Calendar.SECOND)).append(SEPARATOR)
                 .append(name)
                 .toString();
     }
@@ -75,6 +77,6 @@ public class FileModel implements Serializable {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

@@ -16,6 +16,7 @@ public class UpdateFromFileRequest implements DraftChangeRequest {
     private FileModel fileModel;
 
     public UpdateFromFileRequest() {
+        // Nothing to do.
     }
 
     public UpdateFromFileRequest(Integer optLockValue, FileModel fileModel) {
@@ -43,6 +44,6 @@ public class UpdateFromFileRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

@@ -55,4 +55,12 @@ public class Row implements Serializable {
     public int hashCode() {
         return Objects.hash(data);
     }
+
+    @Override
+    public String toString() {
+        return "Row{" +
+                "systemId=" + systemId +
+                ", data=" + data +
+                '}';
+    }
 }

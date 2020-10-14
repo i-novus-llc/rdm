@@ -17,6 +17,7 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -38,10 +39,9 @@ import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
 import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.DATA_ACTION_LOCALIZE;
 import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.FIELD_LOCALE_NAME;
 import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.*;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nLocalizeRecordGetterResolverTest {
+public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
     private static final String TEST_UNSATISFIED_ACTION = "ab";
 
@@ -60,7 +60,7 @@ public class L10nLocalizeRecordGetterResolverTest {
     private static final String TEST_LOCALE_CODE = "test";
     private static final String TEST_LOCALE_NAME = "Тест";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private L10nLocalizeRecordGetterResolver resolver;

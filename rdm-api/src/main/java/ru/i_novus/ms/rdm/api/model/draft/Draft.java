@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.api.model.draft;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
@@ -29,6 +30,7 @@ public class Draft {
     }
 
     public Draft() {
+        // Nothing to do.
     }
 
     public Integer getId() {
@@ -55,7 +57,6 @@ public class Draft {
         this.optLockValue = optLockValue;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isVersionDraft(Integer versionId) {
         return Objects.equals(getId(), versionId);
     }
@@ -74,5 +75,10 @@ public class Draft {
     @Override
     public int hashCode() {
         return Objects.hash(id, storageCode, optLockValue);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }

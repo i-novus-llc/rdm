@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.List;
 
@@ -14,10 +15,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_CREATE;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_UPDATE;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultRecordPageResolverTest {
+public class DefaultRecordPageResolverTest extends BaseTest {
 
     private static final String TEST_UNSATISFIED_ACTION = "ab";
 

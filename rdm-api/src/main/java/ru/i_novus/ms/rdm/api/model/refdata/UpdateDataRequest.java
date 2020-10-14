@@ -18,6 +18,7 @@ public class UpdateDataRequest implements DraftChangeRequest {
     private List<Row> rows;
 
     public UpdateDataRequest() {
+        // Nothing to do.
     }
 
     public UpdateDataRequest(Integer optLockValue, List<Row> rows) {
@@ -49,6 +50,6 @@ public class UpdateDataRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

@@ -2,8 +2,8 @@ package ru.i_novus.ms.rdm.api.model.compare;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import javax.ws.rs.QueryParam;
 import java.util.Objects;
@@ -29,6 +29,7 @@ public class CompareCriteria extends AbstractCriteria {
 
     @SuppressWarnings("WeakerAccess")
     public CompareCriteria() {
+        // Nothing to do.
     }
 
     public CompareCriteria(Integer oldVersionId, Integer newVersionId, DiffStatusEnum diffStatus) {
@@ -65,6 +66,7 @@ public class CompareCriteria extends AbstractCriteria {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         CompareCriteria that = (CompareCriteria) o;
         return Objects.equals(oldVersionId, that.oldVersionId) &&
@@ -76,5 +78,4 @@ public class CompareCriteria extends AbstractCriteria {
     public int hashCode() {
         return Objects.hash(oldVersionId, newVersionId, diffStatus);
     }
-
 }

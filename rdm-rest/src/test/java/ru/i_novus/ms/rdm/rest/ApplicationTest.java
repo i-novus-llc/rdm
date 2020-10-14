@@ -244,6 +244,7 @@ public class ApplicationTest {
         deleteFile(file);
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void deleteFile(File file) {
         if (Objects.isNull(file) || !file.exists())
             return;
@@ -746,7 +747,7 @@ public class ApplicationTest {
 
         Structure structure = createTestStructureWithReferenceType();
         structure.getAttributes().forEach(attribute ->
-                draftService.createAttribute(versionId, 
+                draftService.createAttribute(versionId,
                         new CreateAttributeRequest(null, attribute,
                                 attribute.isReferenceType() ? structure.getReference("reference") : null)
                 )
@@ -2739,10 +2740,9 @@ public class ApplicationTest {
                     Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().orElse(null);
                     assertNotNull(field);
                     //noinspection unchecked
-                    return field.valueOf(val2.getValue()).equals(val1);
+                    return field != null && field.valueOf(val2.getValue()).equals(val1);
                 }
                 return false;
-
             });
 
             if (!isPresent) {

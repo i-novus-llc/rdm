@@ -10,6 +10,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
@@ -28,13 +29,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.SYS_LOCALIZED;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.assertEmpty;
 
 /**
  * Тестирование работы с данными справочника.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class L10nRefBookDataDecoratorTest {
+public class L10nRefBookDataDecoratorTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
 

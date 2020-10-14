@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.io.Serializable;
 import java.util.*;
@@ -24,11 +25,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.ATTRIBUTE_LIST;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.REFERENCE_LIST;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DataRecordControllerTest {
+public class DataRecordControllerTest extends BaseTest {
 
     private static final String TEST_ACTION = "trial";
 
@@ -52,7 +51,7 @@ public class DataRecordControllerTest {
     private DraftRestService draftService;
 
     @Spy
-    private Collection<DataRecordGetterResolver> resolvers = new ArrayList<>(1);
+    private final Collection<DataRecordGetterResolver> resolvers = new ArrayList<>(1);
 
     @Before
     public void setUp() {

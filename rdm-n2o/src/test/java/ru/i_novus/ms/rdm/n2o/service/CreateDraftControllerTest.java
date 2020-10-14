@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -40,11 +41,9 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateDraftControllerTest {
+public class CreateDraftControllerTest extends BaseTest {
 
     private static final int TEST_REFBOOK_ID = -10;
     private static final String TEST_REFBOOK_CODE = "test";
@@ -59,7 +58,7 @@ public class CreateDraftControllerTest {
     private static final long TEST_SYSTEM_ID = 51;
     private static final String TEST_ROW_VALUE_HASH = "HASH";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private CreateDraftController controller;

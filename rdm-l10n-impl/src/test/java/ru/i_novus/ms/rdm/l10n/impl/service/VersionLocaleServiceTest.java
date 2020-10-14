@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
@@ -26,10 +27,9 @@ import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static ru.i_novus.ms.rdm.l10n.impl.utils.L10nRefBookTestUtils.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class VersionLocaleServiceTest {
+public class VersionLocaleServiceTest extends BaseTest {
 
     public static final String SCHEMA_NAME_PREFIX = "l10n_"; // from l10n-vds::L10nConstants
 

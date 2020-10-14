@@ -12,6 +12,7 @@ public class DeleteAllDataRequest implements DraftChangeRequest {
     private Integer optLockValue;
 
     public DeleteAllDataRequest() {
+        // Nothing to do.
     }
 
     public DeleteAllDataRequest(Integer optLockValue) {
@@ -30,6 +31,6 @@ public class DeleteAllDataRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

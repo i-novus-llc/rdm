@@ -103,6 +103,6 @@ public class DataRecordCriteria extends AbstractCriteria {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

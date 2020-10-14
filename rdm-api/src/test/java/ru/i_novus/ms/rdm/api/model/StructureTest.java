@@ -5,20 +5,19 @@ import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import ru.i_novus.ms.rdm.api.util.RefBookTestUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
-import static ru.i_novus.ms.rdm.api.util.RefBookTestUtils.*;
 import static ru.i_novus.ms.rdm.api.util.StructureTestConstants.*;
 
-public class StructureTest {
+public class StructureTest extends BaseTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     @SuppressWarnings("java:S2696")
@@ -68,8 +67,8 @@ public class StructureTest {
         assertEquals(ATTRIBUTE_LIST, structure.getAttributes());
         assertEquals(REFERENCE_LIST, structure.getReferences());
 
-        structure.getAttributes().forEach(RefBookTestUtils::assertSpecialEquals);
-        structure.getReferences().forEach(RefBookTestUtils::assertSpecialEquals);
+        structure.getAttributes().forEach(this::assertSpecialEquals);
+        structure.getReferences().forEach(this::assertSpecialEquals);
 
         Structure emptyStructure = new Structure();
         assertObjects(Assert::assertNotEquals, structure, emptyStructure);

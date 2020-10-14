@@ -10,6 +10,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.io.Serializable;
@@ -21,10 +22,9 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.ATTRIBUTE_LIST;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.REFERENCE_LIST;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CreateRecordGetterResolverTest {
+public class CreateRecordGetterResolverTest extends BaseTest {
 
     private static final String TEST_UNSATISFIED_ACTION = "ab";
 
@@ -36,7 +36,7 @@ public class CreateRecordGetterResolverTest {
 
     private static final long TEST_SYSTEM_ID = 51;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private CreateRecordGetterResolver resolver;

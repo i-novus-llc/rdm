@@ -11,10 +11,7 @@ import ru.i_novus.ms.audit.client.model.AuditClientRequest;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
@@ -64,7 +61,7 @@ public class AuditLogService {
             request.setEventType(action.getName());
             Map<String, Object> m = new HashMap<>(action.getContext(obj));
             m.putAll(additionalContext);
-            request.setContext(JsonUtil.getAsJson(m));
+            request.setContext(JsonUtil.toJsonString(m));
             request.setAuditType((short) 1);
             try {
                 auditClient.add(request);

@@ -18,6 +18,7 @@ public class DeleteDataRequest implements DraftChangeRequest {
     private List<Row> rows;
 
     public DeleteDataRequest() {
+        // Nothing to do.
     }
 
     public DeleteDataRequest(Integer optLockValue, List<Row> rows) {
@@ -49,6 +50,6 @@ public class DeleteDataRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.getAsJson(this);
+        return JsonUtil.toJsonString(this);
     }
 }

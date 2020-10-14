@@ -94,7 +94,7 @@ class AsyncOperationMessage implements Serializable {
     }
 
     public String getPayloadAsJson() {
-        return JsonUtil.getAsJson(Map.of(ARGS_KEY, args, USER_KEY, userName));
+        return JsonUtil.toJsonString(Map.of(ARGS_KEY, args, USER_KEY, userName));
     }
 
     @Override

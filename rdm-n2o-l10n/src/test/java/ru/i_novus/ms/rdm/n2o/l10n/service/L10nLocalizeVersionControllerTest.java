@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,11 +24,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.UiL10nRefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
-public class L10nLocalizeVersionControllerTest {
+public class L10nLocalizeVersionControllerTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
@@ -37,7 +36,7 @@ public class L10nLocalizeVersionControllerTest {
 
     private static final String TEST_FIELD_CODE = "id";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private L10nLocalizeVersionController controller;

@@ -8,15 +8,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.io.Serializable;
 
 import static org.junit.Assert.*;
-import static ru.i_novus.ms.rdm.impl.util.RefBookTestUtils.getExceptionMessage;
-import static ru.i_novus.ms.rdm.impl.util.RefBookTestUtils.getFailedMessage;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AsyncPublishResolverTest {
+public class AsyncPublishResolverTest extends BaseTest {
 
     private static final String TEST_REFBOOK_CODE = "test";
     private static final int TEST_REFBOOK_VERSION_ID = -10;

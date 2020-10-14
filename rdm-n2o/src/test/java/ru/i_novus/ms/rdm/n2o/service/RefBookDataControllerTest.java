@@ -22,6 +22,7 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
+import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
@@ -41,17 +42,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.n2o.service.RefBookDataController.EMPTY_SEARCH_DATA_CRITERIA;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
-import static ru.i_novus.ms.rdm.n2o.utils.UiRefBookTestUtils.assertObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("SameParameterValue")
-public class RefBookDataControllerTest {
+public class RefBookDataControllerTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
     private static final int NEW_OPT_LOCK_VALUE = TEST_OPT_LOCK_VALUE + 1;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private RefBookDataController controller;

@@ -1,8 +1,12 @@
 package ru.i_novus.ms.rdm.api.model.refbook;
 
-import java.util.Map;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
-public class RefBookCreateRequest {
+import java.io.Serializable;
+import java.util.Map;
+import java.util.Objects;
+
+public class RefBookCreateRequest implements Serializable {
 
     /** Код справочника. */
     private String code;
@@ -14,6 +18,7 @@ public class RefBookCreateRequest {
     private Map<String, String> passport;
 
     public RefBookCreateRequest() {
+        // Nothing to do.
     }
 
     public RefBookCreateRequest(String code, String category, Map<String, String> passport) {
@@ -44,5 +49,26 @@ public class RefBookCreateRequest {
 
     public void setPassport(Map<String, String> passport) {
         this.passport = passport;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RefBookCreateRequest that = (RefBookCreateRequest) o;
+        return Objects.equals(code, that.code) &&
+                Objects.equals(category, that.category) &&
+                Objects.equals(passport, that.passport);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code, category, passport);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }

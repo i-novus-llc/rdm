@@ -245,6 +245,26 @@ public class Structure implements Serializable {
                 && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
     }
 
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Structure that = (Structure) o;
+        return  Objects.equals(attributes, that.attributes) &&
+                Objects.equals(references, that.references);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(attributes, references);
+    }
+
     @ApiModel("Атрибут справочника")
     public static class Attribute implements Serializable {
 
@@ -418,7 +438,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            return JsonUtil.getAsJson(this);
+            return JsonUtil.toJsonString(this);
         }
     }
 
@@ -529,27 +549,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            return JsonUtil.getAsJson(this);
+            return JsonUtil.toJsonString(this);
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Structure that = (Structure) o;
-        return  Objects.equals(attributes, that.attributes) &&
-                Objects.equals(references, that.references);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(attributes, references);
-    }
-
-    @Override
-    public String toString() {
-        return JsonUtil.getAsJson(this);
     }
 }

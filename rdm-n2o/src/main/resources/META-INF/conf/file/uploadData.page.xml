@@ -6,5 +6,5 @@
             <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="/files" label-field-id="name"/>
         </fields>
     </form>
-    
+
 </simple-page>

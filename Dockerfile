@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:alpine-slim
+FROM inovus/openjdk:14-jdk
 
 RUN apk --no-cache add tzdata ttf-dejavu fontconfig curl
 ENV TZ=Europe/Moscow
