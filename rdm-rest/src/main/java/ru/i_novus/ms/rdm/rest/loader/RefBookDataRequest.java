@@ -49,7 +49,7 @@ public class RefBookDataRequest extends RefBookCreateRequest {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RefBookDataRequest)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
         RefBookDataRequest that = (RefBookDataRequest) o;
