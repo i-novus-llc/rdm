@@ -2,10 +2,11 @@ package ru.i_novus.ms.rdm.api.model.refbook;
 
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-public class RefBookCreateRequest {
+public class RefBookCreateRequest implements Serializable {
 
     /** Код справочника. */
     private String code;
