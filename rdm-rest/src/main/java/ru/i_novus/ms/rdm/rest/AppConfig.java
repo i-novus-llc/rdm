@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.loader.server.ServerLoader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -16,6 +17,9 @@ import java.util.List;
 @SuppressWarnings({"unused", "rawtypes", "java:S3740"})
 public class AppConfig {
 
+    @Value("${rdm.loader.max.file-size:20000000}")
+    private long maxFileSize;
+
     @Bean
     @ConditionalOnMissingBean
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
@@ -28,7 +32,7 @@ public class AppConfig {
     public MultipartResolver multipartResolver() {
 
         CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-        resolver.setMaxUploadSize(20000000);
+        resolver.setMaxUploadSize(maxFileSize);
         resolver.setResolveLazily(false);
         return resolver;
     }
