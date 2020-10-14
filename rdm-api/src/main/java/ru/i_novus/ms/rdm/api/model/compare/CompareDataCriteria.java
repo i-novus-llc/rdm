@@ -22,6 +22,7 @@ public class CompareDataCriteria extends CompareCriteria {
     private Boolean countOnly;
 
     public CompareDataCriteria() {
+        // Nothing to do.
     }
 
     public CompareDataCriteria(Integer oldVersionId, Integer newVersionId) {
