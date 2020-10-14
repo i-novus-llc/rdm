@@ -91,7 +91,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
         })
 @DefinePort
 @EnableEmbeddedPg
-@Import({BackendConfiguration.class, AppConfig.class})
+@Import(BackendConfiguration.class)
 @SuppressWarnings("rawtypes")
 public class ApplicationTest {
 
