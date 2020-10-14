@@ -268,7 +268,7 @@
             <modules>
                 <module>rdm-test</module>
                 <module>rdm-esnsi</module>
-                <module>rdm-loader-client</module>
+                <module>rdm-loader-client-starter</module>
                 <module>rdm-n2o-api</module>
                 <module>rdm-impl</module>
                 <module>rdm-l10n-api</module>
