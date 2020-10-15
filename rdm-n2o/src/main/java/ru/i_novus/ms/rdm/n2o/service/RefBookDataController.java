@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -53,6 +52,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
@@ -128,7 +128,7 @@ public class RefBookDataController {
         List<Long> conflictedRowIds = (conflictedRowIdsPage == null) ? emptyList() : conflictedRowIdsPage.getContent();
         SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
-        Page<RefBookRowValue> rowValues = versionService.search(version.getId(), searchDataCriteria);
+        Page<RefBookRowValue> rowValues = searchRowValues(version.getId(), searchDataCriteria);
         List<DataGridRow> result = getDataGridContent(criteria, version, rowValues.getContent());
 
         long total;
@@ -199,7 +199,7 @@ public class RefBookDataController {
 
         final Map<String, Serializable> filterMap = criteria.getFilter();
 
-        if (CollectionUtils.isEmpty(filterMap))
+        if (isEmpty(filterMap))
             return new ArrayList<>();
 
         try {
@@ -269,6 +269,16 @@ public class RefBookDataController {
 
     private static Sort.Order toSortOrder(Sorting sorting) {
         return new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField());
+    }
+
+    private Page<RefBookRowValue> searchRowValues(Integer versionId, SearchDataCriteria searchDataCriteria) {
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, searchDataCriteria);
+        if (searchDataCriteria.getLocaleCode() != null && isEmpty(rowValues.getContent())) {
+            searchDataCriteria.setLocaleCode(null);
+            rowValues = versionService.search(versionId, searchDataCriteria);
+        }
+        return rowValues;
     }
 
     private List<DataGridRow> getDataGridContent(DataCriteria criteria, RefBookVersion version,

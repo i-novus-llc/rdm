@@ -91,7 +91,17 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
         dataCriteria.setLocaleCode(criteria.getLocaleCode());
         dataCriteria.setRowSystemIds(singletonList(criteria.getId()));
 
-        Page<RefBookRowValue> rowValues = versionService.search(criteria.getVersionId(), dataCriteria);
+        Page<RefBookRowValue> rowValues = searchRowValues(criteria.getVersionId(), dataCriteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
+    }
+
+    private Page<RefBookRowValue> searchRowValues(Integer versionId, SearchDataCriteria dataCriteria) {
+
+        Page<RefBookRowValue> rowValues = versionService.search(versionId, dataCriteria);
+        if (!isEmpty(rowValues.getContent()))
+            return rowValues;
+
+        dataCriteria.setLocaleCode(null);
+        return versionService.search(versionId, dataCriteria);
     }
 }
