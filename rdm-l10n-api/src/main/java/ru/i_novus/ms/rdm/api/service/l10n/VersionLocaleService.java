@@ -10,34 +10,34 @@ import javax.ws.rs.core.MediaType;
 @Path("/locale")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы локализации версии", hidden = true)
+@Api("Методы локализации версии")
 public interface VersionLocaleService {
 
     @GET
-    @ApiOperation("Получение списка локалей версии")
+    @ApiOperation(value = "Получение списка локалей версии", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Список локалей версии"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/{versionId}")
+    @Path("/version/{versionId}")
     Page<L10nVersionLocale> searchVersionLocales(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId);
 
     @GET
-    @ApiOperation("Получение локали версии по коду")
+    @ApiOperation(value = "Получение локали версии по коду", hidden = true)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Локаль версии"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    @Path("/{versionId}/{localeCode}")
+    @Path("/version/{versionId}/{localeCode}")
     L10nVersionLocale getVersionLocale(@ApiParam("Идентификатор версии") @PathParam("versionId") Integer versionId,
                                        @ApiParam("Код локали") @PathParam("localeCode") String localeCode);
 
     @GET
-    @ApiOperation("Получение наименования локали версии по коду")
+    @ApiOperation("Получение наименования локали по коду")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Локаль версии"),
+            @ApiResponse(code = 200, message = "Наименование локали"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
