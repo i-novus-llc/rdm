@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -204,6 +205,7 @@ public class RefBookDataController {
 
         try {
             return filterMap.entrySet().stream()
+                    .filter(e -> !ObjectUtils.isEmpty(e.getValue()))
                     .map(e -> toAttributeFilter(structure, e.getKey(), e.getValue()))
                     .filter(Objects::nonNull)
                     .collect(toList());
