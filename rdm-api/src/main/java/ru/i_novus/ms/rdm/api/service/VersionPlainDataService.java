@@ -25,6 +25,7 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "localeCode", value = "Код локали", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "filter.<код атрибута>", value = "Фильтр по атрибуту", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "commonFilter", value = "Полнотекстовый поиск по всем атрибутам", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "rowSystemIds", value = "Фильтр по системным идентификаторам строк", dataTypeClass = List.class, paramType = "query"),
@@ -44,6 +45,7 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет опубликованных данных")
     })
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "localeCode", value = "Код локали", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "filter.<код атрибута>", value = "Фильтр по атрибуту", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "commonFilter", value = "Полнотекстовый поиск по всем атрибутам", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "rowSystemIds", value = "Фильтр по системным идентификаторам строк", dataTypeClass = List.class, paramType = "query"),
@@ -65,6 +67,7 @@ public interface VersionPlainDataService {
             @ApiResponse(code = 404, message = "Нет версии")
     })
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "localeCode", value = "Код локали", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "filter.<код атрибута>", value = "Фильтр по атрибуту", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "commonFilter", value = "Полнотекстовый поиск по всем атрибутам", dataType = "string", paramType = "query"),
             @ApiImplicitParam(name = "rowSystemIds", value = "Фильтр по системным идентификаторам строк", dataTypeClass = List.class, paramType = "query"),
