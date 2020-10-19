@@ -3,9 +3,7 @@ package ru.i_novus.ms.rdm.test;
 import org.junit.Assert;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static org.junit.Assert.assertEquals;
@@ -37,8 +35,35 @@ public class BaseTest {
 
         if (isOverridingToString(current)) {
             doAssert.accept(current.toString(), actual.toString());
-
         }
+    }
+
+    /** Check lists to equality. */
+    public <T> void assertListEquals(List<T> expected, List<T> actual) {
+
+        if (expected == null || expected.isEmpty()) {
+            assertEmpty(actual);
+            return;
+        }
+
+        assertEquals(expected.size(), actual.size());
+
+        expected.forEach(item -> assertListItemEquals(item, expected, actual));
+    }
+
+    /** Check lists to equality by item. */
+    public <T> void assertListItemEquals(T item, List<T> expected, List<T> actual) {
+
+        if (item == null) {
+            assertEquals(expected.stream().filter(Objects::isNull).count(),
+                    actual.stream().filter(Objects::isNull).count()
+            );
+            return;
+        }
+
+        assertEquals(expected.stream().filter(item::equals).count(),
+                actual.stream().filter(item::equals).count()
+        );
     }
 
     /** Check `hashCode` overriding in class. */
