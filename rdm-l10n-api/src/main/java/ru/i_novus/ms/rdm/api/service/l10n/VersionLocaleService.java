@@ -6,12 +6,23 @@ import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/locale")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api("Методы локализации версии")
 public interface VersionLocaleService {
+
+    @GET
+    @ApiOperation("Получение списка кодов локалей с переводами справочника")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Список код локалей справочника"),
+            @ApiResponse(code = 400, message = "Некорректный запрос"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    @Path("/refBook/{refBookCode}")
+    List<String> findRefBookLocales(@ApiParam("Код справочника") @PathParam("refBookCode") String refBookCode);
 
     @GET
     @ApiOperation(value = "Получение списка локалей версии", hidden = true)

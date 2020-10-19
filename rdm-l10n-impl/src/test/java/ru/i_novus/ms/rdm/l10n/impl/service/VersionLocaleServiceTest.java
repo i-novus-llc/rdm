@@ -9,9 +9,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
@@ -33,7 +38,9 @@ public class VersionLocaleServiceTest extends BaseTest {
 
     public static final String SCHEMA_NAME_PREFIX = "l10n_"; // from l10n-vds::L10nConstants
 
+    private static final String TEST_REFBOOK_CODE = "test";
     private static final int TEST_REFBOOK_VERSION_ID = -10;
+    private static final String TEST_VERSION_STORAGE_CODE = "test-storage-code";
 
     private static final String TEST_LOCALE_CODE = "test";
     private static final String TEST_LOCALE_NAME = "Тест";
@@ -58,10 +65,54 @@ public class VersionLocaleServiceTest extends BaseTest {
     @Mock
     private L10nStorageCodeService storageCodeService;
 
+    @Mock
+    private L10nDraftDataService draftDataService;
+
+    @Mock
+    private RefBookVersionRepository versionRepository;
+
     @Before
     public void setUp() {
 
         JsonUtil.jsonMapper = objectMapper;
+    }
+
+    @Test
+    public void testFindRefBookLocales() {
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(TEST_REFBOOK_VERSION_ID);
+        versionEntity.setStorageCode(TEST_VERSION_STORAGE_CODE);
+
+        when(versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                        eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED)))
+                .thenReturn(versionEntity);
+
+        List<String> expected = List.of(TEST_LOCALE_CODE);
+
+        when(draftDataService.findTableLocaleCodes(eq(TEST_VERSION_STORAGE_CODE))).thenReturn(expected);
+
+        List<String> actual = versionLocaleService.findRefBookLocales(TEST_REFBOOK_CODE);
+        assertListEquals(expected, actual);
+    }
+
+    @Test
+    public void testFindRefBookLocalesVersionFailed() {
+
+        when(versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                        eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED)))
+                .thenReturn(null);
+
+        try {
+            versionLocaleService.findRefBookLocales(TEST_REFBOOK_CODE);
+            fail(getFailedMessage(NotFoundException.class));
+
+        } catch (UserException e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertNotNull(getExceptionMessage(e));
+        }
     }
 
     @Test
