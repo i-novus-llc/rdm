@@ -18,8 +18,8 @@
         <maven.compiler.target>14</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <n2o.version>7.9.6</n2o.version>
-        <vds.version>3.6-SNAPSHOT</vds.version>
-        <l10n.vds.version>3.11-SNAPSHOT</l10n.vds.version>
+        <vds.version>3.6</vds.version>
+        <l10n.vds.version>3.11</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
