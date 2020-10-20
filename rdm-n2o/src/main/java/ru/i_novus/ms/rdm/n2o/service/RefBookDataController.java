@@ -229,7 +229,7 @@ public class RefBookDataController {
         if (attributeValue == null)
             return null;
 
-        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, castFilterValue(attribute, filterValue), attribute.getType());
+        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
         attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
         return attributeFilter;
     }
