@@ -8,8 +8,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
+import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
@@ -30,15 +36,32 @@ public class VersionLocaleServiceImpl implements VersionLocaleService {
 
     private static final String LOCALE_CODE_IS_DEFAULT_EXCEPTION_CODE = "locale.code.is.default";
 
-    private L10nLocaleInfoService localeInfoService;
-    private L10nStorageCodeService storageCodeService;
+    private final L10nLocaleInfoService localeInfoService;
+    private final L10nStorageCodeService storageCodeService;
+    private final L10nDraftDataService draftDataService;
+
+    private final RefBookVersionRepository versionRepository;
 
     @Autowired
     public VersionLocaleServiceImpl(L10nLocaleInfoService localeInfoService,
-                                    L10nStorageCodeService storageCodeService) {
+                                    L10nStorageCodeService storageCodeService,
+                                    L10nDraftDataService draftDataService,
+                                    RefBookVersionRepository versionRepository) {
 
         this.localeInfoService = localeInfoService;
         this.storageCodeService = storageCodeService;
+        this.draftDataService = draftDataService;
+
+        this.versionRepository = versionRepository;
+    }
+
+    public List<String> findRefBookLocales(String refBookCode) {
+
+        RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (versionEntity == null)
+            throw new NotFoundException(new Message(VersionValidationImpl.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+
+        return draftDataService.findTableLocaleCodes(versionEntity.getStorageCode());
     }
 
     @Override

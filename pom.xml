@@ -17,23 +17,20 @@
         <maven.compiler.source>14</maven.compiler.source>
         <maven.compiler.target>14</maven.compiler.target>
         <encoding>UTF-8</encoding>
+        <n2o.version>7.9.6</n2o.version>
+        <vds.version>3.6</vds.version>
+        <l10n.vds.version>3.11</l10n.vds.version>
+
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.2</filestorage.version>
-        <vds.version>3.5</vds.version>
-        <l10n.vds.version>3.10</l10n.vds.version>
-        <n2o.version>7.9.6</n2o.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
-        <jaxrs-api.version>2.1.1</jaxrs-api.version>
-        <cxf.version>3.2.7</cxf.version>
-        <swagger-annotations.version>1.5.21</swagger-annotations.version>
         <javax.activation.version>1.1.1</javax.activation.version>
         <security.admin.version>4.3</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
-        <swagger.version>3.23.0</swagger.version>
         <audit.version>2.3.2</audit.version>
     </properties>
 

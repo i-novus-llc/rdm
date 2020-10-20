@@ -11,7 +11,7 @@ import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class RefBookDataRequestTest extends BaseTest {
 
