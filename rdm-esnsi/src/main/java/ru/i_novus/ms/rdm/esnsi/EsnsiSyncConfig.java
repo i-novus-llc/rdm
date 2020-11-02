@@ -12,11 +12,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.FileStorageService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.i_novus.ms.rdm.esnsi.smev.MsgFetcher;
 import ru.i_novus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
+import ru.i_novus.ms.rdm.esnsi.sync.EsnsiSyncJobUtils;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +39,17 @@ import static org.quartz.TriggerBuilder.newTrigger;
 public class EsnsiSyncConfig {
 
     private static final String ESNSI_INTERNAL = "ESNSI-INTERNAL";
+
+    private final Integer pageSize;
+
+    public EsnsiSyncConfig(@Value("${esnsi.sync.page-size:50000}") Integer pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    @PostConstruct
+    public void configurePageSize() {
+        EsnsiSyncJobUtils.PAGE_SIZE = pageSize;
+    }
 
     @Bean
     public Properties quartzProperties() throws IOException {
