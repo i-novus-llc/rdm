@@ -16,6 +16,7 @@ import ru.inovus.ms.rdm.api.service.*;
 import ru.inovus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.inovus.ms.rdm.esnsi.smev.MsgFetcher;
 import ru.inovus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
+import ru.inovus.ms.rdm.esnsi.sync.EsnsiSyncJobUtils;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
