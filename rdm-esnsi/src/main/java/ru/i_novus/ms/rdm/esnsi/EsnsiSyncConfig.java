@@ -48,8 +48,6 @@ public class EsnsiSyncConfig {
 
     @PostConstruct
     public void configurePageSize() {
-        if (pageSize < 50_000)
-            throw new IllegalArgumentException("Page size too small");
         EsnsiSyncJobUtils.PAGE_SIZE = pageSize;
     }
 
