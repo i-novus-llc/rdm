@@ -4,7 +4,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.apache.commons.io.IOUtils;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.i_novus.ms.rdm.esnsi.api.ClassifierAttribute;
@@ -13,6 +12,7 @@ import ru.i_novus.ms.rdm.esnsi.file_gen.AttributeValidation;
 import ru.i_novus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
 import ru.i_novus.ms.rdm.esnsi.file_gen.RefBookMetadata;
 import ru.i_novus.ms.rdm.esnsi.file_gen.RefBookStructure;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.stream.XMLInputFactory;
@@ -39,9 +39,9 @@ import static ru.i_novus.ms.rdm.esnsi.api.AttributeType.DECIMAL;
 import static ru.i_novus.ms.rdm.esnsi.api.AttributeType.TEXT;
 import static ru.i_novus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator.RDM_DATE_FORMAT;
 
-final class EsnsiSyncJobUtils {
+public final class EsnsiSyncJobUtils {
 
-    static final int PAGE_SIZE = 100;
+    public static int PAGE_SIZE;
 
     private EsnsiSyncJobUtils() {throw new UnsupportedOperationException();}
 
