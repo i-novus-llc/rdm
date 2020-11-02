@@ -17,6 +17,7 @@ import ru.inovus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.inovus.ms.rdm.esnsi.smev.MsgFetcher;
 import ru.inovus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +35,19 @@ import static org.quartz.TriggerBuilder.newTrigger;
 public class EsnsiSyncConfig {
 
     private static final String ESNSI_INTERNAL = "ESNSI-INTERNAL";
+
+    private final Integer pageSize;
+
+    public EsnsiSyncConfig(@Value("${esnsi.sync.page-size:50000}") Integer pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    @PostConstruct
+    public void configurePageSize() {
+        if (pageSize < 50_000)
+            throw new IllegalArgumentException("Page size too small");
+        EsnsiSyncJobUtils.PAGE_SIZE = pageSize;
+    }
 
     @Bean
     public Properties quartzProperties() throws IOException {

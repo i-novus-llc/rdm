@@ -39,9 +39,9 @@ import static ru.inovus.ms.rdm.esnsi.api.AttributeType.DECIMAL;
 import static ru.inovus.ms.rdm.esnsi.api.AttributeType.TEXT;
 import static ru.inovus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator.RDM_DATE_FORMAT;
 
-final class EsnsiSyncJobUtils {
+public final class EsnsiSyncJobUtils {
 
-    static final int PAGE_SIZE = 100;
+    public static int PAGE_SIZE;
 
     private EsnsiSyncJobUtils() {throw new UnsupportedOperationException();}
 
