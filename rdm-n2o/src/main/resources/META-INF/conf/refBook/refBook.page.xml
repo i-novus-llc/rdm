@@ -47,7 +47,7 @@
                             </pre-filters>
 
                             <dependencies>
-                                <visibility>return ${rdm.ui.l10n.support}</visibility>
+                                <visibility>return ${rdm.l10n.support}</visibility>
                                 <set-value on="version">version.localeCode.id</set-value>
                             </dependencies>
                         </select>
@@ -207,7 +207,7 @@
             <table src="DataGrid" name="Переведённые данные" id="dataTableWithLocales"
                    query-id="data" depends-on="version_select" fetch-on-init="true"
                    master-field-id="id" detail-field-id="versionId" object-id="data"
-                   visible="{${rdm.ui.l10n.support} &amp;&amp; localeCode.id != null &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable}">
+                   visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable}">
                 <pre-filters>
                     <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                     <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
@@ -229,7 +229,7 @@
                         </show-modal>
 
                         <dependencies>
-                            <visibility>return ${rdm.ui.l10n.support}</visibility>
+                            <visibility>return ${rdm.l10n.support}</visibility>
                         </dependencies>
                     </button>
                 </toolbar>
