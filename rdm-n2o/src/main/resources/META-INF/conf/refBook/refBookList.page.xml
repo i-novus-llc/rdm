@@ -40,7 +40,9 @@
             </sub-menu>
             <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!archived">
                 <open-page page-id="refBook" page-name="Редактирование справочника &quot;{name}&quot; [{code}]" detail-field-id="refBookId"
-                           route="/:refBookId/edit"/>
+                           route="/:refBookId/edit">
+                    <path-param name="refBookId" value="{id}"/>
+                </open-page>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
 <!--            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger" enabling-condition="!archived &amp;&amp; !hasPublished">-->

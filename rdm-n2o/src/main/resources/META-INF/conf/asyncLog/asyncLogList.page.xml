@@ -32,7 +32,9 @@
 
                 <rows>
                     <click>
-                        <show-modal page-id="asyncLogView" detail-field-id="id" route="/:id/view"/>
+                        <show-modal page-id="asyncLogView" detail-field-id="id" route="/:id/view">
+                            <path-param name="id" value="{id}"/>
+                        </show-modal>
                     </click>
                 </rows>
             </table>
