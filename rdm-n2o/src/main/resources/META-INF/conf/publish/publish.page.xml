@@ -3,8 +3,18 @@
     <form object-id="publish" default-values-query-id="publish">
 
         <fields>
-<!--            <output-text id="version.version" label="Версия"/>-->
-<!--            <output-text id="version.optLockValue" label="Опт-блок-значение"/>-->
+            <row>
+                <output-text id="version.version" label="version">
+                    <dependencies>
+                        <visibility>return ${rdm.n2o.debug}</visibility>
+                    </dependencies>
+                </output-text>
+                <output-text id="version.optLockValue" label="optLockValue">
+                    <dependencies>
+                        <visibility>return ${rdm.n2o.debug}</visibility>
+                    </dependencies>
+                </output-text>
+            </row>
 
             <output-text id="errorMessage" class="alert alert-danger" no-label="true">
                 <dependencies>
