@@ -6,6 +6,7 @@
                 <pre-filters>
                     <eq field-id="refBookId" param="refBookId"/>
                 </pre-filters>
+
                 <fields>
                     <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
                     <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
