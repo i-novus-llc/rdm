@@ -77,9 +77,7 @@
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target="application"
                                         redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </menu-item>
 
