@@ -21,7 +21,6 @@
         <rdm.l10n.messages />
 
         <rdm.n2o.debug>false</rdm.n2o.debug>
-        <rdm.refbook.list>refBookList</rdm.refbook.list>
     </properties>
 
     <dependencies>
@@ -288,7 +287,6 @@
             <id>n2o-debug</id>
             <properties>
                 <rdm.n2o.debug>true</rdm.n2o.debug>
-                <rdm.refbook.list>refBookListDebug</rdm.refbook.list>
             </properties>
         </profile>
     </profiles>
