@@ -43,7 +43,7 @@
                 </menu-item>
             </sub-menu>
             <button id="edit" label="Изменить" icon="fa fa-pencil" enabling-condition="!archived">
-                <open-page page-id="refBook" page-name="Редактирование &quot;{:name}&quot; [{code}]"
+                <open-page page-id="refBook" page-name="Редактирование &quot;{name}&quot; [{code}]"
                            route="/:refBookId/edit">
                     <path-param name="refBookId" value="{id}"/>
                 </open-page>
@@ -67,6 +67,8 @@
             <button id="versionList" label="Версии" enabling-condition="!archived">
                 <open-page page-id="refBookVersionList" page-name="Версии &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
@@ -75,6 +77,8 @@
             <button id="versionActions" label="Действия" enabling-condition="!archived">
                 <open-page page-id="refBookVersionActions" page-name="Действия с &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
@@ -83,6 +87,8 @@
             <button id="versionPassport" label="Паспорт" enabling-condition="!archived">
                 <open-page page-id="refBookVersionPassport" page-name="Паспорт &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
@@ -91,6 +97,8 @@
             <button id="versionStructure" label="Структура" enabling-condition="!archived">
                 <open-page page-id="refBookVersionStructure" page-name="Структура &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
@@ -99,13 +107,15 @@
             <button id="versionData" label="Данные" enabling-condition="!archived">
                 <open-page page-id="refBookVersionData" page-name="Данные &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="debugData" label="Отладка" enabling-condition="!archived">
-                <open-page page-id="refBookDebugData" page-name="Отладка данных &quot;{name}&quot; [{code}]"/>
+                <open-page page-id="refBookDebugData" page-name="Отладка данных справочника"/>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
