@@ -69,20 +69,16 @@
                             widget-id="version_select" model="resolve">
                         <show-modal page-id="attribute" upload="defaults"
                                     submit-operation-id="createAttribute" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                            </pre-filters>
+                            <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                            <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                         </show-modal>
                     </button>
                     <button label="Изменить" id="editAttribute_r">
                         <show-modal page-id="attribute" submit-model="resolve"
                                     submit-operation-id="updateAttribute" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{versionId}"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="code" value="{code}"/>
-                            </pre-filters>
+                            <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                            <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                            <query-param name="code" value="{code}"/>
                         </show-modal>
                     </button>
                     <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"

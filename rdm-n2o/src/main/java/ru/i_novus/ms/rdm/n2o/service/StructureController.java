@@ -79,11 +79,14 @@ public class StructureController {
     }
 
     // used in: attributeDefault.query.xml
-    ReadAttribute getDefault(Integer versionId, Integer optLockValue) {
+    ReadAttribute getDefault(AttributeCriteria criteria) {
+
+        Integer versionId = criteria.getVersionId();
 
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setVersionId(versionId);
-        readAttribute.setOptLockValue(optLockValue);
+        readAttribute.setOptLockValue(criteria.getOptLockValue());
+        readAttribute.setCode(criteria.getCode());
 
         enrichByRefBook(versionId, readAttribute);
 

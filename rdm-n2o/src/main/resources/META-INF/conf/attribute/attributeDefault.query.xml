@@ -6,8 +6,7 @@
               method="getDefault">
             <spring/>
             <arguments>
-                <argument type="primitive" name="versionId"/>
-                <argument type="primitive" name="optLockValue"/>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
             </arguments>
         </java>
     </unique>
@@ -19,19 +18,22 @@
 
         <field id="code" domain="string">
             <select mapping="code"/>
+            <filters>
+                <eq filter-id="code" mapping="code" domain="string"/>
+            </filters>
         </field>
 
         <field id="versionId" domain="integer">
             <select mapping="versionId"/>
             <filters>
-                <eq filter-id="versionId" mapping="[0]" domain="integer"/>
+                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="optLockValue" mapping="[1]" domain="integer" default-value="0"/>
+                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer" default-value="0"/>
             </filters>
         </field>
 
