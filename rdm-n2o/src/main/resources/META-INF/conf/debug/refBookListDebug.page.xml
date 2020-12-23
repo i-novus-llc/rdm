@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ"
-             xmlns:sec="http://n2oapp.net/framework/config/schema/security-1.0">
+>
     <table query-id="refBook" route="/main">
         <pagination/>
         <rows>
@@ -15,8 +15,10 @@
                 <date-interval id="lastPublishedVersionFromDateInterval" label="Дата последней публикации" date-format="DD.MM.YYYY"/>
                 <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
                 <input-select id="status" label="Статус"
-                              query-id="refBookStatusList" label-field-id="name" search="false"
-                              sec:permissions="${rdm.permissions.refbook.status.list}"/>
+                              query-id="refBookStatusList" label-field-id="name" search="false"/>
+                <!--<input-select id="status" label="Статус"-->
+                <!--              query-id="refBookStatusList" label-field-id="name" search="false"-->
+                <!--              sec:permissions="${rdm.permissions.refbook.status.list}"/>-->
             </row>
         </filters>
         <toolbar>
@@ -58,6 +60,55 @@
             <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
                     visibility-condition="archived">
                 <invoke operation-id="fromArchive"/>
+            </button>
+        </toolbar>
+
+        <toolbar place="topRight">
+            <button id="versionList" label="Версии" enabling-condition="!archived">
+                <open-page page-id="refBookVersionList" page-name="Версии справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
+            <button id="versionActions" label="Действия" enabling-condition="!archived">
+                <open-page page-id="refBookVersionActions" page-name="Действия с версиями справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
+            <button id="versionPassport" label="Паспорт" enabling-condition="!archived">
+                <open-page page-id="refBookVersionPassport" page-name="Паспорт справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
+            <button id="versionStructure" label="Структура" enabling-condition="!archived">
+                <open-page page-id="refBookVersionStructure" page-name="Структура справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
+            <button id="versionData" label="Данные" enabling-condition="!archived">
+                <open-page page-id="refBookVersionData" page-name="Данные справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
+            <button id="debugData" label="Отладка" enabling-condition="!archived">
+                <open-page page-id="refBookDebugData" page-name="Отладка: Данные справочника &quot;{name}&quot; [{code}]"/>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
             </button>
         </toolbar>
 
