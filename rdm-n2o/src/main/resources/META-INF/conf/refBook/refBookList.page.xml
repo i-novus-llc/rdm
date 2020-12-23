@@ -63,53 +63,47 @@
 
         <toolbar place="topRight">
             <button id="versionList" label="Версии" enabling-condition="!archived">
-                <open-page page-id="refBookVersionList" page-name="Версии справочника &quot;{name}&quot; [{code}]"
-                           route="/:refBookId/versionList">
-                    <path-param name="refBookId" value="{id}"/>
+                <open-page page-id="refBookVersionList" page-name="Версии справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="versionActions" label="Действия" enabling-condition="!archived">
-                <open-page page-id="refBookVersionActions" page-name="Действия с версиями справочника &quot;{name}&quot; [{code}]"
-                           route="/:refBookId/versionActions">
-                    <path-param name="refBookId" value="{id}"/>
+                <open-page page-id="refBookVersionActions" page-name="Действия с версиями справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="versionPassport" label="Паспорт" enabling-condition="!archived">
-                <open-page page-id="refBookVersionPassport" page-name="Паспорт справочника &quot;{name}&quot; [{code}]"
-                           route="/:refBookId/versionPassport">
-                    <path-param name="refBookId" value="{id}"/>
+                <open-page page-id="refBookVersionPassport" page-name="Паспорт справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="versionStructure" label="Структура" enabling-condition="!archived">
-                <open-page page-id="refBookVersionStructure" page-name="Структура справочника &quot;{name}&quot; [{code}]"
-                           route="/:refBookId/versionStructure">
-                    <path-param name="refBookId" value="{id}"/>
+                <open-page page-id="refBookVersionStructure" page-name="Структура справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="versionData" label="Данные" enabling-condition="!archived">
-                <open-page page-id="refBookVersionData" page-name="Данные справочника &quot;{name}&quot; [{code}]"
-                           route="/:refBookId/versionData">
-                    <path-param name="refBookId" value="{id}"/>
+                <open-page page-id="refBookVersionData" page-name="Данные справочника &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
             <button id="debugData" label="Отладка" enabling-condition="!archived">
-                <open-page page-id="refBookDebugData" page-name="Отладка: Данные справочника &quot;{name}&quot; [{code}]"
-                           route="/debugData"/>
+                <open-page page-id="refBookDebugData" page-name="Отладка: Данные справочника &quot;{name}&quot; [{code}]">
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
