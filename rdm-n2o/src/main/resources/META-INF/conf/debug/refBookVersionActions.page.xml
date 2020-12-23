@@ -63,10 +63,8 @@
                         <menu-item label="Опубликовать"
                                    visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
                             <show-modal page-id="publish" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="version.id" value="{version.id}"/>
-                                    <eq field-id="version.optLockValue" value="{optLockValue}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
+                                <query-param name="optLockValue" value="{optLockValue}"/>
                             </show-modal>
                         </menu-item>
 

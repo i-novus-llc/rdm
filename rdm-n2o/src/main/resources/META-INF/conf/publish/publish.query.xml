@@ -42,6 +42,13 @@
                 "/>
         </field>
 
+        <field id="version.optLockValue" domain="integer">
+            <select mapping="optLockValue"/>
+            <filters>
+                <eq filter-id="version.optLockValue" mapping="[1]" domain="integer" default-value="0"/>
+            </filters>
+        </field>
+
         <field id="code" domain="string">
             <select/>
             <filters>
@@ -111,13 +118,6 @@
 
         <field id="editDate" domain="date">
             <select/>
-        </field>
-
-        <field id="version.optLockValue" domain="integer">
-            <select mapping="optLockValue"/>
-            <filters>
-                <eq filter-id="version.optLockValue" mapping="[1]" domain="integer" default-value="0"/>
-            </filters>
         </field>
 
         <field id="isPublishable" domain="boolean">

@@ -1,10 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Публикация справочника">
     <form object-id="publish" default-values-query-id="publish">
+        <pre-filters>
+            <eq field-id="version.id" param="versionId"/>
+            <eq field-id="version.optLockValue" param="optLockValue"/>
+        </pre-filters>
 
         <fields>
             <row>
-                <output-text id="version.version" label="version">
+                <output-text id="version.id" label="id">
                     <dependencies>
                         <visibility>return ${rdm.n2o.debug}</visibility>
                     </dependencies>
@@ -15,6 +19,11 @@
                     </dependencies>
                 </output-text>
             </row>
+            <output-text id="version.version" no-label-block="true">
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </output-text>
 
             <output-text id="errorMessage" class="alert alert-danger" no-label="true">
                 <dependencies>
