@@ -28,36 +28,36 @@
                     <path-param name="refBookId" value="{id}"/>
                 </open-page>
             </button>
-            <sub-menu label="Создать справочник" icon="fa fa-plus">
-                <menu-item label="Создать справочник" model="filter">
-                    <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
+            <sub-menu label="Создать" icon="fa fa-plus">
+                <menu-item label="Создать" model="filter">
+                    <open-page page-id="createRefBook" page-name="Создание" upload="defaults"
                                submit-operation-id="create"
                                redirect-url-after-submit="../:refBookId/edit"/>
                 </menu-item>
-                <menu-item label="Создать справочник из файла" model="filter">
-                    <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
+                <menu-item label="Создать из файла" model="filter">
+                    <show-modal page-id="createFromFile" page-name="Создание из файла" upload="defaults"
                                 submit-operation-id="createFromFile"
                                 redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit"
                                 redirect-target="application">
                     </show-modal>
                 </menu-item>
             </sub-menu>
-            <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!archived">
-                <open-page page-id="refBook" page-name="Редактирование справочника &quot;{name}&quot; [{code}]"
+            <button id="edit" label="Изменить" icon="fa fa-pencil" enabling-condition="!archived">
+                <open-page page-id="refBook" page-name="Редактирование &quot;{:name}&quot; [{code}]"
                            route="/:refBookId/edit">
                     <path-param name="refBookId" value="{id}"/>
                 </open-page>
             </button>
-            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
+            <button id="delete" label="Удалить" icon="fa fa-trash" color="danger">
 <!--            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger" enabling-condition="!archived &amp;&amp; !hasPublished">-->
                 <invoke operation-id="delete"/>
             </button>
 
-            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
+            <button id="toArchive" label="В архив" icon="fa fa-lock"
                     visibility-condition="!archived">
                 <invoke operation-id="toArchive"/>
             </button>
-            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
+            <button id="fromArchive" label="Из архива" icon="fa fa-unlock"
                     visibility-condition="archived">
                 <invoke operation-id="fromArchive"/>
             </button>
@@ -65,7 +65,7 @@
 
         <toolbar place="topRight">
             <button id="versionList" label="Версии" enabling-condition="!archived">
-                <open-page page-id="refBookVersionList" page-name="Версии справочника &quot;{name}&quot; [{code}]">
+                <open-page page-id="refBookVersionList" page-name="Версии &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
@@ -73,7 +73,7 @@
                 </dependencies>
             </button>
             <button id="versionActions" label="Действия" enabling-condition="!archived">
-                <open-page page-id="refBookVersionActions" page-name="Действия с версиями справочника &quot;{name}&quot; [{code}]">
+                <open-page page-id="refBookVersionActions" page-name="Действия с &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
@@ -81,7 +81,7 @@
                 </dependencies>
             </button>
             <button id="versionPassport" label="Паспорт" enabling-condition="!archived">
-                <open-page page-id="refBookVersionPassport" page-name="Паспорт справочника &quot;{name}&quot; [{code}]">
+                <open-page page-id="refBookVersionPassport" page-name="Паспорт &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
@@ -89,7 +89,7 @@
                 </dependencies>
             </button>
             <button id="versionStructure" label="Структура" enabling-condition="!archived">
-                <open-page page-id="refBookVersionStructure" page-name="Структура справочника &quot;{name}&quot; [{code}]">
+                <open-page page-id="refBookVersionStructure" page-name="Структура &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
@@ -97,7 +97,7 @@
                 </dependencies>
             </button>
             <button id="versionData" label="Данные" enabling-condition="!archived">
-                <open-page page-id="refBookVersionData" page-name="Данные справочника &quot;{name}&quot; [{code}]">
+                <open-page page-id="refBookVersionData" page-name="Данные &quot;{name}&quot; [{code}]">
                     <query-param name="refBookId" value="{id}"/>
                 </open-page>
                 <dependencies>
@@ -105,7 +105,7 @@
                 </dependencies>
             </button>
             <button id="debugData" label="Отладка" enabling-condition="!archived">
-                <open-page page-id="refBookDebugData" page-name="Отладка: Данные справочника &quot;{name}&quot; [{code}]"/>
+                <open-page page-id="refBookDebugData" page-name="Отладка данных &quot;{name}&quot; [{code}]"/>
                 <dependencies>
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
