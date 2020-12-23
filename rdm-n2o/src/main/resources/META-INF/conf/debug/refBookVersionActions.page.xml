@@ -83,9 +83,7 @@
 
                         <menu-item label="Скачать">
                             <show-modal page-id="downloadFile" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </menu-item>
                     </sub-menu>
