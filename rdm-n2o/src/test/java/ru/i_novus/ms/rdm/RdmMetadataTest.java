@@ -31,7 +31,8 @@ public class RdmMetadataTest extends N2oTestBase {
             "rdm.backend.path=http://localhost:8080/rdm/api",
             "rdm.user.admin.url=http://docker.one:8182/",
             "rdm.permissions.refbook.status.list= ",
-            "rdm.l10n.support=false"
+            "rdm.l10n.support=false",
+            "rdm.n2o.debug=false"
     );
 
     @Override

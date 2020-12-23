@@ -18,6 +18,7 @@
         <jacoco.skip>false</jacoco.skip>
 
         <rdm.l10n.support>false</rdm.l10n.support>
+        <rdm.n2o.debug>false</rdm.n2o.debug>
         <rdm.l10n.messages />
     </properties>
 
@@ -279,6 +280,13 @@
                     <version>${project.version}</version>
                 </dependency>
             </dependencies>
+        </profile>
+
+        <profile>
+            <id>n2o-debug</id>
+            <properties>
+                <rdm.n2o.debug>true</rdm.n2o.debug>
+            </properties>
         </profile>
     </profiles>
 
