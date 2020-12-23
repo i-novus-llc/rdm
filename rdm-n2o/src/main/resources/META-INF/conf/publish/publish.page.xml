@@ -53,13 +53,13 @@
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
                 <invoke operation-id="publishDraft" close-after-success="true"
-                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"
-                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
             <button id="cancel" label="Отмена">
