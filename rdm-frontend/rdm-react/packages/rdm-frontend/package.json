@@ -3,19 +3,21 @@
   "version": "2.0.1",
   "private": true,
   "homepage": ".",
-  "dependencies": {
-    "http-proxy-middleware": "^0.20.0",
-    "n2o-auth": "^7.12.1",
-    "n2o-framework": "~7.12.1",
-    "n2o-config-rdm": "2.0.1",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "http-proxy-middleware": "^0.20.0",
+    "n2o-config-rdm": "2.0.1"
+  },
+  "peerDependencies": {
+    "n2o-auth": "*",
+    "n2o-framework": "*",
+    "react": "*",
+    "react-dom": "*"
   },
   "browserslist": [
     ">0.2%",
