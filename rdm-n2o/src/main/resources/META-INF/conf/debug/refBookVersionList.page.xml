@@ -22,6 +22,8 @@
                                 <set-value on="version">version.optLockValue</set-value>
                             </dependencies>
                         </output-text>
+
+                        <output-text id="now"/>
                     </row>
 
                     <row>
@@ -42,18 +44,6 @@
                                     (version.id == draftVersionId || version.id == lastPublishedVersionId)
                                 </condition>
                             </validations>
-                        </select>
-
-                        <select id="localeCode" no-label="true" depends-on="version_select"
-                                query-id="versionLocaleList" label-field-id="name">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}"/>
-                            </pre-filters>
-
-                            <dependencies>
-                                <visibility>return ${rdm.l10n.support}</visibility>
-                                <set-value on="version">version.localeCode.id</set-value>
-                            </dependencies>
                         </select>
                     </row>
                 </fields>
