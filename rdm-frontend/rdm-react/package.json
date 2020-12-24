@@ -1,11 +1,14 @@
 {
   "name": "root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start:rdm": "lerna run --scope rdm-frontend start",
     "bootstrap": "lerna bootstrap",
     "clean": "lerna clean",
-    "build": "npm run build:config && npm run build:frontend",
+    "build": "yarn run build:config && yarn run build:frontend",
     "build:config": "lerna run --scope n2o-config-rdm build",
     "build:frontend": "lerna run --scope rdm-frontend build",
     "publish": "lerna publish",

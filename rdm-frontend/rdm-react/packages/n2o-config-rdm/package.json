@@ -19,30 +19,27 @@
     "clean:commonjs": "rimraf dist/commonjs",
     "clean:es": "rimraf dist/es"
   },
+  "dependencies": {
+    "classnames": "^2.2.6",
+    "lodash": "^4.17.15",
+    "n2o-auth": "7.12.1",
+    "n2o-framework": "7.12.1",
+    "react-autosize-textarea": "^6.0.0",
+    "react-avatar": "^3.5.0",
+    "react-sticky": "^6.0.3",
+    "reactstrap": "^8.0.1",
+    "recharts": "^1.4.2"
+  },
 	"peerDependencies": {
-		"n2o-framework": "~7.12.1",
-		"prop-types": "^15.5.4",
-		"react": "^16.0.0",
-		"react-dom": "^16.0.0"
-	},
-	"dependencies": {
-		"classnames": "^2.2.6",
-		"lodash": "^4.17.15",
-		"n2o-auth": "~7.12.1",
-		"n2o-framework": "~7.12.1",
-		"react": "^16.8.6",
-		"react-autosize-textarea": "^6.0.0",
-		"react-avatar": "^3.5.0",
-		"react-dom": "^16.8.6",
-		"react-redux": "5.0.6",
-		"react-router": "4.3.1",
-		"react-router-dom": "4.3.1",
-		"react-sticky": "^6.0.3",
-		"reactstrap": "^8.0.1",
-		"recharts": "^1.4.2",
-		"recompose": "^0.30.0",
-		"reselect": "^4.0.0"
-	},
+		"prop-types": "*",
+		"react": "*",
+		"react-dom": "*",
+    "react-redux": "*",
+    "react-router": "*",
+    "react-router-dom": "*",
+    "recompose": "*",
+    "reselect": "*"
+  },
 	"files": [
 		"dist"
 	]
