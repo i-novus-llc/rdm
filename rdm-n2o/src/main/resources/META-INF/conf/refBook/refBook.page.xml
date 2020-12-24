@@ -65,10 +65,8 @@
                         <menu-item label="Опубликовать"
                                    visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
                             <show-modal page-id="publish" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="version.id" value="{version.id}"/>
-                                    <eq field-id="version.optLockValue" value="{optLockValue}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
+                                <query-param name="optLockValue" value="{optLockValue}"/>
                             </show-modal>
                         </menu-item>
 
@@ -81,17 +79,13 @@
                             <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
                                         redirect-target="application"
                                         redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </menu-item>
 
                         <menu-item label="Скачать">
                             <show-modal page-id="downloadFile" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </menu-item>
                     </sub-menu>
