@@ -93,7 +93,7 @@
         </field>
 
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
-        <field id="now" domain="string">
+        <field id="now" domain="date">
             <select mapping="new java.util.Date()"/>
         </field>
 
