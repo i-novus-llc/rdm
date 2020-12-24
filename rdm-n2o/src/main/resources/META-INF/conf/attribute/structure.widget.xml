@@ -33,5 +33,16 @@
                 </switch>
             </icon>
         </column>
+
+        <column text-field-id="versionId" label="versionId">
+            <dependencies>
+                <visibility>return ${rdm.n2o.debug}</visibility>
+            </dependencies>
+        </column>
+        <column text-field-id="optLockValue" label="optLockValue">
+            <dependencies>
+                <visibility>return ${rdm.n2o.debug}</visibility>
+            </dependencies>
+        </column>
     </columns>
 </table>
