@@ -2,6 +2,7 @@
 <page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Реестр НСИ">
     <regions>
         <form id="version_select" query-id="refBookVersion">
+
             <pre-filters>
                 <eq field-id="refBookId" param="refBookId"/>
             </pre-filters>
@@ -142,11 +143,9 @@
                                         upload="query" route="/create"
                                         submit-operation-id="create" submit-label="Сохранить"
                                         refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="id" value="0"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="dataAction" value="create"/>
-                                </pre-filters>
+                                <query-param name="id" value="0"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="create"/>
                             </show-modal>
                         </button>
 
@@ -156,11 +155,9 @@
                                         upload="query" route="/update"
                                         submit-operation-id="update" submit-label="Изменить"
                                         refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="dataAction" value="update"/>
-                                </pre-filters>
+                                <query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="update"/>
                             </show-modal>
                         </button>
 
@@ -171,10 +168,8 @@
                         <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
                             <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
                                         submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </show-modal>
                         </button>
 
@@ -183,9 +178,7 @@
                                 visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" upload="defaults"
                                         submit-operation-id="uploadData" refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </button>
                     </toolbar>

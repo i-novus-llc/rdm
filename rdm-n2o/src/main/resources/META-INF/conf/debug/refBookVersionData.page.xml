@@ -90,10 +90,8 @@
                         <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
                             <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
                                         submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </show-modal>
                         </button>
 
@@ -102,9 +100,7 @@
                                 visibility-condition="version.status=='DRAFT'">
                             <show-modal page-id="uploadData" upload="defaults"
                                         submit-operation-id="uploadData" refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                                <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </button>
                     </toolbar>
