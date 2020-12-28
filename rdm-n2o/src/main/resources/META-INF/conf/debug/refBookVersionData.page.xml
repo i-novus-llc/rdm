@@ -57,6 +57,63 @@
                         <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                         <eq field-id="localeCode" value=""/>
                     </pre-filters>
+
+                    <toolbar place="topRight">
+                        <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
+                        <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
+                                widget-id="version_select" model="resolve"
+                                enabling-condition="version.hasStructure">
+                            <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
+                                        upload="query" route="/create"
+                                        submit-operation-id="create" submit-label="Сохранить"
+                                        refresh-widget-id="version_select">
+                                <pre-filters>
+                                    <eq field-id="id" value="0"/>
+                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                    <eq field-id="dataAction" value="create"/>
+                                </pre-filters>
+                            </show-modal>
+                        </button>
+
+                        <button id="updateRecord_r" label="Изменить" icon="fa fa-pencil"
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
+                                        upload="query" route="/update"
+                                        submit-operation-id="update" submit-label="Изменить"
+                                        refresh-widget-id="version_select">
+                                <pre-filters>
+                                    <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                    <eq field-id="dataAction" value="update"/>
+                                </pre-filters>
+                            </show-modal>
+                        </button>
+
+                        <button id="deleteRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
+                            <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
+                        </button>
+
+                        <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
+                            <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
+                                        submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                </pre-filters>
+                            </show-modal>
+                        </button>
+
+                        <button id="uploadData_r" label="Загрузить данные"
+                                widget-id="version_select" model="resolve"
+                                visibility-condition="version.status=='DRAFT'">
+                            <show-modal page-id="uploadData" upload="defaults"
+                                        submit-operation-id="uploadData" refresh-widget-id="version_select">
+                                <pre-filters>
+                                    <eq field-id="versionId" value="{version.id}"/>
+                                </pre-filters>
+                            </show-modal>
+                        </button>
+                    </toolbar>
                 </table>
             </tab>
         </tabs>
