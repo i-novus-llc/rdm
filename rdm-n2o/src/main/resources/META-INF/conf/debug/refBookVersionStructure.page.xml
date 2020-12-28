@@ -48,8 +48,8 @@
             </fields>
         </form>
 
-        <tabs>
-            <tab name="Структура">
+        <!--<tabs>-->
+        <!--    <tab name="Структура">-->
                 <table id="structure_table" ref-id="structure"
                        upload="query" depends-on="version_select" fetch-on-init="true"
                        master-field-id="id" detail-field-id="versionId">
@@ -87,7 +87,7 @@
                         </button>
                     </toolbar>
                 </table>
-            </tab>
-        </tabs>
+        <!--    </tab>-->
+        <!--</tabs>-->
     </regions>
 </page>
