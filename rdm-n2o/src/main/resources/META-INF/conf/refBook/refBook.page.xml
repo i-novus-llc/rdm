@@ -256,11 +256,9 @@
                                         upload="query" route="/update"
                                         submit-operation-id="update" submit-label="Изменить"
                                         refresh-widget-id="version_select">
-                                <pre-filters>
-                                    <eq field-id="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="dataAction" value="update"/>
-                                </pre-filters>
+                                <query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="update"/>
                             </show-modal>
                         </button>
 
