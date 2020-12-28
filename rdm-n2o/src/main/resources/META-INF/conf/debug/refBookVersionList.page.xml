@@ -10,21 +10,23 @@
                 <fields>
                     <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
                     <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
-                    <row>
-                        <output-text id="id">
-                            <dependencies>
-                                <set-value on="version">version.id</set-value>
-                            </dependencies>
-                        </output-text>
+                    <set field-label-location="left">
+                        <row>
+                            <output-text id="id">
+                                <dependencies>
+                                    <set-value on="version">version.id</set-value>
+                                </dependencies>
+                            </output-text>
 
-                        <output-text id="optLockValue">
-                            <dependencies>
-                                <set-value on="version">version.optLockValue</set-value>
-                            </dependencies>
-                        </output-text>
+                            <output-text id="optLockValue">
+                                <dependencies>
+                                    <set-value on="version">version.optLockValue</set-value>
+                                </dependencies>
+                            </output-text>
 
-                        <output-text id="now"/>
-                    </row>
+                            <output-text id="now"/>
+                        </row>
+                    </set>
 
                     <row>
                         <select id="version" label="Версия" cleanable="false"
