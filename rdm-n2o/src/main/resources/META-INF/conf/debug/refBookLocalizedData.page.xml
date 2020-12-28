@@ -13,12 +13,14 @@
                     <row>
                         <output-text id="id">
                             <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
                                 <set-value on="version">version.id</set-value>
                             </dependencies>
                         </output-text>
 
                         <output-text id="optLockValue">
                             <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
                                 <set-value on="version">version.optLockValue</set-value>
                             </dependencies>
                         </output-text>
@@ -53,42 +55,34 @@
                 <form id="locale_select">
                     <fields>
                         <set field-label-location="left">
-                            <row>
-                                <!--<output-text id="id" label="Code:">-->
-                                <!--    <dependencies>-->
-                                <!--        <set-value on="localeCode">localeCode.id</set-value>-->
-                                <!--    </dependencies>-->
-                                <!--</output-text>-->
-                                <output-text id="id" label="Version ID:">
-                                    <dependencies>
-                                        <set-value on="localeCode">localeCode.versionId</set-value>
-                                    </dependencies>
-                                </output-text>
-                                <!--<output-text id="versionId" label="Version ID:">-->
-                                <!--    <dependencies>-->
-                                <!--        <set-value on="localeCode">localeCode.versionId</set-value>-->
-                                <!--    </dependencies>-->
-                                <!--</output-text>-->
-                            </row>
+                            <output-text id="id">
+                                <dependencies>
+                                    <visibility>return ${rdm.l10n.support}</visibility>
+                                    <set-value on="localeCode">localeCode.versionId</set-value>
+                                </dependencies>
+                            </output-text>
                         </set>
 
-                        <select id="localeCode" no-label-block="true" depends-on="version_select"
-                                query-id="versionLocaleList" label-field-id="name">
+                        <select id="localeCode" no-label-block="true" cleanable="false"
+                                depends-on="version_select" query-id="versionLocaleList" label-field-id="name">
                             <pre-filters>
                                 <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
                             </pre-filters>
 
                             <dependencies>
-                                <visibility on="version">return ${rdm.l10n.support}</visibility>
-                                <!--<visibility on="version">return ${rdm.l10n.support} &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable</visibility>-->
-                                <set-value on="version">version.localeCode.id</set-value>
+                                <visibility>return ${rdm.l10n.support}</visibility>
+                                <!--<set-value>{id: 'eng'}</set-value>-->
+                                <!--<set-value>{id: 'eng', name: undefined}</set-value>-->
+                                <!--<set-value>{id: 'eng', name: null}</set-value>-->
+                                <!--<set-value>return {id: 'eng', name: 'English'}</set-value>-->
+                                <!--<set-value>{id: '${rdm.l10n.localized.code.id}', name: '${rdm.l10n.localized.code.name}'}</set-value>-->
                             </dependencies>
                         </select>
                     </fields>
                 </form>
 
                 <table src="DataGrid" id="dataTableWithLocales"
-                       query-id="data" depends-on="locale_select" fetch-on-init="true"
+                       query-id="data" depends-on="locale_select"
                        master-field-id="id" detail-field-id="versionId" object-id="data"
                        visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null}">
                     <pre-filters>

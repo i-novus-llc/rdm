@@ -9,54 +9,42 @@
             <fields>
                 <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
                 <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
-                <row>
-                    <output-text id="id">
-                        <dependencies>
-                            <visibility>return ${rdm.n2o.debug}</visibility>
-                            <set-value on="version">version.id</set-value>
-                        </dependencies>
-                    </output-text>
+                <set field-label-location="left">
+                    <row>
+                        <output-text id="id">
+                            <dependencies>
+                                <visibility>return ${rdm.n2o.debug}</visibility>
+                                <set-value on="version">version.id</set-value>
+                            </dependencies>
+                        </output-text>
 
-                    <output-text id="optLockValue">
-                        <dependencies>
-                            <visibility>return ${rdm.n2o.debug}</visibility>
-                            <set-value on="version">version.optLockValue</set-value>
-                        </dependencies>
-                    </output-text>
-                </row>
+                        <output-text id="optLockValue">
+                            <dependencies>
+                                <visibility>return ${rdm.n2o.debug}</visibility>
+                                <set-value on="version">version.optLockValue</set-value>
+                            </dependencies>
+                        </output-text>
+                    </row>
+                </set>
 
-                <row>
-                    <select id="version" label="Версия" cleanable="false"
-                            query-id="versionList" label-field-id="version">
-                        <pre-filters>
-                            <eq field-id="refBookId" value="{refBookId}"/>
-                        </pre-filters>
+                <select id="version" label="Версия" cleanable="false"
+                        query-id="versionList" label-field-id="version">
+                    <pre-filters>
+                        <eq field-id="refBookId" value="{refBookId}"/>
+                    </pre-filters>
 
-                        <!-- NB: Реализовать единую точку перехода в режим редактирования -->
-                        <validations>
-                            <condition id="refBookHasDraft" severity="warning"
-                                       message="Справочник содержит неопубликованную версию">
-                                (draftVersionId == null || version.id == draftVersionId)
-                            </condition>
-                            <condition id="isNotLastPublished" severity="warning"
-                                       message="Выбранная версия справочника не является последней опубликованной версией">
-                                (version.id == draftVersionId || version.id == lastPublishedVersionId)
-                            </condition>
-                        </validations>
-                    </select>
-
-                    <select id="localeCode" no-label="true" depends-on="version_select"
-                            query-id="versionLocaleList" label-field-id="name">
-                        <pre-filters>
-                            <eq field-id="versionId" value="{version.id}"/>
-                        </pre-filters>
-
-                        <dependencies>
-                            <visibility>return ${rdm.l10n.support}</visibility>
-                            <set-value on="version">version.localeCode.id</set-value>
-                        </dependencies>
-                    </select>
-                </row>
+                    <!-- NB: Реализовать единую точку перехода в режим редактирования -->
+                    <validations>
+                        <condition id="refBookHasDraft" severity="warning"
+                                   message="Справочник содержит неопубликованную версию">
+                            (draftVersionId == null || version.id == draftVersionId)
+                        </condition>
+                        <condition id="isNotLastPublished" severity="warning"
+                                   message="Выбранная версия справочника не является последней опубликованной версией">
+                            (version.id == draftVersionId || version.id == lastPublishedVersionId)
+                        </condition>
+                    </validations>
+                </select>
             </fields>
 
             <toolbar place="bottomLeft">
@@ -205,28 +193,50 @@
             </tab>
 
             <tab name="Переведённые данные">
+                <form id="locale_select">
+                    <fields>
+                        <set field-label-location="left">
+                            <output-text id="id">
+                                <dependencies>
+                                    <visibility>return ${rdm.l10n.support}</visibility>
+                                    <set-value on="localeCode">localeCode.versionId</set-value>
+                                </dependencies>
+                            </output-text>
+                        </set>
+
+                        <select id="localeCode" no-label-block="true" cleanable="false"
+                                depends-on="version_select" query-id="versionLocaleList" label-field-id="name">
+                            <pre-filters>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                            </pre-filters>
+
+                            <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
+                            </dependencies>
+                        </select>
+                    </fields>
+                </form>
+
                 <table src="DataGrid" id="dataTableWithLocales"
-                       query-id="data" depends-on="version_select" fetch-on-init="true"
+                       query-id="data" depends-on="locale_select" fetch-on-init="true"
                        master-field-id="id" detail-field-id="versionId" object-id="data"
-                       visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable}">
+                       visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null}">
                     <pre-filters>
                         <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                        <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                        <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
                     </pre-filters>
 
                     <toolbar place="topRight">
                         <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
-                                widget-id="version_select" model="resolve">
+                                widget-id="locale_select" model="resolve">
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                         upload="query" route="/localize"
                                         submit-operation-id="localize" submit-label="Сохранить"
                                         refresh-widget-id="dataTableWithLocales">
-                                <pre-filters>
-                                    <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="dataAction" value="localize"/>
-                                </pre-filters>
+                                <query-param name="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="localize"/>
                             </show-modal>
 
                             <dependencies>
