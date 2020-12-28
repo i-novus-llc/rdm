@@ -27,26 +27,24 @@
                     </row>
                 </set>
 
-                <row>
-                    <select id="version" label="Версия" cleanable="false"
-                            query-id="versionList" label-field-id="version">
-                        <pre-filters>
-                            <eq field-id="refBookId" value="{refBookId}"/>
-                        </pre-filters>
+                <select id="version" label="Версия" cleanable="false"
+                        query-id="versionList" label-field-id="version">
+                    <pre-filters>
+                        <eq field-id="refBookId" value="{refBookId}"/>
+                    </pre-filters>
 
-                        <!-- NB: Реализовать единую точку перехода в режим редактирования -->
-                        <validations>
-                            <condition id="refBookHasDraft" severity="warning"
-                                       message="Справочник содержит неопубликованную версию">
-                                (draftVersionId == null || version.id == draftVersionId)
-                            </condition>
-                            <condition id="isNotLastPublished" severity="warning"
-                                       message="Выбранная версия справочника не является последней опубликованной версией">
-                                (version.id == draftVersionId || version.id == lastPublishedVersionId)
-                            </condition>
-                        </validations>
-                    </select>
-                </row>
+                    <!-- NB: Реализовать единую точку перехода в режим редактирования -->
+                    <validations>
+                        <condition id="refBookHasDraft" severity="warning"
+                                   message="Справочник содержит неопубликованную версию">
+                            (draftVersionId == null || version.id == draftVersionId)
+                        </condition>
+                        <condition id="isNotLastPublished" severity="warning"
+                                   message="Выбранная версия справочника не является последней опубликованной версией">
+                            (version.id == draftVersionId || version.id == lastPublishedVersionId)
+                        </condition>
+                    </validations>
+                </select>
             </fields>
         </form>
 
