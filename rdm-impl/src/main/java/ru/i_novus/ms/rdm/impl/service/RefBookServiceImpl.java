@@ -450,7 +450,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
 
-        if (newPassport == null || versionEntity == null)
+        if (newPassport == null || newPassport.isEmpty() || versionEntity == null)
             return;
 
         List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
