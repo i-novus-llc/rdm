@@ -307,4 +307,9 @@ public class CreateDraftController {
         Draft newDraft = draftService.createFromVersion(versionId);
         return new UiDraft(newDraft, refBookId);
     }
+
+    /** Операция-заглушка. */
+    public void noOperation(Integer versionId, Integer optLockValue) {
+        // Nothing to do.
+    }
 }

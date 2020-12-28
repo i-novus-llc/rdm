@@ -74,6 +74,17 @@
                                 enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
                             <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
                         </button>
+                        <button label="Окно-заглушка" id="noModalOperation_r">
+                            <show-modal page-id="attribute" submit-model="resolve"
+                                        submit-operation-id="noOperation" refresh-widget-id="version_select">
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="code" value="{code}" ref-widget-id="structure_table" ref-model="resolve"/>
+                            </show-modal>
+                        </button>
+                        <button label="Действие-заглушка" id="noInvokeOperation_r">
+                            <invoke operation-id="noOperation" close-after-success="false" refresh-widget-id="version_select"/>
+                        </button>
                     </toolbar>
                 </table>
             </tab>
