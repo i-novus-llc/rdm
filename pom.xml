@@ -17,6 +17,7 @@
         <maven.compiler.source>14</maven.compiler.source>
         <maven.compiler.target>14</maven.compiler.target>
         <encoding>UTF-8</encoding>
+        <npm.registry>https://npm.i-novus.ru</npm.registry>
         <n2o.version>7.12.1</n2o.version>
         <vds.version>3.6</vds.version>
         <l10n.vds.version>3.11</l10n.vds.version>

@@ -2,7 +2,6 @@
 <nav xmlns="http://n2oapp.net/framework/config/schema/menu-2.0">
 
     <page page-id="refBookList" label="Реестр справочников"/>
-    <!--<page page-id="refBookListDebug" label="Отладка"/>-->
     <page page-id="asyncLogList" label="Журнал операций"/>
 
 </nav>

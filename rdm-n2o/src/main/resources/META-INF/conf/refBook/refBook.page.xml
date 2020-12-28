@@ -77,6 +77,7 @@
                         </show-modal>
                     </menu-item>
                 </sub-menu>
+
             </toolbar>
         </form>
 
@@ -92,6 +93,7 @@
                         <button label="Изменить" id="editPassport_r">
                             <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
                         </button>
+
                     </toolbar>
                 </form>
             </tab>
@@ -121,6 +123,7 @@
                                 enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
                             <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
                         </button>
+
                     </toolbar>
                 </table>
             </tab>
@@ -181,6 +184,7 @@
                                 <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </button>
+
                     </toolbar>
                 </table>
             </tab>
@@ -236,6 +240,7 @@
                                 <visibility>return ${rdm.l10n.support}</visibility>
                             </dependencies>
                         </button>
+
                     </toolbar>
                 </table>
             </tab>
@@ -265,9 +270,11 @@
                         <button id="deleteConflictedRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
                             <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
                         </button>
+
                     </toolbar>
                 </table>
             </tab>
         </tabs>
+
     </regions>
 </page>

@@ -3,6 +3,7 @@
     <regions>
         <region place="single">
             <form id="version_select" query-id="refBookVersion">
+
                 <pre-filters>
                     <eq field-id="refBookId" param="refBookId"/>
                 </pre-filters>
