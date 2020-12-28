@@ -114,6 +114,16 @@
                     <visibility>return ${rdm.n2o.debug}</visibility>
                 </dependencies>
             </button>
+            <button id="localizedData" label="Перевод" enabling-condition="!archived">
+                <open-page page-id="refBookLocalizedData" page-name="Перевод &quot;{name}&quot; [{code}]">
+                    <query-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
+                </open-page>
+                <dependencies>
+                    <visibility>return ${rdm.n2o.debug}</visibility>
+                </dependencies>
+            </button>
             <button id="debugData" label="Отладка" enabling-condition="!archived">
                 <open-page page-id="refBookDebugData" page-name="Отладка данных справочника"/>
                 <dependencies>
