@@ -117,12 +117,10 @@
                                         upload="query" route="/localize"
                                         submit-operation-id="localize" submit-label="Сохранить"
                                         refresh-widget-id="dataTableWithLocales">
-                                <pre-filters>
-                                    <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
-                                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                    <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
-                                    <eq field-id="dataAction" value="localize"/>
-                                </pre-filters>
+                                <query-param name="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="localize"/>
                             </show-modal>
 
                             <dependencies>

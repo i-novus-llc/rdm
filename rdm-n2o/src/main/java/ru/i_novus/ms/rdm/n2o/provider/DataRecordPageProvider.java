@@ -84,10 +84,32 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         N2oForm n2oForm = new N2oForm();
         n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
         n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+        
+        n2oForm.setPreFilters(createPreFilters());
 
         n2oForm.setItems(createPageFields(request));
 
         return n2oForm;
+    }
+
+    private N2oPreFilter[] createPreFilters() {
+
+        N2oPreFilter idFilter = createPreFilter("id", "id", FilterType.eq);
+        N2oPreFilter optLockValueFilter = createPreFilter("optLockValue", "optLockValue", FilterType.eq);
+        N2oPreFilter localeCodeFilter = createPreFilter("localeCode", "localeCode", FilterType.eq);
+        N2oPreFilter dataActionFilter = createPreFilter("dataAction", "dataAction", FilterType.eq);
+
+        return new N2oPreFilter[]{idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
+    }
+
+    private N2oPreFilter createPreFilter(String fieldId, String param, FilterType type) {
+
+        N2oPreFilter preFilter = new N2oPreFilter();
+        preFilter.setFieldId(fieldId);
+        preFilter.setParam(param);
+        preFilter.setType(type);
+
+        return preFilter;
     }
 
     private SourceComponent[] createPageFields(DataRecordRequest request) {
