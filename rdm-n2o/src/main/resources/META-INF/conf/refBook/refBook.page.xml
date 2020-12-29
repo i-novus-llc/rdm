@@ -85,8 +85,8 @@
                       depends-on="version_select" fetch-on-init="true"
                       master-field-id="id" detail-field-id="version.id" object-id="refBook">
                     <toolbar place="bottomRight">
-                        <!-- '.*_r$' - паттерн названия кнопки, при котором обновляется виджет version_select -->
-                        <!-- см. RefreshTransformer -->
+                        <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
+                        <!--см. RefreshTransformer-->
                         <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
                         <button label="Изменить" id="editPassport_r">
                             <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
@@ -222,8 +222,7 @@
                     </pre-filters>
 
                     <toolbar place="topRight">
-                        <!-- Нет суффикса '_r', т.к. не нужно обновление виджета version_select -->
-                        <button id="localizeRecord" label="Задать перевод" icon="fa fa-pencil"
+                        <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
                                 widget-id="locale_select" model="resolve">
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                         upload="query" route="/localize"
