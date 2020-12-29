@@ -170,26 +170,35 @@
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
                         <version>1.6</version>
+
                         <configuration>
                             <workingDirectory>rdm-react</workingDirectory>
                         </configuration>
+
                         <executions>
                             <execution>
-                                <id>install-node-and-npm</id>
+                                <id>install-node-and-yarn</id>
                                 <goals>
-                                    <goal>install-node-and-npm</goal>
+                                    <goal>install-node-and-yarn</goal>
                                 </goals>
                                 <configuration>
-                                    <nodeVersion>v8.11.3</nodeVersion>
-                                    <npmVersion>5.6.0</npmVersion>
+                                    <nodeVersion>v10.19.0</nodeVersion>
+                                    <yarnVersion>v1.6.0</yarnVersion>
                                 </configuration>
                             </execution>
 
                             <execution>
-                                <id>yarn</id>
+                                <id>yarn install</id>
                                 <goals>
                                     <goal>yarn</goal>
                                 </goals>
+                                <configuration>
+                                    <arguments>install</arguments>
+
+                                    <environmentVariables>
+                                        <max_old_space_size>4096</max_old_space_size>
+                                    </environmentVariables>
+                                </configuration>
                             </execution>
 
                             <execution>
@@ -199,9 +208,29 @@
                                 </goals>
                                 <configuration>
                                     <arguments>run build</arguments>
+
+                                    <environmentVariables>
+                                        <max_old_space_size>4096</max_old_space_size>
+                                    </environmentVariables>
                                 </configuration>
                             </execution>
 
+                        <!--    <execution>-->
+                        <!--        <id>yarn run test</id>-->
+                        <!--        <goals>-->
+                        <!--            <goal>yarn</goal>-->
+                        <!--        </goals>-->
+                        <!--        <configuration>-->
+                        <!--            <arguments>run test</arguments>-->
+
+                        <!--            <environmentVariables>-->
+                        <!--                <max_old_space_size>4096</max_old_space_size>-->
+                        <!--            </environmentVariables>-->
+                        <!--        </configuration>-->
+                        <!--    </execution>-->
+                        </executions>
+
+<!--
                             <execution>
                                 <id>npm run test</id>
                                 <goals>
@@ -212,6 +241,7 @@
                                 </configuration>
                             </execution>
                         </executions>
+-->
                     </plugin>
                 </plugins>
             </build>
