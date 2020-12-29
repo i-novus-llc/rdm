@@ -28,7 +28,9 @@ public class UpdateDependencyTransformer
         implements CompileTransformer<Table, CompileContext<?, ?>>, CompiledClassAware {
 
     // Список суффиксов таблиц, для которых нужно выполнить transform.
-    private static final List<String> UPDATED_TABLE_SUFFIXES = asList("_dataTable", "_dataTableWithConflicts");
+    private static final List<String> UPDATED_TABLE_SUFFIXES = asList(
+            "_dataTable", "_dataTableWithLocales", "_dataTableWithConflicts"
+    );
 
     // Аффиксы кнопок, для которых нужно выполнить transform.
     private static final String BUTTON_PREFIX = "update";
