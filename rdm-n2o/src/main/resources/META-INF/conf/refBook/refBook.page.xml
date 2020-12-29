@@ -12,16 +12,14 @@
                 <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
                 <set field-label-location="left">
                     <row>
-                        <output-text id="id">
+                        <output-text id="id" visible="false">
                             <dependencies>
-                                <visibility>return ${rdm.n2o.debug}</visibility>
                                 <set-value on="version">version.id</set-value>
                             </dependencies>
                         </output-text>
 
-                        <output-text id="optLockValue">
+                        <output-text id="optLockValue" visible="false">
                             <dependencies>
-                                <visibility>return ${rdm.n2o.debug}</visibility>
                                 <set-value on="version">version.optLockValue</set-value>
                             </dependencies>
                         </output-text>
@@ -87,8 +85,8 @@
                       depends-on="version_select" fetch-on-init="true"
                       master-field-id="id" detail-field-id="version.id" object-id="refBook">
                     <toolbar place="bottomRight">
-                        <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
-                        <!--см. RefreshTransformer-->
+                        <!-- '.*_r$' - паттерн названия кнопки, при котором обновляется виджет version_select -->
+                        <!-- см. RefreshTransformer -->
                         <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
                         <button label="Изменить" id="editPassport_r">
                             <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
@@ -224,7 +222,8 @@
                     </pre-filters>
 
                     <toolbar place="topRight">
-                        <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
+                        <!-- Нет суффикса '_r', т.к. не нужно обновление виджета version_select -->
+                        <button id="localizeRecord" label="Задать перевод" icon="fa fa-pencil"
                                 widget-id="locale_select" model="resolve">
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                         upload="query" route="/localize"

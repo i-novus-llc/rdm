@@ -7,11 +7,7 @@
         </pre-filters>
 
         <fields>
-            <output-text id="versionId">
-                <dependencies>
-                    <visibility>return ${rdm.n2o.debug}</visibility>
-                </dependencies>
-            </output-text>
+            <output-text id="versionId" visible="false"/>
 
             <radio-group id="fileType" label="Тип" label-field-id="name" required="true">
                 <options>

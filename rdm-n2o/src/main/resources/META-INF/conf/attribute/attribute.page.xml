@@ -9,22 +9,9 @@
 
         <fields>
             <row>
-                <output-text id="versionId">
-                    <dependencies>
-                        <visibility>return ${rdm.n2o.debug}</visibility>
-                    </dependencies>
-                </output-text>
-                <output-text id="optLockValue">
-                    <dependencies>
-                        <visibility>return ${rdm.n2o.debug}</visibility>
-                    </dependencies>
-                </output-text>
-
-                <checkbox id="hasReferrer" unchecked="false">
-                    <dependencies>
-                        <visibility>return ${rdm.n2o.debug}</visibility>
-                    </dependencies>
-                </checkbox>
+                <output-text id="versionId" visible="false"/>
+                <output-text id="optLockValue" visible="false"/>
+                <checkbox id="hasReferrer" unchecked="false" visible="false"/>
             </row>
 
             <row>

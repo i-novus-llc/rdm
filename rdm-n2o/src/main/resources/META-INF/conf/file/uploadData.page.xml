@@ -7,6 +7,8 @@
         </pre-filters>
 
         <fields>
+            <output-text id="versionId" visible="false"/>
+
             <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="/files" label-field-id="name"/>
         </fields>
 
