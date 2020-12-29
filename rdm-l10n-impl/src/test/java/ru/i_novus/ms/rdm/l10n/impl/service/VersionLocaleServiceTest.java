@@ -11,19 +11,20 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
+import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nLocaleInfoService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 import ru.i_novus.platform.l10n.versioned_data_storage.model.L10nLocaleInfo;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.function.Function.identity;
@@ -98,6 +99,7 @@ public class VersionLocaleServiceTest extends BaseTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5778")
     public void testFindRefBookLocalesVersionFailed() {
 
         when(versionRepository
@@ -117,6 +119,12 @@ public class VersionLocaleServiceTest extends BaseTest {
 
     @Test
     public void testSearchVersionLocales() {
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(TEST_REFBOOK_VERSION_ID);
+        versionEntity.setStructure(createVersionStructure());
+
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.of(versionEntity));
 
         when(localeInfoService.search(any())).thenReturn(LOCALE_INFOS);
 
@@ -163,6 +171,7 @@ public class VersionLocaleServiceTest extends BaseTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5778")
     public void testGetVersionLocaleOnDefaultFailed() {
 
         when(localeInfoService.find(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_INFO);
@@ -203,5 +212,13 @@ public class VersionLocaleServiceTest extends BaseTest {
         assertEquals(localeInfo.getCode(), versionLocale.getLocaleCode());
         assertEquals(localeInfo.getName(), versionLocale.getLocaleName());
         assertEquals(localeInfo.getSelfName(), versionLocale.getLocaleSelfName());
+    }
+
+    private Structure createVersionStructure() {
+
+        Structure.Attribute idAttribute = Structure.Attribute.buildPrimary("id", "id", FieldType.INTEGER, null);
+        Structure.Attribute localeAttribute = Structure.Attribute.buildLocalizable("name", "name", FieldType.INTEGER, null);
+
+        return new Structure(Arrays.asList(idAttribute, localeAttribute), null);
     }
 }
