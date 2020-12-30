@@ -33,5 +33,8 @@
                 </switch>
             </icon>
         </column>
+
+        <column text-field-id="versionId" label="versionId" visible="false"/>
+        <column text-field-id="optLockValue" label="optLockValue" visible="false"/>
     </columns>
 </table>

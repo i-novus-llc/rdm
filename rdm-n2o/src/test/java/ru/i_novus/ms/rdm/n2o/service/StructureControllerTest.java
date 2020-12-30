@@ -66,13 +66,17 @@ public class StructureControllerTest extends TestCase {
 
     private final int refBookId = -2;
     private final int versionId = 15;
+    private final int optLockValue = 0;
+
     private String testCode = "test_code";
     private String testName = "testName";
     private String testDescription = "testDescription";
+
     private String referenceCode = "test_storage";
     private Integer referenceVersionId = -1;
     private String referenceAttribute = "count";
     private String referenceDisplayExpression = toPlaceholder(referenceAttribute);
+
     private int plainSize = 2;
     private BigInteger minInteger = BigInteger.valueOf(5L);
     private BigInteger maxInteger = BigInteger.valueOf(6L);
@@ -114,7 +118,10 @@ public class StructureControllerTest extends TestCase {
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
+        AttributeCriteria criteria = new AttributeCriteria(versionId);
+        criteria.setOptLockValue(optLockValue);
+
+        RestPage<ReadAttribute> page = structureController.getPage(criteria);
         ReadAttribute actual = page.getContent().get(0);
 
         assertEquals(testCode, actual.getCode());
@@ -151,13 +158,16 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadDefault() {
 
+        AttributeCriteria criteria = new AttributeCriteria(versionId);
+        criteria.setOptLockValue(optLockValue);
+
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        ReadAttribute actual = structureController.getDefault(versionId, 0);
+        ReadAttribute actual = structureController.getDefault(criteria);
 
         assertNotNull(actual);
         assertEquals(Integer.valueOf(versionId), actual.getVersionId());
-        assertEquals(Integer.valueOf(0), actual.getOptLockValue());
+        assertEquals(Integer.valueOf(optLockValue), actual.getOptLockValue());
         assertValidationPartEquals(new FormAttribute(), actual);
     }
 

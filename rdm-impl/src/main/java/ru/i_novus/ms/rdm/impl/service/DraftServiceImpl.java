@@ -769,6 +769,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateAttribute(Integer draftId, UpdateAttributeRequest request) {
 
+
         versionValidation.validateDraft(draftId);
         refBookLockService.validateRefBookNotBusyByVersionId(draftId);
 

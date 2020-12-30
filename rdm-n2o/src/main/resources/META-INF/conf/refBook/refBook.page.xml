@@ -1,11 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Реестр НСИ">
+<page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Реестр НСИ">
     <regions>
-        <region place="single">
-            <form id="version_select" query-id="refBookVersion">
-                <fields>
-                    <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
-                    <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
+        <form id="version_select" query-id="refBookVersion">
+
+            <pre-filters>
+                <eq field-id="refBookId" param="refBookId"/>
+            </pre-filters>
+
+            <fields>
+                <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
+                <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
+                <set field-label-location="left">
                     <row>
                         <output-text id="id" visible="false">
                             <dependencies>
@@ -19,250 +24,255 @@
                             </dependencies>
                         </output-text>
                     </row>
+                </set>
 
-                    <row>
-                        <select id="version" label="Версия" cleanable="false"
-                                query-id="versionList" label-field-id="version">
+                <select id="version" label="Версия" cleanable="false"
+                        query-id="versionList" label-field-id="version">
+                    <pre-filters>
+                        <eq field-id="refBookId" value="{refBookId}"/>
+                    </pre-filters>
+
+                    <!-- NB: Реализовать единую точку перехода в режим редактирования -->
+                    <validations>
+                        <condition id="refBookHasDraft" severity="warning"
+                                   message="Справочник содержит неопубликованную версию">
+                            (draftVersionId == null || version.id == draftVersionId)
+                        </condition>
+                        <condition id="isNotLastPublished" severity="warning"
+                                   message="Выбранная версия справочника не является последней опубликованной версией">
+                            (version.id == draftVersionId || version.id == lastPublishedVersionId)
+                        </condition>
+                    </validations>
+                </select>
+            </fields>
+
+            <toolbar place="bottomLeft">
+                <sub-menu label="Действия">
+                    <menu-item label="Опубликовать"
+                               visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
+                        <show-modal page-id="publish" upload="defaults">
+                            <query-param name="versionId" value="{version.id}"/>
+                            <query-param name="optLockValue" value="{optLockValue}"/>
+                        </show-modal>
+                    </menu-item>
+
+                    <menu-item label="Обновить ссылки"
+                               visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
+                        <invoke operation-id="refreshReferrer"/>
+                    </menu-item>
+
+                    <menu-item label="Загрузить из файла">
+                        <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
+                                    redirect-target="application"
+                                    redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
+                            <query-param name="versionId" value="{version.id}"/>
+                        </show-modal>
+                    </menu-item>
+
+                    <menu-item label="Скачать">
+                        <show-modal page-id="downloadFile" upload="defaults">
+                            <query-param name="versionId" value="{version.id}"/>
+                        </show-modal>
+                    </menu-item>
+                </sub-menu>
+
+            </toolbar>
+        </form>
+
+        <tabs>
+            <tab name="Паспорт">
+                <form ref-id="passport" id="passport_form"
+                      depends-on="version_select" fetch-on-init="true"
+                      master-field-id="id" detail-field-id="version.id" object-id="refBook">
+                    <toolbar place="bottomRight">
+                        <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
+                        <!--см. RefreshTransformer-->
+                        <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
+                        <button label="Изменить" id="editPassport_r">
+                            <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
+                        </button>
+
+                    </toolbar>
+                </form>
+            </tab>
+
+            <tab name="Структура">
+                <table ref-id="structure" id="structure_table"
+                       upload="query" depends-on="version_select" fetch-on-init="true"
+                       master-field-id="id" detail-field-id="versionId">
+                    <toolbar place="bottomRight">
+                        <button label="Добавить" id="createAttribute_r"
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="attribute" upload="defaults"
+                                        submit-operation-id="createAttribute" refresh-widget-id="version_select">
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                            </show-modal>
+                        </button>
+                        <button label="Изменить" id="editAttribute_r">
+                            <show-modal page-id="attribute" submit-model="resolve"
+                                        submit-operation-id="updateAttribute" refresh-widget-id="version_select">
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="code" value="{code}"/>
+                            </show-modal>
+                        </button>
+                        <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
+                                enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
+                            <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
+                        </button>
+
+                    </toolbar>
+                </table>
+            </tab>
+
+            <tab name="Данные">
+                <table src="DataGrid" id="dataTable"
+                       query-id="data" depends-on="version_select" fetch-on-init="true"
+                       master-field-id="id" detail-field-id="versionId" object-id="data">
+                    <pre-filters>
+                        <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                        <eq field-id="localeCode" value=""/>
+                    </pre-filters>
+
+                    <toolbar place="topRight">
+                        <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
+                        <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
+                                widget-id="version_select" model="resolve"
+                                enabling-condition="version.hasStructure">
+                            <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
+                                        upload="query" route="/create"
+                                        submit-operation-id="create" submit-label="Сохранить"
+                                        refresh-widget-id="version_select">
+                                <query-param name="id" value="0"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="create"/>
+                            </show-modal>
+                        </button>
+
+                        <button id="updateRecord_r" label="Изменить" icon="fa fa-pencil"
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
+                                        upload="query" route="/update"
+                                        submit-operation-id="update" submit-label="Изменить"
+                                        refresh-widget-id="version_select">
+                                <query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="update"/>
+                            </show-modal>
+                        </button>
+
+                        <button id="deleteRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
+                            <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
+                        </button>
+
+                        <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
+                            <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
+                                        submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
+                                <query-param name="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                            </show-modal>
+                        </button>
+
+                        <button id="uploadData_r" label="Загрузить данные"
+                                widget-id="version_select" model="resolve"
+                                visibility-condition="version.status=='DRAFT'">
+                            <show-modal page-id="uploadData" upload="defaults"
+                                        submit-operation-id="uploadData" refresh-widget-id="version_select">
+                                <query-param name="versionId" value="{version.id}"/>
+                            </show-modal>
+                        </button>
+
+                    </toolbar>
+                </table>
+            </tab>
+
+            <tab name="Переведённые данные">
+                <form id="locale_select">
+                    <fields>
+                        <set field-label-location="left">
+                            <output-text id="id">
+                                <dependencies>
+                                    <visibility>return ${rdm.l10n.support}</visibility>
+                                    <set-value on="localeCode">localeCode.versionId</set-value>
+                                </dependencies>
+                            </output-text>
+                        </set>
+
+                        <select id="localeCode" no-label-block="true" cleanable="false"
+                                depends-on="version_select" query-id="versionLocaleList" label-field-id="name">
                             <pre-filters>
-                                <eq field-id="refBookId" value="{refBookId}"/>
-                            </pre-filters>
-
-                            <!-- NB: Реализовать единую точку перехода в режим редактирования -->
-                            <validations>
-                                <condition id="refBookHasDraft" severity="warning"
-                                           message="Справочник содержит неопубликованную версию">
-                                    (draftVersionId == null || version.id == draftVersionId)
-                                </condition>
-                                <condition id="isNotLastPublished" severity="warning"
-                                           message="Выбранная версия справочника не является последней опубликованной версией">
-                                    (version.id == draftVersionId || version.id == lastPublishedVersionId)
-                                </condition>
-                            </validations>
-                        </select>
-
-                        <select id="localeCode" no-label="true" depends-on="version_select"
-                                query-id="versionLocaleList" label-field-id="name">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}"/>
+                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
                             </pre-filters>
 
                             <dependencies>
                                 <visibility>return ${rdm.l10n.support}</visibility>
-                                <set-value on="version">version.localeCode.id</set-value>
                             </dependencies>
                         </select>
-                    </row>
-                </fields>
+                    </fields>
+                </form>
 
-                <toolbar place="bottomLeft">
-                    <sub-menu label="Действия">
-                        <menu-item label="Опубликовать"
-                                   visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
-                            <show-modal page-id="publish" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="version.id" value="{version.id}"/>
-                                    <eq field-id="version.optLockValue" value="{optLockValue}"/>
-                                </pre-filters>
+                <table src="DataGrid" id="dataTableWithLocales"
+                       query-id="data" depends-on="locale_select" fetch-on-init="true"
+                       master-field-id="id" detail-field-id="versionId" object-id="data"
+                       visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null}">
+                    <pre-filters>
+                        <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                        <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
+                    </pre-filters>
+
+                    <toolbar place="topRight">
+                        <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
+                                widget-id="locale_select" model="resolve">
+                            <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
+                                        upload="query" route="/localize"
+                                        submit-operation-id="localize" submit-label="Сохранить"
+                                        refresh-widget-id="dataTableWithLocales">
+                                <query-param name="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="localize"/>
                             </show-modal>
-                        </menu-item>
 
-                        <menu-item label="Обновить ссылки"
-                                   visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
-                            <invoke operation-id="refreshReferrer"/>
-                        </menu-item>
+                            <dependencies>
+                                <visibility>return ${rdm.l10n.support}</visibility>
+                            </dependencies>
+                        </button>
 
-                        <menu-item label="Загрузить из файла">
-                            <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
-                                        redirect-target="application"
-                                        redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
+                    </toolbar>
+                </table>
+            </tab>
+
+            <tab name="Данные с конфликтами">
+                <table src="DataGrid" id="dataTableWithConflicts"
+                       query-id="data" depends-on="version_select" fetch-on-init="true"
+                       master-field-id="id" detail-field-id="versionId" object-id="data">
+                    <pre-filters>
+                        <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                        <eq field-id="hasDataConflict" value="true"/>
+                    </pre-filters>
+
+                    <toolbar place="topRight">
+                        <button id="updateConflictedRecord_r" label="Исправить" icon="fa fa-pencil"
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
+                                        upload="query" route="/update"
+                                        submit-operation-id="update" submit-label="Изменить"
+                                        refresh-widget-id="version_select">
+                                <query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
+                                <query-param name="dataAction" value="update"/>
                             </show-modal>
-                        </menu-item>
+                        </button>
 
-                        <menu-item label="Скачать">
-                            <show-modal page-id="downloadFile" upload="defaults">
-                                <pre-filters>
-                                    <eq field-id="versionId" value="{version.id}"/>
-                                </pre-filters>
-                            </show-modal>
-                        </menu-item>
-                    </sub-menu>
-                </toolbar>
-            </form>
-        </region>
+                        <button id="deleteConflictedRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
+                            <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
+                        </button>
 
-        <tabs place="single">
-            <form ref-id="passport" name="Паспорт" id="passport_form"
-                  depends-on="version_select" fetch-on-init="true"
-                  master-field-id="id" detail-field-id="version.id" object-id="refBook">
-                <toolbar place="bottomRight">
-                    <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
-                    <!--см. RefreshTransformer-->
-                    <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
-                    <button label="Изменить" id="editPassport_r">
-                        <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
-                    </button>
-                </toolbar>
-            </form>
-
-            <table ref-id="structure" name="Структура" id="structure_table"
-                   upload="query" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId">
-                <toolbar place="bottomRight">
-                    <button label="Добавить" id="createAttribute_r"
-                            widget-id="version_select" model="resolve">
-                        <show-modal page-id="attribute" upload="defaults"
-                                    submit-operation-id="createAttribute" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-                    <button label="Изменить" id="editAttribute_r">
-                        <show-modal page-id="attribute" submit-model="resolve"
-                                    submit-operation-id="updateAttribute" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{versionId}"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="code" value="{code}"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-                    <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
-                            enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
-                        <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
-                    </button>
-                </toolbar>
-            </table>
-
-            <table src="DataGrid" name="Данные" id="dataTable"
-                   query-id="data" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId" object-id="data">
-                <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                    <eq field-id="localeCode" value=""/>
-                </pre-filters>
-
-                <toolbar place="topRight">
-                    <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
-                    <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
-                            widget-id="version_select" model="resolve"
-                            enabling-condition="version.hasStructure">
-                        <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
-                                    upload="query" route="/create"
-                                    submit-operation-id="create" submit-label="Сохранить"
-                                    refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="id" value="0"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="dataAction" value="create"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-
-                    <button id="updateRecord_r" label="Изменить" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
-                                    upload="query" route="/update"
-                                    submit-operation-id="update" submit-label="Изменить"
-                                    refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="dataAction" value="update"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-
-                    <button id="deleteRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
-                    </button>
-
-                    <button id="deleteAllRecords_r" label="Удалить все" color="danger" icon="fa fa-trash">
-                        <show-modal page-id="dataDeleteAll" upload="query" route="/deleteAll"
-                                    submit-operation-id="deleteAllRecords" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-
-                    <button id="uploadData_r" label="Загрузить данные"
-                            widget-id="version_select" model="resolve"
-                            visibility-condition="version.status=='DRAFT'">
-                        <show-modal page-id="uploadData" upload="defaults"
-                                    submit-operation-id="uploadData" refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-                </toolbar>
-            </table>
-
-            <table src="DataGrid" name="Переведённые данные" id="dataTableWithLocales"
-                   query-id="data" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId" object-id="data"
-                   visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null &amp;&amp; version.hasStructure &amp;&amp; version.isLocalizable}">
-                <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                    <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                </pre-filters>
-
-                <toolbar place="topRight">
-                    <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
-                                    upload="query" route="/localize"
-                                    submit-operation-id="localize" submit-label="Сохранить"
-                                    refresh-widget-id="dataTableWithLocales">
-                            <pre-filters>
-                                <eq field-id="id" value="{id}" ref-widget-id="dataTableWithLocales" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="dataAction" value="localize"/>
-                            </pre-filters>
-                        </show-modal>
-
-                        <dependencies>
-                            <visibility>return ${rdm.l10n.support}</visibility>
-                        </dependencies>
-                    </button>
-                </toolbar>
-            </table>
-
-            <table src="DataGrid" name="Данные с конфликтами" id="dataTableWithConflicts"
-                   query-id="data" depends-on="version_select" fetch-on-init="true"
-                   master-field-id="id" detail-field-id="versionId" object-id="data">
-                <pre-filters>
-                    <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                    <eq field-id="hasDataConflict" value="true"/>
-                </pre-filters>
-
-                <toolbar place="topRight">
-                    <button id="updateConflictedRecord_r" label="Исправить" icon="fa fa-pencil"
-                            widget-id="version_select" model="resolve">
-                        <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
-                                    upload="query" route="/update"
-                                    submit-operation-id="update" submit-label="Изменить"
-                                    refresh-widget-id="version_select">
-                            <pre-filters>
-                                <eq field-id="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
-                                <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                                <eq field-id="dataAction" value="update"/>
-                            </pre-filters>
-                        </show-modal>
-                    </button>
-
-                    <button id="deleteConflictedRecord_r" label="Удалить" color="danger" icon="fa fa-trash">
-                        <invoke operation-id="deleteRecord" refresh-widget-id="version_select" route="/delete"/>
-                    </button>
-                </toolbar>
-            </table>
+                    </toolbar>
+                </table>
+            </tab>
         </tabs>
+
     </regions>
 </page>

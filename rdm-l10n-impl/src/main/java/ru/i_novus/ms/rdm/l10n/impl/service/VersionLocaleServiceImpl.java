@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.isDefaultSchema;
 
@@ -66,6 +67,12 @@ public class VersionLocaleServiceImpl implements VersionLocaleService {
 
     @Override
     public Page<L10nVersionLocale> searchVersionLocales(Integer versionId) {
+
+        RefBookVersionEntity versionEntity = versionRepository.findById(versionId).orElse(null);
+        if (versionEntity == null || versionEntity.hasEmptyStructure() ||
+                versionEntity.getStructure().getLocalizables().isEmpty()) {
+            return new PageImpl<>(emptyList(), Pageable.unpaged(), 0);
+        }
 
         L10nLocaleCriteria criteria = new L10nLocaleCriteria();
         criteria.makeUnpaged();

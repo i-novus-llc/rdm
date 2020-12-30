@@ -2,9 +2,17 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Публикация справочника">
     <form object-id="publish" default-values-query-id="publish">
 
+        <pre-filters>
+            <eq field-id="version.id" param="versionId"/>
+            <eq field-id="version.optLockValue" param="optLockValue"/>
+        </pre-filters>
+
         <fields>
-<!--            <output-text id="version.version" label="Версия"/>-->
-<!--            <output-text id="version.optLockValue" label="Опт-блок-значение"/>-->
+            <row>
+                <output-text id="version.id" label="id" visible="false"/>
+                <output-text id="version.optLockValue" label="optLockValue" visible="false"/>
+            </row>
+            <output-text id="version.version" no-label-block="true" visible="false"/>
 
             <output-text id="errorMessage" class="alert alert-danger" no-label="true">
                 <dependencies>
@@ -53,13 +61,13 @@
             <button id="publishDraft" label="Опубликовать"
                     visibility-condition="isPublishable">
                 <invoke operation-id="publishDraft" close-after-success="true"
-                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visibility-condition="isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)">
                 <invoke operation-id="publishAndRefresh" close-after-success="true"
-                        redirect-target="application" redirect-url="${rdm.context-path}/#/refBookList"/>
+                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
             <button id="cancel" label="Отмена">

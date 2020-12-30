@@ -121,6 +121,26 @@
                 <param id="code" mapping="[2]" domain="string" mapper="spel"/>
             </in-parameters>
         </operation>
+
+        <operation id="noOperation" name="Без выполнения действия" success-text="Выполнено"
+                   confirm="true" confirm-text="Вы действительно хотите выполнить действие?">
+            <invocation>
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
+                      method="noOperation">
+                    <spring/>
+
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                    </arguments>
+                </java>
+            </invocation>
+
+            <in-parameters>
+                <param id="versionId" mapping="[0]" domain="integer" mapper="spel"/>
+                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+            </in-parameters>
+        </operation>
     </operations>
 
     <validations>
