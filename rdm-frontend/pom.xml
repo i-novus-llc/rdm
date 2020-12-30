@@ -167,9 +167,9 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.6</version>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.3.2</version>
 
                         <configuration>
                             <workingDirectory>rdm-react</workingDirectory>
@@ -177,71 +177,37 @@
 
                         <executions>
                             <execution>
-                                <id>install-node-and-yarn</id>
+                                <id>yarn install (initialize)</id>
                                 <goals>
-                                    <goal>install-node-and-yarn</goal>
+                                    <goal>exec</goal>
                                 </goals>
-                                <configuration>
-                                    <nodeVersion>v10.19.0</nodeVersion>
-                                    <yarnVersion>v1.6.0</yarnVersion>
-                                </configuration>
-                            </execution>
+                                <phase>generate-resources</phase>
 
-                            <execution>
-                                <id>yarn install</id>
-                                <goals>
-                                    <goal>yarn</goal>
-                                </goals>
                                 <configuration>
-                                    <arguments>install</arguments>
-
-                                    <environmentVariables>
-                                        <max_old_space_size>4096</max_old_space_size>
-                                    </environmentVariables>
+                                    <executable>yarn</executable>
+                                    <arguments>
+                                        <argument>install</argument>
+                                        <argument>--registry=${npm.registry}</argument>
+                                    </arguments>
                                 </configuration>
                             </execution>
 
                             <execution>
                                 <id>yarn run build</id>
                                 <goals>
-                                    <goal>yarn</goal>
+                                    <goal>exec</goal>
                                 </goals>
+                                <phase>generate-resources</phase>
+
                                 <configuration>
-                                    <arguments>run build</arguments>
-
-                                    <environmentVariables>
-                                        <max_old_space_size>4096</max_old_space_size>
-                                    </environmentVariables>
-                                </configuration>
-                            </execution>
-
-                        <!--    <execution>-->
-                        <!--        <id>yarn run test</id>-->
-                        <!--        <goals>-->
-                        <!--            <goal>yarn</goal>-->
-                        <!--        </goals>-->
-                        <!--        <configuration>-->
-                        <!--            <arguments>run test</arguments>-->
-
-                        <!--            <environmentVariables>-->
-                        <!--                <max_old_space_size>4096</max_old_space_size>-->
-                        <!--            </environmentVariables>-->
-                        <!--        </configuration>-->
-                        <!--    </execution>-->
-                        </executions>
-
-<!--
-                            <execution>
-                                <id>npm run test</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run test</arguments>
+                                    <executable>yarn</executable>
+                                    <arguments>
+                                        <argument>run</argument>
+                                        <argument>build</argument>
+                                    </arguments>
                                 </configuration>
                             </execution>
                         </executions>
--->
                     </plugin>
                 </plugins>
             </build>

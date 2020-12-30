@@ -12,18 +12,16 @@
 		"npm": ">=5"
 	},
   "scripts": {
-    "build": "npm run build:commonjs && npm run build:es",
-    "build:commonjs": "npm run clean:commonjs && cross-env NODE_ENV=commonjs babel src --out-dir dist/commonjs --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
-    "build:es": "npm run clean:es && cross-env NODE_ENV=es babel src --out-dir dist/es --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
-    "clean": "npm run clean:commonjs && npm run clean:es",
+    "build": "yarnpkg run build:commonjs && yarnpkg run build:es",
+    "build:commonjs": "yarnpkg run clean:commonjs && yarnpkg run compile:commonjs",
+    "build:es": "yarnpkg run clean:es && yarnpkg run compile:es",
+    "compile:commonjs": "cross-env NODE_ENV=commonjs babel src --out-dir dist/commonjs --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
+    "compile:es": "cross-env NODE_ENV=es babel src --out-dir dist/es --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
+    "clean": "yarnpkg run clean:commonjs && yarnpkg run clean:es",
     "clean:commonjs": "rimraf dist/commonjs",
     "clean:es": "rimraf dist/es"
   },
   "dependencies": {
-    "classnames": "^2.2.6",
-    "lodash": "^4.17.15",
-    "n2o-auth": "7.12.1",
-    "n2o-framework": "7.12.1",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar": "^3.5.0",
     "react-sticky": "^6.0.3",
@@ -31,7 +29,11 @@
     "recharts": "^1.4.2"
   },
 	"peerDependencies": {
-		"prop-types": "*",
+    "n2o-auth": "*",
+    "n2o-framework": "*",
+    "classnames": "*",
+    "lodash": "*",
+    "prop-types": "*",
 		"react": "*",
 		"react-dom": "*",
     "react-redux": "*",
