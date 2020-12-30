@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VersionLocaleServiceTest extends BaseTest {
@@ -148,6 +148,18 @@ public class VersionLocaleServiceTest extends BaseTest {
                     .findFirst().orElse(null);
             assertLocales(expected, actual);
         });
+    }
+
+    @Test
+    public void testSearchVersionLocalesVersionFailed() {
+
+        when(versionRepository.findById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Optional.empty());
+
+        List<L10nVersionLocale> actualVersionLocales = versionLocaleService
+                .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
+        assertEquals(0, actualVersionLocales.size());
+
+        verify(localeInfoService, times(0)).search(any());
     }
 
     @Test
