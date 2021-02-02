@@ -23,6 +23,7 @@ public class RefBookVersionDiffEntity {
     private RefBookVersionEntity newVersion;
 
     public RefBookVersionDiffEntity() {
+        // Nothing to do.
     }
 
     public RefBookVersionDiffEntity(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
