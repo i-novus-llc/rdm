@@ -150,9 +150,14 @@ public class CompareServiceImpl implements CompareService {
         validatePrimariesEquality(oldVersion, newVersion);
 
         CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
+        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
 
-        Structure oldStructure = oldVersion.getStructure();
-        Structure newStructure = newVersion.getStructure();
+        RefBookAttributeDiff attributeDiff = compareAttributes(oldVersion.getStructure(), newVersion.getStructure());
+
+        return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), attributeDiff);
+    }
+
+    private RefBookAttributeDiff compareAttributes(Structure oldStructure, Structure newStructure) {
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -172,9 +177,7 @@ public class CompareServiceImpl implements CompareService {
                 oldAttributes.add(oldAttribute.getCode());
         });
 
-        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
-
-        return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
+        return new RefBookAttributeDiff(oldAttributes, newAttributes, updatedAttributes);
     }
 
     @Override

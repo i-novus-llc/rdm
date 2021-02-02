@@ -5,22 +5,23 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
 import java.util.List;
 
-public class RefBookDataDiff {
+public class RefBookDataDiff extends RefBookAttributeDiff {
 
     private Page<DiffRowValue> rows;
-
-    private List<String> newAttributes;
-    private List<String> oldAttributes;
-    private List<String> updatedAttributes;
 
     public RefBookDataDiff() {
     }
 
     public RefBookDataDiff(Page<DiffRowValue> rows, List<String> oldAttributes, List<String> newAttributes, List<String> updatedAttributes) {
+
+        super(oldAttributes, newAttributes, updatedAttributes);
+
         this.rows = rows;
-        this.oldAttributes = oldAttributes;
-        this.newAttributes = newAttributes;
-        this.updatedAttributes = updatedAttributes;
+    }
+
+    public RefBookDataDiff(Page<DiffRowValue> rows, RefBookAttributeDiff attributeDiff) {
+
+        this(rows, attributeDiff.getOldAttributes(), attributeDiff.getNewAttributes(), attributeDiff.getUpdatedAttributes());
     }
 
     public Page<DiffRowValue> getRows() {
@@ -30,29 +31,4 @@ public class RefBookDataDiff {
     public void setRows(Page<DiffRowValue> rows) {
         this.rows = rows;
     }
-
-    public List<String> getNewAttributes() {
-        return newAttributes;
-    }
-
-    public void setNewAttributes(List<String> newAttributes) {
-        this.newAttributes = newAttributes;
-    }
-
-    public List<String> getOldAttributes() {
-        return oldAttributes;
-    }
-
-    public void setOldAttributes(List<String> oldAttributes) {
-        this.oldAttributes = oldAttributes;
-    }
-
-    public List<String> getUpdatedAttributes() {
-        return updatedAttributes;
-    }
-
-    public void setUpdatedAttributes(List<String> updatedAttributes) {
-        this.updatedAttributes = updatedAttributes;
-    }
-
 }
