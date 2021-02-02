@@ -24,7 +24,6 @@ public class VersionDataDiffEntity {
     @JoinColumn(name = "version_diff_id", nullable = false)
     private RefBookVersionDiffEntity versionDiffEntity;
 
-    @Type(type = "jsonb")
     @Column(name = "primaries", nullable = false)
     private String primaries;
 

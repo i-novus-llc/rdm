@@ -20,7 +20,7 @@
             CREATE TABLE "diff".version_data_diff (
                 id                   serial NOT NULL,
                 version_diff_id      integer NOT NULL,
-                primaries            jsonb,
+                primaries            varchar,
                 values               jsonb
             );
 
