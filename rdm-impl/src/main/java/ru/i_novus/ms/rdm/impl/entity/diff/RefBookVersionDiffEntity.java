@@ -74,10 +74,10 @@ public class RefBookVersionDiffEntity {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RefBookConflictEntity{");
+        final StringBuilder sb = new StringBuilder("RefBookVersionDiffEntity{");
         sb.append("id=").append(id);
-        sb.append(", referrerVersion=").append(oldVersion);
-        sb.append(", publishedVersion=").append(newVersion);
+        sb.append(", old_version_id=").append(oldVersion);
+        sb.append(", new_version_id=").append(newVersion);
         sb.append('}');
         return sb.toString();
     }
