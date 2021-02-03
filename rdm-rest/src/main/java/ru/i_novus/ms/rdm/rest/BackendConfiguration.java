@@ -27,7 +27,7 @@ import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
 
 @Configuration
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused","I-novus:MethodNameWordCountRule"})
 public class BackendConfiguration {
 
     @Autowired

@@ -13,7 +13,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@SuppressWarnings("squid:S1214")
+@SuppressWarnings({"squid:S1214","I-novus:MethodNameWordCountRule"})
 public interface RefBookVersionRepository extends
         JpaRepository<RefBookVersionEntity, Integer>,
         QuerydslPredicateExecutor<RefBookVersionEntity> {
