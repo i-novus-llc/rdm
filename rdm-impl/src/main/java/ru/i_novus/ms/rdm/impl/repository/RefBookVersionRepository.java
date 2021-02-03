@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,12 +80,20 @@ public interface RefBookVersionRepository extends
 
     List<RefBookVersionEntity> findByStorageCode(String storageCode);
 
-    @Query("select v from RefBookVersionEntity v where v.refBook.code = ?1 and v.fromDate <= ?2 and (v.toDate > ?2 or v.toDate is null)")
+    @Query("select v from RefBookVersionEntity v " +
+            " where v.refBook.code = ?1 and v.fromDate <= ?2 and (v.toDate > ?2 or v.toDate is null)")
     RefBookVersionEntity findActualOnDate(String refBookCode, LocalDateTime date);
 
-    RefBookVersionEntity findFirstByRefBookIdAndStatusOrderByFromDateDesc(Integer refBookCode, RefBookVersionStatus status);
+    /** Последняя версия справочника с указанным статусом. */
+    RefBookVersionEntity findFirstByRefBookIdAndStatusOrderByFromDateDesc(Integer refBookCode,
+                                                                          RefBookVersionStatus status);
 
-    RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode, RefBookVersionStatus status);
+    RefBookVersionEntity findFirstByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode,
+                                                                            RefBookVersionStatus status);
+
+    List<RefBookVersionEntity> findByRefBookCodeAndStatusOrderByFromDateDesc(String refBookCode,
+                                                                             RefBookVersionStatus status,
+                                                                             Pageable pageable);
 
     @Query(nativeQuery = true,
             value = FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
