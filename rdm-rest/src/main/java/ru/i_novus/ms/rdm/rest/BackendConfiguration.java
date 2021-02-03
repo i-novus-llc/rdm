@@ -122,9 +122,21 @@ public class BackendConfiguration {
 
     @Bean
     public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(ConnectionFactory connectionFactory) {
+
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setSessionTransacted(true);
+        return factory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
+    public DefaultJmsListenerContainerFactory publishTopicListenerContainerFactory(ConnectionFactory connectionFactory) {
+
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        factory.setPubSubDomain(true);
+        factory.setSubscriptionShared(false);
         return factory;
     }
 
@@ -144,7 +156,8 @@ public class BackendConfiguration {
     }
 
     @PostConstruct
+    @SuppressWarnings("java:S2696")
     public void setUpObjectMapper() {
-        JsonUtil.jsonMapper = objectMapper; // NOSONAR
+        JsonUtil.jsonMapper = objectMapper;
     }
 }
