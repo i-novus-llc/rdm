@@ -34,7 +34,6 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
@@ -54,20 +53,26 @@ public class CompareServiceImpl implements CompareService {
 
     private CompareDataService compareDataService;
     private VersionService versionService;
+
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
+
     private FieldFactory fieldFactory;
     private VersionValidation versionValidation;
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
-                              VersionService versionService, RefBookVersionRepository versionRepository,
-                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory,
+                              VersionService versionService,
+                              RefBookVersionRepository versionRepository,
+                              PassportAttributeRepository passportAttributeRepository,
+                              FieldFactory fieldFactory,
                               VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
+
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
+
         this.fieldFactory = fieldFactory;
         this.versionValidation = versionValidation;
     }
@@ -236,10 +241,7 @@ public class CompareServiceImpl implements CompareService {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
 
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-        compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimaries()
-                .stream()
-                .map(Structure.Attribute::getCode)
-                .collect(Collectors.toList()));
+        compareDataCriteria.setPrimaryFields(Structure.getAttributeCodes(newVersion.getStructure().getPrimaries()).collect(toList()));
         compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
 
         compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());

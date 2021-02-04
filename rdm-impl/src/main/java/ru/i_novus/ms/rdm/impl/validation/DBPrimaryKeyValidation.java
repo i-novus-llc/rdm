@@ -46,7 +46,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         this.storageCode = storageCode;
 
         this.primaryKeys = structure.getPrimaries();
-        this.primaryKeyCodes = primaryKeys.stream().map(Structure.Attribute::getCode).collect(toList());
+        this.primaryKeyCodes = structure.getPrimaryCodes();
 
         this.primaryKeyMaps = toPrimaryKeyMaps(rows);
         this.primarySearchValues = getRefBookData(rows);

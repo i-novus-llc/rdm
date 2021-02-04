@@ -38,7 +38,6 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -1241,7 +1240,7 @@ public class ApplicationTest {
         final Integer draftId = draft.getId();
         assertNotNull(draftId);
 
-        List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
+        List<String> codes = structure.getAttributeCodes();
         Map<String, Object> rowMap1 = new HashMap<>();
         rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");

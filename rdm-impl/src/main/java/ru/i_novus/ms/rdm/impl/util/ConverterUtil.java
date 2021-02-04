@@ -83,7 +83,7 @@ public class ConverterUtil {
         if (references.isEmpty())
             return new Structure(attributes, null);
 
-        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
         references = structure.getReferences().stream()
                 .filter(reference -> attributeCodes.contains(reference.getAttribute()))
                 .collect(toList());

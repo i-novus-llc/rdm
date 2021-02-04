@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -108,6 +109,21 @@ public class Structure implements Serializable {
     @JsonIgnore
     public List<Attribute> getLocalizables() {
         return attributes.stream().filter(Attribute::isLocalizable).collect(toList());
+    }
+
+    /** Получение кодов атрибутов. */
+    public static Stream<String> getAttributeCodes(List<Attribute> attributes) {
+        return attributes.stream().map(Attribute::getCode);
+    }
+
+    /** Получение кодов атрибутов-ссылок по ссылкам. */
+    public static Stream<String> getReferenceAttributeCodes(List<Reference> references) {
+        return references.stream().map(Reference::getAttribute);
+    }
+
+    @JsonIgnore
+    public List<String> getAttributeCodes() {
+        return getAttributeCodes(getAttributes()).collect(toList());
     }
 
     /**
@@ -234,6 +250,16 @@ public class Structure implements Serializable {
             return new ArrayList<>(0);
 
         return values.stream().map(copy).collect(toList());
+    }
+
+    @JsonIgnore
+    public List<String> getReferenceAttributeCodes() {
+        return getReferenceAttributeCodes(getReferences()).collect(toList());
+    }
+
+    @JsonIgnore
+    public List<String> getPrimaryCodes() {
+        return getAttributeCodes(getPrimaries()).collect(toList());
     }
 
     public boolean storageEquals(Structure that) {
