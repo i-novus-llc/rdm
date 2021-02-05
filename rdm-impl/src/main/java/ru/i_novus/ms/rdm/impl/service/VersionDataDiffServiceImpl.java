@@ -84,23 +84,18 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         versionDiffEntity = versionDiffRepository.saveAndFlush(versionDiffEntity);
 
         try {
-            saveDataDiff(versionDiffEntity.getId());
+            saveDataDiff(versionDiffEntity);
 
         } catch (Exception e) {
-            versionDiffRepository.deleteById(versionDiffEntity.getId());
+            versionDiffRepository.delete(versionDiffEntity);
             versionDiffRepository.flush();
 
             throw e;
         }
     }
 
-    private void saveDataDiff(Integer versionDiffId) {
+    private void saveDataDiff(RefBookVersionDiffEntity versionDiffEntity) {
 
-        RefBookVersionDiffEntity versionDiffEntity = versionDiffRepository.findById(versionDiffId).orElseThrow(
-                () -> new NotFoundException(String.format("Version diff entity not found for id=%d", versionDiffId))
-        );
-        versionDiffRepository.save(versionDiffEntity);
-        
         CompareDataCriteria compareCriteria = new CompareDataCriteria(
                 versionDiffEntity.getOldVersion().getId(),
                 versionDiffEntity.getNewVersion().getId()
