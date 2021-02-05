@@ -111,7 +111,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         RefBookVersionDiffEntity savedDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
         savedDiffEntity.setId(3);
 
-        when(versionDiffRepository.save(eq(versionDiffEntity))).thenReturn(savedDiffEntity);
+        when(versionDiffRepository.saveAndFlush(eq(versionDiffEntity))).thenReturn(savedDiffEntity);
 
         RefBookAttributeDiff attributeDiff = new RefBookAttributeDiff(
                 singletonList(VERSION_ATTRIBUTE_DELETED),
@@ -176,7 +176,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
         service.saveLastVersionDataDiff(TEST_REFBOOK_CODE);
 
-        verify(versionDiffRepository, times(1)).save(eq(versionDiffEntity));
+        verify(versionDiffRepository, times(1)).saveAndFlush(eq(versionDiffEntity));
 
         ArgumentCaptor<List<VersionDataDiffEntity>> captor = ArgumentCaptor.forClass(List.class);
         verify(dataDiffRepository, times(1)).saveAll(captor.capture());
