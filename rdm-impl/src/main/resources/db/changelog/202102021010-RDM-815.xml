@@ -21,7 +21,7 @@
                 id                   serial NOT NULL,
                 version_diff_id      integer NOT NULL,
                 primaries            varchar,
-                values               jsonb
+                values               varchar
             );
 
             ALTER TABLE "diff".version_data_diff
