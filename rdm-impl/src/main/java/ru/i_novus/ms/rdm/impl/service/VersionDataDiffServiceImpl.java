@@ -1,38 +1,45 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
+import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Service
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
-    public static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
-    private static final Logger logger = LoggerFactory.getLogger(VersionDataDiffServiceImpl.class);
+    private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
+    private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
+
     private RefBookVersionRepository versionRepository;
-
     private RefBookVersionDiffRepository versionDiffRepository;
-
     private VersionDataDiffRepository dataDiffRepository;
 
     private CompareService compareService;
@@ -60,7 +67,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         versionValidation.validateRefBookCodeExists(refBookCode);
 
         // Две последние опубликованные версии:
-        PageRequest pageRequest = PageRequest.of(AbstractCriteria.FIRST_PAGE_NUMBER, 2);
+        PageRequest pageRequest = PageRequest.of(RestCriteria.FIRST_PAGE_NUMBER, 2);
         List<RefBookVersionEntity> versionEntities = versionRepository
                 .findByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED, pageRequest);
         if (isEmpty(versionEntities))
@@ -74,18 +81,25 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     private void saveVersionDataDiff(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
         RefBookVersionDiffEntity versionDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
-        versionDiffEntity = versionDiffRepository.save(versionDiffEntity);
+        versionDiffEntity = versionDiffRepository.saveAndFlush(versionDiffEntity);
 
         try {
-            saveDataDiff(versionDiffEntity);
+            saveDataDiff(versionDiffEntity.getId());
 
         } catch (Exception e) {
-            versionDiffRepository.delete(versionDiffEntity);
+            versionDiffRepository.deleteById(versionDiffEntity.getId());
+            versionDiffRepository.flush();
+
             throw e;
         }
     }
 
-    private void saveDataDiff(RefBookVersionDiffEntity versionDiffEntity) {
+    private void saveDataDiff(Integer versionDiffId) {
+
+        RefBookVersionDiffEntity versionDiffEntity = versionDiffRepository.findById(versionDiffId).orElseThrow(
+                () -> new NotFoundException(String.format("Version diff entity not found for id=%d", versionDiffId))
+        );
+        versionDiffRepository.save(versionDiffEntity);
         
         CompareDataCriteria compareCriteria = new CompareDataCriteria(
                 versionDiffEntity.getOldVersion().getId(),
@@ -93,11 +107,58 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         );
         compareCriteria.setPageSize(VERSION_DATA_DIFF_PAGE_SIZE);
 
+        List<String> primaries = versionDiffEntity.getOldVersion().getStructure().getPrimaryCodes();
+
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
                 pageCriteria -> compareService.compareData(pageCriteria).getRows(), compareCriteria, true);
         pageIterator.forEachRemaining(page -> {
-            // todo
-            throw new NotFoundException("DEBUG call exception");
+            List<VersionDataDiffEntity> dataDiffEntities = toDataDiffEntities(versionDiffEntity, page, primaries);
+            dataDiffRepository.saveAll(dataDiffEntities);
+            dataDiffRepository.flush();
         });
+    }
+
+    private List<VersionDataDiffEntity> toDataDiffEntities(RefBookVersionDiffEntity versionDiffEntity,
+                                                           Page<? extends DiffRowValue> diffRowValues,
+                                                           List<String> primaries) {
+        return diffRowValues.stream()
+                .map(diffRowValue -> toDataDiffEntity(versionDiffEntity, diffRowValue, primaries))
+                .collect(toList());
+    }
+
+    private VersionDataDiffEntity toDataDiffEntity(RefBookVersionDiffEntity versionDiffEntity,
+                                                   DiffRowValue diffRowValue,
+                                                   List<String> primaries) {
+
+        VersionDataDiffEntity dataDiffEntity = new VersionDataDiffEntity();
+        dataDiffEntity.setVersionDiffEntity(versionDiffEntity);
+        dataDiffEntity.setPrimaries(toDataDiffPrimaries(diffRowValue, primaries));
+        dataDiffEntity.setValues(toDataDiffValues(diffRowValue));
+
+        return dataDiffEntity;
+    }
+
+    private String toDataDiffPrimaries(DiffRowValue diffRowValue, List<String> primaries) {
+
+        return diffRowValue.getValues().stream()
+                .filter(diffFieldValue -> primaries.contains(diffFieldValue.getField().getName()))
+                .map(this::toDataDiffPrimary)
+                .map(e -> String.format(DATA_DIFF_PRIMARY_FORMAT, e.getKey(), e.getValue()))
+                .sorted()
+                .collect(joining(", "));
+    }
+
+    private Map.Entry<String, String> toDataDiffPrimary(DiffFieldValue diffFieldValue) {
+
+        Object value = diffFieldValue.getNewValue() != null ? diffFieldValue.getNewValue() : diffFieldValue.getOldValue();
+        return new AbstractMap.SimpleEntry<>(diffFieldValue.getField().getName(), toStringValue(value));
+    }
+
+    private String toStringValue(Object value) {
+        return (value instanceof String) ? StringUtils.quote((String) value, "\"") : String.valueOf(value);
+    }
+
+    private String toDataDiffValues(DiffRowValue diffRowValue) {
+        return JsonUtil.toJsonString(diffRowValue);
     }
 }
