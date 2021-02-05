@@ -29,7 +29,7 @@
 
             ALTER TABLE "diff".version_data_diff
                 ADD CONSTRAINT fk_version_data_diff_version_diff_id FOREIGN KEY ( version_diff_id )
-                    REFERENCES "diff".version_data_diff( id )
+                    REFERENCES n2o_rdm_management.ref_book_version_diff( id )
                         ON DELETE CASCADE ON UPDATE RESTRICT;
 
             CREATE INDEX ix_version_data_diff_version_diff_id ON "diff".version_data_diff ( version_diff_id );
