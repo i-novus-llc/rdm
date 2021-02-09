@@ -3,9 +3,7 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -64,18 +62,6 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         this.compareService = compareService;
 
         this.versionValidation = versionValidation;
-    }
-
-    public Boolean isPublishedBefore(Integer id1, Integer id2) {
-
-        List<RefBookVersionEntity> entities = (id1 != null && id2 != null)
-                ? versionRepository.findByIdInAndStatusOrderByFromDateDesc(List.of(id1, id2), RefBookVersionStatus.PUBLISHED)
-                : emptyList();
-
-        validateVersionExists(id1, entities);
-        validateVersionExists(id2, entities);
-
-        return id2.equals(entities.get(0).getId());
     }
 
     @Override
@@ -170,6 +156,27 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         return toDataDiffPrimary(diffFieldValue.getField().getName(), value);
     }
 
+    @Override
+    public Boolean isPublishedBefore(Integer versionId1, Integer versionId2) {
+
+        List<RefBookVersionEntity> entities = getVersions(versionId1, versionId2);
+        return versionId2.equals(entities.get(0).getId());
+    }
+
+    private List<RefBookVersionEntity> getVersions(Integer versionId1, Integer versionId2) {
+
+        List<RefBookVersionEntity> entities = (versionId1 != null && versionId2 != null)
+                ? versionRepository.findByIdInAndStatusOrderByFromDateDesc(
+                        List.of(versionId1, versionId2), RefBookVersionStatus.PUBLISHED)
+                : emptyList();
+
+        validateVersionExists(versionId1, entities);
+        validateVersionExists(versionId2, entities);
+
+        return entities;
+    }
+
+    /**  Проверка существования версии по идентификатору в списке версий. */
     private void validateVersionExists(Integer versionId, List<RefBookVersionEntity> entities) {
 
         if (versionId == null ||

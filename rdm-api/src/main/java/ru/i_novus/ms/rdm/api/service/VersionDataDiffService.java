@@ -7,15 +7,6 @@ import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 public interface VersionDataDiffService {
 
     /**
-     * Проверка на опубликованность первой версии раньше второй.
-     *
-     * @param id1 идентификатор первой версии
-     * @param id2 идентификатор второй версии
-     * @return true, если версия с id1 опубликована раньше версии id2
-     */
-    Boolean isPublishedBefore(Integer id1, Integer id2);
-
-    /**
      * Получение разницы между данными версий.
      */
     Page<VersionDataDiff> search(CompareDataCriteria criteria);
@@ -26,4 +17,13 @@ public interface VersionDataDiffService {
      * @param refBookCode код справочника
      */
     void saveLastVersionDataDiff(String refBookCode);
+
+    /**
+     * Проверка на опубликованность первой версии раньше второй.
+     *
+     * @param versionId1 идентификатор первой версии
+     * @param versionId2 идентификатор второй версии
+     * @return true, если версия с versionId1 опубликована раньше версии versionId2
+     */
+    Boolean isPublishedBefore(Integer versionId1, Integer versionId2);
 }
