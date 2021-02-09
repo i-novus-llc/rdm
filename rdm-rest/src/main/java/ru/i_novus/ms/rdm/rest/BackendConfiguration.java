@@ -20,6 +20,7 @@ import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
+import ru.i_novus.ms.rdm.rest.service.PublishListener;
 import ru.i_novus.ms.rdm.rest.util.SecurityContextUtils;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
@@ -138,6 +139,12 @@ public class BackendConfiguration {
         factory.setPubSubDomain(true);
         factory.setSubscriptionShared(false);
         return factory;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
+    public PublishListener publishListener() {
+        return new PublishListener();
     }
 
     @Bean

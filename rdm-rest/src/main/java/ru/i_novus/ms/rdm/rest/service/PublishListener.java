@@ -5,10 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
 
-@Component
 public class PublishListener {
 
     private static final Logger logger = LoggerFactory.getLogger(PublishListener.class);
