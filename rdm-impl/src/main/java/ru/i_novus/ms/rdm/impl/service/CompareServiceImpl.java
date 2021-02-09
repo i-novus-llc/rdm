@@ -34,7 +34,6 @@ import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
@@ -54,20 +53,26 @@ public class CompareServiceImpl implements CompareService {
 
     private CompareDataService compareDataService;
     private VersionService versionService;
+
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
+
     private FieldFactory fieldFactory;
     private VersionValidation versionValidation;
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
-                              VersionService versionService, RefBookVersionRepository versionRepository,
-                              PassportAttributeRepository passportAttributeRepository, FieldFactory fieldFactory,
+                              VersionService versionService,
+                              RefBookVersionRepository versionRepository,
+                              PassportAttributeRepository passportAttributeRepository,
+                              FieldFactory fieldFactory,
                               VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
+
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
+
         this.fieldFactory = fieldFactory;
         this.versionValidation = versionValidation;
     }
@@ -150,9 +155,14 @@ public class CompareServiceImpl implements CompareService {
         validatePrimariesEquality(oldVersion, newVersion);
 
         CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
+        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
 
-        Structure oldStructure = oldVersion.getStructure();
-        Structure newStructure = newVersion.getStructure();
+        RefBookAttributeDiff attributeDiff = compareAttributes(oldVersion.getStructure(), newVersion.getStructure());
+
+        return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), attributeDiff);
+    }
+
+    private RefBookAttributeDiff compareAttributes(Structure oldStructure, Structure newStructure) {
 
         List<String> newAttributes = new ArrayList<>();
         List<String> oldAttributes = new ArrayList<>();
@@ -172,9 +182,7 @@ public class CompareServiceImpl implements CompareService {
                 oldAttributes.add(oldAttribute.getCode());
         });
 
-        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
-
-        return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), oldAttributes, newAttributes, updatedAttributes);
+        return new RefBookAttributeDiff(oldAttributes, newAttributes, updatedAttributes);
     }
 
     @Override
@@ -193,7 +201,7 @@ public class CompareServiceImpl implements CompareService {
         RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
 
-        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff, newStructure, oldStructure);
+        List<ComparableField> comparableFields = createCommonComparableFields(dataDiff.getAttributeDiff(), newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
 
         addNewVersionRows(comparableRows, comparableFields, newData, dataDiff, newStructure, criteria);
@@ -233,10 +241,7 @@ public class CompareServiceImpl implements CompareService {
         CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
 
         compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-        compareDataCriteria.setPrimaryFields(newVersion.getStructure().getPrimaries()
-                .stream()
-                .map(Structure.Attribute::getCode)
-                .collect(Collectors.toList()));
+        compareDataCriteria.setPrimaryFields(Structure.getAttributeCodes(newVersion.getStructure().getPrimaries()).collect(toList()));
         compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
 
         compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
@@ -275,7 +280,9 @@ public class CompareServiceImpl implements CompareService {
         if (isEmpty(newData.getContent()))
             return;
 
-        boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
+        RefBookAttributeDiff attributeDiff = refBookDataDiff.getAttributeDiff();
+
+        boolean hasUpdOrDelAttr = !isEmpty(attributeDiff.getUpdatedAttributes()) || !isEmpty(attributeDiff.getOldAttributes());
 
         Page<RefBookRowValue> oldData = null;
         if (hasUpdOrDelAttr) {

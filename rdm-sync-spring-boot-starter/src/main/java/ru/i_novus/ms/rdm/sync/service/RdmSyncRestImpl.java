@@ -50,6 +50,7 @@ import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.INSE
  * @since 20.02.2019
  */
 
+@SuppressWarnings({"java:S3740","I-novus:MethodNameWordCountRule"})
 public class RdmSyncRestImpl implements RdmSyncRest {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSyncRestImpl.class);
@@ -296,14 +297,17 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     }
 
     private void validateStructureChanges(VersionMapping versionMapping, List<FieldMapping> fieldMappings, RefBookDataDiff diff) {
+
         List<String> clientRdmFields = fieldMappings.stream().map(FieldMapping::getRdmField).collect(toList());
-        //проверяем удаленные поля
-        if (!CollectionUtils.isEmpty(diff.getOldAttributes())) {
-            diff.getOldAttributes().retainAll(clientRdmFields);
-            if (!diff.getOldAttributes().isEmpty()) {
+
+        // Проверка удалённых полей
+        List<String> oldAttributes = diff.getAttributeDiff().getOldAttributes();
+        if (!CollectionUtils.isEmpty(oldAttributes)) {
+            oldAttributes.retainAll(clientRdmFields);
+            if (!oldAttributes.isEmpty()) {
                 //в новой версии удалены поля, которые ведутся в системе
                 throw new IllegalStateException(format(MAPPING_OUT_OF_DATE,
-                        String.join(",", diff.getOldAttributes()), versionMapping.getCode()));
+                        String.join(",", oldAttributes), versionMapping.getCode()));
             }
         }
     }

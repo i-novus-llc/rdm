@@ -26,6 +26,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -38,7 +39,6 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -92,7 +92,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
@@ -1241,7 +1241,7 @@ public class ApplicationTest {
         final Integer draftId = draft.getId();
         assertNotNull(draftId);
 
-        List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
+        List<String> codes = structure.getAttributeCodes();
         Map<String, Object> rowMap1 = new HashMap<>();
         rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
@@ -2813,28 +2813,34 @@ public class ApplicationTest {
         );
     }
 
-    private void assertRefBookDataDiffs(RefBookDataDiff expectedRefBookDataDiff, RefBookDataDiff actualRefBookDataDiff) {
+    private void assertRefBookDataDiffs(RefBookDataDiff expected, RefBookDataDiff actual) {
 
-        assertListsEquals(expectedRefBookDataDiff.getNewAttributes(), actualRefBookDataDiff.getNewAttributes());
-        assertListsEquals(expectedRefBookDataDiff.getOldAttributes(), actualRefBookDataDiff.getOldAttributes());
-        assertListsEquals(expectedRefBookDataDiff.getUpdatedAttributes(), actualRefBookDataDiff.getUpdatedAttributes());
-
-        assertDiffRowValues(expectedRefBookDataDiff.getRows().getContent(), actualRefBookDataDiff.getRows().getContent());
+        assertDiffRowValues(expected.getRows().getContent(), actual.getRows().getContent());
+        assertRefBookAttributeDiffs(expected.getAttributeDiff(), actual.getAttributeDiff());
     }
 
-    private void assertListsEquals(List<String> expectedValuesList, List<String> actualValuesList) {
-        assertEquals(expectedValuesList.size(), actualValuesList.size());
-        if (expectedValuesList.stream().anyMatch(expectedValue -> !actualValuesList.contains(expectedValue)))
+    private void assertRefBookAttributeDiffs(RefBookAttributeDiff expected, RefBookAttributeDiff actual) {
+
+        assertListsEquals(expected.getNewAttributes(), actual.getNewAttributes());
+        assertListsEquals(expected.getOldAttributes(), actual.getOldAttributes());
+        assertListsEquals(expected.getUpdatedAttributes(), actual.getUpdatedAttributes());
+    }
+
+    private void assertListsEquals(List<String> expectedList, List<String> actualList) {
+        assertEquals(expectedList.size(), actualList.size());
+        if (expectedList.stream().anyMatch(expected -> !actualList.contains(expected)))
             fail();
     }
 
-    private void assertDiffRowValues(List<DiffRowValue> expectedDiffRowValues, List<DiffRowValue> actualDiffRowValues) {
+    private void assertDiffRowValues(List<DiffRowValue> expectedList, List<DiffRowValue> actualList) {
 
-        assertEquals(expectedDiffRowValues.size(), actualDiffRowValues.size());
-        expectedDiffRowValues.forEach(expectedDiffRowValue -> {
-            if (actualDiffRowValues.stream().noneMatch(actualDiffRowValue ->
-                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size()
-                            && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
+        assertEquals(expectedList.size(), actualList.size());
+        expectedList.forEach(expected -> {
+            if (actualList.stream()
+                    .noneMatch(actual ->
+                            expected.getValues().size() == actual.getValues().size()
+                                    && actual.getValues().containsAll(expected.getValues())
+                    ))
                 fail();
         });
     }
@@ -2846,17 +2852,18 @@ public class ApplicationTest {
      * @param actualList   актуальный список
      */
     private void assertConflicts(List<Conflict> expectedList, List<Conflict> actualList) {
+
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());
 
-        expectedList.forEach(expectedConflict -> {
+        expectedList.forEach(expected -> {
             if (actualList.stream()
-                    .noneMatch(actualConflict ->
-                            Objects.equals(expectedConflict.getRefAttributeCode(), actualConflict.getRefAttributeCode())
-                                    && Objects.equals(expectedConflict.getConflictType(), actualConflict.getConflictType())
-                                    && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())
+                    .noneMatch(actual ->
+                            Objects.equals(expected.getRefAttributeCode(), actual.getRefAttributeCode())
+                                    && Objects.equals(expected.getConflictType(), actual.getConflictType())
+                                    && expected.getPrimaryValues().size() == actual.getPrimaryValues().size()
+                                    && actual.getPrimaryValues().containsAll(expected.getPrimaryValues())
                     ))
                 fail();
         });

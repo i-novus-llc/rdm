@@ -4,7 +4,10 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class StructureTestConstants {
 
@@ -16,6 +19,8 @@ public class StructureTestConstants {
     public static final String FLOAT_ATTRIBUTE_CODE = "REAL";
     public static final String BOOLEAN_ATTRIBUTE_CODE = "BOOL";
     public static final String DATE_ATTRIBUTE_CODE = "DATE";
+
+    public static final List<String> PRIMARY_CODES = singletonList(ID_ATTRIBUTE_CODE);
 
     public static final List<String> ATTRIBUTE_CODES = List.of(
             ID_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE,
@@ -92,5 +97,14 @@ public class StructureTestConstants {
 
     private StructureTestConstants() {
         // Nothing to do.
+    }
+
+    public static List<String> getAllAttributeCodes() {
+
+        List<String> allAttributeCodes = new ArrayList<>();
+        allAttributeCodes.addAll(ATTRIBUTE_CODES);
+        allAttributeCodes.addAll(REFERENCE_CODES);
+
+        return allAttributeCodes;
     }
 }

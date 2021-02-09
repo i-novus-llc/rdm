@@ -12,6 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.StructureTestConstants.*;
 
@@ -268,6 +269,16 @@ public class StructureTest extends BaseTest {
             assertTrue(referenceAttribute.isReferenceType());
             assertObjects(Assert::assertEquals, referenceAttribute, attributes.get(0));
         });
+    }
+
+    @Test
+    public void testGetCodes() {
+
+        Structure structure = createStructure();
+        assertEquals(PRIMARY_CODES,structure.getPrimaryCodes());
+        assertEquals(getAllAttributeCodes(),structure.getAttributeCodes());
+        assertNotEquals(ATTRIBUTE_CODES,structure.getAttributeCodes());
+        assertEquals(REFERENCE_CODES,structure.getReferenceAttributeCodes());
     }
 
     @Test
@@ -616,6 +627,20 @@ public class StructureTest extends BaseTest {
         removedStructure.remove(CHANGE_REF_ATTRIBUTE_CODE);
         assertObjects(Assert::assertEquals, oldStructure, removedStructure);
         assertTrue(removedStructure.storageEquals(oldStructure));
+    }
+
+    @Test
+    public void testGetAttributeCodes() {
+
+        List<String> actual = Structure.getAttributeCodes(ATTRIBUTE_LIST).collect(toList());
+        assertEquals(getAllAttributeCodes(), actual);
+    }
+
+    @Test
+    public void testGetReferenceAttributeCodes() {
+
+        List<String> actual = Structure.getReferenceAttributeCodes(REFERENCE_LIST).collect(toList());
+        assertEquals(REFERENCE_CODES, actual);
     }
 
     /** Создание структуры с глубоким копированием атрибутов и ссылок. */
