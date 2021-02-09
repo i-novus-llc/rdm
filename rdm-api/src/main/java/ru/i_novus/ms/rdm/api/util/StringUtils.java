@@ -31,8 +31,8 @@ public class StringUtils {
         return SINGLE_QUOTE_CHAR + value + SINGLE_QUOTE_CHAR;
     }
 
-    public static String quote(String value, String character) {
-        return character + value.replace(character, character + character) + character;
+    public static String toDoubleQuotes(String value) {
+        return DOUBLE_QUOTE_CHAR + value.replace(DOUBLE_QUOTE_CHAR, DOUBLE_QUOTE_CHAR + DOUBLE_QUOTE_CHAR) + DOUBLE_QUOTE_CHAR;
     }
 
     public static String camelCaseToSnakeCase(String s) {

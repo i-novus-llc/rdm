@@ -24,10 +24,10 @@ public class StringUtilsTest {
     }
 
     @Test
-    public void testQuote() {
+    public void testToDoubleQuotes() {
 
-        assertEquals("^^", quote("", "^"));
-        assertEquals("^abc^", quote("abc", "^"));
-        assertEquals("^a^^c^", quote("a^c", "^"));
+        assertEquals("\"\"", toDoubleQuotes(""));
+        assertEquals("\"abc\"", toDoubleQuotes("abc"));
+        assertEquals("\"a\"\"c\"", toDoubleQuotes("a\"c"));
     }
 }

@@ -150,7 +150,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     private String toStringValue(Object value) {
-        return (value instanceof String) ? StringUtils.quote((String) value, "\"") : String.valueOf(value);
+        return (value instanceof String) ? StringUtils.toDoubleQuotes((String) value) : String.valueOf(value);
     }
 
     private String toDataDiffValues(DiffRowValue diffRowValue) {
