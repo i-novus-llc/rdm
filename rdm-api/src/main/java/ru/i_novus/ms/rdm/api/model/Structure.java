@@ -90,15 +90,13 @@ public class Structure implements Serializable {
                 .findAny().orElse(null);
     }
 
-    public void clearPrimary() {
-
-        if (CollectionUtils.isEmpty(attributes))
-            return;
-
-        attributes.forEach(a -> {
-            if (a.hasIsPrimary())
-                a.setIsPrimary(Boolean.FALSE);
-        });
+    /**
+     * Проверка наличия первичного ключа.
+     *
+     * @return {@code true}, если есть хотя бы один первичный ключ, иначе - {@code false}.
+     */
+    public boolean hasPrimary() {
+        return attributes.stream().anyMatch(Attribute::hasIsPrimary);
     }
 
     @JsonIgnore
@@ -111,28 +109,19 @@ public class Structure implements Serializable {
         return attributes.stream().filter(Attribute::isLocalizable).collect(toList());
     }
 
-    /** Получение кодов атрибутов. */
-    public static Stream<String> getAttributeCodes(List<Attribute> attributes) {
-        return attributes.stream().map(Attribute::getCode);
-    }
-
-    /** Получение кодов атрибутов-ссылок по ссылкам. */
-    public static Stream<String> getReferenceAttributeCodes(List<Reference> references) {
-        return references.stream().map(Reference::getAttribute);
-    }
-
     @JsonIgnore
     public List<String> getAttributeCodes() {
         return getAttributeCodes(getAttributes()).collect(toList());
     }
 
-    /**
-     * Проверка наличия первичного ключа.
-     *
-     * @return {@code true}, если есть хотя бы один первичный ключ, иначе - {@code false}.
-     */
-    public boolean hasPrimary() {
-        return attributes.stream().anyMatch(Attribute::hasIsPrimary);
+    @JsonIgnore
+    public List<String> getReferenceAttributeCodes() {
+        return getReferenceAttributeCodes(getReferences()).collect(toList());
+    }
+
+    @JsonIgnore
+    public List<String> getPrimaryCodes() {
+        return getAttributeCodes(getPrimaries()).collect(toList());
     }
 
     /**
@@ -143,6 +132,18 @@ public class Structure implements Serializable {
     @JsonIgnore
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(attributes);
+    }
+
+    /** Удаление признака первичного ключа у всех атрибутов. */
+    public void clearPrimary() {
+
+        if (CollectionUtils.isEmpty(attributes))
+            return;
+
+        attributes.forEach(a -> {
+            if (a.hasIsPrimary())
+                a.setIsPrimary(Boolean.FALSE);
+        });
     }
 
     public void add(Attribute attribute, Reference reference) {
@@ -252,14 +253,14 @@ public class Structure implements Serializable {
         return values.stream().map(copy).collect(toList());
     }
 
-    @JsonIgnore
-    public List<String> getReferenceAttributeCodes() {
-        return getReferenceAttributeCodes(getReferences()).collect(toList());
+    /** Получение кодов атрибутов. */
+    public static Stream<String> getAttributeCodes(List<Attribute> attributes) {
+        return attributes.stream().map(Attribute::getCode);
     }
 
-    @JsonIgnore
-    public List<String> getPrimaryCodes() {
-        return getAttributeCodes(getPrimaries()).collect(toList());
+    /** Получение кодов атрибутов-ссылок по ссылкам. */
+    public static Stream<String> getReferenceAttributeCodes(List<Reference> references) {
+        return references.stream().map(Reference::getAttribute);
     }
 
     public boolean storageEquals(Structure that) {
@@ -269,11 +270,6 @@ public class Structure implements Serializable {
                 ? CollectionUtils.isEmpty(others)
                 : attributes.size() == others.size()
                 && attributes.stream().noneMatch(attribute -> others.stream().noneMatch(attribute::storageEquals));
-    }
-
-    @Override
-    public String toString() {
-        return JsonUtil.toJsonString(this);
     }
 
     @Override
@@ -289,6 +285,11 @@ public class Structure implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(attributes, references);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 
     @ApiModel("Атрибут справочника")
