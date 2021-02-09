@@ -38,6 +38,7 @@ public class DiffRowValueCalculatorTest {
     private static DiffRowValue inserted;
     private static DiffRowValue insertedPurple;
     private static DiffRowValue insertedPurpleA;
+    private static DiffRowValue insertedPurpleB;
     private static DiffRowValue insertedVioletA;
     private static DiffRowValue insertedPurpleEE82EE;
     private static DiffRowValue insertedEE82EE;
@@ -80,6 +81,14 @@ public class DiffRowValueCalculatorTest {
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, INSERTED),
                         new DiffFieldValue<>(new StringField(CODE), null, PURPLE, INSERTED),
                         new DiffFieldValue<>(new StringField(NAME), null, A, INSERTED)
+                ),
+                INSERTED);
+
+        insertedPurpleB = new DiffRowValue(
+                List.of(
+                        new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, INSERTED),
+                        new DiffFieldValue<>(new StringField(CODE), null, PURPLE, INSERTED),
+                        new DiffFieldValue<>(new StringField(NAME), null, B, INSERTED)
                 ),
                 INSERTED);
 
@@ -233,13 +242,13 @@ public class DiffRowValueCalculatorTest {
 
     @Test
     public void testCalculate_insertAndInsert() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, insertedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, insertedVioletA, Set.of());
         assertCalculateResult(calculator, insertedVioletA);
     }
 
     @Test
     public void testCalculate_insertAndInsert_sameNewValues() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, insertedPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, insertedPurpleA, Set.of());
         assertCalculateResult(calculator, insertedPurpleA);
     }
 
@@ -255,17 +264,23 @@ public class DiffRowValueCalculatorTest {
         assertCalculateResult(calculator, inserted);
     }
 
+    @Test
+    public void testCalculate_insertAndInsert_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedVioletA, insertedPurpleA, Set.of(), true);
+        assertCalculateResult(calculator, deletedVioletA);
+    }
+
     // INSERT + UPDATE
 
     @Test
     public void testCalculate_insertAndUpdate() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, updatedPurpleAToVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, updatedPurpleAToVioletA, Set.of());
         assertCalculateResult(calculator, insertedVioletA);
     }
 
     @Test
     public void testCalculate_insertAndUpdate_sameNewValues() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, updatedNullBToPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, updatedNullBToPurpleA, Set.of());
         assertCalculateResult(calculator, insertedPurpleA);
     }
 
@@ -287,19 +302,31 @@ public class DiffRowValueCalculatorTest {
         assertCalculateResult(calculator, inserted);
     }
 
+    @Test
+    public void testCalculate_insertAndUpdate_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, updatedVioletAToVioletB, Set.of(), true);
+        assertCalculateResult(calculator, updatedPurpleAToVioletA);
+    }
+
     // INSERT + DELETE
 
     @Test
     public void testCalculate_insertAndDelete_annihilated() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, deletedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, deletedVioletA, Set.of());
         assertAnnihilated(calculator);
+    }
+
+    @Test
+    public void testCalculate_insertAndDelete_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, deletedVioletA, Set.of(), true);
+        assertCalculateResult(calculator, updatedPurpleAToVioletA);
     }
 
     // UPDATE + INSERT
 
     @Test
     public void testCalculate_updateAndInsert() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedVioletAToVioletB, insertedPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedVioletAToVioletB, insertedPurpleA, Set.of());
         DiffRowValue expectedResult = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
@@ -312,13 +339,13 @@ public class DiffRowValueCalculatorTest {
 
     @Test
     public void testCalculate_updateAndInsert_sameNewValues() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedNullBToPurpleA, insertedPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedNullBToPurpleA, insertedPurpleA, Set.of());
         assertCalculateResult(calculator, updatedNullBToPurpleA);
     }
 
     @Test
     public void testCalculate_updateAndInsert_sameOldValues_annihilated() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, insertedPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, insertedPurpleA, Set.of());
         assertAnnihilated(calculator);
     }
 
@@ -340,17 +367,23 @@ public class DiffRowValueCalculatorTest {
         assertAnnihilated(calculator);
     }
 
+    @Test
+    public void testCalculate_updateAndInsert_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, insertedPurpleA, Set.of(), true);
+        assertCalculateResult(calculator, deletedVioletA);
+    }
+
     // UPDATE + UPDATE
 
     @Test
     public void testCalculate_updateAndUpdate() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, updatedVioletAToVioletB);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, updatedVioletAToVioletB, Set.of());
         assertCalculateResult(calculator, updatedPurpleAToVioletB);
     }
 
     @Test
     public void testCalculate_updateAndUpdate_sameNewValues_annihilated() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, updatedNullBToPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, updatedNullBToPurpleA, Set.of());
         assertAnnihilated(calculator);
     }
 
@@ -372,17 +405,30 @@ public class DiffRowValueCalculatorTest {
         assertAnnihilated(calculator);
     }
 
+    @Test
+    public void testCalculate_updateAndUpdate_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedVioletAToVioletB, updatedPurpleAToVioletA, Set.of(), true);
+        DiffRowValue expectedResult = new DiffRowValue(
+                List.of(
+                        new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
+                        new DiffFieldValue<>(new StringField(CODE), VIOLET, PURPLE, UPDATED),
+                        new DiffFieldValue<>(new StringField(NAME), B, A, UPDATED)
+                ),
+                UPDATED);
+        assertCalculateResult(calculator, expectedResult);
+    }
+
     // UPDATE + DELETE
 
     @Test
     public void testCalculate_updateAndDelete() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletB, deletedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletB, deletedVioletA, Set.of());
         assertCalculateResult(calculator, deletedPurpleA);
     }
 
     @Test
     public void testCalculate_updateAndDelete_sameNewValues() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, deletedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, deletedVioletA, Set.of());
         assertCalculateResult(calculator, deletedPurpleA);
     }
 
@@ -398,11 +444,24 @@ public class DiffRowValueCalculatorTest {
         assertCalculateResult(calculator, deleted);
     }
 
+    @Test
+    public void testCalculate_updateAndDelete_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedVioletAToVioletB, deletedVioletA, Set.of(), true);
+        DiffRowValue expectedResult = new DiffRowValue(
+                List.of(
+                        new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
+                        new DiffFieldValue<>(new StringField(CODE), null, VIOLET, null),
+                        new DiffFieldValue<>(new StringField(NAME), B, A, UPDATED)
+                ),
+                UPDATED);
+        assertCalculateResult(calculator, expectedResult);
+    }
+
     // DELETE + INSERT
 
     @Test
     public void testCalculate_deleteAndInsert() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, insertedPurpleA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, insertedPurpleA, Set.of());
         DiffRowValue expectedResult = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
@@ -415,13 +474,13 @@ public class DiffRowValueCalculatorTest {
 
     @Test
     public void testCalculate_deleteAndInsert_sameNewValues_annihilated() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, insertedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, insertedVioletA, Set.of());
         assertAnnihilated(calculator);
     }
 
     @Test
     public void testCalculate_deleteAndInsert_fieldsChanged() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedPurpleA, insertedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedPurpleA, insertedVioletA, Set.of());
         assertCalculateResult(calculator, updatedPurpleAToVioletA);
     }
 
@@ -431,11 +490,17 @@ public class DiffRowValueCalculatorTest {
         assertAnnihilated(calculator);
     }
 
+    @Test
+    public void testCalculate_deleteAndInsert_reverse_annihilated() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, insertedPurpleA, Set.of(), true);
+        assertAnnihilated(calculator);
+    }
+
     // DELETE + UPDATE
 
     @Test
     public void testCalculate_deleteAndUpdate() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, updatedVioletAToVioletB);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, updatedVioletAToVioletB, Set.of());
 
         DiffRowValue expectedResult = new DiffRowValue(
                 List.of(
@@ -450,7 +515,7 @@ public class DiffRowValueCalculatorTest {
 
     @Test
     public void testCalculate_deleteAndUpdate_sameNewValues_annihilated() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, updatedPurpleAToVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, updatedPurpleAToVioletA, Set.of());
         assertAnnihilated(calculator);
     }
 
@@ -466,17 +531,24 @@ public class DiffRowValueCalculatorTest {
         assertAnnihilated(calculator);
     }
 
+    @Test
+    public void testCalculate_deleteAndUpdate_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, updatedPurpleAToVioletB, Set.of(), true);
+        assertCalculateResult(calculator, insertedPurpleA);
+    }
+
+
     // DELETE + DELETE
 
     @Test
     public void testCalculate_deleteAndDelete() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, deletedPurpleB);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, deletedPurpleB, Set.of());
         assertCalculateResult(calculator, deletedVioletA);
     }
 
     @Test
     public void testCalculate_deleteAndDelete_sameNewValues() {
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, deletedVioletA);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, deletedVioletA, Set.of());
         assertCalculateResult(calculator, deletedVioletA);
     }
 
@@ -492,12 +564,18 @@ public class DiffRowValueCalculatorTest {
         assertCalculateResult(calculator, deleted);
     }
 
+    @Test
+    public void testCalculate_deleteAndDelete_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedPurpleB, deletedVioletA, Set.of(), true);
+        assertCalculateResult(calculator, insertedVioletA);
+    }
+
     // SINGLE
 
     @Test
     public void testCalculate_singleRandomDiff() {
         DiffRowValue diffRowValue = getRandomDiffRowValue(insertedPurpleA, updatedPurpleAToVioletA, deletedVioletA);
-        DiffRowValueCalculator calculator = new DiffRowValueCalculator(diffRowValue, null);
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(diffRowValue, null, Set.of());
         assertCalculateResult(calculator, diffRowValue);
     }
 
@@ -532,6 +610,63 @@ public class DiffRowValueCalculatorTest {
         assertAnnihilated(calculator);
     }
 
+    // SINGLE REVERSE
+
+    @Test
+    public void testCalculate_singleInsertDiff_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, null, Set.of(), true);
+        assertCalculateResult(calculator, deletedPurpleA);
+    }
+
+    @Test
+    public void testCalculate_singleUpdateDiff_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, null, Set.of(), true);
+        DiffRowValue expectedResult = new DiffRowValue(
+                List.of(
+                        new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
+                        new DiffFieldValue<>(new StringField(CODE), VIOLET, PURPLE, UPDATED),
+                        new DiffFieldValue<>(new StringField(NAME), null, A, null)
+                ),
+                UPDATED);
+        assertCalculateResult(calculator, expectedResult);
+    }
+
+    @Test
+    public void testCalculate_singleDeleteDiff_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedVioletA, null, Set.of(), true);
+        assertCalculateResult(calculator, insertedVioletA);
+    }
+
+    @Test
+    public void testCalculate_singleInsert_allFieldsChanged_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, null, Set.of(CODE, NAME, HEX), true);
+        assertCalculateResult(calculator, deleted);
+    }
+
+    @Test
+    public void testCalculate_singleDelete_allFieldsChanged_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedPurpleEE82EE, null, Set.of(CODE, NAME, HEX), true);
+        assertCalculateResult(calculator, inserted);
+    }
+
+    @Test
+    public void testCalculate_singleInsert_fieldsChanged_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(insertedPurpleA, null, Set.of(NAME), true);
+        assertCalculateResult(calculator, deletedPurple);
+    }
+
+    @Test
+    public void testCalculate_singleDelete_fieldsChanged_reverse() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(deletedPurpleB, null, Set.of(NAME), true);
+        assertCalculateResult(calculator, insertedPurple);
+    }
+
+    @Test
+    public void testCalculate_singleUpdate_allFieldsChanged_reverse_annihilated() {
+        DiffRowValueCalculator calculator = new DiffRowValueCalculator(updatedPurpleAToVioletA, null, Set.of(CODE, NAME), true);
+        assertAnnihilated(calculator);
+    }
+
     private void assertDiffRowValue(DiffRowValue expected, DiffRowValue actual) {
         Set<String> commonFields = getCommonFields(expected, actual);
         assertEquals(expected.getStatus(), actual.getStatus());
@@ -554,13 +689,13 @@ public class DiffRowValueCalculatorTest {
     }
 
     private void assertCalculateResult(DiffRowValueCalculator calculator, DiffRowValue expectedResult) {
-        assertFalse(calculator.hasNoChanges());
+        assertFalse(calculator.isAnnihilated());
         DiffRowValue actualResult = calculator.calculate();
         assertDiffRowValue(expectedResult, actualResult);
     }
 
     private void assertAnnihilated(DiffRowValueCalculator calculator) {
-        assertTrue(calculator.hasNoChanges());
+        assertTrue(calculator.isAnnihilated());
         assertNull(calculator.calculate());
     }
 
