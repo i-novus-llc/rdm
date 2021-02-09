@@ -1,13 +1,16 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
@@ -23,10 +26,9 @@ import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -34,6 +36,8 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionDataDiffServiceImpl implements VersionDataDiffService {
+
+    public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
 
     private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
     private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
@@ -62,6 +66,24 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         this.versionValidation = versionValidation;
     }
 
+    public Boolean isPublishedBefore(Integer id1, Integer id2) {
+
+        List<RefBookVersionEntity> entities = (id1 != null && id2 != null)
+                ? versionRepository.findByIdInAndStatusOrderByFromDateDesc(List.of(id1, id2), RefBookVersionStatus.PUBLISHED)
+                : emptyList();
+
+        validateVersionExists(id1, entities);
+        validateVersionExists(id2, entities);
+
+        return id2.equals(entities.get(0).getId());
+    }
+
+    @Override
+    public Page<VersionDataDiff> search(CompareDataCriteria criteria) {
+        return new PageImpl<>(emptyList(), criteria, 0);
+    }
+
+    @Override
     public void saveLastVersionDataDiff(String refBookCode) {
 
         versionValidation.validateRefBookCodeExists(refBookCode);
@@ -138,22 +160,36 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         return diffRowValue.getValues().stream()
                 .filter(diffFieldValue -> primaries.contains(diffFieldValue.getField().getName()))
                 .map(this::toDataDiffPrimary)
-                .map(e -> String.format(DATA_DIFF_PRIMARY_FORMAT, e.getKey(), e.getValue()))
                 .sorted()
                 .collect(joining(", "));
     }
 
-    private Map.Entry<String, String> toDataDiffPrimary(DiffFieldValue diffFieldValue) {
+    private String toDataDiffPrimary(DiffFieldValue diffFieldValue) {
 
         Object value = diffFieldValue.getNewValue() != null ? diffFieldValue.getNewValue() : diffFieldValue.getOldValue();
-        return new AbstractMap.SimpleEntry<>(diffFieldValue.getField().getName(), toStringValue(value));
+        return toDataDiffPrimary(diffFieldValue.getField().getName(), value);
     }
 
-    private String toStringValue(Object value) {
+    private void validateVersionExists(Integer versionId, List<RefBookVersionEntity> entities) {
+
+        if (versionId == null ||
+                entities.stream().noneMatch(e -> versionId.equals(e.getId())))
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
+    }
+
+    private String toDataDiffPrimary(String name, Object value) {
+        return String.format(DATA_DIFF_PRIMARY_FORMAT, name, toDataDiffPrimaryValue(value));
+    }
+
+    private String toDataDiffPrimaryValue(Object value) {
         return (value instanceof String) ? StringUtils.toDoubleQuotes((String) value) : String.valueOf(value);
     }
 
     private String toDataDiffValues(DiffRowValue diffRowValue) {
         return JsonUtil.toJsonString(diffRowValue);
+    }
+
+    private DiffRowValue fromDataDiffValues(String dataDiffValues) {
+        return JsonUtil.fromJsonString(dataDiffValues, DiffRowValue.class);
     }
 }

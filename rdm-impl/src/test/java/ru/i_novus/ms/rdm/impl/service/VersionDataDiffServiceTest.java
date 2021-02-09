@@ -11,13 +11,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.diff.DiffRowValuePage;
-import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
-import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
+import ru.i_novus.ms.rdm.api.model.diff.*;
 import ru.i_novus.ms.rdm.api.provider.RdmMapperConfigurer;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
@@ -90,6 +89,13 @@ public class VersionDataDiffServiceTest extends BaseTest {
         JsonUtil.jsonMapper = JSON_MAPPER;
 
         new RdmMapperConfigurer().configure(JSON_MAPPER);
+    }
+
+    @Test
+    public void testSearch() {
+
+        Page<VersionDataDiff> actual = service.search(null);
+        assertNotNull(actual);
     }
 
     @Test
