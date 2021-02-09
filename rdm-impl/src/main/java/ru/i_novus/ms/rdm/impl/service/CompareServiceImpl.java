@@ -201,7 +201,7 @@ public class CompareServiceImpl implements CompareService {
         RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
 
-        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff.getAttributeDiff(), newStructure, oldStructure);
+        List<ComparableField> comparableFields = createCommonComparableFields(dataDiff.getAttributeDiff(), newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
 
         addNewVersionRows(comparableRows, comparableFields, newData, dataDiff, newStructure, criteria);

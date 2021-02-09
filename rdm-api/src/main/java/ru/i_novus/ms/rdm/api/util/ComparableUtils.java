@@ -131,8 +131,8 @@ public class ComparableUtils {
      * записи #rowValue на основании набора первичных ключей #primaries.
      *
      * @param primaries список первичных атрибутов для идентификации записи
-     * @param rowValue  запись, для которой ведется поиск соответствующей в полученном списке записей
-     * @param rowValues список записей, среди которых ведется поиск
+     * @param rowValue  запись, для которой ведётся поиск соответствующей в полученном списке записей
+     * @param rowValues список записей, среди которых ведётся поиск
      * @return Найденная запись либо null
      */
     public static RowValue findRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
@@ -222,12 +222,12 @@ public class ComparableUtils {
      * удалённые атрибуты в конце списка в порядке их расположения в старой структуре.
      *
      * @param attributeDiff изменения для сравниваемых версий
-     * @param newStructure    структура новой версии, определяет порядок полей
-     * @param oldStructure    структура старой версии, определяет порядок удаленных полей в конце списка
-     * @return Список атрибутов
+     * @param newStructure  структура новой версии, определяет порядок полей
+     * @param oldStructure  структура старой версии, определяет порядок удаленных полей в конце списка
+     * @return Список полей сравнения
      */
-    public static List<ComparableField> createCommonComparableFieldsList(RefBookAttributeDiff attributeDiff,
-                                                                         Structure newStructure, Structure oldStructure) {
+    public static List<ComparableField> createCommonComparableFields(RefBookAttributeDiff attributeDiff,
+                                                                     Structure newStructure, Structure oldStructure) {
         List<ComparableField> comparableFields = newStructure.getAttributes().stream()
                 .map(attribute -> {
                     DiffStatusEnum fieldStatus = null;
