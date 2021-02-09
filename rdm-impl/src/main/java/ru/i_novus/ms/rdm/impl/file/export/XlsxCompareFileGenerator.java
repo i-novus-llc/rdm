@@ -286,7 +286,10 @@ class XlsxCompareFileGenerator implements FileGenerator {
         }
         createStatusCells(sheet);
 
-        Row headRow = createDataHead(sheet, refBookDataDiff.getOldAttributes(), refBookDataDiff.getNewAttributes());
+        Row headRow = createDataHead(sheet,
+                refBookDataDiff.getAttributeDiff().getOldAttributes(),
+                refBookDataDiff.getAttributeDiff().getNewAttributes()
+        );
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());

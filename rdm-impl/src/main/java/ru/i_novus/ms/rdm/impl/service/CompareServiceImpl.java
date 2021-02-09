@@ -201,7 +201,7 @@ public class CompareServiceImpl implements CompareService {
         RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
         RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
 
-        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff, newStructure, oldStructure);
+        List<ComparableField> comparableFields = createCommonComparableFieldsList(dataDiff.getAttributeDiff(), newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
 
         addNewVersionRows(comparableRows, comparableFields, newData, dataDiff, newStructure, criteria);
@@ -280,7 +280,9 @@ public class CompareServiceImpl implements CompareService {
         if (isEmpty(newData.getContent()))
             return;
 
-        boolean hasUpdOrDelAttr = !isEmpty(refBookDataDiff.getUpdatedAttributes()) || !isEmpty(refBookDataDiff.getOldAttributes());
+        RefBookAttributeDiff attributeDiff = refBookDataDiff.getAttributeDiff();
+
+        boolean hasUpdOrDelAttr = !isEmpty(attributeDiff.getUpdatedAttributes()) || !isEmpty(attributeDiff.getOldAttributes());
 
         Page<RefBookRowValue> oldData = null;
         if (hasUpdOrDelAttr) {
