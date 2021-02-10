@@ -60,6 +60,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private static final String TEST_REFBOOK_CODE = "test_code";
     private static final Integer OLD_VERSION_ID = 1;
     private static final Integer NEW_VERSION_ID = 2;
+    private static final Integer VERSION_DIFF_ID = 3;
 
     private static final String VERSION_ATTRIBUTE_CODE = "code";
     private static final String VERSION_ATTRIBUTE_NAME = "name";
@@ -104,19 +105,12 @@ public class VersionDataDiffServiceTest extends BaseTest {
     @SuppressWarnings("unchecked")
     public void testSaveLastVersionDataDiff() {
 
-        RefBookVersionEntity oldVersion = createOldVersionEntity();
-        oldVersion.setStructure(createOldStructure());
-        RefBookVersionEntity newVersion = createNewVersionEntity();
-        newVersion.setStructure(createNewStructure());
-
+        RefBookVersionDiffEntity versionDiffEntity = createVersionDiffEntity();
         when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
                 eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
-        )).thenReturn(List.of(newVersion, oldVersion));
+        )).thenReturn(List.of(versionDiffEntity.getNewVersion(), versionDiffEntity.getOldVersion()));
 
-        RefBookVersionDiffEntity versionDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
-        RefBookVersionDiffEntity savedDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
-        savedDiffEntity.setId(3);
-
+        RefBookVersionDiffEntity savedDiffEntity = createSavedDiffEntity(versionDiffEntity);
         when(versionDiffRepository.saveAndFlush(eq(versionDiffEntity))).thenReturn(savedDiffEntity);
 
         RefBookAttributeDiff attributeDiff = new RefBookAttributeDiff(
@@ -196,6 +190,35 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 .map(field -> field.getClass().getSimpleName())
                 .allMatch(dataDiffValues::contains)
         );
+    }
+
+    @Test
+    public void testSaveLastVersionDataDiffWhenDataDiffFail() {
+
+        RefBookVersionDiffEntity versionDiffEntity = createVersionDiffEntity();
+        when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
+                eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
+        )).thenReturn(List.of(versionDiffEntity.getNewVersion(), versionDiffEntity.getOldVersion()));
+
+        RefBookVersionDiffEntity savedDiffEntity = createSavedDiffEntity(versionDiffEntity);
+        when(versionDiffRepository.saveAndFlush(eq(versionDiffEntity))).thenReturn(savedDiffEntity);
+
+        // Имитация произвольной ошибки при работе с разницей между данными.
+        when(compareService.compareData(any())).thenThrow(new NotFoundException(TEST_REFBOOK_CODE));
+
+        try {
+            service.saveLastVersionDataDiff(TEST_REFBOOK_CODE);
+            fail(getFailedMessage(NotFoundException.class));
+
+        } catch (RuntimeException e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals(TEST_REFBOOK_CODE, getExceptionMessage(e));
+        }
+
+        verify(versionDiffRepository, times(1)).saveAndFlush(eq(versionDiffEntity));
+
+        verify(versionDiffRepository, times(1)).delete(eq(savedDiffEntity));
+        verify(versionDiffRepository, times(1)).flush();
     }
 
     @Test
@@ -343,6 +366,25 @@ public class VersionDataDiffServiceTest extends BaseTest {
             assertEquals(NotFoundException.class, e.getClass());
             assertEquals("version.not.found", getExceptionMessage(e));
         }
+    }
+
+    private RefBookVersionDiffEntity createVersionDiffEntity() {
+
+        RefBookVersionEntity oldVersion = createOldVersionEntity();
+        oldVersion.setStructure(createOldStructure());
+        RefBookVersionEntity newVersion = createNewVersionEntity();
+        newVersion.setStructure(createNewStructure());
+
+        return new RefBookVersionDiffEntity(oldVersion, newVersion);
+    }
+
+    private RefBookVersionDiffEntity createSavedDiffEntity(RefBookVersionDiffEntity versionDiffEntity) {
+
+        RefBookVersionDiffEntity result = new RefBookVersionDiffEntity(
+                versionDiffEntity.getOldVersion(), versionDiffEntity.getNewVersion());
+        result.setId(VERSION_DIFF_ID);
+
+        return result;
     }
 
     private RefBookVersionEntity createOldVersionEntity() {
