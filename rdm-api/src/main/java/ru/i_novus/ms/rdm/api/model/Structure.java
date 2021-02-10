@@ -265,6 +265,8 @@ public class Structure implements Serializable {
 
     public boolean storageEquals(Structure that) {
 
+        if (that == null) return false;
+
         List<Attribute> others = that.getAttributes();
         return CollectionUtils.isEmpty(attributes)
                 ? CollectionUtils.isEmpty(others)
@@ -423,12 +425,12 @@ public class Structure implements Serializable {
         }
 
         public boolean hasIsPrimary() {
-            return isPrimary != null && isPrimary;
+            return getIsPrimary();
         }
 
         @JsonIgnore
         public boolean isLocalizable() {
-            return localizable != null && localizable;
+            return getLocalizable();
         }
 
         @JsonIgnore

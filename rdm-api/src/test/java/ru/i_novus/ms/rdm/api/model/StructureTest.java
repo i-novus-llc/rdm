@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.StructureTestConstants.*;
 
+@SuppressWarnings("java:S5778")
 public class StructureTest extends BaseTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -76,10 +77,67 @@ public class StructureTest extends BaseTest {
 
         Structure cloneStructure = new Structure(structure);
         assertEquals(structure, cloneStructure);
-        assertTrue(cloneStructure.storageEquals(structure));
 
         Structure copyStructure = shallowCopyStructure(structure);
         assertEquals(structure, copyStructure);
+    }
+
+    @Test
+    public void testStorageEquals() {
+
+        Structure structure = createStructure();
+        assertFalse(structureStorageEquals(structure, null));
+        assertTrue(structureStorageEquals(structure, structure));
+
+        List<Structure.Attribute> attributes = structure.getAttributes();
+        assertFalse(attributeStorageEquals(attributes.get(0), null));
+        assertTrue(attributeStorageEquals(attributes.get(0), attributes.get(0)));
+        assertFalse(attributeStorageEquals(attributes.get(0), attributes.get(1)));
+
+        Structure cloneStructure = new Structure(structure);
+        assertTrue(structureStorageEquals(cloneStructure, structure));
+
+        // Изменение описания атрибута:
+        int changedIndex = cloneStructure.getAttributes().indexOf(NAME_ATTRIBUTE);
+        Structure.Attribute changedAttribute = Structure.Attribute.build(NAME_ATTRIBUTE);
+        changedAttribute.setDescription("name field");
+        assertTrue(attributeStorageEquals(NAME_ATTRIBUTE, changedAttribute));
+
+        cloneStructure.getAttributes().set(changedIndex, changedAttribute);
+        assertTrue(structureStorageEquals(cloneStructure, structure));
+
+        // Изменение кода атрибута:
+        changedAttribute.setCode(changedAttribute.getCode() + "_changed");
+        assertFalse(attributeStorageEquals(NAME_ATTRIBUTE, changedAttribute));
+
+        assertFalse(structureStorageEquals(cloneStructure, structure));
+    }
+
+    private boolean structureStorageEquals(Structure structure, Structure that) {
+        return structure.storageEquals(that); // Косвенный вызов для скрытия замечания о @NotNull
+    }
+
+    private boolean attributeStorageEquals(Structure.Attribute attribute, Structure.Attribute that) {
+        return attribute.storageEquals(that); // Косвенный вызов для скрытия замечания о @NotNull
+    }
+
+    @Test
+    public void testSomeFieldEquals() {
+
+        Structure structure = createStructure();
+
+        Structure cloneStructure = new Structure(structure);
+
+        int changedIndex = cloneStructure.getAttributes().indexOf(NAME_ATTRIBUTE);
+        Structure.Attribute changedAttribute = Structure.Attribute.build(NAME_ATTRIBUTE);
+        assertEquals(NAME_ATTRIBUTE, changedAttribute);
+
+        // Изменение описания атрибута:
+        changedAttribute.setDescription("name field");
+        assertNotEquals(NAME_ATTRIBUTE, changedAttribute);
+
+        cloneStructure.getAttributes().set(changedIndex, changedAttribute);
+        assertNotEquals(structure, cloneStructure);
     }
 
     @Test
