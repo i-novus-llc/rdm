@@ -23,16 +23,16 @@ public class DiffRowValueCalculator {
     private DiffRowValue firstDiff;
     private DiffRowValue lastDiff;
     private Set<String> commonFields;
-    private boolean isReverse;
+    private boolean isBackward;
 
     public DiffRowValueCalculator(DiffRowValue firstDiff,
                                   DiffRowValue lastDiff,
                                   Set<String> changedFieldNames,
-                                  boolean isReverse) {
+                                  boolean isBackward) {
         this.firstDiff = firstDiff;
         this.lastDiff = lastDiff;
-        this.commonFields = getCommonFields(firstDiff.getValues(), isNull(changedFieldNames) ? Set.of() : changedFieldNames);
-        this.isReverse = isReverse;
+        this.commonFields = getCommonFields(firstDiff.getValues(), changedFieldNames);
+        this.isBackward = isBackward;
     }
 
     public DiffRowValueCalculator(DiffRowValue firstDiff,
@@ -40,15 +40,16 @@ public class DiffRowValueCalculator {
                                   Set<String> changedFieldNames) {
         this.firstDiff = firstDiff;
         this.lastDiff = lastDiff;
-        this.commonFields = getCommonFields(firstDiff.getValues(), isNull(changedFieldNames) ? Set.of() : changedFieldNames);
-        this.isReverse = false;
+        this.commonFields = getCommonFields(firstDiff.getValues(), changedFieldNames);
+        this.isBackward = false;
     }
 
     private Set<String> getCommonFields(List<DiffFieldValue> fieldValues, Set<String> changedFieldNames) {
+        Set<String> excludedFields = isNull(changedFieldNames) ? Set.of() : changedFieldNames;
         return fieldValues.stream()
                 .map(DiffFieldValue::getField)
                 .map(Field::getName)
-                .filter(fieldName -> !changedFieldNames.contains(fieldName))
+                .filter(fieldName -> !excludedFields.contains(fieldName))
                 .collect(Collectors.toSet());
     }
 
@@ -64,10 +65,10 @@ public class DiffRowValueCalculator {
     }
 
     public boolean isAnnihilated() {
-        return allCommonFieldsValuesNotChanged();
+        return noChangesInCommonFields();
     }
 
-    private boolean allCommonFieldsValuesNotChanged() {
+    private boolean noChangesInCommonFields() {
         return commonFields.stream().allMatch(fieldName -> {
             Object oldValue = getOldValue(fieldName);
             Object newValue = getNewValue(fieldName);
@@ -87,16 +88,23 @@ public class DiffRowValueCalculator {
 
     private DiffStatusEnum calculateRowStatus() {
         DiffStatusEnum rowStatus;
+        if (!isBackward) {
+            DiffStatusEnum firstDiffStatus = firstDiff.getStatus();
+            DiffStatusEnum lastDiffStatus = isNull(lastDiff) ? null : lastDiff.getStatus();
+            rowStatus = calculateRowStatus(firstDiffStatus, lastDiffStatus);
+        } else {
+            DiffStatusEnum firstDiffStatus = isNull(lastDiff) ? firstDiff.getStatus() : lastDiff.getStatus();
+            DiffStatusEnum lastDiffStatus = isNull(lastDiff) ? null : firstDiff.getStatus();
+            rowStatus = getReverseStatus(calculateRowStatus(firstDiffStatus, lastDiffStatus));
+        }
+        return rowStatus;
+    }
 
-        DiffStatusEnum firstDiffStatus = !isReverse || isNull(lastDiff) ? firstDiff.getStatus() : lastDiff.getStatus();
-        DiffStatusEnum lastDiffStatus = isNull(lastDiff) ? null : !isReverse ? lastDiff.getStatus() : firstDiff.getStatus();
+    private DiffStatusEnum calculateRowStatus(DiffStatusEnum firstDiffStatus, DiffStatusEnum lastDiffStatus) {
+        DiffStatusEnum rowStatus;
 
-        if (lastDiffStatus == null) {
+        if (lastDiffStatus == null || firstDiffStatus == lastDiffStatus) {
             rowStatus = firstDiffStatus;
-
-        } else if (firstDiffStatus == lastDiffStatus) {
-            rowStatus = firstDiffStatus;
-
         } else {
             switch (firstDiffStatus) {
                 case INSERTED:
@@ -113,11 +121,16 @@ public class DiffRowValueCalculator {
                     throw new IllegalArgumentException();
             }
         }
-        return isReverse ? getReversedStatus(rowStatus) : rowStatus;
+        return rowStatus;
     }
 
-    private DiffStatusEnum getReversedStatus(DiffStatusEnum status) {
-        return status == INSERTED ? DELETED : status == DELETED ? INSERTED : UPDATED;
+    private static DiffStatusEnum getReverseStatus(DiffStatusEnum status) {
+        if (status == INSERTED)
+            return DELETED;
+        else if (status == DELETED)
+            return INSERTED;
+        else
+            return status;
     }
 
     private DiffFieldValue calculateFieldValue(String fieldName, DiffStatusEnum rowStatus) {
@@ -136,7 +149,7 @@ public class DiffRowValueCalculator {
     private Object getOldValue(String fieldName) {
         DiffFieldValue diffFieldValue = getDiffFieldValue(firstDiff, fieldName);
 
-        if(isReverse)
+        if(isBackward)
             return diffFieldValue.getNewValue();
         else if (nonNull(diffFieldValue.getStatus()))
             return diffFieldValue.getOldValue();
@@ -147,7 +160,7 @@ public class DiffRowValueCalculator {
     private Object getNewValue(String fieldName) {
         DiffFieldValue diffFieldValue = getDiffFieldValue(lastDiff == null ? firstDiff : lastDiff, fieldName);
 
-        if(!isReverse)
+        if(!isBackward)
             return diffFieldValue.getNewValue();
         else if (nonNull(diffFieldValue.getStatus()))
             return diffFieldValue.getOldValue();
