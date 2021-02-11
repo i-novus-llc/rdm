@@ -148,8 +148,6 @@ public class VersionDataDiffServiceTest extends BaseTest {
     @Test
     public void testSearch() {
 
-        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
-
         // getVersions:
         RefBookVersionEntity oldVersion = createVersionEntity(OLD_VERSION_ID);
         RefBookVersionEntity newVersion = createVersionEntity(NEW_VERSION_ID);
@@ -166,7 +164,6 @@ public class VersionDataDiffServiceTest extends BaseTest {
         when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
                 eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
         )).thenReturn(List.of(newVersion, midVersion, oldVersion));
-
         String versionIds = NEW_VERSION_ID + "," + MID_VERSION_ID + "," + OLD_VERSION_ID;
 
         // searchVersionDiffIds:
@@ -182,15 +179,51 @@ public class VersionDataDiffServiceTest extends BaseTest {
         );
 
         // searchDataDiffs:
-        when(dataDiffRepository.searchByVersionDiffs(
-                eq(versionDiffIds), eq(criteria)
-        )).thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
+        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
+        when(dataDiffRepository.searchByVersionDiffs(eq(versionDiffIds), eq(criteria)))
+                .thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
 
         List<VersionDataDiff> expected = diffs.stream().map(this::toVersionDataDiff).collect(toList());
 
         Page<VersionDataDiff> actual = service.search(criteria);
         assertNotNull(actual);
         assertListEquals(expected, actual.getContent());
+    }
+
+    @Test
+    public void testSearchWithVersionDiffGap() {
+
+        // getVersions:
+        RefBookVersionEntity oldVersion = createVersionEntity(OLD_VERSION_ID);
+        RefBookVersionEntity newVersion = createVersionEntity(NEW_VERSION_ID);
+        when(versionRepository.findByIdInAndStatusOrderByFromDateDesc(
+                eq(List.of(OLD_VERSION_ID, NEW_VERSION_ID)), eq(RefBookVersionStatus.PUBLISHED)
+        )).thenReturn(List.of(newVersion, oldVersion));
+
+        // getVersionIds:
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setCode(TEST_REFBOOK_CODE);
+        newVersion.setRefBook(refBookEntity);
+
+        when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
+                eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
+        )).thenReturn(List.of(newVersion, oldVersion));
+        String versionIds = NEW_VERSION_ID + "," + OLD_VERSION_ID;
+
+        // searchVersionDiffIds:
+        when(versionDiffRepository.searchVersionDiffIds(
+                eq(OLD_VERSION_ID), eq(NEW_VERSION_ID), eq(versionIds)
+        )).thenReturn("");
+
+        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
+        try {
+            service.search(criteria);
+            fail(getFailedMessage(NotFoundException.class));
+
+        } catch (RuntimeException e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals("compare.data.diff.not.found", getExceptionMessage(e));
+        }
     }
 
     private DataDiffSearchResult createDiffResult(String primaryValues, String firstDiffValues, String lastDiffValues) {

@@ -33,14 +33,16 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static org.springframework.data.domain.Pageable.unpaged;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.isEmpty;
 
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
     public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
+    public static final String COMPARE_DATA_DIFF_NOT_FOUND_EXCEPTION_CODE = "compare.data.diff.not.found";
 
     private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
     private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
@@ -73,12 +75,12 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     public Page<VersionDataDiff> search(VersionDataDiffCriteria criteria) {
 
         List<RefBookVersionEntity> comparedEntities = getVersions(criteria.getOldVersionId(), criteria.getNewVersionId());
-        String refBookCode = comparedEntities.get(0).getRefBook().getCode();
-        Integer newVersionId = comparedEntities.get(0).getId();
-        Integer oldVersionId = comparedEntities.get(1).getId();
-        String versionIds = getVersionIds(refBookCode, oldVersionId, newVersionId);
+        RefBookVersionEntity newVersion = comparedEntities.get(0);
+        RefBookVersionEntity oldVersion = comparedEntities.get(1);
+        String refBookCode = newVersion.getRefBook().getCode();
+        String versionIds = getVersionIds(refBookCode, oldVersion.getId(), newVersion.getId());
 
-        String versionDiffIds = versionDiffRepository.searchVersionDiffIds(oldVersionId, newVersionId, versionIds);
+        String versionDiffIds = searchVersionDiffIds(refBookCode, oldVersion, newVersion, versionIds);
         return searchDataDiffs(criteria, versionDiffIds);
     }
 
@@ -95,6 +97,17 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         versionIds.add(oldVersionId);
 
         return versionIds.stream().map(String::valueOf).collect(joining(","));
+    }
+
+    private String searchVersionDiffIds(String refBookCode, RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion, String versionIds) {
+
+        String result = versionDiffRepository.searchVersionDiffIds(oldVersion.getId(), newVersion.getId(), versionIds);
+        if (isEmpty(result)) {
+            throw new NotFoundException(new Message(COMPARE_DATA_DIFF_NOT_FOUND_EXCEPTION_CODE,
+                    refBookCode, oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
+        }
+
+        return result;
     }
 
     private Page<VersionDataDiff> searchDataDiffs(VersionDataDiffCriteria criteria, String versionDiffIds) {
