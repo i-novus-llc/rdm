@@ -1,15 +1,15 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import org.springframework.data.domain.Page;
-import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
+import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 
 public interface VersionDataDiffService {
 
     /**
      * Получение разницы между данными версий.
      */
-    Page<VersionDataDiff> search(CompareDataCriteria criteria);
+    Page<VersionDataDiff> search(VersionDataDiffCriteria criteria);
 
     /**
      * Сохранение результата сравнения после публикации справочника.

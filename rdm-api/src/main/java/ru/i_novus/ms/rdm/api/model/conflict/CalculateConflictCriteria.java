@@ -5,10 +5,10 @@ import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 
 import javax.ws.rs.QueryParam;
-
 import java.util.Objects;
 
-import static ru.i_novus.ms.rdm.api.util.ConflictUtils.*;
+import static ru.i_novus.ms.rdm.api.util.ConflictUtils.conflictTypeToDiffStatus;
+import static ru.i_novus.ms.rdm.api.util.ConflictUtils.diffStatusToConflictType;
 
 /**
  * Критерий вычисления конфликтов.
@@ -28,12 +28,14 @@ public class CalculateConflictCriteria extends CompareCriteria {
     }
 
     public CalculateConflictCriteria(Integer referrerVersionId, Integer oldVersionId, Integer newVersionId) {
+
         super(oldVersionId, newVersionId, null);
+
         this.referrerVersionId = referrerVersionId;
     }
 
     public CalculateConflictCriteria(CompareCriteria criteria) {
-        super(criteria.getOldVersionId(), criteria.getNewVersionId(), criteria.getDiffStatus());
+        super(criteria);
     }
 
     public Integer getReferrerVersionId() {

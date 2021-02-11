@@ -3,12 +3,15 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
+import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
@@ -16,6 +19,7 @@ import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.diff.DataDiffSearchResult;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -29,7 +33,8 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.data.domain.Pageable.unpaged;
 
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
@@ -65,8 +70,50 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     @Override
-    public Page<VersionDataDiff> search(CompareDataCriteria criteria) {
-        return new PageImpl<>(emptyList(), criteria, 0);
+    public Page<VersionDataDiff> search(VersionDataDiffCriteria criteria) {
+
+        List<RefBookVersionEntity> comparedEntities = getVersions(criteria.getOldVersionId(), criteria.getNewVersionId());
+        String refBookCode = comparedEntities.get(0).getRefBook().getCode();
+        Integer newVersionId = comparedEntities.get(0).getId();
+        Integer oldVersionId = comparedEntities.get(1).getId();
+        String versionIds = getVersionIds(refBookCode, oldVersionId, newVersionId);
+
+        String versionDiffIds = versionDiffRepository.searchVersionDiffIds(oldVersionId, newVersionId, versionIds);
+        return searchDataDiffs(criteria, versionDiffIds);
+    }
+
+    private String getVersionIds(String refBookCode, Integer oldVersionId, Integer newVersionId) {
+        
+        List<RefBookVersionEntity> versionEntities = versionRepository
+                .findByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED, unpaged());
+
+        List<Integer> versionIds = versionEntities.stream()
+                .map(RefBookVersionEntity::getId)
+                .dropWhile(id -> !newVersionId.equals(id))
+                .takeWhile(id -> !oldVersionId.equals(id))
+                .collect(toList());
+        versionIds.add(oldVersionId);
+
+        return versionIds.stream().map(String::valueOf).collect(joining(","));
+    }
+
+    private Page<VersionDataDiff> searchDataDiffs(VersionDataDiffCriteria criteria, String versionDiffIds) {
+
+        Page<DataDiffSearchResult> diffs = dataDiffRepository.searchByVersionDiffs(versionDiffIds, criteria);
+        if (diffs == null || isEmpty(diffs.getContent()))
+            return new PageImpl<>(emptyList(), criteria, 0);
+
+        List<VersionDataDiff> dataDiffs = diffs.stream().map(this::toVersionDataDiff).collect(toList());
+        return new PageImpl<>(dataDiffs, criteria, diffs.getTotalElements());
+    }
+
+    private VersionDataDiff toVersionDataDiff(DataDiffSearchResult diff) {
+
+        return new VersionDataDiff(
+                diff.getPrimaryValues(),
+                fromDataDiffValues(diff.getFirstDiffValues()),
+                fromDataDiffValues(diff.getLastDiffValues())
+        );
     }
 
     @Override
@@ -78,7 +125,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         PageRequest pageRequest = PageRequest.of(RestCriteria.FIRST_PAGE_NUMBER, 2);
         List<RefBookVersionEntity> versionEntities = versionRepository
                 .findByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED, pageRequest);
-        if (isEmpty(versionEntities))
+        if (org.springframework.util.CollectionUtils.isEmpty(versionEntities))
             throw new NotFoundException(String.format("Two last published versions of refBook '%s' not found", refBookCode));
         if (versionEntities.size() == 1)
             return; // First published version, no data diff.
@@ -197,6 +244,6 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     private DiffRowValue fromDataDiffValues(String dataDiffValues) {
-        return JsonUtil.fromJsonString(dataDiffValues, DiffRowValue.class);
+        return (dataDiffValues != null) ? JsonUtil.fromJsonString(dataDiffValues, DiffRowValue.class) : null;
     }
 }

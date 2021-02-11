@@ -30,7 +30,7 @@ public class CompareDataCriteria extends CompareCriteria {
     }
 
     public CompareDataCriteria(CompareCriteria criteria) {
-        super(criteria.getOldVersionId(), criteria.getNewVersionId(), criteria.getDiffStatus());
+        super(criteria);
     }
 
     public Set<List<AttributeFilter>> getPrimaryAttributesFilters() {

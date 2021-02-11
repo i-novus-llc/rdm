@@ -2,6 +2,8 @@ package ru.i_novus.ms.rdm.api.model.diff;
 
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
+import java.util.Objects;
+
 /**
  * Разница между данными версий: Модель.
  * <p>
@@ -15,6 +17,13 @@ public class VersionDataDiff {
     private DiffRowValue firstDiffRowValue;
 
     private DiffRowValue lastDiffRowValue;
+
+    public VersionDataDiff(String primaryValues, DiffRowValue firstDiffRowValue, DiffRowValue lastDiffRowValue) {
+
+        this.primaryValues = primaryValues;
+        this.firstDiffRowValue = firstDiffRowValue;
+        this.lastDiffRowValue = lastDiffRowValue;
+    }
 
     public String getPrimaryValues() {
         return primaryValues;
@@ -38,5 +47,21 @@ public class VersionDataDiff {
 
     public void setLastDiffRowValue(DiffRowValue lastDiffRowValue) {
         this.lastDiffRowValue = lastDiffRowValue;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VersionDataDiff)) return false;
+
+        VersionDataDiff dataDiff = (VersionDataDiff) o;
+        return Objects.equals(primaryValues, dataDiff.primaryValues) &&
+                Objects.equals(firstDiffRowValue, dataDiff.firstDiffRowValue) &&
+                Objects.equals(lastDiffRowValue, dataDiff.lastDiffRowValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryValues, firstDiffRowValue, lastDiffRowValue);
     }
 }
