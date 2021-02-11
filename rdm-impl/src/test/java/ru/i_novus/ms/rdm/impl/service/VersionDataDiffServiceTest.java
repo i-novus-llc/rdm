@@ -11,8 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -60,8 +58,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @SuppressWarnings("java:S5778")
 public class VersionDataDiffServiceTest extends BaseTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(VersionDataDiffServiceTest.class);
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final RdmMapperConfigurer RDM_MAPPER_CONFIGURER = new RdmMapperConfigurer();
 
@@ -71,6 +67,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private static final Integer NEW_VERSION_ID = 11;
     private static final Integer VERSION_DIFF_ID = 3;
 
+    private static final String VERSION_ATTRIBUTE_ID = "id";
     private static final String VERSION_ATTRIBUTE_CODE = "code";
     private static final String VERSION_ATTRIBUTE_NAME = "name";
     private static final String VERSION_ATTRIBUTE_AMOUNT = "amount";
@@ -235,12 +232,14 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 singletonList(VERSION_ATTRIBUTE_UPDATED)
         );
 
+        Field idField = new IntegerField(VERSION_ATTRIBUTE_ID);
         Field codeField = new StringField(VERSION_ATTRIBUTE_CODE);
         Field nameField = new StringField(VERSION_ATTRIBUTE_NAME);
         Field amountField = new IntegerField(VERSION_ATTRIBUTE_AMOUNT);
         Field boolField = new BooleanField(VERSION_ATTRIBUTE_BOOL);
 
         DiffRowValue updatedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, null, BigInteger.valueOf(1L), null), // not changed
                 new DiffFieldValue(codeField, null, "1", null), // not changed
                 new DiffFieldValue(nameField, "def", "upd", DiffStatusEnum.UPDATED),
                 new DiffFieldValue(amountField, BigInteger.valueOf(11L), null, DiffStatusEnum.DELETED),
@@ -248,6 +247,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         ), DiffStatusEnum.UPDATED);
 
         DiffRowValue insertedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, null, BigInteger.valueOf(2L), DiffStatusEnum.INSERTED),
                 new DiffFieldValue(codeField, null, "2", DiffStatusEnum.INSERTED),
                 new DiffFieldValue(nameField, null, "ins", DiffStatusEnum.INSERTED),
                 new DiffFieldValue(amountField, null, BigInteger.valueOf(22L), DiffStatusEnum.INSERTED),
@@ -255,6 +255,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         ), DiffStatusEnum.INSERTED);
 
         DiffRowValue deletedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, BigInteger.valueOf(3L), null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(codeField, "3", null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(nameField, "del", null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(amountField, BigInteger.valueOf(33L), null, DiffStatusEnum.DELETED),
@@ -297,7 +298,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 .allMatch(savedDiffEntity::equals)
         );
 
-        assertListEquals(asList("code=\"1\"", "code=\"2\"", "code=\"3\""),
+        assertListEquals(asList("code=\"1\", id=1", "code=\"2\", id=2", "code=\"3\", id=3"),
                 dataDiffEntities.stream().map(VersionDataDiffEntity::getPrimaries).collect(toList())
         );
 
@@ -514,6 +515,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private Structure createOldStructure() {
         return new Structure(
                 asList(
+                        Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_ID, "Ид-р", FieldType.INTEGER, "идентификатор"),
                         Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),
@@ -528,6 +530,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private Structure createNewStructure() {
         return new Structure(
                 asList(
+                        Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_ID, "Ид-р", FieldType.INTEGER, "идентификатор"),
                         Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),
