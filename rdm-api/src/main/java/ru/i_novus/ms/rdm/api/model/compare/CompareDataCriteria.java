@@ -33,14 +33,6 @@ public class CompareDataCriteria extends CompareCriteria {
         super(criteria);
     }
 
-    public CompareDataCriteria(CompareDataCriteria criteria) {
-
-        super(criteria);
-
-        this.primaryAttributesFilters = criteria.primaryAttributesFilters;
-        this.countOnly = criteria.countOnly;
-    }
-
     public Set<List<AttributeFilter>> getPrimaryAttributesFilters() {
         return primaryAttributesFilters;
     }
