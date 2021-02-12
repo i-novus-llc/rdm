@@ -22,10 +22,10 @@ public interface RefBookVersionDiffRepository extends
             "         rec_sort + 1 as rec_sort, d.ids || vd.id as ids \n" +
             "    FROM n2o_rdm_management.ref_book_version_diff as vd \n" +
             "   INNER JOIN version_diff as d on d.new_version_id = vd.old_version_id \n" +
-            "   WHERE vd.old_version_id = ANY(('{' || :versionIds || '}')::integer[]) \n" +
-            "     and vd.new_version_id = ANY(('{' || :versionIds || '}')::integer[]) \n" +
+            "   WHERE vd.old_version_id = ANY(('{' || :versionIds || '}')\\:\\:integer[]) \n" +
+            "     and vd.new_version_id = ANY(('{' || :versionIds || '}')\\:\\:integer[]) \n" +
             ")\n" +
-            "SELECT d.ids \n" +
+            "SELECT array_to_string(d.ids, ',', 'null') as ids \n" +
             "  FROM version_diff as d \n" +
             " WHERE d.new_version_id = :newVersionId \n" +
             " ORDER BY d.rec_sort asc \n" +
