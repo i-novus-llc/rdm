@@ -11,7 +11,7 @@ import javax.persistence.Id;
  * В этом случае нужны два diff: первый и последний.
  */
 @Entity
-public class DataDiffSearchResult {
+public class VersionDataDiffResult {
 
     @Id
     @Column(name = "primary_values")
@@ -22,6 +22,10 @@ public class DataDiffSearchResult {
 
     @Column(name = "last_diff_values")
     private String lastDiffValues;
+
+    public VersionDataDiffResult() {
+        // Nothing to do.
+    }
 
     public String getPrimaryValues() {
         return primaryValues;

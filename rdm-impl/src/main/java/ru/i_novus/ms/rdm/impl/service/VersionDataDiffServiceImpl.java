@@ -19,12 +19,13 @@ import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.entity.diff.DataDiffSearchResult;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
+import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
+import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
@@ -50,6 +51,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     private RefBookVersionRepository versionRepository;
     private RefBookVersionDiffRepository versionDiffRepository;
     private VersionDataDiffRepository dataDiffRepository;
+    private VersionDataDiffResultRepository dataDiffResultRepository;
 
     private CompareService compareService;
 
@@ -59,12 +61,14 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     public VersionDataDiffServiceImpl(RefBookVersionRepository versionRepository,
                                       RefBookVersionDiffRepository versionDiffRepository,
                                       VersionDataDiffRepository dataDiffRepository,
+                                      VersionDataDiffResultRepository dataDiffResultRepository,
                                       CompareService compareService,
                                       VersionValidation versionValidation) {
 
         this.versionRepository = versionRepository;
         this.versionDiffRepository = versionDiffRepository;
         this.dataDiffRepository = dataDiffRepository;
+        this.dataDiffResultRepository = dataDiffResultRepository;
 
         this.compareService = compareService;
 
@@ -112,7 +116,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
     private Page<VersionDataDiff> searchDataDiffs(VersionDataDiffCriteria criteria, String versionDiffIds) {
 
-        Page<DataDiffSearchResult> diffs = dataDiffRepository.searchByVersionDiffs(versionDiffIds, criteria);
+        Page<VersionDataDiffResult> diffs = dataDiffResultRepository.searchByVersionDiffs(versionDiffIds, criteria);
         if (diffs == null || isEmpty(diffs.getContent()))
             return new PageImpl<>(emptyList(), criteria, 0);
 
@@ -120,7 +124,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         return new PageImpl<>(dataDiffs, criteria, diffs.getTotalElements());
     }
 
-    private VersionDataDiff toVersionDataDiff(DataDiffSearchResult diff) {
+    private VersionDataDiff toVersionDataDiff(VersionDataDiffResult diff) {
 
         return new VersionDataDiff(
                 diff.getPrimaryValues(),

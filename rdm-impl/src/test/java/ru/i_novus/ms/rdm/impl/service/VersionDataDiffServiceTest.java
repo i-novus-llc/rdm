@@ -24,12 +24,13 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.entity.diff.DataDiffSearchResult;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
+import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
+import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
 import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -131,6 +132,8 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private RefBookVersionDiffRepository versionDiffRepository;
     @Mock
     private VersionDataDiffRepository dataDiffRepository;
+    @Mock
+    private VersionDataDiffResultRepository dataDiffResultRepository;
 
     @Mock
     private CompareService compareService;
@@ -145,6 +148,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         RDM_MAPPER_CONFIGURER.configure(JSON_MAPPER);
     }
 
+    /** Поиск в случае без фильтрации. */
     @Test
     public void testSearch() {
 
@@ -172,7 +176,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 eq(OLD_VERSION_ID), eq(NEW_VERSION_ID), eq(versionIds)
         )).thenReturn(versionDiffIds);
 
-        List<DataDiffSearchResult> diffs = List.of(
+        List<VersionDataDiffResult> diffs = List.of(
                 createDiffResult(ROW_UPD_UPD_CODE, ROW_UPD_UPD_FIRST, ROW_UPD_UPD_LAST),
                 createDiffResult(ROW_INS_CODE, ROW_INS_FIRST, null),
                 createDiffResult(ROW_INS_DEL_CODE, ROW_INS_DEL_FIRST, ROW_INS_DEL_LAST)
@@ -180,7 +184,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
         // searchDataDiffs:
         VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
-        when(dataDiffRepository.searchByVersionDiffs(eq(versionDiffIds), eq(criteria)))
+        when(dataDiffResultRepository.searchByVersionDiffs(eq(versionDiffIds), eq(criteria)))
                 .thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
 
         List<VersionDataDiff> expected = diffs.stream().map(this::toVersionDataDiff).collect(toList());
@@ -190,6 +194,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         assertListEquals(expected, actual.getContent());
     }
 
+    /** Поиск в случае, когда не находится цепочка сохранённых разниц между версиями. */
     @Test
     public void testSearchWithVersionDiffGap() {
 
@@ -226,9 +231,9 @@ public class VersionDataDiffServiceTest extends BaseTest {
         }
     }
 
-    private DataDiffSearchResult createDiffResult(String primaryValues, String firstDiffValues, String lastDiffValues) {
+    private VersionDataDiffResult createDiffResult(String primaryValues, String firstDiffValues, String lastDiffValues) {
 
-        DataDiffSearchResult result = new DataDiffSearchResult();
+        VersionDataDiffResult result = new VersionDataDiffResult();
         result.setPrimaryValues(primaryValues);
         result.setFirstDiffValues(firstDiffValues);
         result.setLastDiffValues(lastDiffValues);
@@ -236,7 +241,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         return result;
     }
 
-    private VersionDataDiff toVersionDataDiff(DataDiffSearchResult diff) {
+    private VersionDataDiff toVersionDataDiff(VersionDataDiffResult diff) {
 
         return new VersionDataDiff(
                 diff.getPrimaryValues(),
