@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +40,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Service
+@Primary
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
