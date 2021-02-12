@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.api.model.diff;
 
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
+import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
 import java.util.List;
@@ -42,6 +43,14 @@ public class VersionDataDiffCriteria extends AbstractCriteria {
         this.newVersionId = criteria.newVersionId;
         this.excludePrimaryValues = criteria.excludePrimaryValues;
         this.primaryAttributesFilters = criteria.primaryAttributesFilters;
+    }
+
+    public VersionDataDiffCriteria(CompareDataCriteria criteria, List<String> excludePrimaryValues) {
+        super(criteria);
+        this.oldVersionId = criteria.getOldVersionId();
+        this.newVersionId = criteria.getNewVersionId();
+        this.primaryAttributesFilters = criteria.getPrimaryAttributesFilters();
+        this.excludePrimaryValues = excludePrimaryValues;
     }
 
     public Integer getOldVersionId() {

@@ -9,7 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.*;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
+import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.*;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
@@ -53,6 +56,7 @@ public class CompareServiceImpl implements CompareService {
 
     private CompareDataService compareDataService;
     private VersionService versionService;
+    private CachedDataDiffService cachedDataDiffService;
 
     private RefBookVersionRepository versionRepository;
     private PassportAttributeRepository passportAttributeRepository;
@@ -63,12 +67,14 @@ public class CompareServiceImpl implements CompareService {
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
                               VersionService versionService,
+                              CachedDataDiffService cachedDataDiffService,
                               RefBookVersionRepository versionRepository,
                               PassportAttributeRepository passportAttributeRepository,
                               FieldFactory fieldFactory,
                               VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
+        this.cachedDataDiffService = cachedDataDiffService;
 
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
@@ -154,11 +160,13 @@ public class CompareServiceImpl implements CompareService {
         RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
         validatePrimariesEquality(oldVersion, newVersion);
 
-        CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
-        DataDifference dataDifference = compareDataService.getDataDifference(compareDataCriteria);
-
         RefBookAttributeDiff attributeDiff = compareAttributes(oldVersion.getStructure(), newVersion.getStructure());
 
+        DataDifference dataDifference = cachedDataDiffService.getCachedDataDifference(criteria, attributeDiff);
+        if (dataDifference == null) {
+            CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
+            dataDifference = compareDataService.getDataDifference(compareDataCriteria);
+        }
         return new RefBookDataDiff(new DiffRowValuePage(dataDifference.getRows()), attributeDiff);
     }
 

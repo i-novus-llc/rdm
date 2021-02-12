@@ -69,6 +69,9 @@ public class CompareServiceTest {
     private CompareDataService compareDataService;
 
     @Mock
+    private CachedDataDiffService cachedDataDiffService;
+
+    @Mock
     private FieldFactory fieldFactory;
 
     @Mock
