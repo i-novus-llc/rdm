@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class CommonField extends Field {
 
     public CommonField() {
-        super(null);
+        super();
     }
 
     public CommonField(String name) {
