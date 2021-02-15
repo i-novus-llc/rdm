@@ -30,6 +30,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
@@ -51,6 +52,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
     public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     public static final String COMPARE_DATA_DIFF_NOT_FOUND_EXCEPTION_CODE = "compare.data.diff.not.found";
+    public static final String COMPARE_PRIMARY_FILTER_IS_EXACT_ONLY_EXCEPTION_CODE = "compare.primary.filter.is.exact.only";
 
     private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
     private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
@@ -155,10 +157,17 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
         if (isEmpty(primaryAttributesFilter))
             return null;
 
+        if (primaryAttributesFilter.stream().anyMatch(this::isAttributeFilterDisallowed))
+            throw new IllegalArgumentException(COMPARE_PRIMARY_FILTER_IS_EXACT_ONLY_EXCEPTION_CODE);
+
         return primaryAttributesFilter.stream()
                 .map(this::toAttributeFilterPrimary)
                 .sorted()
                 .collect(joining(", "));
+    }
+
+    private boolean isAttributeFilterDisallowed(AttributeFilter primaryAttributeFilter) {
+        return !SearchTypeEnum.EXACT.equals(primaryAttributeFilter.getSearchType());
     }
 
     private String toAttributeFilterPrimary(AttributeFilter primaryAttributeFilter) {
