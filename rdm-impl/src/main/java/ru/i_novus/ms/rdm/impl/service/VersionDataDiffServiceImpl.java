@@ -34,6 +34,8 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -44,6 +46,8 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Pageable.unpaged;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.addSingleQuotes;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.toDoubleQuotes;
 
 @Service
 @Primary
@@ -56,6 +60,9 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
     private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
     private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
+
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
     private static final ObjectMapper vdsObjectMapper = createVdsObjectMapper();
 
@@ -315,7 +322,14 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     private String toPrimaryValue(Object value) {
-        return (value instanceof String) ? StringUtils.toDoubleQuotes((String) value) : String.valueOf(value);
+
+        if (value instanceof LocalDate)
+            return addSingleQuotes(DATE_FORMATTER.format((LocalDate) value));
+
+        if (value instanceof String)
+            return toDoubleQuotes((String) value);
+
+        return String.valueOf(value);
     }
 
     private String toDataDiffValues(DiffRowValue diffRowValue) {
