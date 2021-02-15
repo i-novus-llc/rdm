@@ -24,6 +24,14 @@ public class StringUtilsTest {
     }
 
     @Test
+    public void testToSingleQuotes() {
+
+        assertEquals("''", toSingleQuotes(""));
+        assertEquals("'abc'", toSingleQuotes("abc"));
+        assertEquals("'a''c'", toSingleQuotes("a'c"));
+    }
+
+    @Test
     public void testToDoubleQuotes() {
 
         assertEquals("\"\"", toDoubleQuotes(""));
