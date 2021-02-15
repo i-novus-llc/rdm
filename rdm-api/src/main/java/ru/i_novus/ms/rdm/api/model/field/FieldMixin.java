@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.api.model.field;
 
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -19,4 +18,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = CommonField.class, name = "StringField"),
         @JsonSubTypes.Type(value = CommonField.class, name = "TreeField")
 })
-public class FieldMixin {}
+public class FieldMixin {
+}
