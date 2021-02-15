@@ -18,8 +18,9 @@ public interface VersionDataDiffResultRepository extends
             "    array_position(('{' || :versionDiffIds || '}')\\:\\:integer[], dd.version_diff_id) as rec_pos \n" +
             "    FROM diff.version_data_diff dd \n" +
             "   WHERE dd.version_diff_id = ANY(('{' || :versionDiffIds || '}')\\:\\:integer[]) \n" +
+            "     and (:includePrimaries = '' or dd.primaries = ANY(('{' || :includePrimaries || '}')\\:\\:text[])) \n" +
+            "     and (:excludePrimaries = '' or dd.primaries != ALL(('{' || :excludePrimaries || '}')\\:\\:text[])) \n" +
             ")\n" +
-            "\n" +
             ", margin_diff(primaries, first_id, last_id) as ( \n" +
             "  SELECT DISTINCT d.primaries, \n" +
             "    first_value(d.id) over( \n" +
@@ -51,5 +52,7 @@ public interface VersionDataDiffResultRepository extends
             value = WITH_MARGIN_BY_VERSION_DIFFS + SEARCH_BY_VERSION_DIFFS,
             countQuery = WITH_MARGIN_BY_VERSION_DIFFS + COUNT_BY_VERSION_DIFFS)
     Page<VersionDataDiffResult> searchByVersionDiffs(@Param("versionDiffIds") String versionDiffIds,
+                                                     @Param("includePrimaries") String includePrimaries,
+                                                     @Param("excludePrimaries") String excludePrimaries,
                                                      Pageable pageable);
 }

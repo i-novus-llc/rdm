@@ -18,7 +18,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.*;
-import ru.i_novus.ms.rdm.api.provider.RdmMapperConfigurer;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
@@ -27,6 +27,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
+import ru.i_novus.ms.rdm.impl.provider.VdsMapperConfigurer;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
@@ -42,7 +43,9 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -56,11 +59,11 @@ import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("java:S5778")
+@SuppressWarnings({"rawtypes","java:S5778"})
 public class VersionDataDiffServiceTest extends BaseTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private static final RdmMapperConfigurer RDM_MAPPER_CONFIGURER = new RdmMapperConfigurer();
+    private static final VdsMapperConfigurer VDS_MAPPER_CONFIGURER = new VdsMapperConfigurer();
 
     private static final String TEST_REFBOOK_CODE = "test_code";
     private static final Integer OLD_VERSION_ID = 1;
@@ -145,7 +148,29 @@ public class VersionDataDiffServiceTest extends BaseTest {
     public void setUp() throws NoSuchFieldException {
 
         JsonUtil.jsonMapper = JSON_MAPPER;
-        RDM_MAPPER_CONFIGURER.configure(JSON_MAPPER);
+        VDS_MAPPER_CONFIGURER.configure(JSON_MAPPER);
+    }
+
+    @Test
+    public void testSerializationForField() {
+
+        IntegerField field = new IntegerField("id");
+        String jsonValue = JsonUtil.toJsonString(field);
+        Field restored = JsonUtil.fromJsonString(jsonValue, Field.class);
+        assertEquals(field.getClass(), restored.getClass());
+        assertEquals(field, restored);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testSerializationForDiffFieldValue() {
+
+        IntegerField field = new IntegerField("id");
+        DiffFieldValue diffFieldValue = new DiffFieldValue(field, null, BigInteger.valueOf(1L), null);
+        String jsonValue = JsonUtil.toJsonString(diffFieldValue);
+        DiffFieldValue restoredValue = JsonUtil.fromJsonString(jsonValue, DiffFieldValue.class);
+        assertEquals(diffFieldValue.getField().getClass(), restoredValue.getField().getClass());
+        assertEquals(diffFieldValue, restoredValue);
     }
 
     /** Поиск в случае без фильтрации. */
@@ -184,14 +209,74 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
         // searchDataDiffs:
         VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
-        when(dataDiffResultRepository.searchByVersionDiffs(eq(versionDiffIds), eq(criteria)))
-                .thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
+        when(dataDiffResultRepository.searchByVersionDiffs(
+                eq(versionDiffIds), any(String.class), any(String.class), eq(criteria)
+        )).thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
 
         List<VersionDataDiff> expected = diffs.stream().map(this::toVersionDataDiff).collect(toList());
 
         Page<VersionDataDiff> actual = service.search(criteria);
         assertNotNull(actual);
         assertListEquals(expected, actual.getContent());
+    }
+
+    /** Поиск в случае фильтрации по значениям первичных полей]. */
+    @Test
+    public void testSearchWhenPrimariesFiltered() {
+
+        // getVersions:
+        RefBookVersionEntity oldVersion = createVersionEntity(OLD_VERSION_ID);
+        RefBookVersionEntity newVersion = createVersionEntity(NEW_VERSION_ID);
+        when(versionRepository.findByIdInAndStatusOrderByFromDateDesc(
+                eq(List.of(OLD_VERSION_ID, NEW_VERSION_ID)), eq(RefBookVersionStatus.PUBLISHED)
+        )).thenReturn(List.of(newVersion, oldVersion));
+
+        // getVersionIds:
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setCode(TEST_REFBOOK_CODE);
+        newVersion.setRefBook(refBookEntity);
+
+        when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
+                eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
+        )).thenReturn(List.of(newVersion, oldVersion));
+        String versionIds = NEW_VERSION_ID + "," + OLD_VERSION_ID;
+
+        // searchVersionDiffIds:
+        String versionDiffIds = "{" + OLD_VERSION_ID * 10 + ","  + NEW_VERSION_ID * 10 + "}";
+        when(versionDiffRepository.searchVersionDiffIds(
+                eq(OLD_VERSION_ID), eq(NEW_VERSION_ID), eq(versionIds)
+        )).thenReturn(versionDiffIds);
+
+        // searchDataDiffs:
+        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
+
+        Set<List<AttributeFilter>> includeSet = new HashSet<>();
+        AttributeFilter idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 1, FieldType.INTEGER);
+        AttributeFilter codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "1", FieldType.STRING);
+        includeSet.add(asList(idFilter, codeFilter));
+        idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 2, FieldType.INTEGER);
+        codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "2", FieldType.STRING);
+        includeSet.add(asList(idFilter, codeFilter));
+        criteria.setPrimaryAttributesFilters(includeSet);
+
+        List<String> excludeList = asList("code=\"1\", id=1", "code=\"2\", id=2");
+        criteria.setExcludePrimaryValues(excludeList);
+
+        ArgumentCaptor<String> includeCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> excludeCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(dataDiffResultRepository.searchByVersionDiffs(
+                eq(versionDiffIds),
+                includeCaptor.capture(),
+                excludeCaptor.capture(),
+                eq(criteria)
+        )).thenReturn(new PageImpl<>(emptyList(), criteria, 0));
+
+        Page<VersionDataDiff> actual = service.search(criteria);
+        assertNotNull(actual);
+
+        assertEquals("\"code=\\\"1\\\", id=1\",\"code=\\\"2\\\", id=2\"", includeCaptor.getValue());
+        assertEquals("\"code=\\\"1\\\", id=1\",\"code=\\\"2\\\", id=2\"", excludeCaptor.getValue());
     }
 
     /** Поиск в случае, когда не находится цепочка сохранённых разниц между версиями. */

@@ -12,6 +12,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 
 public class StringUtils {
 
+    public static final String ESCAPE_CHAR = "\\";
     public static final String DOUBLE_QUOTE_CHAR = "\"";
     public static final String SINGLE_QUOTE_CHAR = "'";
 
@@ -31,12 +32,8 @@ public class StringUtils {
         return SINGLE_QUOTE_CHAR + value + SINGLE_QUOTE_CHAR;
     }
 
-    public static String toSingleQuotes(String value) {
-        return SINGLE_QUOTE_CHAR + value.replace(SINGLE_QUOTE_CHAR, SINGLE_QUOTE_CHAR + SINGLE_QUOTE_CHAR) + SINGLE_QUOTE_CHAR;
-    }
-
     public static String toDoubleQuotes(String value) {
-        return DOUBLE_QUOTE_CHAR + value.replace(DOUBLE_QUOTE_CHAR, DOUBLE_QUOTE_CHAR + DOUBLE_QUOTE_CHAR) + DOUBLE_QUOTE_CHAR;
+        return DOUBLE_QUOTE_CHAR + value.replace(DOUBLE_QUOTE_CHAR, ESCAPE_CHAR + DOUBLE_QUOTE_CHAR) + DOUBLE_QUOTE_CHAR;
     }
 
     public static String camelCaseToSnakeCase(String s) {

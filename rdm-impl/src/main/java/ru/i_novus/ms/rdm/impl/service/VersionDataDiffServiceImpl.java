@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
@@ -23,6 +25,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
+import ru.i_novus.ms.rdm.impl.provider.VdsMapperConfigurer;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
@@ -31,6 +34,8 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -49,6 +54,8 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
 
     private static final int VERSION_DATA_DIFF_PAGE_SIZE = 100;
     private static final String DATA_DIFF_PRIMARY_FORMAT = "%s=%s";
+
+    private static final ObjectMapper vdsObjectMapper = createVdsObjectMapper();
 
     private RefBookVersionRepository versionRepository;
     private RefBookVersionDiffRepository versionDiffRepository;
@@ -117,13 +124,57 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     private Page<VersionDataDiff> searchDataDiffs(VersionDataDiffCriteria criteria, String versionDiffIds) {
+        
+        String includePrimaries = toIncludePrimaries(criteria.getPrimaryAttributesFilters());
+        String excludePrimaries = toExcludePrimaries(criteria.getExcludePrimaryValues());
 
-        Page<VersionDataDiffResult> diffs = dataDiffResultRepository.searchByVersionDiffs(versionDiffIds, criteria);
+        Page<VersionDataDiffResult> diffs = dataDiffResultRepository
+                .searchByVersionDiffs(versionDiffIds, includePrimaries, excludePrimaries, criteria);
         if (diffs == null || isEmpty(diffs.getContent()))
             return new PageImpl<>(emptyList(), criteria, 0);
 
         List<VersionDataDiff> dataDiffs = diffs.stream().map(this::toVersionDataDiff).collect(toList());
         return new PageImpl<>(dataDiffs, criteria, diffs.getTotalElements());
+    }
+
+    private String toIncludePrimaries(Set<List<AttributeFilter>> primaryAttributesFilters) {
+
+        if (isEmpty(primaryAttributesFilters))
+            return "";
+
+        List<String> result = primaryAttributesFilters.stream()
+                .map(this::toAttributeFilterPrimaries)
+                .filter(Objects::nonNull)
+                .collect(toList());
+
+        return toFlatPrimaries(result);
+    }
+
+    private String toAttributeFilterPrimaries(List<AttributeFilter> primaryAttributesFilter) {
+
+        if (isEmpty(primaryAttributesFilter))
+            return null;
+
+        return primaryAttributesFilter.stream()
+                .map(this::toAttributeFilterPrimary)
+                .sorted()
+                .collect(joining(", "));
+    }
+
+    private String toAttributeFilterPrimary(AttributeFilter primaryAttributeFilter) {
+        return toNameValuePrimary(primaryAttributeFilter.getAttributeName(), primaryAttributeFilter.getValue());
+    }
+
+    private String toExcludePrimaries(List<String> excludePrimaryValues) {
+        return toFlatPrimaries(excludePrimaryValues);
+    }
+
+    private String toFlatPrimaries(List<String> primaryValues) {
+
+        if (isEmpty(primaryValues))
+            return "";
+
+        return primaryValues.stream().map(StringUtils::toDoubleQuotes).collect(joining(","));
     }
 
     private VersionDataDiff toVersionDataDiff(VersionDataDiffResult diff) {
@@ -219,7 +270,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     private String toDataDiffPrimary(DiffFieldValue diffFieldValue) {
 
         Object value = diffFieldValue.getNewValue() != null ? diffFieldValue.getNewValue() : diffFieldValue.getOldValue();
-        return toDataDiffPrimary(diffFieldValue.getField().getName(), value);
+        return toNameValuePrimary(diffFieldValue.getField().getName(), value);
     }
 
     @Override
@@ -250,19 +301,27 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
     }
 
-    private String toDataDiffPrimary(String name, Object value) {
-        return String.format(DATA_DIFF_PRIMARY_FORMAT, name, toDataDiffPrimaryValue(value));
+    private String toNameValuePrimary(String name, Object value) {
+        return String.format(DATA_DIFF_PRIMARY_FORMAT, name, toPrimaryValue(value));
     }
 
-    private String toDataDiffPrimaryValue(Object value) {
+    private String toPrimaryValue(Object value) {
         return (value instanceof String) ? StringUtils.toDoubleQuotes((String) value) : String.valueOf(value);
     }
 
     private String toDataDiffValues(DiffRowValue diffRowValue) {
-        return JsonUtil.toJsonString(diffRowValue);
+        return JsonUtil.toJsonString(vdsObjectMapper, diffRowValue);
     }
 
     private DiffRowValue fromDataDiffValues(String dataDiffValues) {
-        return (dataDiffValues != null) ? JsonUtil.fromJsonString(dataDiffValues, DiffRowValue.class) : null;
+        return (dataDiffValues != null) ? JsonUtil.fromJsonString(vdsObjectMapper, dataDiffValues, DiffRowValue.class) : null;
+    }
+
+    private static ObjectMapper createVdsObjectMapper() {
+
+        ObjectMapper jsonMapper = new ObjectMapper();
+        new VdsMapperConfigurer().configure(jsonMapper);
+
+        return jsonMapper;
     }
 }
