@@ -365,30 +365,35 @@ public class ApplicationTest {
     }
 
     /**
-     * Поиск по идентификатору справочника
-     * Поиск по наименованию.
-     * Поиск по коду.
-     * Поиск по коду и наименованию
-     * Поиск по статусу.
-     * Поиск по дате последней публикации.
+     * Поиск справочника:
+     * - по идентификатору.
+     * - по коду.
+     * - по наименованию.
      */
     @Test
     public void testRefBookSearch() {
 
-        // поиск по идентификатору справочника
+        Page<RefBook> search;
+
+        // Поиск по идентификатору:
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setRefBookIds(singletonList(REF_BOOK_ID));
-        Page<RefBook> search = refBookService.search(refBookCriteria);
+
+        search = refBookService.search(refBookCriteria);
         assertEquals(1, search.getTotalElements());
 
-        // поиск по коду (по подстроке без учета регистра, крайние пробелы)
+        // Поиск по коду (по подстроке без учёта регистра и крайних пробелов):
         RefBookCriteria codeCriteria = new RefBookCriteria();
         codeCriteria.setCode(SEARCH_CODE_STR);
+
         search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
+        String trimmedCode = codeCriteria.getCode().trim();
+        search.getContent().forEach(refBook ->
+                assertTrue(containsIgnoreCase(refBook.getCode(), trimmedCode))
+        );
 
-        // поиск по атрибуту паспорта
+        // Поиск по наименованию (атрибуту паспорта):
         RefBookCriteria nameCriteria = new RefBookCriteria();
         Map<String, String> passportMap = new HashMap<>();
         passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
@@ -398,8 +403,15 @@ public class ApplicationTest {
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
         assertPassportEqual(refBook.getPassport(), search.getContent().get(0).getPassport());
+    }
 
-        // поиск по статусу 'Черновик'
+    /** Поиск справочника по различным статусам. */
+    @Test
+    public void testRefBookSearchByStatus() {
+
+        Page<RefBook> search;
+
+        // Поиск по статусу 'Черновик':
         RefBookCriteria draftCriteria = new RefBookCriteria();
         draftCriteria.setHasDraft(true);
         search = refBookService.search(draftCriteria);
@@ -409,7 +421,7 @@ public class ApplicationTest {
             assertEquals(RefBookVersionStatus.DRAFT, r.getStatus());
         });
 
-        // поиск по статусу 'Архив'
+        // Поиск по статусу 'Архив':
         RefBookCriteria archivedCriteria = new RefBookCriteria();
         archivedCriteria.setIsArchived(true);
         search = refBookService.search(archivedCriteria);
@@ -419,7 +431,7 @@ public class ApplicationTest {
             assertFalse(r.getRemovable());
         });
 
-        // поиск по статусу 'Опубликован'
+        // Поиск по статусу 'Опубликован':
         RefBookCriteria publishedCriteria = new RefBookCriteria();
         publishedCriteria.setHasPublished(true);
         search = refBookService.search(publishedCriteria);
@@ -429,37 +441,47 @@ public class ApplicationTest {
             assertNotNull(r.getLastPublishedVersionFromDate());
             assertFalse(r.getRemovable());
         });
+    }
 
-        // поиск по дате публикации (дата начала, дата окончания)
+    /** Поиск справочника по дате последней публикации. */
+    @Test
+    public void testRefBookSearchByPublishedDate() {
+
+        Page<RefBook> search;
+
+        // Поиск по дате публикации (дата начала, дата окончания):
         LocalDateTime fromDateBegin = parseLocalDateTime("01.02.2018 00:00:00");
         LocalDateTime fromDateEnd = parseLocalDateTime("17.02.2018 00:00:00");
         RefBookCriteria fromDateCriteria = new RefBookCriteria();
         fromDateCriteria.setFromDateBegin(fromDateBegin);
         fromDateCriteria.setFromDateEnd(fromDateEnd);
+
         search = refBookService.search(fromDateCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r -> {
-            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateBegin)
-                    || r.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
-            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateEnd)
-                    || r.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
+        search.getContent().forEach(refBook -> {
+            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateBegin)
+                    || refBook.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
+            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateEnd)
+                    || refBook.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
         });
 
-        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия существующих записей)
+        // Поиск по дате последней публикации
+        // (дата начала и дата окончания вне диапазона действия существующих записей):
         fromDateCriteria.setFromDateBegin(parseLocalDateTime("01.01.2013 00:00:00"));
         fromDateCriteria.setFromDateEnd(parseLocalDateTime("01.02.2013 00:00:00"));
         search = refBookService.search(fromDateCriteria);
         assertEquals(0, search.getTotalElements());
 
-        // поиск по дате публикации (только дата начала)
+        // Поиск по дате публикации (только дата начала):
         LocalDateTime onlyFromDateBegin = parseLocalDateTime("01.02.2018 00:00:00");
         RefBookCriteria onlyFromDateBeginCriteria = new RefBookCriteria();
         onlyFromDateBeginCriteria.setFromDateBegin(onlyFromDateBegin);
         search = refBookService.search(onlyFromDateBeginCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r ->
-                assertTrue(r.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
-                        || r.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin)));
+        search.getContent().forEach(refBook ->
+                assertTrue(refBook.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
+                        || refBook.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin))
+        );
     }
 
     /**

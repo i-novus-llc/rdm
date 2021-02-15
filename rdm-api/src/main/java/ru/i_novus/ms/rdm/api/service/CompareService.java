@@ -5,9 +5,9 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.PassportDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
-import ru.i_novus.ms.rdm.api.model.diff.PassportDiff;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -56,7 +56,7 @@ public interface CompareService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    RefBookDataDiff compareData(@ApiParam("Критерий сравнения") @BeanParam CompareDataCriteria compareDataCriteria);
+    RefBookDataDiff compareData(@BeanParam CompareDataCriteria compareDataCriteria);
 
     @GET
     @Path("/getCommonComparableRows")
@@ -66,6 +66,6 @@ public interface CompareService {
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    Page<ComparableRow> getCommonComparableRows(@ApiParam("Критерий сравнения") @BeanParam CompareDataCriteria criteria);
+    Page<ComparableRow> getCommonComparableRows(@BeanParam CompareDataCriteria criteria);
 
 }

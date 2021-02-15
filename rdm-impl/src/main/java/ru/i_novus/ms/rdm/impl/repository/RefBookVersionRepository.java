@@ -95,6 +95,8 @@ public interface RefBookVersionRepository extends
                                                                              RefBookVersionStatus status,
                                                                              Pageable pageable);
 
+    List<RefBookVersionEntity> findByIdInAndStatusOrderByFromDateDesc(List<Integer> ids, RefBookVersionStatus status);
+
     @Query(nativeQuery = true,
             value = FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
     Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
