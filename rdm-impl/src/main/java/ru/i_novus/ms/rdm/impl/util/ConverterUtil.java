@@ -1,8 +1,10 @@
 package ru.i_novus.ms.rdm.impl.util;
 
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
+import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -266,5 +268,13 @@ public class ConverterUtil {
         } catch (Exception e) {
             throw new UserException("invalid.search.value", e);
         }
+    }
+
+    public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
+        Criteria criteria = new Criteria();
+        criteria.setPage(restCriteria.getPageNumber() + 1);
+        criteria.setSize(restCriteria.getPageSize());
+        criteria.setCount(count);
+        return criteria;
     }
 }
