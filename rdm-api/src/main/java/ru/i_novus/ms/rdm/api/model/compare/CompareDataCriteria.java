@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.api.model.compare;
 
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
@@ -13,11 +13,11 @@ import java.util.Set;
 // NB: Rename to `CompareVersionDataCriteria` to don`t equals to vds `CompareDataCriteria`.
 public class CompareDataCriteria extends CompareCriteria {
 
-    @ApiModelProperty("Множество фильтров по первичным полям")
+    @ApiParam("Множество фильтров по первичным полям")
     @QueryParam("primaryAttributesFilters")
     private Set<List<AttributeFilter>> primaryAttributesFilters;
 
-    @ApiModelProperty("Флаг для получения только количества записей")
+    @ApiParam("Флаг для получения только количества записей")
     @QueryParam("countOnly")
     private Boolean countOnly;
 

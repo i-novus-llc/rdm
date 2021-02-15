@@ -11,8 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -26,12 +24,13 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.entity.diff.DataDiffSearchResult;
 import ru.i_novus.ms.rdm.impl.entity.diff.RefBookVersionDiffEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
+import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
+import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
 import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -60,8 +59,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @SuppressWarnings("java:S5778")
 public class VersionDataDiffServiceTest extends BaseTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(VersionDataDiffServiceTest.class);
-
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final RdmMapperConfigurer RDM_MAPPER_CONFIGURER = new RdmMapperConfigurer();
 
@@ -71,6 +68,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private static final Integer NEW_VERSION_ID = 11;
     private static final Integer VERSION_DIFF_ID = 3;
 
+    private static final String VERSION_ATTRIBUTE_ID = "id";
     private static final String VERSION_ATTRIBUTE_CODE = "code";
     private static final String VERSION_ATTRIBUTE_NAME = "name";
     private static final String VERSION_ATTRIBUTE_AMOUNT = "amount";
@@ -134,6 +132,8 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private RefBookVersionDiffRepository versionDiffRepository;
     @Mock
     private VersionDataDiffRepository dataDiffRepository;
+    @Mock
+    private VersionDataDiffResultRepository dataDiffResultRepository;
 
     @Mock
     private CompareService compareService;
@@ -148,10 +148,9 @@ public class VersionDataDiffServiceTest extends BaseTest {
         RDM_MAPPER_CONFIGURER.configure(JSON_MAPPER);
     }
 
+    /** Поиск в случае без фильтрации. */
     @Test
     public void testSearch() {
-
-        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
 
         // getVersions:
         RefBookVersionEntity oldVersion = createVersionEntity(OLD_VERSION_ID);
@@ -169,7 +168,6 @@ public class VersionDataDiffServiceTest extends BaseTest {
         when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
                 eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
         )).thenReturn(List.of(newVersion, midVersion, oldVersion));
-
         String versionIds = NEW_VERSION_ID + "," + MID_VERSION_ID + "," + OLD_VERSION_ID;
 
         // searchVersionDiffIds:
@@ -178,16 +176,16 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 eq(OLD_VERSION_ID), eq(NEW_VERSION_ID), eq(versionIds)
         )).thenReturn(versionDiffIds);
 
-        List<DataDiffSearchResult> diffs = List.of(
+        List<VersionDataDiffResult> diffs = List.of(
                 createDiffResult(ROW_UPD_UPD_CODE, ROW_UPD_UPD_FIRST, ROW_UPD_UPD_LAST),
                 createDiffResult(ROW_INS_CODE, ROW_INS_FIRST, null),
                 createDiffResult(ROW_INS_DEL_CODE, ROW_INS_DEL_FIRST, ROW_INS_DEL_LAST)
         );
 
         // searchDataDiffs:
-        when(dataDiffRepository.searchByVersionDiffs(
-                eq(versionDiffIds), eq(criteria)
-        )).thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
+        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
+        when(dataDiffResultRepository.searchByVersionDiffs(eq(versionDiffIds), eq(criteria)))
+                .thenReturn(new PageImpl<>(diffs, criteria, diffs.size()));
 
         List<VersionDataDiff> expected = diffs.stream().map(this::toVersionDataDiff).collect(toList());
 
@@ -196,9 +194,46 @@ public class VersionDataDiffServiceTest extends BaseTest {
         assertListEquals(expected, actual.getContent());
     }
 
-    private DataDiffSearchResult createDiffResult(String primaryValues, String firstDiffValues, String lastDiffValues) {
+    /** Поиск в случае, когда не находится цепочка сохранённых разниц между версиями. */
+    @Test
+    public void testSearchWithVersionDiffGap() {
 
-        DataDiffSearchResult result = new DataDiffSearchResult();
+        // getVersions:
+        RefBookVersionEntity oldVersion = createVersionEntity(OLD_VERSION_ID);
+        RefBookVersionEntity newVersion = createVersionEntity(NEW_VERSION_ID);
+        when(versionRepository.findByIdInAndStatusOrderByFromDateDesc(
+                eq(List.of(OLD_VERSION_ID, NEW_VERSION_ID)), eq(RefBookVersionStatus.PUBLISHED)
+        )).thenReturn(List.of(newVersion, oldVersion));
+
+        // getVersionIds:
+        RefBookEntity refBookEntity = new RefBookEntity();
+        refBookEntity.setCode(TEST_REFBOOK_CODE);
+        newVersion.setRefBook(refBookEntity);
+
+        when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
+                eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
+        )).thenReturn(List.of(newVersion, oldVersion));
+        String versionIds = NEW_VERSION_ID + "," + OLD_VERSION_ID;
+
+        // searchVersionDiffIds:
+        when(versionDiffRepository.searchVersionDiffIds(
+                eq(OLD_VERSION_ID), eq(NEW_VERSION_ID), eq(versionIds)
+        )).thenReturn("");
+
+        VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
+        try {
+            service.search(criteria);
+            fail(getFailedMessage(NotFoundException.class));
+
+        } catch (RuntimeException e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals("compare.data.diff.not.found", getExceptionMessage(e));
+        }
+    }
+
+    private VersionDataDiffResult createDiffResult(String primaryValues, String firstDiffValues, String lastDiffValues) {
+
+        VersionDataDiffResult result = new VersionDataDiffResult();
         result.setPrimaryValues(primaryValues);
         result.setFirstDiffValues(firstDiffValues);
         result.setLastDiffValues(lastDiffValues);
@@ -206,7 +241,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         return result;
     }
 
-    private VersionDataDiff toVersionDataDiff(DataDiffSearchResult diff) {
+    private VersionDataDiff toVersionDataDiff(VersionDataDiffResult diff) {
 
         return new VersionDataDiff(
                 diff.getPrimaryValues(),
@@ -235,12 +270,14 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 singletonList(VERSION_ATTRIBUTE_UPDATED)
         );
 
+        Field idField = new IntegerField(VERSION_ATTRIBUTE_ID);
         Field codeField = new StringField(VERSION_ATTRIBUTE_CODE);
         Field nameField = new StringField(VERSION_ATTRIBUTE_NAME);
         Field amountField = new IntegerField(VERSION_ATTRIBUTE_AMOUNT);
         Field boolField = new BooleanField(VERSION_ATTRIBUTE_BOOL);
 
         DiffRowValue updatedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, null, BigInteger.valueOf(1L), null), // not changed
                 new DiffFieldValue(codeField, null, "1", null), // not changed
                 new DiffFieldValue(nameField, "def", "upd", DiffStatusEnum.UPDATED),
                 new DiffFieldValue(amountField, BigInteger.valueOf(11L), null, DiffStatusEnum.DELETED),
@@ -248,6 +285,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         ), DiffStatusEnum.UPDATED);
 
         DiffRowValue insertedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, null, BigInteger.valueOf(2L), DiffStatusEnum.INSERTED),
                 new DiffFieldValue(codeField, null, "2", DiffStatusEnum.INSERTED),
                 new DiffFieldValue(nameField, null, "ins", DiffStatusEnum.INSERTED),
                 new DiffFieldValue(amountField, null, BigInteger.valueOf(22L), DiffStatusEnum.INSERTED),
@@ -255,6 +293,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         ), DiffStatusEnum.INSERTED);
 
         DiffRowValue deletedValue = new DiffRowValue(asList(
+                new DiffFieldValue(idField, BigInteger.valueOf(3L), null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(codeField, "3", null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(nameField, "del", null, DiffStatusEnum.DELETED),
                 new DiffFieldValue(amountField, BigInteger.valueOf(33L), null, DiffStatusEnum.DELETED),
@@ -297,7 +336,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
                 .allMatch(savedDiffEntity::equals)
         );
 
-        assertListEquals(asList("code=\"1\"", "code=\"2\"", "code=\"3\""),
+        assertListEquals(asList("code=\"1\", id=1", "code=\"2\", id=2", "code=\"3\", id=3"),
                 dataDiffEntities.stream().map(VersionDataDiffEntity::getPrimaries).collect(toList())
         );
 
@@ -514,6 +553,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private Structure createOldStructure() {
         return new Structure(
                 asList(
+                        Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_ID, "Ид-р", FieldType.INTEGER, "идентификатор"),
                         Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),
@@ -528,6 +568,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private Structure createNewStructure() {
         return new Structure(
                 asList(
+                        Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_ID, "Ид-р", FieldType.INTEGER, "идентификатор"),
                         Structure.Attribute.buildPrimary(VERSION_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
                         Structure.Attribute.build(VERSION_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),

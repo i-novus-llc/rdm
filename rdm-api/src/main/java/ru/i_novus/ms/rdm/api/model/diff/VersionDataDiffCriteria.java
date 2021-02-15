@@ -1,27 +1,34 @@
 package ru.i_novus.ms.rdm.api.model.diff;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
+import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-/** Критерий поиска разницы между данными версий. */
+@ApiModel("Критерий поиска разницы между данными версий")
 @SuppressWarnings("unused")
 public class VersionDataDiffCriteria extends AbstractCriteria {
 
-    /** Идентификатор старой версии. */
+    @ApiParam("Идентификатор старой версии")
+    @QueryParam("oldVersionId")
     private Integer oldVersionId;
 
-    /** Идентификатор новой версии. */
+    @ApiParam("Идентификатор новой версии")
+    @QueryParam("newVersionId")
     private Integer newVersionId;
 
-    /** Список первичных значений для исключения. */
+    @ApiParam("Список первичных значений для исключения")
+    @QueryParam("excludePrimaryValues")
     private List<String> excludePrimaryValues;
 
-    /** Множество фильтров по первичным полям. */
+    @ApiParam("Множество фильтров по первичным полям")
+    @QueryParam("primaryAttributesFilters")
     private Set<List<AttributeFilter>> primaryAttributesFilters;
 
     public VersionDataDiffCriteria() {
