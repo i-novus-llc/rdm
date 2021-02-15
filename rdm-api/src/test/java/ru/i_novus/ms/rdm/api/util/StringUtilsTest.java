@@ -28,6 +28,6 @@ public class StringUtilsTest {
 
         assertEquals("\"\"", toDoubleQuotes(""));
         assertEquals("\"abc\"", toDoubleQuotes("abc"));
-        assertEquals("\"a\"\"c\"", toDoubleQuotes("a\"c"));
+        assertEquals("\"a\\\"c\"", toDoubleQuotes("a\"c"));
     }
 }

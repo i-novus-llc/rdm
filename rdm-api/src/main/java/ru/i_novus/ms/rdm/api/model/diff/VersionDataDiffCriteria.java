@@ -95,7 +95,7 @@ public class VersionDataDiffCriteria extends AbstractCriteria {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof VersionDataDiffCriteria)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
         VersionDataDiffCriteria that = (VersionDataDiffCriteria) o;

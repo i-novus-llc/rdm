@@ -10,6 +10,6 @@ import java.util.List;
 public class DiffRowValueMixin {
 
     @JsonCreator
-    public DiffRowValueMixin(@JsonProperty("values") List<DiffFieldValue> values, @JsonProperty("status") DiffStatusEnum status) {}
-
+    public DiffRowValueMixin(@JsonProperty("values") List<DiffFieldValue> values,
+                             @JsonProperty("status") DiffStatusEnum status) {}
 }
