@@ -36,6 +36,7 @@ import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.BooleanField;
@@ -251,11 +252,11 @@ public class VersionDataDiffServiceTest extends BaseTest {
         VersionDataDiffCriteria criteria = new VersionDataDiffCriteria(OLD_VERSION_ID, NEW_VERSION_ID);
 
         Set<List<AttributeFilter>> includeSet = new HashSet<>();
-        AttributeFilter idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 1, FieldType.INTEGER);
-        AttributeFilter codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "1", FieldType.STRING);
+        AttributeFilter idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 1, FieldType.INTEGER, SearchTypeEnum.EXACT);
+        AttributeFilter codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "1", FieldType.STRING, SearchTypeEnum.EXACT);
         includeSet.add(asList(idFilter, codeFilter));
-        idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 2, FieldType.INTEGER);
-        codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "2", FieldType.STRING);
+        idFilter = new AttributeFilter(VERSION_ATTRIBUTE_ID, 2, FieldType.INTEGER, SearchTypeEnum.EXACT);
+        codeFilter = new AttributeFilter(VERSION_ATTRIBUTE_CODE, "2", FieldType.STRING, SearchTypeEnum.EXACT);
         includeSet.add(asList(idFilter, codeFilter));
         criteria.setPrimaryAttributesFilters(includeSet);
 
@@ -275,8 +276,14 @@ public class VersionDataDiffServiceTest extends BaseTest {
         Page<VersionDataDiff> actual = service.search(criteria);
         assertNotNull(actual);
 
-        assertEquals("\"code=\\\"1\\\", id=1\",\"code=\\\"2\\\", id=2\"", includeCaptor.getValue());
-        assertEquals("\"code=\\\"1\\\", id=1\",\"code=\\\"2\\\", id=2\"", excludeCaptor.getValue());
+        List<String> expectedList = asList("\"code=\\\"1\\\", id=1\"", "\"code=\\\"2\\\", id=2\"");
+
+        assertNotNull(includeCaptor.getValue());
+        assertNotNull(excludeCaptor.getValue());
+        expectedList.forEach(expected -> {
+            assertTrue(includeCaptor.getValue().contains(expected));
+            assertTrue(excludeCaptor.getValue().contains(expected));
+        });
     }
 
     /** Поиск в случае, когда не находится цепочка сохранённых разниц между версиями. */
