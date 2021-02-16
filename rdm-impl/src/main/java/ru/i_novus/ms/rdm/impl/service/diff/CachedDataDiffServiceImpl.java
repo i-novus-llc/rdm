@@ -118,5 +118,3 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
         return fieldNames;
     }
 }
-
-

@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.api.model.diff;
 
 import java.util.List;
 
+/** Разница между атрибутами версий справочника. */
 public class RefBookAttributeDiff {
 
     private List<String> oldAttributes;
@@ -9,6 +10,7 @@ public class RefBookAttributeDiff {
     private List<String> updatedAttributes;
 
     public RefBookAttributeDiff() {
+        // Nothing to do.
     }
 
     public RefBookAttributeDiff(List<String> oldAttributes, List<String> newAttributes, List<String> updatedAttributes) {
