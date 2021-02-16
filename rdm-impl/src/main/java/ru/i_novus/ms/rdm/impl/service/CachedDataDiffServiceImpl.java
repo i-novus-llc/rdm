@@ -39,6 +39,7 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
 
     @Override
     public DataDifference getCachedDataDifference(CompareDataCriteria criteria, RefBookAttributeDiff attributeDiff) {
+
         if (criteria.getOldVersionId().equals(criteria.getNewVersionId()))
             return buildDataDifference(emptyList(), criteria, 0);
 
@@ -51,7 +52,8 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
             Page<VersionDataDiff> versionDataDiffPage = versionDataDiffService.search(versionDataDiffCriteria);
             List<DiffRowValue> pageContent = getPageContent(versionDataDiffPage.getContent(), criteria.getCountOnly(), changedAttributeNames, isBackwardComparison);
 
-            return buildDataDifference(pageContent, criteria, Long.valueOf(versionDataDiffPage.getTotalElements()).intValue());
+            return buildDataDifference(pageContent, criteria, Math.toIntExact(versionDataDiffPage.getTotalElements()));
+
         } catch (NotFoundException e) {
             logger.debug("Cached data difference not found. newVersionId={}, oldVersionId={}",
                     criteria.getNewVersionId(), criteria.getOldVersionId());
