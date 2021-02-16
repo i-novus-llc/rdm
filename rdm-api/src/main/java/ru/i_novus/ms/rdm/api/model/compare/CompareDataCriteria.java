@@ -17,9 +17,13 @@ public class CompareDataCriteria extends CompareCriteria {
     @QueryParam("primaryAttributesFilters")
     private Set<List<AttributeFilter>> primaryAttributesFilters;
 
-    @ApiParam("Флаг для получения только количества записей")
+    @ApiParam("Признак получения только количества записей")
     @QueryParam("countOnly")
     private Boolean countOnly;
+
+    @ApiParam("Признак использования кеша")
+    @QueryParam("useCached")
+    private Boolean useCached = Boolean.TRUE;
 
     public CompareDataCriteria() {
         // Nothing to do.
@@ -34,9 +38,12 @@ public class CompareDataCriteria extends CompareCriteria {
     }
 
     public CompareDataCriteria(CompareDataCriteria criteria) {
+
         super(criteria);
+
         this.primaryAttributesFilters = criteria.getPrimaryAttributesFilters();
         this.countOnly = criteria.getCountOnly();
+        this.useCached = criteria.getUseCached();
     }
 
     public Set<List<AttributeFilter>> getPrimaryAttributesFilters() {
@@ -55,6 +62,14 @@ public class CompareDataCriteria extends CompareCriteria {
         this.countOnly = countOnly;
     }
 
+    public Boolean getUseCached() {
+        return useCached;
+    }
+
+    public void setUseCached(Boolean useCached) {
+        this.useCached = useCached;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,11 +78,12 @@ public class CompareDataCriteria extends CompareCriteria {
 
         CompareDataCriteria that = (CompareDataCriteria) o;
         return Objects.equals(primaryAttributesFilters, that.primaryAttributesFilters) &&
-                Objects.equals(countOnly, that.countOnly);
+                Objects.equals(countOnly, that.countOnly) &&
+                Objects.equals(useCached, that.useCached);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly);
+        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly, useCached);
     }
 }

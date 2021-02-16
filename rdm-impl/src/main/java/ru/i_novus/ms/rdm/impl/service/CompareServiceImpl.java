@@ -160,7 +160,10 @@ public class CompareServiceImpl implements CompareService {
 
         RefBookAttributeDiff attributeDiff = compareAttributes(oldVersion.getStructure(), newVersion.getStructure());
 
-        DataDifference dataDifference = cachedDataDiffService.getCachedDataDifference(criteria, attributeDiff);
+        DataDifference dataDifference = null;
+        if (Boolean.TRUE.equals(criteria.getUseCached())) {
+            dataDifference = cachedDataDiffService.getCachedDataDifference(criteria, attributeDiff);
+        }
         if (dataDifference == null) {
             CompareDataCriteria compareDataCriteria = createVdsCompareDataCriteria(oldVersion, newVersion, criteria);
             dataDifference = compareDataService.getDataDifference(compareDataCriteria);
