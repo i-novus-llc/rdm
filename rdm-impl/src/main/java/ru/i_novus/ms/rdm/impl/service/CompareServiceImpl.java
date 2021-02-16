@@ -26,6 +26,7 @@ import ru.i_novus.ms.rdm.impl.service.diff.CachedDataDiffService;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -207,8 +208,8 @@ public class CompareServiceImpl implements CompareService {
         searchDataCriteria.setAttributeFilters(criteria.getPrimaryAttributesFilters());
         Page<RefBookRowValue> newData = versionService.search(criteria.getNewVersionId(), searchDataCriteria);
 
-        RefBookDataDiff dataDiff = compareData(createVdsCompareDataCriteria(criteria, newData, newStructure));
-        RefBookDataDiff deletedDiff = compareData(createVdsDeletedDataCriteria(criteria));
+        RefBookDataDiff dataDiff = compareData(createRdmCompareDataCriteria(criteria, newData, newStructure));
+        RefBookDataDiff deletedDiff = compareData(createRdmDeletedDataCriteria(criteria));
 
         List<ComparableField> comparableFields = createCommonComparableFields(dataDiff.getAttributeDiff(), newStructure, oldStructure);
         List<ComparableRow> comparableRows = new ArrayList<>();
@@ -247,40 +248,43 @@ public class CompareServiceImpl implements CompareService {
     private CompareDataCriteria createVdsCompareDataCriteria(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion,
                                                              ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria) {
 
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
+        CompareDataCriteria vdsCriteria = new CompareDataCriteria(oldVersion.getStorageCode(), newVersion.getStorageCode());
 
-        compareDataCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
-        compareDataCriteria.setPrimaryFields(Structure.getAttributeCodes(newVersion.getStructure().getPrimaries()).collect(toList()));
-        compareDataCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
+        vdsCriteria.setFields(getCommonFields(oldVersion.getStructure(), newVersion.getStructure()));
+        vdsCriteria.setPrimaryFields(Structure.getAttributeCodes(newVersion.getStructure().getPrimaries()).collect(toList()));
+        vdsCriteria.setPrimaryFieldsFilters(toFieldSearchCriterias(rdmCriteria.getPrimaryAttributesFilters()));
 
-        compareDataCriteria.setOldPublishDate(oldVersion.getFromDate());
-        compareDataCriteria.setOldCloseDate(oldVersion.getToDate());
-        compareDataCriteria.setNewPublishDate(newVersion.getFromDate());
-        compareDataCriteria.setNewCloseDate(newVersion.getToDate());
+        vdsCriteria.setOldPublishDate(oldVersion.getFromDate());
+        vdsCriteria.setOldCloseDate(oldVersion.getToDate());
+        vdsCriteria.setNewPublishDate(newVersion.getFromDate());
+        vdsCriteria.setNewCloseDate(newVersion.getToDate());
 
-        compareDataCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
-        compareDataCriteria.setStatus(rdmCriteria.getDiffStatus());
-        compareDataCriteria.setPage(rdmCriteria.getPageNumber() + 1);
-        compareDataCriteria.setSize(rdmCriteria.getPageSize());
+        vdsCriteria.setCountOnly(rdmCriteria.getCountOnly() != null && rdmCriteria.getCountOnly());
+        vdsCriteria.setStatus(rdmCriteria.getDiffStatus());
+        vdsCriteria.setPage(rdmCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        vdsCriteria.setSize(rdmCriteria.getPageSize());
 
-        return compareDataCriteria;
-    }
-
-    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
-
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        vdsCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
         return vdsCriteria;
     }
 
-    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createVdsDeletedDataCriteria(CompareCriteria criteria) {
+    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createRdmCompareDataCriteria(CompareCriteria criteria, Page<? extends RowValue> data, Structure structure) {
 
-        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria vdsCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
-        vdsCriteria.setPrimaryAttributesFilters(emptySet());
-        vdsCriteria.setDiffStatus(DiffStatusEnum.DELETED);
-        vdsCriteria.setCountOnly(false);
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        rdmCriteria.setPrimaryAttributesFilters(createPrimaryAttributesFilters(data, structure));
+        rdmCriteria.setUseCached(Boolean.FALSE); // Кеш отключён, т.к. в нём пока нет фильтрации по DiffStatus.
 
-        return vdsCriteria;
+        return rdmCriteria;
+    }
+
+    private ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria createRdmDeletedDataCriteria(CompareCriteria criteria) {
+
+        ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria rdmCriteria = new ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria(criteria);
+        rdmCriteria.setPrimaryAttributesFilters(emptySet());
+        rdmCriteria.setDiffStatus(DiffStatusEnum.DELETED);
+        rdmCriteria.setCountOnly(false);
+        rdmCriteria.setUseCached(Boolean.FALSE); // Кеш отключён, т.к. в нём пока нет фильтрации по DiffStatus.
+
+        return rdmCriteria;
     }
 
     private void addNewVersionRows(List<ComparableRow> comparableRows, List<ComparableField> comparableFields,
