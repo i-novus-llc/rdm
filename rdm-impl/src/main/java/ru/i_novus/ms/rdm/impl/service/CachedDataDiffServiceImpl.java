@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -31,6 +32,7 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
 
     private VersionDataDiffService versionDataDiffService;
 
+    @Autowired
     public CachedDataDiffServiceImpl(VersionDataDiffService versionDataDiffService) {
         this.versionDataDiffService = versionDataDiffService;
     }
