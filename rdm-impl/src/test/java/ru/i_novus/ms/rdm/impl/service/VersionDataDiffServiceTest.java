@@ -190,10 +190,12 @@ public class VersionDataDiffServiceTest extends BaseTest {
         refBookEntity.setCode(TEST_REFBOOK_CODE);
         newVersion.setRefBook(refBookEntity);
 
+        RefBookVersionEntity startVersion = createVersionEntity(NEW_VERSION_ID + 1);
         RefBookVersionEntity midVersion = createVersionEntity(MID_VERSION_ID);
+        RefBookVersionEntity endVersion = createVersionEntity(OLD_VERSION_ID - 1);
         when(versionRepository.findByRefBookCodeAndStatusOrderByFromDateDesc(
                 eq(TEST_REFBOOK_CODE), eq(RefBookVersionStatus.PUBLISHED), any()
-        )).thenReturn(List.of(newVersion, midVersion, oldVersion));
+        )).thenReturn(List.of(startVersion, newVersion, midVersion, oldVersion, endVersion));
         String versionIds = NEW_VERSION_ID + "," + MID_VERSION_ID + "," + OLD_VERSION_ID;
 
         // searchVersionDiffIds:
