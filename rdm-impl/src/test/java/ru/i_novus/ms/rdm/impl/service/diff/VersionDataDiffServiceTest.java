@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.service.diff;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;

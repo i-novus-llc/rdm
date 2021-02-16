@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.service.diff;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Message;
@@ -16,7 +16,7 @@ import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.service.CompareService;
-import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
+import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;

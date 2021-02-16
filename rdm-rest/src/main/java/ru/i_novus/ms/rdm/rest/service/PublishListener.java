@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
-import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
+import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
 
 public class PublishListener {
 

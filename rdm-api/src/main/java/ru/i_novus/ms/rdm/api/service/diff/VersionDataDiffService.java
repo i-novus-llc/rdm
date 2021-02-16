@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.api.service;
+package ru.i_novus.ms.rdm.api.service.diff;
 
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;

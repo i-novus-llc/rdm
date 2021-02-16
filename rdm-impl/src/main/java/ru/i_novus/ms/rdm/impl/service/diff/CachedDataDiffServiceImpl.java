@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.service.diff;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
-import ru.i_novus.ms.rdm.api.service.VersionDataDiffService;
+import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
