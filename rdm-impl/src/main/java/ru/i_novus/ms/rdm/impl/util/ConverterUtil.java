@@ -14,6 +14,7 @@ import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -272,7 +273,7 @@ public class ConverterUtil {
 
     public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
         Criteria criteria = new Criteria();
-        criteria.setPage(restCriteria.getPageNumber() + 1);
+        criteria.setPage(restCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         criteria.setSize(restCriteria.getPageSize());
         criteria.setCount(count);
         return criteria;
