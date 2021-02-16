@@ -22,8 +22,10 @@ import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toCriteria;
+import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 
 @Service
 public class CachedDataDiffServiceImpl implements CachedDataDiffService {
@@ -43,6 +45,9 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
         if (criteria.getOldVersionId().equals(criteria.getNewVersionId()))
             return buildDataDifference(emptyList(), criteria, 0);
 
+        if (hasIncompatibleWithCacheFilter(criteria))
+            return null;
+
         try {
             boolean isBackwardComparison = versionDataDiffService.isPublishedBefore(criteria.getNewVersionId(), criteria.getOldVersionId());
             Set<String> changedAttributeNames = getAttributeDiffFieldNames(attributeDiff);
@@ -59,6 +64,15 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
                     criteria.getNewVersionId(), criteria.getOldVersionId());
             return null;
         }
+    }
+
+    private boolean hasIncompatibleWithCacheFilter(CompareDataCriteria criteria) {
+        if (isNull(criteria.getPrimaryAttributesFilters()))
+            return false;
+
+        return criteria.getPrimaryAttributesFilters().stream()
+                .anyMatch(filters -> filters.stream()
+                        .anyMatch(filter -> EXACT != filter.getSearchType()));
     }
 
     private DataDifference buildDataDifference(List<DiffRowValue> pageContent, CompareDataCriteria criteria, int totalElements) {

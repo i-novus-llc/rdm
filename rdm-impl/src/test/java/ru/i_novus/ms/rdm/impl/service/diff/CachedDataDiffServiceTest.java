@@ -51,6 +51,9 @@ public class CachedDataDiffServiceTest {
     private static final Set<List<AttributeFilter>> PRIMARY_ATTR_FILTER =
             Set.of(List.of(new AttributeFilter(ID, 1, FieldType.INTEGER)));
 
+    private static final Set<List<AttributeFilter>> INCOMPATIBLE_WITH_CACHE_PRIMARY_ATTR_FILTER =
+            Set.of(List.of(new AttributeFilter(NAME, 1, FieldType.STRING)));
+
     private static RefBookAttributeDiff attributeDiff;
 
     private static List<VersionDataDiff> allVersionDataDiffs;
@@ -139,6 +142,18 @@ public class CachedDataDiffServiceTest {
 
         DataDifference dataDifference = cachedDataDiffService.getCachedDataDifference(criteria, attributeDiff);
         assertDataDifference(dataDifference, 0, 0);
+
+        verify(versionDataDiffService, times(0)).isPublishedBefore(any(), any());
+        verify(versionDataDiffService, times(0)).search(any());
+    }
+
+    @Test
+    public void testGetCachedDataDifference_incompatibleWithCacheFilter() {
+        CompareDataCriteria criteria = new CompareDataCriteria(1, 2);
+        criteria.setPrimaryAttributesFilters(INCOMPATIBLE_WITH_CACHE_PRIMARY_ATTR_FILTER);
+
+        DataDifference dataDifference = cachedDataDiffService.getCachedDataDifference(criteria, attributeDiff);
+        assertNull(dataDifference);
 
         verify(versionDataDiffService, times(0)).isPublishedBefore(any(), any());
         verify(versionDataDiffService, times(0)).search(any());
