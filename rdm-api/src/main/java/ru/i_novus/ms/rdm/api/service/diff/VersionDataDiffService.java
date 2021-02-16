@@ -17,13 +17,6 @@ public interface VersionDataDiffService {
     Page<VersionDataDiff> search(@BeanParam VersionDataDiffCriteria criteria);
 
     /**
-     * Сохранение результата сравнения после публикации справочника.
-     * 
-     * @param refBookCode код справочника
-     */
-    void saveLastVersionDataDiff(String refBookCode);
-
-    /**
      * Проверка на опубликованность первой версии раньше второй.
      *
      * @param versionId1 идентификатор первой версии

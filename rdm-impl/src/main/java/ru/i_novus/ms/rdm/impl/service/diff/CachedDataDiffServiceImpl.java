@@ -30,7 +30,7 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
 
     private static final Logger logger = LoggerFactory.getLogger(CachedDataDiffServiceImpl.class);
 
-    private VersionDataDiffService versionDataDiffService;
+    private final VersionDataDiffService versionDataDiffService;
 
     @Autowired
     public CachedDataDiffServiceImpl(VersionDataDiffService versionDataDiffService) {

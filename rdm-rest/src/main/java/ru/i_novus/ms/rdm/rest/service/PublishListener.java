@@ -1,18 +1,21 @@
 package ru.i_novus.ms.rdm.rest.service;
 
-import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
-import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
+import ru.i_novus.ms.rdm.api.provider.PublishResolver;
+
+import java.util.Collection;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PublishListener {
 
     private static final Logger logger = LoggerFactory.getLogger(PublishListener.class);
 
-    @Autowired
-    private VersionDataDiffService versionDataDiffService;
+    @Autowired(required = false)
+    private Collection<PublishResolver> resolvers;
 
     @JmsListener(destination = "${rdm.publish.topic:publish_topic}",
             containerFactory = "publishTopicListenerContainerFactory")
@@ -20,16 +23,10 @@ public class PublishListener {
 
         logger.info("RefBook with code {} was published.", refBookCode);
 
-        saveLastVersionDataDiff(refBookCode);
-    }
-
-    private void saveLastVersionDataDiff(String refBookCode) {
-        try {
-            versionDataDiffService.saveLastVersionDataDiff(refBookCode);
-
-        } catch (RuntimeException e) {
-            logger.error("Save last version data diff error.");
-            logger.error(ExceptionUtils.getStackTrace(e));
+        if (!isEmpty(resolvers)) {
+            resolvers.forEach(resolver -> resolver.resolve(refBookCode));
         }
+
+        logger.info("RefBook with code {} publish listener was resolved.", refBookCode);
     }
 }
