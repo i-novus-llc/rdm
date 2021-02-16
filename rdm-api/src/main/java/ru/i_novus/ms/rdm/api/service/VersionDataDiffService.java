@@ -1,29 +1,19 @@
 package ru.i_novus.ms.rdm.api.service;
 
-import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.BeanParam;
 
-@Path("/diff")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-@Api(value = "Методы работы с разницей между данными")
+/** Методы работы с разницей между данными. */
 public interface VersionDataDiffService {
 
     /**
      * Поиск разницы между данными версий.
+     *
+     * @param criteria критерий поиска
      */
-    @GET
-    @Path("/data")
-    @ApiOperation("Поиск разницы между данными версий")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
     Page<VersionDataDiff> search(@BeanParam VersionDataDiffCriteria criteria);
 
     /**
