@@ -3,6 +3,9 @@ package ru.i_novus.ms.rdm.impl.provider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import net.n2oapp.platform.jaxrs.MapperConfigurer;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.diff.DiffFieldValueMixin;
@@ -21,14 +24,26 @@ public class VdsMapperConfigurer implements MapperConfigurer {
 
     @Override
     public void configure(ObjectMapper mapper) {
+
         mapper.addMixIn(RowValue.class, RowValueMixin.class);
         mapper.addMixIn(FieldValue.class, FieldValueMixin.class);
         mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
         mapper.addMixIn(DiffFieldValue.class, DiffFieldValueMixin.class);
         mapper.addMixIn(Field.class, VdsFieldMixin.class);
-        mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {});
-    }
 
+        mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        // (Де)сериализация даты/времени:
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // в строку / из строки
+        mapper.disable(SerializationFeature.WRITE_DATES_WITH_ZONE_ID); // без временно'й зоны
+
+        // (Де)сериализация значений, хранящихся в переменных класса Object:
+        mapper.activateDefaultTypingAsProperty(
+                BasicPolymorphicTypeValidator.builder().build(),
+                ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,
+                "@class");
+    }
 }
