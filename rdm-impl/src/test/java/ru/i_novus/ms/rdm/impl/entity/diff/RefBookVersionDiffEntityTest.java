@@ -16,10 +16,14 @@ public class RefBookVersionDiffEntityTest extends BaseTest {
         RefBookVersionDiffEntity versionDiffEntity = new RefBookVersionDiffEntity(
                 createVersionEntity(1), createVersionEntity(2)
         );
+        versionDiffEntity.setId(10);
         assertObjects(Assert::assertNotEquals, entity, versionDiffEntity);
 
         RefBookVersionDiffEntity copyEntity = new RefBookVersionDiffEntity();
+        copyEntity.setId(versionDiffEntity.getId());
+        assertObjects(Assert::assertNotEquals, versionDiffEntity, copyEntity);
         copyEntity.setOldVersion(versionDiffEntity.getOldVersion());
+        assertObjects(Assert::assertNotEquals, versionDiffEntity, copyEntity);
         copyEntity.setNewVersion(versionDiffEntity.getNewVersion());
         assertObjects(Assert::assertEquals, versionDiffEntity, copyEntity);
     }

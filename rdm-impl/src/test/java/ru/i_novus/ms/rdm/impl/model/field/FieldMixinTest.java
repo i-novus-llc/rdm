@@ -17,6 +17,7 @@ public class FieldMixinTest {
     public void testJson() {
 
         testJson(IntegerField.class);
+        testJson(FloatField.class);
         testJson(StringField.class);
         testJson(DateField.class);
         testJson(BooleanField.class);

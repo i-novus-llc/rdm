@@ -14,14 +14,19 @@ public class VersionDataDiffEntityTest extends BaseTest {
         assertSpecialEquals(entity);
 
         VersionDataDiffEntity diffEntity = new VersionDataDiffEntity();
+        diffEntity.setId(100);
         diffEntity.setVersionDiffEntity(createVersionDiffEntity());
         diffEntity.setPrimaries("1,'2'");
         diffEntity.setValues("{a: 1; b: \"2\"; c: \"2021-02-02\"}");
         assertObjects(Assert::assertNotEquals, entity, diffEntity);
 
         VersionDataDiffEntity copyEntity = new VersionDataDiffEntity();
+        copyEntity.setId(diffEntity.getId());
+        assertObjects(Assert::assertNotEquals, diffEntity, copyEntity);
         copyEntity.setVersionDiffEntity(diffEntity.getVersionDiffEntity());
+        assertObjects(Assert::assertNotEquals, diffEntity, copyEntity);
         copyEntity.setPrimaries(diffEntity.getPrimaries());
+        assertObjects(Assert::assertNotEquals, diffEntity, copyEntity);
         copyEntity.setValues(diffEntity.getValues());
         assertObjects(Assert::assertEquals, diffEntity, copyEntity);
     }

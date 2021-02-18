@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.model.field;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.math.BigDecimal;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil;
@@ -24,16 +25,14 @@ public class DiffFieldValueMixinTest {
     public void testJson() {
 
         testJson(IntegerField.class, BigInteger.ONE, BigInteger.TWO);
+        testJson(FloatField.class, new BigDecimal("1"), new BigDecimal("2"));
         testJson(StringField.class, "one", "two");
         testJson(DateField.class,
                 LocalDate.of(2021, 2, 3),
                 LocalDate.of(2020, 12, 31)
         );
         testJson(BooleanField.class, Boolean.FALSE, Boolean.TRUE);
-        testJson(ReferenceField.class,
-                "{\"hash\": \"hash1\", \"value\": \"1\", \"displayValue\": \"1-one-один\"}",
-                "{\"hash\": \"hash2\", \"value\": \"2\", \"displayValue\": \"2-two-два\"}"
-        );
+        testJson(ReferenceField.class, "1-one-один", "2-two-два"); // displayValue
         testJson(IntegerStringField.class, "1", "2");
     }
 
