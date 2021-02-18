@@ -5,9 +5,9 @@ services:
     image: ${DOCKER_REGISTRY}/rdm-database:latest
 
   security-admin-backend:
-    image: ${DOCKER_REGISTRY}/security-admin/backend:4.3
+    image: ${DOCKER_REGISTRY}/security-admin/backend:latest
 
   security-admin-frontend:
-    image: ${DOCKER_REGISTRY}/security-admin/frontend:4.3
+    image: ${DOCKER_REGISTRY}/security-admin/frontend:latest
 
 
