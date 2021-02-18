@@ -97,6 +97,10 @@ public class StoreDataDiffResolver implements PublishResolver {
 
     private void saveVersionDataDiff(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
+        if (!oldVersion.getStructure().hasPrimary() ||
+                !newVersion.getStructure().hasPrimary())
+            return;
+
         RefBookVersionDiffEntity versionDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
         versionDiffEntity = versionDiffRepository.saveAndFlush(versionDiffEntity);
 
