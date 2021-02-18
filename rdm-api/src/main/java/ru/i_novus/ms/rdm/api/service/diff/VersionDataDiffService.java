@@ -4,8 +4,6 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 
-import javax.ws.rs.BeanParam;
-
 /** Методы работы с разницей между данными. */
 public interface VersionDataDiffService {
 
@@ -14,7 +12,7 @@ public interface VersionDataDiffService {
      *
      * @param criteria критерий поиска
      */
-    Page<VersionDataDiff> search(@BeanParam VersionDataDiffCriteria criteria);
+    Page<VersionDataDiff> search(VersionDataDiffCriteria criteria);
 
     /**
      * Проверка на опубликованность первой версии раньше второй.
