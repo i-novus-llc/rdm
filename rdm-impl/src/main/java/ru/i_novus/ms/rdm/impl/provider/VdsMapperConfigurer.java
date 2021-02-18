@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.provider;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,5 +46,8 @@ public class VdsMapperConfigurer implements MapperConfigurer {
                 BasicPolymorphicTypeValidator.builder().build(),
                 ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,
                 "@class");
+
+        // Пропуск значений null:
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 }
