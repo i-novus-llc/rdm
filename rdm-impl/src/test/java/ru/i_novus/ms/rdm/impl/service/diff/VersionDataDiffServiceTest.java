@@ -26,11 +26,8 @@ import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
 import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +40,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getVdsObjectMapper;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"rawtypes","java:S5778"})
@@ -118,20 +116,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        JsonUtil.jsonMapper = JSON_MAPPER;
         VDS_MAPPER_CONFIGURER.configure(JSON_MAPPER);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testSerializationForDiffFieldValue() {
-
-        IntegerField field = new IntegerField("id");
-        DiffFieldValue diffFieldValue = new DiffFieldValue(field, null, BigInteger.valueOf(1L), null);
-        String jsonValue = JsonUtil.toJsonString(diffFieldValue);
-        DiffFieldValue restoredValue = JsonUtil.fromJsonString(jsonValue, DiffFieldValue.class);
-        assertEquals(diffFieldValue.getField().getClass(), restoredValue.getField().getClass());
-        assertEquals(diffFieldValue, restoredValue);
     }
 
     /** Поиск в случае без фильтрации. */
@@ -299,9 +284,9 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
         return new VersionDataDiff(
                 diff.getPrimaryValues(),
-                JsonUtil.fromJsonString(diff.getFirstDiffValues(), DiffRowValue.class),
+                JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getFirstDiffValues(), DiffRowValue.class),
                 (diff.getLastDiffValues() != null)
-                        ? JsonUtil.fromJsonString(diff.getLastDiffValues(), DiffRowValue.class)
+                        ? JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getLastDiffValues(), DiffRowValue.class)
                         : null
         );
     }
