@@ -21,13 +21,15 @@ public class RdmMapperConfigurer implements MapperConfigurer {
 
     @Override
     public void configure(ObjectMapper mapper) {
+
         mapper.addMixIn(RowValue.class, RowValueMixin.class);
         mapper.addMixIn(FieldValue.class, FieldValueMixin.class);
         mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
         mapper.addMixIn(DiffFieldValue.class, DiffFieldValueMixin.class);
         mapper.addMixIn(Field.class, FieldMixin.class);
-        mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {});
+
+        mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 }
