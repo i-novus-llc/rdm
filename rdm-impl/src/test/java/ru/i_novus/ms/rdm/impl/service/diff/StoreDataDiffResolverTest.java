@@ -241,12 +241,9 @@ public class StoreDataDiffResolverTest extends BaseTest {
 
         try {
             resolver.saveLastVersionDataDiff(TEST_REFBOOK_CODE);
-            fail(getFailedMessage(NotFoundException.class));
 
         } catch (RuntimeException e) {
-            assertEquals(NotFoundException.class, e.getClass());
-            assertNotNull(getExceptionMessage(e));
-            assertTrue(getExceptionMessage(e).contains(TEST_REFBOOK_CODE));
+            fail("No error expected");
         }
     }
 
