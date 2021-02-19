@@ -5,11 +5,13 @@ import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.provider.PublishResolver;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
@@ -46,6 +48,9 @@ public class StoreDataDiffResolver implements PublishResolver {
 
     private final VersionValidation versionValidation;
 
+    @Value("${rdm.compare.data.diff.max.size:1000}")
+    private int dataDiffMaxSize;
+
     @Autowired
     public StoreDataDiffResolver(RefBookVersionRepository versionRepository,
                                  RefBookVersionDiffRepository versionDiffRepository,
@@ -77,6 +82,9 @@ public class StoreDataDiffResolver implements PublishResolver {
      * @param refBookCode код справочника
      */
     public void saveLastVersionDataDiff(String refBookCode) {
+
+        if (dataDiffMaxSize == 0)
+            return;
 
         versionValidation.validateRefBookCodeExists(refBookCode);
 
@@ -131,9 +139,19 @@ public class StoreDataDiffResolver implements PublishResolver {
                 versionDiffEntity.getNewVersion().getId()
         );
         compareCriteria.setUseCached(Boolean.FALSE);
-        compareCriteria.setPageSize(VERSION_DATA_DIFF_PAGE_SIZE);
+        compareCriteria.setCountOnly(Boolean.TRUE);
+        compareCriteria.setPageSize(1);
+
+        RefBookDataDiff dataDiff = compareService.compareData(compareCriteria);
+        if (dataDiff.getRows().getTotalElements() > dataDiffMaxSize) {
+            throw new IllegalStateException(String.format("Versions of refBook '%s' have many differencies.",
+                                versionDiffEntity.getOldVersion().getRefBook().getCode()));
+        }
 
         List<String> primaries = versionDiffEntity.getOldVersion().getStructure().getPrimaryCodes();
+
+        compareCriteria.setCountOnly(Boolean.FALSE);
+        compareCriteria.setPageSize(VERSION_DATA_DIFF_PAGE_SIZE);
 
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
                 pageCriteria -> compareService.compareData(pageCriteria).getRows(), compareCriteria, true);
