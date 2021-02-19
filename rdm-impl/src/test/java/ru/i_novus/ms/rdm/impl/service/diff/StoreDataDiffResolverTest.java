@@ -3,11 +3,13 @@ package ru.i_novus.ms.rdm.impl.service.diff;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.jaxrs.RestCriteria;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -81,6 +83,12 @@ public class StoreDataDiffResolverTest extends BaseTest {
 
     @Mock
     private VersionValidation versionValidation;
+
+    @Before
+    public void setUp() throws NoSuchFieldException {
+
+        FieldSetter.setField(resolver, StoreDataDiffResolver.class.getDeclaredField("dataDiffMaxSize"), 100);
+    }
 
     @Test
     public void testResolve() {
