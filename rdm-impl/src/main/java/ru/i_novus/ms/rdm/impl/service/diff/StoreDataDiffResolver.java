@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.provider.PublishResolver;
 import ru.i_novus.ms.rdm.api.service.CompareService;
@@ -86,20 +85,30 @@ public class StoreDataDiffResolver implements PublishResolver {
         List<RefBookVersionEntity> versionEntities = versionRepository
                 .findByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED, pageRequest);
 
-        if (isEmpty(versionEntities))
-            throw new NotFoundException(String.format("Two last published versions of refBook '%s' not found", refBookCode));
+        if (isEmpty(versionEntities)) {
+            logger.debug("Two last published versions of refBook '{}' are not found.", refBookCode);
+            return;
+        }
 
-        if (versionEntities.size() == 1)
-            return; // First published version, no data diff.
+        if (versionEntities.size() == 1) {
+            logger.debug("First version of refBook '{}' is published.", refBookCode);
+            return;
+        }
 
         saveVersionDataDiff(versionEntities.get(1), versionEntities.get(0));
     }
 
     private void saveVersionDataDiff(RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion) {
 
-        if (!oldVersion.getStructure().hasPrimary() ||
-                !newVersion.getStructure().hasPrimary())
+        if (!oldVersion.getStructure().hasPrimary()) {
+            logger.debug("Old version '{}' has not primary attributes.", oldVersion.getVersionNumber());
             return;
+        }
+
+        if (!newVersion.getStructure().hasPrimary()) {
+            logger.debug("New version '{}' has not primary attributes.", newVersion.getVersionNumber());
+            return;
+        }
 
         RefBookVersionDiffEntity versionDiffEntity = new RefBookVersionDiffEntity(oldVersion, newVersion);
         versionDiffEntity = versionDiffRepository.saveAndFlush(versionDiffEntity);
