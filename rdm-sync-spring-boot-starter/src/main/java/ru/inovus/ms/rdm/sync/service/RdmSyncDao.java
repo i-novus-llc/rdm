@@ -66,16 +66,13 @@ public interface RdmSyncDao {
      */
     void insertRow(String table, Map<String, Object> row, boolean markSynced);
 
-    void updateInAppendMode(String table, String primaryField, String isDeletedField, Map<String, Object> row);
-
     /**
      * Изменить строку в справочник клиента
      * @param table таблица справочника на стороне клиента
      * @param primaryField поле, являющееся первичном ключом справочника, в таблице клиента
-     * @param isDeletedField поле, отвечающее за признак удаления, в таблице клиента
      * @param row строка с данными
      */
-    void updateRow(String table, String primaryField, String isDeletedField, Map<String, Object> row, boolean markSynced);
+    void updateRow(String table, String primaryField, Map<String, Object> row, boolean markSynced);
 
     /**
      * Пометить запись справочника клиента (не)удаленной
@@ -103,7 +100,7 @@ public interface RdmSyncDao {
 
     void insertFieldMapping(String code, List<XmlMappingField> fieldMappings);
 
-    boolean lockRefbookForUpdate(String code);
+    boolean lockRefBookForUpdate(String code, boolean blocking);
 
     void addInternalLocalRowStateUpdateTrigger(String schema, String table);
     void createOrReplaceLocalRowStateUpdateFunction();
@@ -115,6 +112,7 @@ public interface RdmSyncDao {
     <T> boolean setLocalRecordsState(String table, String pk, List<? extends T> pvs, RdmSyncLocalRowState expectedState, RdmSyncLocalRowState state);
     RdmSyncLocalRowState getLocalRowState(String table, String pk, Object pv);
 
-
+    void createSchemaIfNotExists(String schema);
+    void createRefBookTableIfNotExists(String schema, String table, List<FieldMapping> fieldMappings, String isDeletedFieldName);
 
 }

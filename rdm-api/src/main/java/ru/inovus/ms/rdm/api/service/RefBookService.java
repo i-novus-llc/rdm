@@ -20,7 +20,7 @@ import javax.ws.rs.core.MediaType;
 public interface RefBookService {
 
     @GET
-    @ApiOperation(value = "Поиск справочников по параметрам критерия", hidden = true)
+    @ApiOperation(value = "Поиск справочников по параметрам критерия")
     @ApiImplicitParams(@ApiImplicitParam(name = "sort", value = "Параметры сортировки",
             required = false, allowMultiple = true, paramType = "query", dataType = "string"))
     @ApiResponses({

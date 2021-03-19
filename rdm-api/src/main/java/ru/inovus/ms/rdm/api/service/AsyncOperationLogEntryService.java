@@ -24,9 +24,9 @@ public interface AsyncOperationLogEntryService {
     Page<AsyncOperationLogEntry> search(@BeanParam AsyncOperationLogEntryCriteria criteria);
 
     @GET
-    @Path("/entry/{id}")
-    @ApiOperation("Получение записи асинхронной операции по её идентификатору")
-    AsyncOperationLogEntry get(@ApiParam("Идентификатор операции") @PathParam("id") UUID id);
+    @Path("/entry/{logEntryId}")
+    @ApiOperation("Получение текущего статуса асинхронной операции по ее идентификатору")
+    AsyncOperationLogEntry get(@ApiParam("Идентификатор операции") @PathParam("logEntryId") UUID uuid);
 
     @GET
     @Path("/opTypes")
