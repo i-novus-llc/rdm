@@ -69,6 +69,7 @@ public class RefBookDataRequestTest extends BaseTest {
         RefBookDataRequest result = new RefBookDataRequest();
 
         result.setCode(request.getCode());
+        result.setType(request.getType());
         result.setPassport(request.getPassport());
         result.setStructure(request.getStructure());
         result.setData(request.getData());
@@ -79,6 +80,7 @@ public class RefBookDataRequestTest extends BaseTest {
 
     private RefBookCreateRequest copySuperRequest(RefBookCreateRequest request) {
 
-        return new RefBookCreateRequest(request.getCode(), request.getCategory(), request.getPassport());
+        return new RefBookCreateRequest(request.getCode(), request.getType(),
+                request.getCategory(), request.getPassport());
     }
 }

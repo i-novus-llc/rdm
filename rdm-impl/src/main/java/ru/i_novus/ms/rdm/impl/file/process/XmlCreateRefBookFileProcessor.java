@@ -21,6 +21,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
 
     private static final String CODE_TAG_NAME = "code";
+    private static final String TYPE_TAG_NAME = "type";
     private static final String PASSPORT_TAG_NAME = "passport";
     private static final String STRUCTURE_TAG_NAME = "structure";
     private static final String DATA_TAG_NAME = "data";
@@ -42,18 +43,20 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
     protected RefBookCreateRequest getRefBookCreateRequest() {
 
         String refBookCode = null;
+        String refBookType = null;
         try {
             if(!reader.hasNext()) {
                 return null;
             }
 
-            XMLEvent event = reader.nextEvent();
-            while (!isStartElementWithName(event, CODE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
-                event = reader.nextEvent();
-            }
-
+            XMLEvent event = getNextTagEvent();
             if (isStartElementWithName(event, CODE_TAG_NAME)) {
                 refBookCode = reader.getElementText();
+            }
+
+            event = getNextTagEvent();
+            if (isStartElementWithName(event, TYPE_TAG_NAME)) {
+                refBookType = reader.getElementText();
             }
 
         } catch (XMLStreamException e) {
@@ -67,10 +70,21 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
         }
 
         if (!StringUtils.isEmpty(refBookCode)) {
-            return new RefBookCreateRequest(refBookCode, null, null);
+            return new RefBookCreateRequest(refBookCode, refBookType, null, null);
         }
 
         throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
+    }
+
+    private XMLEvent getNextTagEvent() throws XMLStreamException {
+
+        XMLEvent event = reader.nextEvent();
+        while (!isStartElementWithName(event,
+                CODE_TAG_NAME, TYPE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME)
+                && reader.hasNext()) {
+            event = reader.nextEvent();
+        }
+        return event;
     }
 
     @Override

@@ -185,6 +185,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setCode(newCode);
+        refBookEntity.setType(request.getType());
         refBookEntity.setArchived(Boolean.FALSE);
         refBookEntity.setRemovable(Boolean.TRUE);
         refBookEntity.setCategory(request.getCategory());

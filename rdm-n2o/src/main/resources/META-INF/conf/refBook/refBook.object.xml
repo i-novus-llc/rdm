@@ -9,6 +9,7 @@
 
             <in-parameters>
                 <param id="code" mapping="['code']" domain="string" mapper="spel"/>
+                <param id="type.id" mapping="['type']" domain="string" mapper="spel"/>
                 <param id="category.id" mapping="['category']" domain="string" mapper="spel"/>
                 <param id="name" mapping="['passport.name']" domain="string" mapper="spel"/>
                 <param id="shortName" mapping="['passport.shortName']" domain="string" mapper="spel"/>

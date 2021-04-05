@@ -23,6 +23,9 @@ public class RefBookVersion {
     @ApiModelProperty("Код справочника")
     private String code;
 
+    @ApiModelProperty("Тип справочника")
+    private String type;
+
     @ApiModelProperty("Категория")
     private String category;
 
@@ -63,6 +66,7 @@ public class RefBookVersion {
         this.refBookId = refBookVersion.getRefBookId();
 
         this.code = refBookVersion.getCode();
+        this.type = refBookVersion.getType();
         this.category = refBookVersion.getCategory();
         this.version = refBookVersion.getVersion();
         this.comment = refBookVersion.getComment();
@@ -108,6 +112,14 @@ public class RefBookVersion {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getCategory() {

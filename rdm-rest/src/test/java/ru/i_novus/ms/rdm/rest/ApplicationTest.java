@@ -393,7 +393,7 @@ public class ApplicationTest {
         Map<String, String> passportMap = new HashMap<>();
         passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
         nameCriteria.setPassport(passportMap);
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, null, passportMap));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, null, null, passportMap));
 
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
@@ -2149,15 +2149,15 @@ public class ApplicationTest {
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order1");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order3");
-        RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, null, passport));
+        RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, null, null, passport));
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order2");
-        RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, null, passport));
+        RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, null, null, passport));
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order1");
-        RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, null, passport));
+        RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, null, null, passport));
 
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REFBOOK_CODE);
@@ -3090,7 +3090,7 @@ public class ApplicationTest {
     }
 
     private RefBookCreateRequest createRefBookCreateRequest(String refBookCode) {
-        return new RefBookCreateRequest(refBookCode, null, null);
+        return new RefBookCreateRequest(refBookCode, null, null, null);
     }
 
     private void updateData(Integer draftId, Row row, Integer optLockValue) {

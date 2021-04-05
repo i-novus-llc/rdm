@@ -1,15 +1,20 @@
 package ru.i_novus.ms.rdm.api.model.refbook;
 
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
+/** Запрос на создание справочника по параметрам. */
 public class RefBookCreateRequest implements Serializable {
 
     /** Код справочника. */
     private String code;
+
+    /** Тип справочника. */
+    private String type;
 
     /** Категория справочника. */
     private String category;
@@ -21,8 +26,10 @@ public class RefBookCreateRequest implements Serializable {
         // Nothing to do.
     }
 
-    public RefBookCreateRequest(String code, String category, Map<String, String> passport) {
+    public RefBookCreateRequest(String code, String type, String category, Map<String, String> passport) {
+
         this.code = code;
+        this.type = type;
         this.category = category;
         this.passport = passport;
     }
@@ -33,6 +40,14 @@ public class RefBookCreateRequest implements Serializable {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = StringUtils.isEmpty(type) ? null : type;
     }
 
     public String getCategory() {
@@ -58,13 +73,14 @@ public class RefBookCreateRequest implements Serializable {
 
         RefBookCreateRequest that = (RefBookCreateRequest) o;
         return Objects.equals(code, that.code) &&
+                Objects.equals(type, that.type) &&
                 Objects.equals(category, that.category) &&
                 Objects.equals(passport, that.passport);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(code, category, passport);
+        return Objects.hash(code, type, category, passport);
     }
 
     @Override

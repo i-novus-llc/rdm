@@ -14,8 +14,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
-import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
-import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +23,8 @@ import java.util.List;
 public class RefBookController {
 
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+
+    private static final String REFBOOK_TYPE_UNVERSIONED = "refbook.type.unversioned";
 
     private static final String REFBOOK_STATUS_ARCHIVED = "refbook.status.archived";
     private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
@@ -110,6 +111,19 @@ public class RefBookController {
         criteria.setExcludeDraft(rdmPermission.excludeDraft());
 
         return criteria;
+    }
+
+    @SuppressWarnings("unused") // used in: refBookTypeList.query.xml
+    public Page<UiRefBookType> getTypeList() {
+
+        List<UiRefBookType> list = new ArrayList<>();
+        list.add(getRefBookType(RefBookType.UNVERSIONED, REFBOOK_TYPE_UNVERSIONED));
+
+        return new RestPage<>(list, Pageable.unpaged(), list.size());
+    }
+
+    private UiRefBookType getRefBookType(RefBookType type, String code) {
+        return new UiRefBookType(type, messages.getMessage(code));
     }
 
     @SuppressWarnings("unused") // used in: refBookStatusList.query.xml
