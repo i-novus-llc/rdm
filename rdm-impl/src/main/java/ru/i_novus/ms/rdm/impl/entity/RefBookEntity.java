@@ -18,6 +18,9 @@ public class RefBookEntity implements Serializable {
     @Column(name = "code", nullable = false)
     private String code;
 
+    @Column(name = "type")
+    private String type;
+
     @Column(name = "category")
     private String category;
 
@@ -46,6 +49,22 @@ public class RefBookEntity implements Serializable {
         this.code = code;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     public Boolean getRemovable() {
         return removable;
     }
@@ -70,14 +89,6 @@ public class RefBookEntity implements Serializable {
         this.versionList = versionList;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     @Override
     @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {
@@ -87,13 +98,14 @@ public class RefBookEntity implements Serializable {
         RefBookEntity that = (RefBookEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(code, that.code) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(category, that.category) &&
                 Objects.equals(removable, that.removable) &&
-                Objects.equals(archived, that.archived) &&
-                Objects.equals(category, that.category);
+                Objects.equals(archived, that.archived);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, removable, archived, category);
+        return Objects.hash(id, code, type, category, removable, archived);
     }
 }
