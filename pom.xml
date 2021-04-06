@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.12.1</n2o.version>
+        <n2o.version>7.15.0</n2o.version>
         <vds.version>3.9</vds.version>
         <l10n.vds.version>3.13</l10n.vds.version>
 
