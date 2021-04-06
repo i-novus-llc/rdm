@@ -62,7 +62,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             writer.writeStartDocument("1.0");
             writer.writeStartElement("refBook");
 
-            addCode();
+            addFields();
             addPassport();
             addStructure();
 
@@ -121,8 +121,10 @@ public class XmlFileGenerator extends PerRowFileGenerator {
         writer.writeEndElement(); //passport
     }
 
-    private void addCode() {
+    private void addFields() {
+
         writeElement("code", version.getCode());
+        writeElement("type", version.getType());
     }
 
     private void addStructure() {
