@@ -148,7 +148,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
             }
 
             if (attribute.hasIsPrimary()) {
-                n2oField.setRequired(true);
+                n2oField.setRequired(Boolean.TRUE.toString());
             }
 
             list.add(n2oField);

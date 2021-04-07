@@ -24,7 +24,6 @@ public class DataRecordBaseProvider {
     public void setVersionService(VersionRestService versionService) {
         this.versionService = versionService;
     }
-
     /**
      * Получение запроса из контекста провайдера.
      *

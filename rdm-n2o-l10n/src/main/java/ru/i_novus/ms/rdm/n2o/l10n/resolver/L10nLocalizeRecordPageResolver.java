@@ -57,7 +57,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
         n2oField.setId(FIELD_LOCALE_NAME);
         n2oField.setDomain(N2oDomain.STRING);
         n2oField.setNoLabelBlock(Boolean.TRUE);
-        n2oField.setEnabled(Boolean.FALSE);
+        n2oField.setEnabled(Boolean.FALSE.toString());
 
         return n2oField;
     }
@@ -103,7 +103,7 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
     private void processUnlocalizable(SourceComponent component) {
 
         N2oStandardField field = (N2oStandardField) component;
-        field.setEnabled(Boolean.FALSE);
+        field.setEnabled(Boolean.FALSE.toString());
 
         N2oField.VisibilityDependency dependency = new N2oField.VisibilityDependency();
         dependency.setOn(new String[]{FIELD_HIDE_UNLOCALIZABLE});
