@@ -11,6 +11,7 @@
     </parent>
 
     <properties>
+        <backend.default.port>8081</backend.default.port>
         <commons.fileupload.version>1.4</commons.fileupload.version>
 
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -159,6 +160,9 @@
     <profiles>
         <profile>
             <id>production</id>
+            <properties>
+                <backend.default.port>8080</backend.default.port>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
