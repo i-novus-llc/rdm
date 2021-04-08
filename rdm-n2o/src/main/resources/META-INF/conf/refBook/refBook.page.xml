@@ -49,7 +49,7 @@
             <toolbar place="bottomLeft">
                 <sub-menu label="Действия">
                     <menu-item label="Опубликовать"
-                               visibility-condition="version.status=='DRAFT' &amp;&amp; !version.hasConflict">
+                               visible="{version.status=='DRAFT' &amp;&amp; !version.hasConflict}">
                         <show-modal page-id="publish" upload="defaults">
                             <query-param name="versionId" value="{version.id}"/>
                             <query-param name="optLockValue" value="{optLockValue}"/>
@@ -57,7 +57,7 @@
                     </menu-item>
 
                     <menu-item label="Обновить ссылки"
-                               visibility-condition="version.isLast &amp;&amp; version.hasRefreshedConflict">
+                               visible="{version.isLast &amp;&amp; version.hasRefreshedConflict}">
                         <invoke operation-id="refreshReferrer"/>
                     </menu-item>
 
@@ -176,7 +176,7 @@
 
                         <button id="uploadData_r" label="Загрузить данные"
                                 widget-id="version_select" model="resolve"
-                                visibility-condition="version.status=='DRAFT'">
+                                visible="{version.status=='DRAFT'}">
                             <show-modal page-id="uploadData" upload="defaults"
                                         submit-operation-id="uploadData" refresh-widget-id="version_select">
                                 <query-param name="versionId" value="{version.id}"/>

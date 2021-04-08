@@ -56,11 +56,11 @@
             </button>
 
             <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
-                    visibility-condition="!archived">
+                    visible="{!archived}">
                 <invoke operation-id="toArchive"/>
             </button>
             <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
-                    visibility-condition="archived">
+                    visible="{archived}">
                 <invoke operation-id="fromArchive"/>
             </button>
         </toolbar>
