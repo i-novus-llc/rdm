@@ -122,7 +122,7 @@ public class UpdateRecordObjectResolver extends DefaultRecordObjectResolver {
     private ObjectSimpleField createObjectSimpleField(String param, String mapping) {
 
         ObjectSimpleField field = new ObjectSimpleField();
-        field.setParam(param);
+        field.setId(param);
         field.setMapping(mapping);
 
         return field;
