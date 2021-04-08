@@ -24,6 +24,8 @@
                 <open-page page-id="refBookView" page-name="Просмотр справочника &quot;{name}&quot; [{code}]"
                            route="/:refBookId/view">
                     <path-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
             </button>
             <sub-menu label="Создать справочник" icon="fa fa-plus">
@@ -44,6 +46,8 @@
                 <open-page page-id="refBook" page-name="Редактирование справочника &quot;{name}&quot; [{code}]"
                            route="/:refBookId/edit">
                     <path-param name="refBookId" value="{id}"/>
+                    <query-param name="name" value="{name}"/>
+                    <query-param name="code" value="{code}"/>
                 </open-page>
             </button>
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
