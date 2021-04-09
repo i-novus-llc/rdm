@@ -1,6 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-2.0" name="Операция">
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Операция">
     <form query-id="asyncLog">
+
+        <pre-filters>
+            <eq field-id="id" param="id"/>
+        </pre-filters>
+
         <fields>
             <set field-label-location="left">
                 <output-text id="uuid" label="Идентификатор: " label-class="w-50"/>
