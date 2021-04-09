@@ -6,9 +6,8 @@ import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.apache.activemq.artemis.junit.EmbeddedActiveMQResource;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,6 +179,9 @@ public class ApplicationTest {
 
     @Autowired
     private SearchDataService searchDataService;
+
+    @Rule
+    public EmbeddedActiveMQResource activeMQResource = new EmbeddedActiveMQResource();
 
     @BeforeClass
     public static void initialize() {

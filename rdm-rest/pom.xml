@@ -139,6 +139,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>artemis-junit</artifactId>
+            <version>2.17.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-test</artifactId>
             <scope>test</scope>
