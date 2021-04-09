@@ -79,7 +79,7 @@
             </toolbar>
         </form>
 
-        <tabs>
+        <tabs always-refresh="true">
             <tab name="Паспорт">
                 <form ref-id="passport" id="passport_form"
                       depends-on="version_select" fetch-on-init="true"
