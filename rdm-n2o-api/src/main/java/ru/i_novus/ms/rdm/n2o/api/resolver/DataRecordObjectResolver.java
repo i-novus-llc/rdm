@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.api.resolver;
 
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 
@@ -14,7 +15,7 @@ public interface DataRecordObjectResolver {
 
     N2oObject.Operation createOperation(DataRecordRequest request);
 
-    List<N2oObject.Parameter> createRegularParams(DataRecordRequest request);
+    List<AbstractParameter> createRegularParams(DataRecordRequest request);
 
     int getRecordMappingIndex(DataRecordRequest request);
 }

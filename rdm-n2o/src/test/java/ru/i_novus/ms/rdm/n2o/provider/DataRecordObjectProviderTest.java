@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,7 +81,7 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
 
         N2oObject.Operation operation = object.getOperations()[0];
 
-        List<N2oObject.Parameter> items = Arrays.asList(operation.getInParameters());
+        List<AbstractParameter> items = Arrays.asList(operation.getInFields());
         assertNotNull(items);
         assertTrue(items.size() >= structure.getAttributes().size());
 
@@ -97,12 +98,12 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
         });
     }
 
-    private boolean existsItem(List<N2oObject.Parameter> items, String id) {
+    private boolean existsItem(List<AbstractParameter> items, String id) {
 
         return items.stream().anyMatch(item -> id.equals(getFieldId(item)));
     }
 
-    private String getFieldId(N2oObject.Parameter item) {
+    private String getFieldId(AbstractParameter item) {
 
         return item.getId();
     }
@@ -135,7 +136,7 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
         }
 
         @Override
-        public List<N2oObject.Parameter> createRegularParams(DataRecordRequest request) {
+        public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
             return emptyList();
         }
 

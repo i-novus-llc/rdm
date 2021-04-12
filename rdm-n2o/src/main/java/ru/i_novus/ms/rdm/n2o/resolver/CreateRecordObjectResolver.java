@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants;
@@ -26,7 +27,7 @@ public class CreateRecordObjectResolver extends DefaultRecordObjectResolver {
     }
 
     @Override
-    public List<N2oObject.Parameter> createRegularParams(DataRecordRequest request) {
+    public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
 
         return List.of(
                 createVersionIdParameter(request.getVersionId()),

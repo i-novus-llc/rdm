@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.test;
+package ru.i_novus.ms.rdm.impl;
 
 import org.junit.Assert;
 

@@ -2247,6 +2247,11 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.6.0.tgz#f022195afdfc942e088ee2101285a1d31c7d727f"
   integrity sha512-cPqjjzuFWNK3BSKLm0abspP0sp/IGOli4p5I5fKFAzdS8fvjdOwDCfZqAaIiXd9lPkOWi3SUUfZof3hEb7J/uw==
 
+"@popperjs/core@^2.5.4":
+  version "2.9.2"
+  resolved "https://npm.i-novus.ru/@popperjs%2fcore/-/core-2.9.2.tgz#adea7b6953cbb34651766b0548468e743c6a2353"
+  integrity sha512-VZMYa7+fXHdwIq1TDhSXoVmSPEGM/aa+6Aiq3nVVJ9bXr24zScr+NlKFKC3iPljA7ho/GAZr+d2jOf5GIRC30Q==
+
 "@reach/router@^1.2.1":
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/@reach/router/-/router-1.3.4.tgz#d2574b19370a70c80480ed91f3da840136d10f8c"
@@ -6556,16 +6561,7 @@ draft-js-utils@>=0.2.0, draft-js-utils@^1.4.0:
   resolved "https://registry.yarnpkg.com/draft-js-utils/-/draft-js-utils-1.4.0.tgz#c60af198108f69b0f1df3572555b23836819d1cf"
   integrity sha512-8s9FFuKC+lOWGwJ0b3om2PF+uXrqQPaEQlPJI7UxdzxTYGMeKouMPA9+YlPn52zcAVElIZtd2tXj6eQmvlKelw==
 
-draft-js@0.10.5:
-  version "0.10.5"
-  resolved "https://registry.yarnpkg.com/draft-js/-/draft-js-0.10.5.tgz#bfa9beb018fe0533dbb08d6675c371a6b08fa742"
-  integrity sha512-LE6jSCV9nkPhfVX2ggcRLA4FKs6zWq9ceuO/88BpXdNCS7mjRTgs0NsV6piUCJX9YxMsB9An33wnkMmU2sD2Zg==
-  dependencies:
-    fbjs "^0.8.15"
-    immutable "~3.7.4"
-    object-assign "^4.1.0"
-
-draft-js@>=0.10.0:
+draft-js@0.11.7, draft-js@>=0.10.0:
   version "0.11.7"
   resolved "https://registry.yarnpkg.com/draft-js/-/draft-js-0.11.7.tgz#be293aaa255c46d8a6647f3860aa4c178484a206"
   integrity sha512-ne7yFfN4sEL82QPQEn80xnADR8/Q6ALVworbC5UOSzOvjffmYfFsr3xSZtxbIirti14R7Y33EZC5rivpLgIbsg==
@@ -7365,7 +7361,7 @@ fbjs-css-vars@^1.0.0:
   resolved "https://registry.yarnpkg.com/fbjs-css-vars/-/fbjs-css-vars-1.0.2.tgz#216551136ae02fe255932c3ec8775f18e2c078b8"
   integrity sha512-b2XGFAFdWZWg0phtAWLHCk836A1Xann+I+Dgd3Gk64MHKZO44FfoD1KxyvbSh0qZsIoXQGGlVztIY+oitJPpRQ==
 
-fbjs@^0.8.1, fbjs@^0.8.15, fbjs@^0.8.16, fbjs@^0.8.4:
+fbjs@^0.8.1, fbjs@^0.8.16, fbjs@^0.8.4:
   version "0.8.17"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.17.tgz#c4d598ead6949112653d6588b01a5cdcd9f90fdd"
   integrity sha1-xNWY6taUkRJlPWWIsBpc3Nn5D90=
@@ -11230,17 +11226,17 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-auth@7.12.1:
-  version "7.12.1"
-  resolved "https://registry.yarnpkg.com/n2o-auth/-/n2o-auth-7.12.1.tgz#8ebf8012c0897cb09f049d35df509444acdfe967"
-  integrity sha512-0T/oQEhyVG2wzUYinBZ4luoy6P/YOULm1/ZkmRwUf2btjRm6UiY8KD9sL+/SxF3nOJgs6QgRD7dzC6vRSf9/iw==
+n2o-auth@7.15.0:
+  version "7.15.0"
+  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.15.0.tgz#5b7ebed9b653d5a927ef0c83e094a572a71d7590"
+  integrity sha512-nPQrzPcBFX90Z33QxdMnGx7UjVKnsYMmv+MsXCAiVh/6QRfSdYbG4RimYPpE88LutcYWKUrD5ytc6vwEZDHRsw==
   dependencies:
-    n2o-framework "^7.12.0"
+    n2o-framework "7.15.0"
 
-n2o-framework@7.12.1:
-  version "7.12.1"
-  resolved "https://registry.yarnpkg.com/n2o-framework/-/n2o-framework-7.12.1.tgz#e91b104779b7a37109b3bede128bc965cf4573ff"
-  integrity sha512-7+5nyD5EDAUIrXoiKqKzTylytTUvsr5GvDvoXzaHJ2dttCcVTv6dzTTaa5mM11G5sm0GVIdc+zJedkM6PibGkQ==
+n2o-framework@7.15.0:
+  version "7.15.0"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.15.0.tgz#9af196ecfd2ccaf18ecd674a4bab2f843ef6b60c"
+  integrity sha512-Nqqf2JRSZKAiAnLTQpMdl/pBYf/KfLUlugQ9KFUbDeb/0Z05b1mxI39IIADMVXx5zw3sOkylb6arHkd07migGQ==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11263,7 +11259,7 @@ n2o-framework@7.12.1:
     copy-to-clipboard "^3.2.0"
     cpy-cli "1.0.1"
     deepmerge "1.5.2"
-    draft-js "0.10.5"
+    draft-js "0.11.7"
     draftjs-to-html "0.8.4"
     flat "4.1.0"
     font-awesome "4.7.0"
@@ -11277,6 +11273,7 @@ n2o-framework@7.12.1:
     moment "2.20.1"
     numeral "2.0.6"
     path-to-regexp "2.2.1"
+    print-js "1.5.0"
     prop-types "15.6.1"
     query-string "5.1.1"
     rc-collapse "~1.10.0"
@@ -11296,98 +11293,8 @@ n2o-framework@7.12.1:
     react-hotkeys "1.0.3"
     react-i18next "11.7.3"
     react-onclickoutside "6.7.1"
-    react-popper "^2.1.0"
-    react-popper-tooltip "2.8.0"
-    react-redux "5.0.6"
-    react-resizable "1.7.5"
-    react-resize-detector "^5.2.0"
-    react-router-dom "4.3.1"
-    react-rte "0.16.0"
-    react-syntax-highlighter "^11.0.2"
-    react-text-mask "5.4.3"
-    react-textarea-autosize "7.0.4"
-    react-virtualized "^9.21.0"
-    reactstrap "^8.0.0"
-    recharts "^1.6.2"
-    recompose "0.30.0"
-    redux "3.6.0"
-    redux-actions "2.3.2"
-    redux-batched-actions "0.3.0"
-    redux-devtools-extension "2.13.2"
-    redux-form "7.4.2"
-    redux-logger "3.0.6"
-    redux-mock-store "1.5.1"
-    redux-saga "^1.0.5"
-    redux-thunk "2.2.0"
-    reselect "3.0.1"
-    scroll-into-view-if-needed "^2.2.26"
-    text-mask-addons "3.7.1"
-    url-parse "^1.4.7"
-    whatwg-fetch "2.0.3"
-    why-did-you-update "0.1.1"
-    xhr-mock "2.4.1"
-
-n2o-framework@^7.12.0:
-  version "7.13.1"
-  resolved "https://registry.yarnpkg.com/n2o-framework/-/n2o-framework-7.13.1.tgz#42b6e0375c0d4de2b820aa64781ff4a5a0aeddb3"
-  integrity sha512-U77NggjT4uyQdorN8z4jH3Xht7wwxLG9bWjBx8cQb63sADj/oseNZ5B+xHx/IkvKIzpGWd2SMXffnDtuTHRIaw==
-  dependencies:
-    "@babel/polyfill" "^7.0.0"
-    "@babel/runtime-corejs2" "^7.0.0"
-    "@popperjs/core" "^2.2.1"
-    "@sambego/storybook-state" "^1.3.6"
-    "@storybook/addon-actions" "5.0.6"
-    "@storybook/addon-info" "5.0.6"
-    "@storybook/addon-knobs" "5.0.6"
-    "@storybook/addon-links" "5.0.6"
-    "@storybook/addon-storyshots" "5.0.6"
-    "@storybook/addons" "5.0.6"
-    "@storybook/react" "5.0.6"
-    assets-webpack-plugin "3.5.1"
-    axios "^0.19.0"
-    bootstrap "~4.3.1"
-    brace "0.11.0"
-    classnames "2.2.5"
-    connect-history-api-fallback "1.3.0"
-    connected-react-router "5.0.1"
-    copy-to-clipboard "^3.2.0"
-    cpy-cli "1.0.1"
-    deepmerge "1.5.2"
-    draft-js "0.10.5"
-    draftjs-to-html "0.8.4"
-    flat "4.1.0"
-    font-awesome "4.7.0"
-    global "4.3.2"
-    history "4.6.1"
-    html-to-draftjs "1.4.0"
-    i18next "19.7.0"
-    i18next-intervalplural-postprocessor "2.0.2"
-    invariant "^2.2.4"
-    lodash "^4.17.15"
-    moment "2.20.1"
-    numeral "2.0.6"
-    path-to-regexp "2.2.1"
-    prop-types "15.6.1"
-    query-string "5.1.1"
-    rc-collapse "~1.10.0"
-    rc-drawer "^3.0.2"
-    rc-slider "^8.6.11"
-    rc-switch "~1.8.0"
-    rc-table "6.4.3"
-    rc-tree-select "2.3.1"
-    react "16.14.0"
-    react-ace "5.9.0"
-    react-big-calendar "0.24.6"
-    react-copy-to-clipboard "^5.0.1"
-    react-dom "16.14.0"
-    react-draft-wysiwyg "1.13.1"
-    react-dropzone "7.0.1"
-    react-helmet "5.2.0"
-    react-hotkeys "1.0.3"
-    react-i18next "11.7.3"
-    react-onclickoutside "6.7.1"
-    react-popper "^2.1.0"
-    react-popper-tooltip "2.8.0"
+    react-popper "^2.2.4"
+    react-popper-tooltip "3.1.1"
     react-redux "5.0.6"
     react-resizable "1.7.5"
     react-resize-detector "^5.2.0"
@@ -13185,6 +13092,11 @@ pretty-hrtime@^1.0.3:
   resolved "https://registry.yarnpkg.com/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz#b7e3ea42435a4c9b2759d99e0f201eb195802ee1"
   integrity sha1-t+PqQkNaTJsnWdmeDyAesZWALuE=
 
+print-js@1.5.0:
+  version "1.5.0"
+  resolved "https://npm.i-novus.ru/print-js/-/print-js-1.5.0.tgz#6f7e68c6d542ed5eeb535b2ad2469fc24fc9888c"
+  integrity sha512-Vy7UG2NGpNRMR1CcwoaK813tM3uUB0I4vTylxmFLXMb77gJb+6GB5aUmeasyT+CetddbmXUZsHr9BF+0VDN/fg==
+
 prismjs@^1.8.4:
   version "1.22.0"
   resolved "https://registry.yarnpkg.com/prismjs/-/prismjs-1.22.0.tgz#73c3400afc58a823dd7eed023f8e1ce9fd8977fa"
@@ -14042,13 +13954,14 @@ react-overlays@^2.0.0-0:
     uncontrollable "^7.0.0"
     warning "^4.0.3"
 
-react-popper-tooltip@2.8.0:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/react-popper-tooltip/-/react-popper-tooltip-2.8.0.tgz#777e710e4696bd1b8e1a1ef24a6e3375e0206609"
-  integrity sha512-jjw8dHwSbQNPp2JglgJbKF/E08FLAaMkjkW8Czgd53IPmtCPU58xCDSLQfKx+3Tk9tEEPFTXWxUWUN6cnTwFkA==
+react-popper-tooltip@3.1.1:
+  version "3.1.1"
+  resolved "https://npm.i-novus.ru/react-popper-tooltip/-/react-popper-tooltip-3.1.1.tgz#329569eb7b287008f04fcbddb6370452ad3f9eac"
+  integrity sha512-EnERAnnKRptQBJyaee5GJScWNUKQPDD2ywvzZyUjst/wj5U64C8/CnSYLNEmP2hG0IJ3ZhtDxE8oDN+KOyavXQ==
   dependencies:
-    "@babel/runtime" "^7.2.0"
-    react-popper "^1.3.2"
+    "@babel/runtime" "^7.12.5"
+    "@popperjs/core" "^2.5.4"
+    react-popper "^2.2.4"
 
 react-popper-tooltip@^2.8.0:
   version "2.11.1"
@@ -14058,7 +13971,7 @@ react-popper-tooltip@^2.8.0:
     "@babel/runtime" "^7.9.2"
     react-popper "^1.3.7"
 
-react-popper@^1.3.2, react-popper@^1.3.6, react-popper@^1.3.7:
+react-popper@^1.3.6, react-popper@^1.3.7:
   version "1.3.7"
   resolved "https://registry.yarnpkg.com/react-popper/-/react-popper-1.3.7.tgz#f6a3471362ef1f0d10a4963673789de1baca2324"
   integrity sha512-nmqYTx7QVjCm3WUZLeuOomna138R1luC4EqkW3hxJUrAe+3eNz3oFCLYdnPwILfn0mX1Ew2c3wctrjlUMYYUww==
@@ -14071,10 +13984,10 @@ react-popper@^1.3.2, react-popper@^1.3.6, react-popper@^1.3.7:
     typed-styles "^0.0.7"
     warning "^4.0.2"
 
-react-popper@^2.1.0:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/react-popper/-/react-popper-2.2.4.tgz#d2ad3d2474ac9f1abf93df3099d408e5aa6a2e22"
-  integrity sha512-NacOu4zWupdQjVXq02XpTD3yFPSfg5a7fex0wa3uGKVkFK7UN6LvVxgcb+xYr56UCuWiNPMH20tntdVdJRwYew==
+react-popper@^2.2.4:
+  version "2.2.5"
+  resolved "https://npm.i-novus.ru/react-popper/-/react-popper-2.2.5.tgz#1214ef3cec86330a171671a4fbcbeeb65ee58e96"
+  integrity sha512-kxGkS80eQGtLl18+uig1UIf9MKixFSyPxglsgLBxlYnyDf65BiY9B3nZSc6C9XUNDgStROB0fMQlTEz1KxGddw==
   dependencies:
     react-fast-compare "^3.0.1"
     warning "^4.0.2"

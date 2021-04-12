@@ -711,6 +711,7 @@ public class DraftServiceImpl implements DraftService {
         return versionRepository.getOne(draftId).toDraft();
     }
 
+    // RDM-827: Задать стратегию для неверсионного справочника.
     @Override
     public Draft findDraft(String refBookCode) {
 
