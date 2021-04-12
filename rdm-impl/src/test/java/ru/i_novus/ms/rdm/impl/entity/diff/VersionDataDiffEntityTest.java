@@ -2,8 +2,8 @@ package ru.i_novus.ms.rdm.impl.entity.diff;
 
 import org.junit.Assert;
 import org.junit.Test;
+import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.test.BaseTest;
 
 public class VersionDataDiffEntityTest extends BaseTest {
 

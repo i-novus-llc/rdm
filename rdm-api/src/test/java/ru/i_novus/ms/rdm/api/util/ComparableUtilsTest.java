@@ -1,10 +1,10 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.BaseTest;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
-import ru.i_novus.ms.rdm.test.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
