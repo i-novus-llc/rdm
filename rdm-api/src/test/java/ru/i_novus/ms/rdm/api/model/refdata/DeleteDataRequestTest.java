@@ -5,8 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.BaseTest;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
-import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.util.HashMap;
 import java.util.List;

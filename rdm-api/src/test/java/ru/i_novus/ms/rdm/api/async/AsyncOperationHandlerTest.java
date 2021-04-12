@@ -2,8 +2,8 @@ package ru.i_novus.ms.rdm.api.async;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.BaseTest;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.test.BaseTest;
 
 import java.io.Serializable;
 import java.util.List;

@@ -146,12 +146,6 @@
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- / test -->
 
     </dependencies>

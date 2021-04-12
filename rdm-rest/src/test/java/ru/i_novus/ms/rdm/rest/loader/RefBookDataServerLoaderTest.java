@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import java.util.List;
 

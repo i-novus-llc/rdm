@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +62,7 @@ public class UpdateRecordObjectResolverTest {
         DataRecordRequest request = new DataRecordRequest();
         request.setVersionId(TEST_REFBOOK_VERSION_ID);
 
-        List<N2oObject.Parameter> parameters = resolver.createRegularParams(request);
+        List<AbstractParameter> parameters = resolver.createRegularParams(request);
         assertNotNull(parameters);
         assertEquals(TEST_PARAMETER_COUNT - 1, parameters.size());
     }
