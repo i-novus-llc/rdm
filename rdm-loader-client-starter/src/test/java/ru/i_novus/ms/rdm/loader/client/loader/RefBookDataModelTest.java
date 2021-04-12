@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.loader.client.loader;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
-import ru.i_novus.ms.rdm.test.BaseTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
