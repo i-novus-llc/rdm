@@ -2,16 +2,15 @@ package ru.i_novus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.entity.AttributeValidationEntity;
 import ru.i_novus.ms.rdm.impl.validation.*;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
@@ -55,7 +54,7 @@ public class RowsValidatorImpl implements RowsValidator {
         this.searchDataService = searchDataService;
 
         this.structure = structure;
-        this.structFields = structure.getAttributes().stream().map(Structure.Attribute::getCode).collect(Collectors.toSet());
+        this.structFields = new HashSet<>(structure.getAttributeCodes());
         this.storageCode = storageCode;
 
         if (errorCountLimit > 0) {

@@ -4,7 +4,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 
 import java.util.List;
 
-
+/** Разница между структурами. */
 public class StructureDiff {
 
     private List<AttributeDiff> inserted;
@@ -12,6 +12,7 @@ public class StructureDiff {
     private List<AttributeDiff> deleted;
 
     public StructureDiff() {
+        // Nothing to do.
     }
 
     public StructureDiff(List<AttributeDiff> inserted, List<AttributeDiff> updated, List<AttributeDiff> deleted) {

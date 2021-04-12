@@ -33,9 +33,19 @@ public class CompareCriteria extends AbstractCriteria {
     }
 
     public CompareCriteria(Integer oldVersionId, Integer newVersionId, DiffStatusEnum diffStatus) {
+
         this.oldVersionId = oldVersionId;
         this.newVersionId = newVersionId;
         this.diffStatus = diffStatus;
+    }
+
+    public CompareCriteria(CompareCriteria criteria) {
+
+        super(criteria.getPageNumber(), criteria.getPageSize());
+
+        this.oldVersionId = criteria.getOldVersionId();
+        this.newVersionId = criteria.getNewVersionId();
+        this.diffStatus = criteria.getDiffStatus();
     }
 
     public Integer getOldVersionId() {

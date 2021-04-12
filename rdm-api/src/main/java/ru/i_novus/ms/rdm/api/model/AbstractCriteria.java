@@ -24,6 +24,10 @@ public class AbstractCriteria extends RestCriteria {
         super(pageNumber, pageSize);
     }
 
+    public AbstractCriteria(RestCriteria criteria) {
+        this(criteria.getPageNumber(), criteria.getPageSize());
+    }
+
     @Override
     protected List<Sort.Order> getDefaultOrders() {
         return Collections.emptyList();

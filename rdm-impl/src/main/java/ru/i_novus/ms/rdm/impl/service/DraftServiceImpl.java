@@ -447,7 +447,7 @@ public class DraftServiceImpl implements DraftService {
 
     private List<RowDiff> getUpdatedDiffData(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
 
-        List<String> fields = StructureUtils.getAttributeCodes(entity.getStructure()).collect(toList());
+        List<String> fields = entity.getStructure().getAttributeCodes();
         List<Object> systemIds = RowUtils.toSystemIds(updatedRowValues);
         List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
 
@@ -517,7 +517,7 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmpty(rows)) return emptyList();
 
-        Set<String> attributeCodes = StructureUtils.getAttributeCodes(draftVersion.getStructure()).collect(toSet());
+        Set<String> attributeCodes = new HashSet<>(draftVersion.getStructure().getAttributeCodes());
 
         // Исключение полей, не соответствующих атрибутам структуры
         rows.forEach(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
