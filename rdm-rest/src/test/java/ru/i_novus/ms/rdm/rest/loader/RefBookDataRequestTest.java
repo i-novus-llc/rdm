@@ -7,7 +7,7 @@ import org.junit.Test;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import java.util.HashMap;
 

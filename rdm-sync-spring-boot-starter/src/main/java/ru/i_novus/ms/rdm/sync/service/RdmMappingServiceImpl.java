@@ -1,9 +1,9 @@
 package ru.i_novus.ms.rdm.sync.service;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+import ru.i_novus.ms.rdm.sync.model.DataTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.ms.rdm.sync.model.DataTypeEnum;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -20,6 +20,7 @@ import java.util.Date;
 public class RdmMappingServiceImpl implements RdmMappingService {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
     @Override
     public Object map(FieldType rdmType, DataTypeEnum clientType, Object value) {
@@ -73,8 +74,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             case BOOLEAN:
                 return Boolean.parseBoolean(value.toString());
             case DATE:
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                return LocalDate.parse(value.toString(), formatter);
+                return LocalDate.parse(value.toString(), DATE_FORMATTER);
             default:
                 throw new ClassCastException(getClassCastError(FieldType.STRING, clientType, value));
         }
@@ -89,14 +89,13 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             } else if (value instanceof Date) {
                 return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             } else {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                return LocalDate.parse(value.toString(), formatter);
+                return LocalDate.parse(value.toString(), DATE_FORMATTER);
             }
         } else if (clientType.equals(DataTypeEnum.VARCHAR)) {
             if (value instanceof Date) {
                 return FastDateFormat.getInstance(DATE_FORMAT).format(value);
             } else if (value instanceof LocalDate || value instanceof LocalDateTime) {
-                return DateTimeFormatter.ofPattern(DATE_FORMAT).format((Temporal) value);
+                return DATE_FORMATTER.format((Temporal) value);
             } else {
                 throw new ClassCastException(getClassCastError(FieldType.DATE, clientType, value));
             }
@@ -148,8 +147,7 @@ public class RdmMappingServiceImpl implements RdmMappingService {
             case BOOLEAN:
                 return Boolean.parseBoolean(refValue);
             case DATE:
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-                return LocalDate.parse(refValue, formatter);
+                return LocalDate.parse(refValue, DATE_FORMATTER);
             case JSONB:
                 return reference == null ? refValue : reference;
             default:

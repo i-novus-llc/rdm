@@ -7,10 +7,11 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.1.4-SNAPSHOT</version>
+        <version>3.1.5-SNAPSHOT</version>
     </parent>
 
     <properties>
+        <backend.default.port>8081</backend.default.port>
         <commons.fileupload.version>1.4</commons.fileupload.version>
 
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -138,14 +139,15 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-test</artifactId>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-kahadb-store</artifactId>
+            <version>5.15.13</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-test</artifactId>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- / test -->
@@ -159,6 +161,9 @@
     <profiles>
         <profile>
             <id>production</id>
+            <properties>
+                <backend.default.port>8080</backend.default.port>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>

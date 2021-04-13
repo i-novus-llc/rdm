@@ -1,8 +1,10 @@
 package ru.i_novus.ms.rdm.impl.util;
 
+import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.platform.i18n.UserException;
+import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -12,6 +14,7 @@ import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -83,7 +86,7 @@ public class ConverterUtil {
         if (references.isEmpty())
             return new Structure(attributes, null);
 
-        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
         references = structure.getReferences().stream()
                 .filter(reference -> attributeCodes.contains(reference.getAttribute()))
                 .collect(toList());
@@ -266,5 +269,13 @@ public class ConverterUtil {
         } catch (Exception e) {
             throw new UserException("invalid.search.value", e);
         }
+    }
+
+    public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
+        Criteria criteria = new Criteria();
+        criteria.setPage(restCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        criteria.setSize(restCriteria.getPageSize());
+        criteria.setCount(count);
+        return criteria;
     }
 }

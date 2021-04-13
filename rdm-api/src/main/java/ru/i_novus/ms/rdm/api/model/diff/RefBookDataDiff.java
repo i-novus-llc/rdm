@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.api.model.diff;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import org.springframework.data.domain.Page;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
@@ -9,18 +10,23 @@ public class RefBookDataDiff {
 
     private Page<DiffRowValue> rows;
 
-    private List<String> newAttributes;
-    private List<String> oldAttributes;
-    private List<String> updatedAttributes;
+    @JsonUnwrapped
+    private RefBookAttributeDiff attributeDiff = new RefBookAttributeDiff();
 
     public RefBookDataDiff() {
+        this(null, null);
     }
 
-    public RefBookDataDiff(Page<DiffRowValue> rows, List<String> oldAttributes, List<String> newAttributes, List<String> updatedAttributes) {
+    public RefBookDataDiff(Page<DiffRowValue> rows,
+                           List<String> oldAttributes, List<String> newAttributes, List<String> updatedAttributes) {
+
+        this(rows, new RefBookAttributeDiff(oldAttributes, newAttributes, updatedAttributes));
+    }
+
+    public RefBookDataDiff(Page<DiffRowValue> rows, RefBookAttributeDiff attributeDiff) {
+
         this.rows = rows;
-        this.oldAttributes = oldAttributes;
-        this.newAttributes = newAttributes;
-        this.updatedAttributes = updatedAttributes;
+        this.attributeDiff = getOrCreateAttributeDiff(attributeDiff);
     }
 
     public Page<DiffRowValue> getRows() {
@@ -31,28 +37,15 @@ public class RefBookDataDiff {
         this.rows = rows;
     }
 
-    public List<String> getNewAttributes() {
-        return newAttributes;
+    private static RefBookAttributeDiff getOrCreateAttributeDiff(RefBookAttributeDiff attributeDiff) {
+        return attributeDiff == null ? new RefBookAttributeDiff() : attributeDiff;
     }
 
-    public void setNewAttributes(List<String> newAttributes) {
-        this.newAttributes = newAttributes;
+    public RefBookAttributeDiff getAttributeDiff() {
+        return attributeDiff;
     }
 
-    public List<String> getOldAttributes() {
-        return oldAttributes;
+    public void setAttributeDiff(RefBookAttributeDiff attributeDiff) {
+        this.attributeDiff = getOrCreateAttributeDiff(attributeDiff);
     }
-
-    public void setOldAttributes(List<String> oldAttributes) {
-        this.oldAttributes = oldAttributes;
-    }
-
-    public List<String> getUpdatedAttributes() {
-        return updatedAttributes;
-    }
-
-    public void setUpdatedAttributes(List<String> updatedAttributes) {
-        this.updatedAttributes = updatedAttributes;
-    }
-
 }

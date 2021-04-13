@@ -8,7 +8,6 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Проверка на уникальность добавляемых строк по первичным ключам между собой.
@@ -25,7 +24,7 @@ public class PkUniqueRowAppendValidation extends AppendRowValidation {
 
     public PkUniqueRowAppendValidation(Structure structure) {
         this.structure = structure;
-        this.primaryKeyCodes = structure.getPrimaries().stream().map(Structure.Attribute::getCode).collect(toSet());
+        this.primaryKeyCodes = new HashSet<>(structure.getPrimaryCodes());
         this.uniqueRowSet = new HashSet<>();
     }
 

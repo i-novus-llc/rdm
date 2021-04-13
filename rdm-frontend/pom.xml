@@ -7,12 +7,12 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.1.4-SNAPSHOT</version>
+        <version>3.1.5-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <backend.default.path>http://localhost:8080/rdm/api</backend.default.path>
-        <frontend.default.port>8081</frontend.default.port>
+        <backend.default.path>http://localhost:8081/rdm/api</backend.default.path>
+        <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>

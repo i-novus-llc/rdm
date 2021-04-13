@@ -103,9 +103,7 @@ public class L10nServiceImpl implements L10nService {
     /** Получение структуры для перевода на основе структуры версии. */
     private Structure toLocalizableStructure(Structure structure) {
 
-        List<Structure.Attribute> attributes = structure.getAttributes().stream()
-                    .filter(Structure.Attribute::isLocalizable)
-                    .collect(toList());
+        List<Structure.Attribute> attributes = structure.getLocalizables();
         if (attributes.size() == structure.getAttributes().size())
             return structure;
 
@@ -113,7 +111,7 @@ public class L10nServiceImpl implements L10nService {
         if (references.isEmpty())
             return new Structure(attributes, null);
 
-        List<String> attributeCodes = attributes.stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
         references = structure.getReferences().stream()
                 .filter(reference -> attributeCodes.contains(reference.getAttribute()))
                 .collect(toList());

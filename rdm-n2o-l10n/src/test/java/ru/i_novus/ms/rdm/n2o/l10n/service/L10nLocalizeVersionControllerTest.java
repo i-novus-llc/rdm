@@ -13,7 +13,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
 
 import java.util.HashMap;
 import java.util.Map;

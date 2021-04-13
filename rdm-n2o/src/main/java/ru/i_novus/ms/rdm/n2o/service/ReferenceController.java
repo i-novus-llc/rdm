@@ -19,7 +19,6 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.toDisplayValue;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
@@ -56,7 +55,7 @@ public class ReferenceController {
         SearchDataCriteria criteria = toSearchDataCriteria(referenceAttribute, referenceCriteria);
         Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
 
-        List<String> primaryKeyCodes = referenceStructure.getPrimaries().stream().map(Structure.Attribute::getCode).collect(toList());
+        List<String> primaryKeyCodes = referenceStructure.getPrimaryCodes();
 
         return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
                 .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, primaryKeyCodes));

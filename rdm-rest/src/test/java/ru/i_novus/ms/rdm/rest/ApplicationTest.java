@@ -26,6 +26,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -38,7 +39,6 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -92,7 +92,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @DefinePort
 @EnableEmbeddedPg
 @Import(BackendConfiguration.class)
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
@@ -365,30 +365,35 @@ public class ApplicationTest {
     }
 
     /**
-     * Поиск по идентификатору справочника
-     * Поиск по наименованию.
-     * Поиск по коду.
-     * Поиск по коду и наименованию
-     * Поиск по статусу.
-     * Поиск по дате последней публикации.
+     * Поиск справочника:
+     * - по идентификатору.
+     * - по коду.
+     * - по наименованию.
      */
     @Test
     public void testRefBookSearch() {
 
-        // поиск по идентификатору справочника
+        Page<RefBook> search;
+
+        // Поиск по идентификатору:
         RefBookCriteria refBookCriteria = new RefBookCriteria();
         refBookCriteria.setRefBookIds(singletonList(REF_BOOK_ID));
-        Page<RefBook> search = refBookService.search(refBookCriteria);
+
+        search = refBookService.search(refBookCriteria);
         assertEquals(1, search.getTotalElements());
 
-        // поиск по коду (по подстроке без учета регистра, крайние пробелы)
+        // Поиск по коду (по подстроке без учёта регистра и крайних пробелов):
         RefBookCriteria codeCriteria = new RefBookCriteria();
         codeCriteria.setCode(SEARCH_CODE_STR);
+
         search = refBookService.search(codeCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r -> assertTrue(containsIgnoreCase(r.getCode(), codeCriteria.getCode().trim())));
+        String trimmedCode = codeCriteria.getCode().trim();
+        search.getContent().forEach(refBook ->
+                assertTrue(containsIgnoreCase(refBook.getCode(), trimmedCode))
+        );
 
-        // поиск по атрибуту паспорта
+        // Поиск по наименованию (атрибуту паспорта):
         RefBookCriteria nameCriteria = new RefBookCriteria();
         Map<String, String> passportMap = new HashMap<>();
         passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
@@ -398,8 +403,15 @@ public class ApplicationTest {
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
         assertPassportEqual(refBook.getPassport(), search.getContent().get(0).getPassport());
+    }
 
-        // поиск по статусу 'Черновик'
+    /** Поиск справочника по различным статусам. */
+    @Test
+    public void testRefBookSearchByStatus() {
+
+        Page<RefBook> search;
+
+        // Поиск по статусу 'Черновик':
         RefBookCriteria draftCriteria = new RefBookCriteria();
         draftCriteria.setHasDraft(true);
         search = refBookService.search(draftCriteria);
@@ -409,7 +421,7 @@ public class ApplicationTest {
             assertEquals(RefBookVersionStatus.DRAFT, r.getStatus());
         });
 
-        // поиск по статусу 'Архив'
+        // Поиск по статусу 'Архив':
         RefBookCriteria archivedCriteria = new RefBookCriteria();
         archivedCriteria.setIsArchived(true);
         search = refBookService.search(archivedCriteria);
@@ -419,7 +431,7 @@ public class ApplicationTest {
             assertFalse(r.getRemovable());
         });
 
-        // поиск по статусу 'Опубликован'
+        // Поиск по статусу 'Опубликован':
         RefBookCriteria publishedCriteria = new RefBookCriteria();
         publishedCriteria.setHasPublished(true);
         search = refBookService.search(publishedCriteria);
@@ -429,37 +441,47 @@ public class ApplicationTest {
             assertNotNull(r.getLastPublishedVersionFromDate());
             assertFalse(r.getRemovable());
         });
+    }
 
-        // поиск по дате публикации (дата начала, дата окончания)
+    /** Поиск справочника по дате последней публикации. */
+    @Test
+    public void testRefBookSearchByPublishedDate() {
+
+        Page<RefBook> search;
+
+        // Поиск по дате публикации (дата начала, дата окончания):
         LocalDateTime fromDateBegin = parseLocalDateTime("01.02.2018 00:00:00");
         LocalDateTime fromDateEnd = parseLocalDateTime("17.02.2018 00:00:00");
         RefBookCriteria fromDateCriteria = new RefBookCriteria();
         fromDateCriteria.setFromDateBegin(fromDateBegin);
         fromDateCriteria.setFromDateEnd(fromDateEnd);
+
         search = refBookService.search(fromDateCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r -> {
-            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateBegin)
-                    || r.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
-            assertTrue(r.getLastPublishedVersionFromDate().equals(fromDateEnd)
-                    || r.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
+        search.getContent().forEach(refBook -> {
+            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateBegin)
+                    || refBook.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
+            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateEnd)
+                    || refBook.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
         });
 
-        // поиск по дате последней публикации (дата начала и дата окончания вне диапазона действия существующих записей)
+        // Поиск по дате последней публикации
+        // (дата начала и дата окончания вне диапазона действия существующих записей):
         fromDateCriteria.setFromDateBegin(parseLocalDateTime("01.01.2013 00:00:00"));
         fromDateCriteria.setFromDateEnd(parseLocalDateTime("01.02.2013 00:00:00"));
         search = refBookService.search(fromDateCriteria);
         assertEquals(0, search.getTotalElements());
 
-        // поиск по дате публикации (только дата начала)
+        // Поиск по дате публикации (только дата начала):
         LocalDateTime onlyFromDateBegin = parseLocalDateTime("01.02.2018 00:00:00");
         RefBookCriteria onlyFromDateBeginCriteria = new RefBookCriteria();
         onlyFromDateBeginCriteria.setFromDateBegin(onlyFromDateBegin);
         search = refBookService.search(onlyFromDateBeginCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(r ->
-                assertTrue(r.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
-                        || r.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin)));
+        search.getContent().forEach(refBook ->
+                assertTrue(refBook.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
+                        || refBook.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin))
+        );
     }
 
     /**
@@ -1241,7 +1263,7 @@ public class ApplicationTest {
         final Integer draftId = draft.getId();
         assertNotNull(draftId);
 
-        List<String> codes = StructureUtils.getAttributeCodes(structure).collect(toList());
+        List<String> codes = structure.getAttributeCodes();
         Map<String, Object> rowMap1 = new HashMap<>();
         rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
@@ -2813,28 +2835,34 @@ public class ApplicationTest {
         );
     }
 
-    private void assertRefBookDataDiffs(RefBookDataDiff expectedRefBookDataDiff, RefBookDataDiff actualRefBookDataDiff) {
+    private void assertRefBookDataDiffs(RefBookDataDiff expected, RefBookDataDiff actual) {
 
-        assertListsEquals(expectedRefBookDataDiff.getNewAttributes(), actualRefBookDataDiff.getNewAttributes());
-        assertListsEquals(expectedRefBookDataDiff.getOldAttributes(), actualRefBookDataDiff.getOldAttributes());
-        assertListsEquals(expectedRefBookDataDiff.getUpdatedAttributes(), actualRefBookDataDiff.getUpdatedAttributes());
-
-        assertDiffRowValues(expectedRefBookDataDiff.getRows().getContent(), actualRefBookDataDiff.getRows().getContent());
+        assertDiffRowValues(expected.getRows().getContent(), actual.getRows().getContent());
+        assertRefBookAttributeDiffs(expected.getAttributeDiff(), actual.getAttributeDiff());
     }
 
-    private void assertListsEquals(List<String> expectedValuesList, List<String> actualValuesList) {
-        assertEquals(expectedValuesList.size(), actualValuesList.size());
-        if (expectedValuesList.stream().anyMatch(expectedValue -> !actualValuesList.contains(expectedValue)))
+    private void assertRefBookAttributeDiffs(RefBookAttributeDiff expected, RefBookAttributeDiff actual) {
+
+        assertListsEquals(expected.getNewAttributes(), actual.getNewAttributes());
+        assertListsEquals(expected.getOldAttributes(), actual.getOldAttributes());
+        assertListsEquals(expected.getUpdatedAttributes(), actual.getUpdatedAttributes());
+    }
+
+    private void assertListsEquals(List<String> expectedList, List<String> actualList) {
+        assertEquals(expectedList.size(), actualList.size());
+        if (expectedList.stream().anyMatch(expected -> !actualList.contains(expected)))
             fail();
     }
 
-    private void assertDiffRowValues(List<DiffRowValue> expectedDiffRowValues, List<DiffRowValue> actualDiffRowValues) {
+    private void assertDiffRowValues(List<DiffRowValue> expectedList, List<DiffRowValue> actualList) {
 
-        assertEquals(expectedDiffRowValues.size(), actualDiffRowValues.size());
-        expectedDiffRowValues.forEach(expectedDiffRowValue -> {
-            if (actualDiffRowValues.stream().noneMatch(actualDiffRowValue ->
-                    expectedDiffRowValue.getValues().size() == actualDiffRowValue.getValues().size()
-                            && actualDiffRowValue.getValues().containsAll(expectedDiffRowValue.getValues())))
+        assertEquals(expectedList.size(), actualList.size());
+        expectedList.forEach(expected -> {
+            if (actualList.stream()
+                    .noneMatch(actual ->
+                            expected.getValues().size() == actual.getValues().size()
+                                    && actual.getValues().containsAll(expected.getValues())
+                    ))
                 fail();
         });
     }
@@ -2846,17 +2874,18 @@ public class ApplicationTest {
      * @param actualList   актуальный список
      */
     private void assertConflicts(List<Conflict> expectedList, List<Conflict> actualList) {
+
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());
 
-        expectedList.forEach(expectedConflict -> {
+        expectedList.forEach(expected -> {
             if (actualList.stream()
-                    .noneMatch(actualConflict ->
-                            Objects.equals(expectedConflict.getRefAttributeCode(), actualConflict.getRefAttributeCode())
-                                    && Objects.equals(expectedConflict.getConflictType(), actualConflict.getConflictType())
-                                    && expectedConflict.getPrimaryValues().size() == actualConflict.getPrimaryValues().size()
-                                    && actualConflict.getPrimaryValues().containsAll(expectedConflict.getPrimaryValues())
+                    .noneMatch(actual ->
+                            Objects.equals(expected.getRefAttributeCode(), actual.getRefAttributeCode())
+                                    && Objects.equals(expected.getConflictType(), actual.getConflictType())
+                                    && expected.getPrimaryValues().size() == actual.getPrimaryValues().size()
+                                    && actual.getPrimaryValues().containsAll(expected.getPrimaryValues())
                     ))
                 fail();
         });

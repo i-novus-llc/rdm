@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.api.model.compare;
 
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
 import javax.ws.rs.QueryParam;
@@ -13,13 +13,17 @@ import java.util.Set;
 // NB: Rename to `CompareVersionDataCriteria` to don`t equals to vds `CompareDataCriteria`.
 public class CompareDataCriteria extends CompareCriteria {
 
-    @ApiModelProperty("Множество фильтров по первичным полям")
+    @ApiParam("Множество фильтров по первичным полям")
     @QueryParam("primaryAttributesFilters")
     private Set<List<AttributeFilter>> primaryAttributesFilters;
 
-    @ApiModelProperty("Флаг для получения только количества записей")
+    @ApiParam("Признак получения только количества записей")
     @QueryParam("countOnly")
     private Boolean countOnly;
+
+    @ApiParam("Признак использования кеша")
+    @QueryParam("useCached")
+    private Boolean useCached = Boolean.TRUE;
 
     public CompareDataCriteria() {
         // Nothing to do.
@@ -30,7 +34,16 @@ public class CompareDataCriteria extends CompareCriteria {
     }
 
     public CompareDataCriteria(CompareCriteria criteria) {
-        super(criteria.getOldVersionId(), criteria.getNewVersionId(), criteria.getDiffStatus());
+        super(criteria);
+    }
+
+    public CompareDataCriteria(CompareDataCriteria criteria) {
+
+        super(criteria);
+
+        this.primaryAttributesFilters = criteria.getPrimaryAttributesFilters();
+        this.countOnly = criteria.getCountOnly();
+        this.useCached = criteria.getUseCached();
     }
 
     public Set<List<AttributeFilter>> getPrimaryAttributesFilters() {
@@ -49,6 +62,14 @@ public class CompareDataCriteria extends CompareCriteria {
         this.countOnly = countOnly;
     }
 
+    public Boolean getUseCached() {
+        return useCached;
+    }
+
+    public void setUseCached(Boolean useCached) {
+        this.useCached = useCached;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,11 +78,12 @@ public class CompareDataCriteria extends CompareCriteria {
 
         CompareDataCriteria that = (CompareDataCriteria) o;
         return Objects.equals(primaryAttributesFilters, that.primaryAttributesFilters) &&
-                Objects.equals(countOnly, that.countOnly);
+                Objects.equals(countOnly, that.countOnly) &&
+                Objects.equals(useCached, that.useCached);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly);
+        return Objects.hash(super.hashCode(), primaryAttributesFilters, countOnly, useCached);
     }
 }

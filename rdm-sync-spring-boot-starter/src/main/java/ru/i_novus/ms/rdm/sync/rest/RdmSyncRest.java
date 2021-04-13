@@ -1,9 +1,6 @@
 package ru.i_novus.ms.rdm.sync.rest;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.sync.criteria.LogCriteria;
 import ru.i_novus.ms.rdm.sync.model.Log;
@@ -23,6 +20,7 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "Синхронизация данных справочников НСИ", hidden = true)
+@SuppressWarnings("I-novus:MethodNameWordCountRule")
 public interface RdmSyncRest {
 
     @POST

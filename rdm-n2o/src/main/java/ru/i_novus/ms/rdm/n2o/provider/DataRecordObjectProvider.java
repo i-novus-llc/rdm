@@ -1,7 +1,9 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.framework.api.metadata.SourceMetadata;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
+import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,15 +74,15 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     private N2oObject.Operation createOperation(DataRecordObjectResolver resolver, DataRecordRequest request) {
 
         N2oObject.Operation operation = resolver.createOperation(request);
-        operation.setInParameters(Stream.concat(
+        operation.setInFields(Stream.concat(
                 resolver.createRegularParams(request).stream(),
                 createDynamicParams(request, resolver.getRecordMappingIndex(request)).stream())
-                .toArray(N2oObject.Parameter[]::new));
+                .toArray(AbstractParameter[]::new));
 
         return operation;
     }
 
-    private List<N2oObject.Parameter> createDynamicParams(DataRecordRequest request, int mappingIndex) {
+    private List<AbstractParameter> createDynamicParams(DataRecordRequest request, int mappingIndex) {
 
         Structure structure = request.getStructure();
         if (structure.isEmpty())
@@ -91,13 +93,13 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
                 .collect(toList());
     }
 
-    private N2oObject.Parameter createParam(Structure.Attribute attribute, int mappingIndex) {
+    private AbstractParameter createParam(Structure.Attribute attribute, int mappingIndex) {
 
         final String mappingArgumentFormat = "[%1$d].data['%2$s']";
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setMapping(String.format(mappingArgumentFormat, mappingIndex, attribute.getCode()));
 
         switch (attribute.getType()) {
@@ -124,7 +126,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     }
 
     /** Заполнение дополнительных полей параметра в зависимости от типа атрибута. */
-    private void enrichParam(N2oObject.Parameter parameter, Structure.Attribute attribute) {
+    private void enrichParam(ObjectSimpleField parameter, Structure.Attribute attribute) {
 
         switch (attribute.getType()) {
             case DATE:
