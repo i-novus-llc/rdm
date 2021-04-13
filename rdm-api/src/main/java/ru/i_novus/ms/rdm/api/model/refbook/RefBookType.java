@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.model;
+package ru.i_novus.ms.rdm.api.model.refbook;
 
 /**
  * Тип справочника.

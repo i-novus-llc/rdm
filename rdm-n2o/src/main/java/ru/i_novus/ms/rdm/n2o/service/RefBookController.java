@@ -11,10 +11,13 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
-import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
 
 import java.util.ArrayList;
 import java.util.List;

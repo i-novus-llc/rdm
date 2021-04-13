@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+
 /**
  * Тип справочника для списка.
  */
