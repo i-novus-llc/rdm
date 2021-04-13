@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,7 +21,8 @@ public class RefBookEntity implements Serializable {
     private String code;
 
     @Column(name = "type")
-    private String type;
+    @Enumerated(value = EnumType.STRING)
+    private RefBookType type;
 
     @Column(name = "category")
     private String category;
@@ -49,11 +52,11 @@ public class RefBookEntity implements Serializable {
         this.code = code;
     }
 
-    public String getType() {
+    public RefBookType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(RefBookType type) {
         this.type = type;
     }
 

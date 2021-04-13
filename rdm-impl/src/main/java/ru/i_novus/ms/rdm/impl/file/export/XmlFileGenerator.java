@@ -121,7 +121,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
     private void addFields() {
 
         writeElement("code", version.getCode());
-        writeElement("type", version.getType());
+        writeElement("type",  version.getType() == null ? null : version.getType().name());
     }
 
     private void addStructure() {

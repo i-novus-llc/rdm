@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.api.model.refbook;
 
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -14,7 +13,7 @@ public class RefBookCreateRequest implements Serializable {
     private String code;
 
     /** Тип справочника. */
-    private String type;
+    private RefBookType type;
 
     /** Категория справочника. */
     private String category;
@@ -26,7 +25,7 @@ public class RefBookCreateRequest implements Serializable {
         // Nothing to do.
     }
 
-    public RefBookCreateRequest(String code, String type, String category, Map<String, String> passport) {
+    public RefBookCreateRequest(String code, RefBookType type, String category, Map<String, String> passport) {
 
         this.code = code;
         this.type = type;
@@ -42,12 +41,12 @@ public class RefBookCreateRequest implements Serializable {
         this.code = code;
     }
 
-    public String getType() {
+    public RefBookType getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = StringUtils.isEmpty(type) ? null : type;
+    public void setType(RefBookType type) {
+        this.type = type;
     }
 
     public String getCategory() {
