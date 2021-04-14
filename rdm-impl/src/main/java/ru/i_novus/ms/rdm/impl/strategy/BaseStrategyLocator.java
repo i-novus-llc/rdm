@@ -3,8 +3,7 @@ package ru.i_novus.ms.rdm.impl.strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.DefaultRefBookCreateValidationStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 
 @Component
 @SuppressWarnings("unchecked")
@@ -28,6 +27,9 @@ public class BaseStrategyLocator implements StrategyLocator {
 
         if (RefBookCreateValidationStrategy.class == strategy)
             return (T) defaultRefBookCreateValidationStrategy;
+
+        else if (RefBookCreateEntityStrategy.class == strategy)
+            return (T) new DefaultRefBookCreateEntityStrategy();
 
         throw new IllegalArgumentException(String.format("Strategy for %s is not found", strategy.getSimpleName()));
     }
