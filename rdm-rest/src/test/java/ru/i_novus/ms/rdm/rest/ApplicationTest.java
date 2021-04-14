@@ -2738,15 +2738,16 @@ public class ApplicationTest {
     }
 
     private void failCreateRefBook(String filename, String message) {
+
+        String failText = String.format("При создании справочника из файла '%s' ожидается ошибка:\n%s", filename, message);
         try {
             FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
             refBookService.create(fileModel);
 
-            fail("Ожидается ошибка:\n" + message);
+            fail(failText);
 
         } catch (RestException e) {
-
-            assertEquals(message, getExceptionMessage(e));
+            assertEquals(failText, message, getExceptionMessage(e));
 
         }
     }
