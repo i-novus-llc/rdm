@@ -63,7 +63,6 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
-import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.objectPassportToValues;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @Service
@@ -285,7 +284,7 @@ public class DraftServiceImpl implements DraftService {
 
         List<PassportValueEntity> passportValues = null;
         if (request.getPassport() != null) {
-            passportValues = objectPassportToValues(request.getPassport(), true, null);
+            passportValues = RefBookVersionEntity.toPassportValues(request.getPassport(), true, null);
         }
 
         final Structure structure = request.getStructure();
