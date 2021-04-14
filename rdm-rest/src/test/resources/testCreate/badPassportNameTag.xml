@@ -2,7 +2,7 @@
 <refBook>
     <code>TEST_BAD_REF_NAME</code>
     <passport>
-        <name>Тестовое наименование справочника</name>
+        <-name>Тестовое наименование справочника</-name>
         <shortName>Тестовый справочник</shortName>
         <description>Описание тестового справочника</description>
     </passport>
@@ -43,7 +43,7 @@
     </structure>
     <data>
         <row>
-            <-TEST_CODE>string2</TEST_CODE>
+            <TEST_CODE>string2</TEST_CODE>
             <number>2</number>
             <dt>02.02.2002</dt>
             <flag>true</flag>
