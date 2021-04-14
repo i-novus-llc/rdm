@@ -47,7 +47,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.stringPassportToValues;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Primary
@@ -198,7 +197,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionEntity.setStatus(RefBookVersionStatus.DRAFT);
 
         if (request.getPassport() != null) {
-            versionEntity.setPassportValues(stringPassportToValues(request.getPassport(), false, versionEntity));
+            versionEntity.setPassportValues(RefBookVersionEntity.toPassportValues(request.getPassport(), false, versionEntity));
         }
 
         String storageCode = draftDataService.createDraft(emptyList());
@@ -481,7 +480,7 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(Collectors.toSet());
         correctUpdatePassport.entrySet().removeAll(toUpdate);
 
-        newPassportValues.addAll(stringPassportToValues(correctUpdatePassport, true, versionEntity));
+        newPassportValues.addAll(RefBookVersionEntity.toPassportValues(correctUpdatePassport, true, versionEntity));
 
         versionEntity.setPassportValues(newPassportValues);
     }
