@@ -30,6 +30,8 @@ import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -77,6 +79,8 @@ public class RefBookServiceImpl implements RefBookService {
 
     private AuditLogService auditLogService;
 
+    private StrategyLocator strategyLocator;
+
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
@@ -86,7 +90,8 @@ public class RefBookServiceImpl implements RefBookService {
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, FileStorage fileStorage,
                               DraftService draftService, PublishService publishService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              StrategyLocator strategyLocator) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -107,6 +112,8 @@ public class RefBookServiceImpl implements RefBookService {
         this.publishService = publishService;
 
         this.auditLogService = auditLogService;
+
+        this.strategyLocator = strategyLocator;
     }
 
     /**
