@@ -31,6 +31,7 @@ import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -186,17 +187,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
-        final String newCode = request.getCode();
-        versionValidation.validateRefBookCode(newCode);
-        versionValidation.validateRefBookCodeNotExists(newCode);
+        strategyLocator.getStrategy(request.getType(), RefBookCreateValidationStrategy.class)
+                .validate(request.getCode());
 
-        RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setCode(newCode);
-        refBookEntity.setType(request.getType());
-        refBookEntity.setArchived(Boolean.FALSE);
-        refBookEntity.setRemovable(Boolean.TRUE);
-        refBookEntity.setCategory(request.getCategory());
-        refBookEntity = refBookRepository.save(refBookEntity);
+        RefBookEntity refBookEntity = strategyLocator.getStrategy(request.getType(), RefBookCreateEntityStrategy.class)
+                .create(request);
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setRefBook(refBookEntity);
