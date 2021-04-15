@@ -8,7 +8,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.toPassportValues;
 
-public class DefaultRefBookCreateVersionStrategy implements RefBookCreateVersionStrategy {
+public class DefaultCreateFirstVersionStrategy implements CreateFirstVersionStrategy {
 
     @Override
     public RefBookVersionEntity create(RefBookEntity refBookEntity, RefBookCreateRequest request) {

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
 @Component
-public class UnversionedRefBookCreateFirstDraftStrategy extends DefaultRefBookCreateFirstDraftStrategy {
+public class UnversionedCreateFirstDataDraftStrategy extends DefaultCreateFirstDataDraftStrategy {
 
     @Override
     public String create() {

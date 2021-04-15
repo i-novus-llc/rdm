@@ -2,9 +2,10 @@ package ru.i_novus.ms.rdm.impl.strategy.refbook;
 
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
-public interface RefBookCreateEntityStrategy extends Strategy {
+public interface CreateFirstVersionStrategy extends Strategy {
 
-    RefBookEntity create(RefBookCreateRequest request);
+    RefBookVersionEntity create(RefBookEntity refBookEntity, RefBookCreateRequest request);
 }

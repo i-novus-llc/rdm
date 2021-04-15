@@ -13,10 +13,10 @@ public class BaseStrategyLocator implements StrategyLocator {
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
     @Autowired
-    private DefaultRefBookCreateFirstDraftStrategy defaultRefBookCreateFirstDraftStrategy;
+    private DefaultCreateFirstDataDraftStrategy defaultCreateFirstDataDraftStrategy;
 
     @Autowired
-    private UnversionedRefBookCreateFirstDraftStrategy unversionedRefBookCreateFirstDraftStrategy;
+    private UnversionedCreateFirstDataDraftStrategy unversionedCreateFirstDataDraftStrategy;
 
     @Override
     public <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
@@ -34,25 +34,25 @@ public class BaseStrategyLocator implements StrategyLocator {
         if (RefBookCreateValidationStrategy.class == strategy)
             return (T) defaultRefBookCreateValidationStrategy;
 
-        else if (RefBookCreateEntityStrategy.class == strategy)
-            return (T) new DefaultRefBookCreateEntityStrategy();
+        else if (CreateRefBookEntityStrategy.class == strategy)
+            return (T) new DefaultCreateRefBookEntityStrategy();
 
-        else if (RefBookCreateVersionStrategy.class == strategy)
-            return (T) new DefaultRefBookCreateVersionStrategy();
+        else if (CreateFirstVersionStrategy.class == strategy)
+            return (T) new DefaultCreateFirstVersionStrategy();
 
-        else if (RefBookCreateFirstDraftStrategy.class == strategy)
-            return (T) defaultRefBookCreateFirstDraftStrategy;
+        else if (CreateFirstDataDraftStrategy.class == strategy)
+            return (T) defaultCreateFirstDataDraftStrategy;
 
         throw new IllegalArgumentException(String.format("Strategy for %s is not found", strategy.getSimpleName()));
     }
 
     public <T extends Strategy> T getUnversionedStrategy(Class<T> strategy) {
 
-        if (RefBookCreateVersionStrategy.class == strategy)
-            return (T) new UnversionedRefBookCreateVersionStrategy();
+        if (CreateFirstVersionStrategy.class == strategy)
+            return (T) new UnversionedCreateFirstVersionStrategy();
 
-        else if (RefBookCreateFirstDraftStrategy.class == strategy)
-            return (T) unversionedRefBookCreateFirstDraftStrategy;
+        else if (CreateFirstDataDraftStrategy.class == strategy)
+            return (T) unversionedCreateFirstDataDraftStrategy;
 
         return getDefaultStrategy(strategy);
     }

@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.impl.strategy.refbook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 
-public class DefaultRefBookCreateEntityStrategy implements RefBookCreateEntityStrategy {
+public class DefaultCreateRefBookEntityStrategy implements CreateRefBookEntityStrategy {
 
     @Override
     public RefBookEntity create(RefBookCreateRequest request) {

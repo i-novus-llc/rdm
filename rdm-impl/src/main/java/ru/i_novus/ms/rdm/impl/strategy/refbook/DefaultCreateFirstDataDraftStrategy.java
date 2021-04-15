@@ -7,7 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import static java.util.Collections.emptyList;
 
 @Component
-public class DefaultRefBookCreateFirstDraftStrategy implements RefBookCreateFirstDraftStrategy {
+public class DefaultCreateFirstDataDraftStrategy implements CreateFirstDataDraftStrategy {
 
     @Autowired
     private DraftDataService draftDataService;

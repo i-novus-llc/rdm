@@ -186,13 +186,13 @@ public class RefBookServiceImpl implements RefBookService {
         final RefBookType refBookType = request.getType();
         getStrategy(refBookType, RefBookCreateValidationStrategy.class).validate(request.getCode());
 
-        RefBookEntity refBookEntity = getStrategy(refBookType, RefBookCreateEntityStrategy.class).create(request);
+        RefBookEntity refBookEntity = getStrategy(refBookType, CreateRefBookEntityStrategy.class).create(request);
         refBookEntity = refBookRepository.save(refBookEntity);
 
-        RefBookVersionEntity versionEntity = getStrategy(refBookType, RefBookCreateVersionStrategy.class)
+        RefBookVersionEntity versionEntity = getStrategy(refBookType, CreateFirstVersionStrategy.class)
                 .create(refBookEntity, request);
 
-        String storageCode = getStrategy(refBookType, RefBookCreateFirstDraftStrategy.class).create();
+        String storageCode = getStrategy(refBookType, CreateFirstDataDraftStrategy.class).create();
         versionEntity.setStorageCode(storageCode);
 
         RefBookVersionEntity savedEntity = versionRepository.save(versionEntity);
