@@ -2,9 +2,7 @@ package ru.i_novus.ms.rdm.impl.strategy;
 
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 
-import java.io.Serializable;
-
-public interface StrategyLocator extends Serializable {
+public interface StrategyLocator {
 
     /**
      * Поиск стратегии по его интерфейсу для указанного типа справочника.
