@@ -7,8 +7,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.service.*;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -27,7 +27,10 @@ import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 
 import java.util.Collections;
 
@@ -81,6 +84,13 @@ public class ArchiveValidationTest {
     private VersionValidation versionValidation;
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
+
+    @Spy
+    private StrategyLocator strategyLocator = new TestStrategyLocator();
+
+    @Mock
+    private RefBookCreateValidationStrategy refBookCreateValidationStrategy;
+
 
     @Before
     public void setUp() {
