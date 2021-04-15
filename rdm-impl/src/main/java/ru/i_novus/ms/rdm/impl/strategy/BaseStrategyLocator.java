@@ -13,7 +13,13 @@ public class BaseStrategyLocator implements StrategyLocator {
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
     @Autowired
+    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
+
+    @Autowired
     private DefaultCreateFirstDataDraftStrategy defaultCreateFirstDataDraftStrategy;
+
+    @Autowired
+    private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
     private UnversionedCreateFirstDataDraftStrategy unversionedCreateFirstDataDraftStrategy;
@@ -38,7 +44,7 @@ public class BaseStrategyLocator implements StrategyLocator {
             return (T) new DefaultCreateRefBookEntityStrategy();
 
         else if (CreateFirstVersionStrategy.class == strategy)
-            return (T) new DefaultCreateFirstVersionStrategy();
+            return (T) defaultCreateFirstVersionStrategy;
 
         else if (CreateFirstDataDraftStrategy.class == strategy)
             return (T) defaultCreateFirstDataDraftStrategy;
@@ -49,7 +55,7 @@ public class BaseStrategyLocator implements StrategyLocator {
     public <T extends Strategy> T getUnversionedStrategy(Class<T> strategy) {
 
         if (CreateFirstVersionStrategy.class == strategy)
-            return (T) new UnversionedCreateFirstVersionStrategy();
+            return (T) unversionedCreateFirstVersionStrategy;
 
         else if (CreateFirstDataDraftStrategy.class == strategy)
             return (T) unversionedCreateFirstDataDraftStrategy;
