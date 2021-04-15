@@ -30,9 +30,9 @@ import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateEntityStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -186,26 +186,17 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
-        strategyLocator.getStrategy(request.getType(), RefBookCreateValidationStrategy.class)
-                .validate(request.getCode());
+        final RefBookType refBookType = request.getType();
+        getStrategy(refBookType, RefBookCreateValidationStrategy.class).validate(request.getCode());
 
-        RefBookEntity refBookEntity = strategyLocator.getStrategy(request.getType(), RefBookCreateEntityStrategy.class)
-                .create(request);
+        RefBookEntity refBookEntity = getStrategy(refBookType, RefBookCreateEntityStrategy.class).create(request);
+        refBookEntity = refBookRepository.save(refBookEntity);
 
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setRefBook(refBookEntity);
-        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity versionEntity = getStrategy(refBookType, RefBookCreateVersionStrategy.class)
+                .create(refBookEntity, request);
 
-        if (request.getPassport() != null) {
-            versionEntity.setPassportValues(RefBookVersionEntity.toPassportValues(request.getPassport(), false, versionEntity));
-        }
-
-        String storageCode = draftDataService.createDraft(emptyList());
+        String storageCode = getStrategy(refBookType, RefBookCreateFirstDraftStrategy.class).create();
         versionEntity.setStorageCode(storageCode);
-        Structure structure = new Structure();
-        structure.setAttributes(emptyList());
-        structure.setReferences(emptyList());
-        versionEntity.setStructure(structure);
 
         RefBookVersionEntity savedEntity = versionRepository.save(versionEntity);
         RefBook refBook = refBookModel(savedEntity, false,
@@ -216,6 +207,11 @@ public class RefBookServiceImpl implements RefBookService {
         auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedEntity);
 
         return refBook;
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(refBookType, strategy);
     }
 
     @Override

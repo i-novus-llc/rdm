@@ -12,6 +12,12 @@ public class BaseStrategyLocator implements StrategyLocator {
     @Autowired
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
+    @Autowired
+    private DefaultRefBookCreateFirstDraftStrategy defaultRefBookCreateFirstDraftStrategy;
+
+    @Autowired
+    private UnversionedRefBookCreateFirstDraftStrategy unversionedRefBookCreateFirstDraftStrategy;
+
     @Override
     public <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
 
@@ -31,10 +37,22 @@ public class BaseStrategyLocator implements StrategyLocator {
         else if (RefBookCreateEntityStrategy.class == strategy)
             return (T) new DefaultRefBookCreateEntityStrategy();
 
+        else if (RefBookCreateVersionStrategy.class == strategy)
+            return (T) new DefaultRefBookCreateVersionStrategy();
+
+        else if (RefBookCreateFirstDraftStrategy.class == strategy)
+            return (T) defaultRefBookCreateFirstDraftStrategy;
+
         throw new IllegalArgumentException(String.format("Strategy for %s is not found", strategy.getSimpleName()));
     }
 
     public <T extends Strategy> T getUnversionedStrategy(Class<T> strategy) {
+
+        if (RefBookCreateVersionStrategy.class == strategy)
+            return (T) new UnversionedRefBookCreateVersionStrategy();
+
+        else if (RefBookCreateFirstDraftStrategy.class == strategy)
+            return (T) unversionedRefBookCreateFirstDraftStrategy;
 
         return getDefaultStrategy(strategy);
     }
