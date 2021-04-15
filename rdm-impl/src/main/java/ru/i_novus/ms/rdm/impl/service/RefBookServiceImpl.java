@@ -35,7 +35,6 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
 import java.io.InputStream;
@@ -62,7 +61,6 @@ public class RefBookServiceImpl implements RefBookService {
     private RefBookVersionRepository versionRepository;
     private RefBookModelDataRepository refBookModelDataRepository;
 
-    private DraftDataService draftDataService;
     private DropDataService dropDataService;
 
     private RefBookLockService refBookLockService;
@@ -85,7 +83,7 @@ public class RefBookServiceImpl implements RefBookService {
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
                               RefBookModelDataRepository refBookModelDataRepository,
-                              DraftDataService draftDataService, DropDataService dropDataService,
+                              DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, FileStorage fileStorage,
@@ -97,7 +95,6 @@ public class RefBookServiceImpl implements RefBookService {
 
         this.refBookModelDataRepository = refBookModelDataRepository;
 
-        this.draftDataService = draftDataService;
         this.dropDataService = dropDataService;
 
         this.refBookLockService = refBookLockService;
@@ -440,6 +437,7 @@ public class RefBookServiceImpl implements RefBookService {
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {
+
         BooleanBuilder where = new BooleanBuilder();
         where.and(isVersionOfRefBook(refBookId));
         where.and(isRemovable().not().or(isArchived()).or(isPublished()));
