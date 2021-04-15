@@ -3,7 +3,9 @@ package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
+import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
@@ -40,7 +42,7 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
     }
 
     @Override
-    public List<N2oObject.Parameter> createRegularParams(DataRecordRequest request) {
+    public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
 
         return List.of(
                 createVersionIdParameter(request.getVersionId()),
@@ -91,9 +93,9 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
         return new Argument[]{ versionIdArgument, optLockValueArgument, localeCodeArgument, rowArgument };
     }
 
-    protected N2oObject.Parameter createVersionIdParameter(Integer versionId) {
+    protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
         parameter.setMapping("[0]");
         parameter.setDomain(N2oDomain.INTEGER);
@@ -101,9 +103,9 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
         return parameter;
     }
 
-    protected N2oObject.Parameter createOptLockValueParameter() {
+    protected AbstractParameter createOptLockValueParameter() {
 
-        N2oObject.Parameter optLockValueParameter = new N2oObject.Parameter();
+        ObjectSimpleField optLockValueParameter = new ObjectSimpleField();
         optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
         optLockValueParameter.setMapping("[1]");
         optLockValueParameter.setDomain(N2oDomain.INTEGER);
@@ -111,9 +113,9 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
         return optLockValueParameter;
     }
 
-    private N2oObject.Parameter createLocaleCodeParameter() {
+    private AbstractParameter createLocaleCodeParameter() {
 
-        N2oObject.Parameter localeCodeParameter = new N2oObject.Parameter();
+        ObjectSimpleField localeCodeParameter = new ObjectSimpleField();
         localeCodeParameter.setId(FIELD_LOCALE_CODE);
         localeCodeParameter.setMapping("[2]");
         localeCodeParameter.setDomain(N2oDomain.STRING);
@@ -121,9 +123,9 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
         return localeCodeParameter;
     }
 
-    private N2oObject.Parameter createSystemIdParameter(int index) {
+    private AbstractParameter createSystemIdParameter(int index) {
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setMapping(String.format("[%d].systemId", index));

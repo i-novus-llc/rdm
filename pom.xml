@@ -4,13 +4,13 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>3.1.4-SNAPSHOT</version>
+    <version>3.1.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>4.2.3-SNAPSHOT</version>
+        <version>4.2.6</version>
     </parent>
 
     <properties>
@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.12.1</n2o.version>
+        <n2o.version>7.15.0</n2o.version>
         <vds.version>3.9</vds.version>
         <l10n.vds.version>3.13</l10n.vds.version>
 
@@ -236,13 +236,6 @@
                 <artifactId>audit-client-spring-boot-starter</artifactId>
                 <version>${audit.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-test</artifactId>
-                <version>${project.version}</version>
-                <scope>test</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -265,7 +258,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>rdm-test</module>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
                 <module>rdm-n2o-api</module>

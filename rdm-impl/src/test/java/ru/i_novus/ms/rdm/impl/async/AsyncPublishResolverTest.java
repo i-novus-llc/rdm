@@ -8,7 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.service.PublishService;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.impl.BaseTest;
 
 import java.io.Serializable;
 

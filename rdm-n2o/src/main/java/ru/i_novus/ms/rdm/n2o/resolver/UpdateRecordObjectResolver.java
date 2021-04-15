@@ -4,7 +4,9 @@ import net.n2oapp.framework.api.exception.SeverityType;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
+import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oConstraint;
 import net.n2oapp.framework.api.metadata.global.dao.validation.N2oValidation;
 import org.springframework.stereotype.Component;
@@ -44,7 +46,7 @@ public class UpdateRecordObjectResolver extends DefaultRecordObjectResolver {
     }
 
     @Override
-    public List<N2oObject.Parameter> createRegularParams(DataRecordRequest request) {
+    public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
 
         return List.of(
                 createVersionIdParameter(request.getVersionId()),
@@ -53,9 +55,9 @@ public class UpdateRecordObjectResolver extends DefaultRecordObjectResolver {
         );
     }
 
-    private N2oObject.Parameter createSystemIdParameter(int index) {
+    private AbstractParameter createSystemIdParameter(int index) {
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setMapping(String.format("[%d].systemId", index));
@@ -98,24 +100,31 @@ public class UpdateRecordObjectResolver extends DefaultRecordObjectResolver {
         constraint.setMessage('{' + CONFLICT_TEXT_RESULT + '}');
         constraint.setN2oInvocation(dataProvider);
 
-        N2oObject.Parameter versionIdParam = new N2oObject.Parameter(
-                N2oObject.Parameter.Type.in, FIELD_VERSION_ID, "[0]");
+        ObjectSimpleField versionIdParam = createObjectSimpleField(FIELD_VERSION_ID, "[0]");
         versionIdParam.setDefaultValue(versionId.toString());
         versionIdParam.setDomain(N2oDomain.INTEGER);
 
-        N2oObject.Parameter idParam = new N2oObject.Parameter(
-                N2oObject.Parameter.Type.in, FIELD_SYSTEM_ID, "[1]");
+        ObjectSimpleField idParam = createObjectSimpleField(FIELD_SYSTEM_ID, "[1]");
         idParam.setDomain(N2oDomain.LONG);
-        constraint.setInParameters(new N2oObject.Parameter[]{ versionIdParam, idParam });
 
-        N2oObject.Parameter conflictTextParam = new N2oObject.Parameter(
-                N2oObject.Parameter.Type.out, CONFLICT_TEXT_RESULT, "(#this)");
+        constraint.setInFields(new AbstractParameter[]{ versionIdParam, idParam });
+
+        ObjectSimpleField conflictTextParam = createObjectSimpleField(CONFLICT_TEXT_RESULT, "(#this)");
         conflictTextParam.setDomain(N2oDomain.STRING);
-        N2oObject.Parameter[] outParams = new N2oObject.Parameter[]{ conflictTextParam };
-        constraint.setOutParameters(outParams);
+
+        constraint.setOutFields(new ObjectSimpleField[]{ conflictTextParam });
 
         N2oObject.Operation.Validations validations = new N2oObject.Operation.Validations();
         validations.setInlineValidations(new N2oValidation[]{ constraint });
         operation.setValidations(validations);
+    }
+
+    private ObjectSimpleField createObjectSimpleField(String param, String mapping) {
+
+        ObjectSimpleField field = new ObjectSimpleField();
+        field.setId(param);
+        field.setMapping(mapping);
+
+        return field;
     }
 }

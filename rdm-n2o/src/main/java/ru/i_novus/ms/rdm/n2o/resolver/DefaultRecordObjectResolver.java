@@ -3,7 +3,8 @@ package ru.i_novus.ms.rdm.n2o.resolver;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
-import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
+import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
+import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
@@ -55,9 +56,9 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
         return new Argument[]{ versionIdArgument, optLockValueArgument, rowArgument };
     }
 
-    protected N2oObject.Parameter createVersionIdParameter(Integer versionId) {
+    protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
         parameter.setMapping("[0]");
         parameter.setDomain(N2oDomain.INTEGER);
@@ -65,9 +66,9 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
         return parameter;
     }
 
-    protected N2oObject.Parameter createOptLockValueParameter() {
+    protected AbstractParameter createOptLockValueParameter() {
 
-        N2oObject.Parameter parameter = new N2oObject.Parameter();
+        ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_OPT_LOCK_VALUE);
         parameter.setMapping("[1]");
         parameter.setDomain(N2oDomain.INTEGER);

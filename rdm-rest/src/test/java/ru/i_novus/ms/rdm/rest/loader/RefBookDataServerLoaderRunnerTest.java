@@ -18,7 +18,7 @@ import org.springframework.http.HttpHeaders;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import javax.activation.DataSource;
 import javax.ws.rs.core.MediaType;

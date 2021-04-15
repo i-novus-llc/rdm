@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+@SuppressWarnings("java:S3740")
 public class ComparableUtils {
 
     private ComparableUtils() {
@@ -129,8 +131,8 @@ public class ComparableUtils {
      * записи #rowValue на основании набора первичных ключей #primaries.
      *
      * @param primaries список первичных атрибутов для идентификации записи
-     * @param rowValue  запись, для которой ведется поиск соответствующей в полученном списке записей
-     * @param rowValues список записей, среди которых ведется поиск
+     * @param rowValue  запись, для которой ведётся поиск соответствующей в полученном списке записей
+     * @param rowValues список записей, среди которых ведётся поиск
      * @return Найденная запись либо null
      */
     public static RowValue findRowValue(List<Structure.Attribute> primaries, RowValue rowValue,
@@ -219,25 +221,25 @@ public class ComparableUtils {
      * Содержит изменённые и добавленные атрибуты в порядке их расположения в новой структуре,
      * удалённые атрибуты в конце списка в порядке их расположения в старой структуре.
      *
-     * @param refBookDataDiff изменения для сравниваемых версий
-     * @param newStructure    структура новой версии, определяет порядок полей
-     * @param oldStructure    структура старой версии, определяет порядок удаленных полей в конце списка
-     * @return Список атрибутов
+     * @param attributeDiff изменения для сравниваемых версий
+     * @param newStructure  структура новой версии, определяет порядок полей
+     * @param oldStructure  структура старой версии, определяет порядок удаленных полей в конце списка
+     * @return Список полей сравнения
      */
-    public static List<ComparableField> createCommonComparableFieldsList(RefBookDataDiff refBookDataDiff,
-                                                                         Structure newStructure, Structure oldStructure) {
+    public static List<ComparableField> createCommonComparableFields(RefBookAttributeDiff attributeDiff,
+                                                                     Structure newStructure, Structure oldStructure) {
         List<ComparableField> comparableFields = newStructure.getAttributes().stream()
                 .map(attribute -> {
                     DiffStatusEnum fieldStatus = null;
-                    if (refBookDataDiff.getUpdatedAttributes().contains(attribute.getCode()))
+                    if (attributeDiff.getUpdatedAttributes().contains(attribute.getCode()))
                         fieldStatus = DiffStatusEnum.UPDATED;
-                    if (refBookDataDiff.getNewAttributes().contains(attribute.getCode()))
+                    if (attributeDiff.getNewAttributes().contains(attribute.getCode()))
                         fieldStatus = DiffStatusEnum.INSERTED;
                     return new ComparableField(attribute.getCode(), attribute.getName(), fieldStatus);
 
                 }).collect(toList());
 
-        refBookDataDiff.getOldAttributes()
+        attributeDiff.getOldAttributes()
                 .forEach(oldAttribute ->
                         comparableFields.add(
                                 new ComparableField(oldAttribute, oldStructure.getAttribute(oldAttribute).getName(),

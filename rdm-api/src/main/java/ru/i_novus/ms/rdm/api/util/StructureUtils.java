@@ -7,7 +7,6 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -25,18 +24,7 @@ public class StructureUtils {
         return reference != null && !reference.isNull();
     }
 
-    /** Получение кодов атрибутов структуры. */
-    public static Stream<String> getAttributeCodes(Structure structure) {
-        return structure.getAttributes().stream().map(Structure.Attribute::getCode);
-    }
-
-    /** Получение кодов атрибутов-ссылок структуры. */
-    public static Stream<String> getReferenceAttributeCodes(Structure structure) {
-        return structure.getReferences().stream().map(Structure.Reference::getAttribute);
-    }
-
     /** Сравнение displayExpression двух ссылок. */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
                                                     Structure.Reference reference2) {
         return reference1 != null && reference2 != null

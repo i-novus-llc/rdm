@@ -12,7 +12,6 @@ import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,7 +55,7 @@ public class UpdateRecordController {
         if (structure.isEmpty() || structure.getReferences().isEmpty())
             return null;
 
-        List<String> refFieldCodes = StructureUtils.getReferenceAttributeCodes(structure).collect(toList());
+        List<String> refFieldCodes = structure.getReferenceAttributeCodes();
         List<RefBookConflict> conflicts = findDataConflicts(versionId, id, refFieldCodes);
         if (isEmpty(conflicts))
             return null;

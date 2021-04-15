@@ -122,7 +122,7 @@ public class RdmSyncRestTest {
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(2).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(3L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(2).getFieldValues().get(1).getValue())).thenReturn("Guadalupe");
-        when(compareService.compareStructures(anyInt(), anyInt())).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        when(compareService.compareStructures(anyInt(), anyInt())).thenReturn(new StructureDiff(emptyList(), emptyList(), emptyList()));
 
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), true, true);
@@ -152,7 +152,7 @@ public class RdmSyncRestTest {
         when(mappingService.map(FieldType.INTEGER, DataTypeEnum.INTEGER, data.getContent().get(0).getFieldValues().get(0).getValue())).thenReturn(BigInteger.valueOf(1L));
         when(mappingService.map(FieldType.STRING, DataTypeEnum.VARCHAR, data.getContent().get(0).getFieldValues().get(1).getValue())).thenReturn("London");
         when(dao.isIdExists(versionMapping.getTable(), versionMapping.getPrimaryField(), BigInteger.ONE)).thenReturn(true);
-        when(compareService.compareStructures(any(Integer.class), any(Integer.class))).thenReturn(new StructureDiff(Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        when(compareService.compareStructures(any(Integer.class), any(Integer.class))).thenReturn(new StructureDiff(emptyList(), emptyList(), emptyList()));
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false, true);
         verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(2), true);
@@ -183,7 +183,7 @@ public class RdmSyncRestTest {
         lastPublished.setVersion("1.0");
         lastPublished.setLastPublishedVersionFromDate(version1Publication.atDate(date));
         lastPublished.setCode(code);
-        lastPublished.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary(primaryField, primaryField, FieldType.INTEGER, "")), Collections.emptyList()));
+        lastPublished.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary(primaryField, primaryField, FieldType.INTEGER, "")), emptyList()));
         VersionMapping vm = new VersionMapping(1, code, null, null, table, primaryField, deletedField, LocalDateTime.MIN, LocalDateTime.MIN);
 
         List<FieldMapping> fm = new ArrayList<>(singletonList(new FieldMapping(primaryField, "varchar", primaryField)));

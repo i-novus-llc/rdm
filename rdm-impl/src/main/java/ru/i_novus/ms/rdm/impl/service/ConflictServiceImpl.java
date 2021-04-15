@@ -741,7 +741,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                                  List<? extends RefBookRowValue> refFromRows) {
         Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
 
-        List<AbstractMap.SimpleEntry<Long, ReferenceFieldValue>> fieldEntries = refFromRows.stream()
+        List<Map.Entry<Long, ReferenceFieldValue>> fieldEntries = refFromRows.stream()
                 .map(refFromRow -> {
                     ReferenceFieldValue referenceFieldValue = (ReferenceFieldValue) (refFromRow.getFieldValue(refFromReference.getAttribute()));
                     if (Objects.isNull(referenceFieldValue)

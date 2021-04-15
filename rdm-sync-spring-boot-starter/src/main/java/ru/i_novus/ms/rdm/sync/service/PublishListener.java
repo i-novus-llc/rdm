@@ -10,14 +10,17 @@ public class PublishListener {
     private static final Logger logger = LoggerFactory.getLogger(PublishListener.class);
 
     private final RdmSyncRest rdmSyncRest;
+
     public PublishListener(RdmSyncRest rdmSyncRest) {
         this.rdmSyncRest = rdmSyncRest;
     }
 
-    @JmsListener(destination = "${rdm_sync.publish.topic:publish_topic}", containerFactory = "publishDictionaryTopicMessageListenerContainerFactory")
+    @JmsListener(destination = "${rdm_sync.publish.topic:publish_topic}",
+            containerFactory = "publishDictionaryTopicMessageListenerContainerFactory")
     public void onPublish(String refBookCode) {
+
         logger.info("RefBook with code {} published. Force sync on refBook presence.", refBookCode);
+
         rdmSyncRest.update(refBookCode);
     }
-
 }

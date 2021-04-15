@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
-import ru.i_novus.ms.rdm.test.BaseTest;
+import ru.i_novus.ms.rdm.n2o.api.BaseTest;
 
 public class DataCriteriaTest extends BaseTest {
 

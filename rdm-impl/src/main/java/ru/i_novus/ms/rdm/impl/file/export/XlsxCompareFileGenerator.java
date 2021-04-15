@@ -22,7 +22,6 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
-import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -287,7 +286,10 @@ class XlsxCompareFileGenerator implements FileGenerator {
         }
         createStatusCells(sheet);
 
-        Row headRow = createDataHead(sheet, refBookDataDiff.getOldAttributes(), refBookDataDiff.getNewAttributes());
+        Row headRow = createDataHead(sheet,
+                refBookDataDiff.getAttributeDiff().getOldAttributes(),
+                refBookDataDiff.getAttributeDiff().getNewAttributes()
+        );
         sheet.trackAllColumnsForAutoSizing();
 
         CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
@@ -323,7 +325,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         Map<String, String> allAttributes = new HashMap<>();
         Stream.concat(oldVersion.getStructure().getAttributes().stream(), newVersion.getStructure().getAttributes().stream())
                 .forEach(a -> allAttributes.put(a.getCode(), a.getName()));
-        Stream.concat(StructureUtils.getAttributeCodes(newVersion.getStructure()), deletedColumns.stream())
+        Stream.concat(newVersion.getStructure().getAttributeCodes().stream(), deletedColumns.stream())
                 .forEach(attribute -> {
                     dataColumnIndexes.put(attribute, dataColumnIndexes.size());
 
