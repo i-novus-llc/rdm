@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
@@ -27,12 +28,16 @@ import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.service.*;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -86,14 +91,15 @@ public class ArchiveValidationTest {
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     @Spy
-    private StrategyLocator strategyLocator = new TestStrategyLocator();
+    private StrategyLocator strategyLocator;
 
     @Mock
     private RefBookCreateValidationStrategy refBookCreateValidationStrategy;
 
-
     @Before
     public void setUp() {
+
+        strategyLocator = new BaseStrategyLocator(getStrategies());
     }
 
     @Test
@@ -113,7 +119,6 @@ public class ArchiveValidationTest {
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
         updateRequest.setVersionId(versionId);
         assertArchiveValidationError(() -> refBookService.update(updateRequest));
-
     }
 
     private void assertArchiveValidationError(MethodExecutor executor) {
@@ -128,6 +133,7 @@ public class ArchiveValidationTest {
         try {
             executor.execute();
             fail();
+
         } catch (UserException e) {
             assertEquals("refbook.is.archived", e.getMessage());
         }
@@ -141,14 +147,30 @@ public class ArchiveValidationTest {
 
         try {
             executor.execute();
+
         } catch (UserException e) {
             assertNotEquals("refbook.is.archived", e.getMessage());
-        } catch (Exception ignored){}
 
+        } catch (Exception ignored){}
     }
 
     private interface MethodExecutor {
         void execute();
     }
 
+    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(RefBookCreateValidationStrategy.class, refBookCreateValidationStrategy);
+
+        return result;
+    }
 }
