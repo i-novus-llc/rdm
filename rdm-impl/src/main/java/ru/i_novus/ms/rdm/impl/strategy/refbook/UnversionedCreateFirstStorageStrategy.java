@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
 @Component
-public class UnversionedCreateFirstDataDraftStrategy extends DefaultCreateFirstDataDraftStrategy {
+public class UnversionedCreateFirstStorageStrategy extends DefaultCreateFirstStorageStrategy {
 
     @Override
     @Transactional

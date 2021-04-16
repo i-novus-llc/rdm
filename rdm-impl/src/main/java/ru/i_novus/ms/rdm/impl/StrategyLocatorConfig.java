@@ -25,13 +25,13 @@ public class StrategyLocatorConfig {
     private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
 
     @Autowired
-    private DefaultCreateFirstDataDraftStrategy defaultCreateFirstDataDraftStrategy;
+    private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
 
     @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
-    private UnversionedCreateFirstDataDraftStrategy unversionedCreateFirstDataDraftStrategy;
+    private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
     @Bean
     public StrategyLocator strategyLocator() {
@@ -53,7 +53,7 @@ public class StrategyLocatorConfig {
         result.put(RefBookCreateValidationStrategy.class, defaultRefBookCreateValidationStrategy);
         result.put(CreateRefBookEntityStrategy.class, defaultCreateRefBookEntityStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
-        result.put(CreateFirstDataDraftStrategy.class, defaultCreateFirstDataDraftStrategy);
+        result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
 
         return result;
     }
@@ -62,7 +62,7 @@ public class StrategyLocatorConfig {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(CreateFirstVersionStrategy.class, unversionedCreateFirstVersionStrategy);
-        result.put(CreateFirstDataDraftStrategy.class, unversionedCreateFirstDataDraftStrategy);
+        result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
 
         return result;
     }

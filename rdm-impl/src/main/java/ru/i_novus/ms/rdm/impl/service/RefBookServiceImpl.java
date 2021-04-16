@@ -190,7 +190,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookEntity refBookEntity = getStrategy(refBookType, CreateRefBookEntityStrategy.class)
                 .create(request);
 
-        String storageCode = getStrategy(refBookType, CreateFirstDataDraftStrategy.class).create();
+        String storageCode = getStrategy(refBookType, CreateFirstStorageStrategy.class).create();
         RefBookVersionEntity versionEntity = getStrategy(refBookType, CreateFirstVersionStrategy.class)
                 .create(request, refBookEntity, storageCode);
 

@@ -7,7 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import static java.util.Collections.emptyList;
 
 @Component
-public class DefaultCreateFirstDataDraftStrategy implements CreateFirstDataDraftStrategy {
+public class DefaultCreateFirstStorageStrategy implements CreateFirstStorageStrategy {
 
     @Autowired
     private DraftDataService draftDataService;
