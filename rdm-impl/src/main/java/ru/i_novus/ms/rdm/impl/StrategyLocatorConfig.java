@@ -9,6 +9,7 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class StrategyLocatorConfig {
 
     private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
 
-        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new EnumMap<>(RefBookType.class);
         result.put(RefBookType.DEFAULT, getDefaultStrategies());
         result.put(RefBookType.UNVERSIONED, getUnversionedStrategies());
 
