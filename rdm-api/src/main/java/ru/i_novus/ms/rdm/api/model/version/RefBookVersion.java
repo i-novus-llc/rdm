@@ -25,7 +25,7 @@ public class RefBookVersion {
     private String code;
 
     @ApiModelProperty("Тип справочника")
-    private RefBookType type;
+    private RefBookType type = RefBookType.DEFAULT;
 
     @ApiModelProperty("Категория")
     private String category;

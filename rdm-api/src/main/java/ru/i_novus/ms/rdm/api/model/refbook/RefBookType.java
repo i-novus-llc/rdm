@@ -9,6 +9,7 @@ import java.util.Map;
 @SuppressWarnings("I-novus:EnumName")
 public enum RefBookType {
 
+    DEFAULT,        // По умолчанию
     UNVERSIONED     // Неверсионный
     ;
 
@@ -21,6 +22,6 @@ public enum RefBookType {
 
     public static RefBookType fromValue(String value) {
 
-        return value != null ? TYPE_MAP.get(value) : null;
+        return value != null ? TYPE_MAP.get(value) : RefBookType.DEFAULT;
     }
 }

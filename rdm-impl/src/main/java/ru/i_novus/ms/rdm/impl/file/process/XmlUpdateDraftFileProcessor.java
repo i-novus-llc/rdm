@@ -45,19 +45,23 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     public Map<String, Object> getPassport(){
-        if(passportProcessed) {
+
+        if (passportProcessed)
             return passport;
-        }
+
         try {
             if (reader.hasNext()) {
                 if (reader.peek().isStartDocument())
                     reader.nextEvent();
 
                 XMLEvent curEvent = null;
-                while (reader.peek() != null && !(XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
+                while (reader.peek() != null &&
+                        !(XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
                     curEvent = reader.nextEvent();
                 }
-                if (curEvent == null || reader.peek() == null || XmlParseUtils.isStartElementWithName(reader.peek(), STRUCTURE_TAG_NAME) || XmlParseUtils.isStartElementWithName(reader.peek(), DATA_TAG_NAME))
+                if (curEvent == null || reader.peek() == null ||
+                        XmlParseUtils.isStartElementWithName(reader.peek(), STRUCTURE_TAG_NAME) ||
+                        XmlParseUtils.isStartElementWithName(reader.peek(), DATA_TAG_NAME))
                     return null;
 
                 passport = new LinkedHashMap<>();
@@ -68,6 +72,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
             throw new FileContentException(e);
         }
         passportProcessed = true;
+
         return passport;
     }
 
@@ -148,10 +153,12 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     protected Pair<Structure, Map<String, List<AttributeValidation>>> getStructureAndValidations() {
+
         if (reader.hasNext()) {
             try {
                 XMLEvent curEvent = reader.peek();
-                while (curEvent != null && !(XmlParseUtils.isStartElementWithName(curEvent, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
+                while (curEvent != null &&
+                        !(XmlParseUtils.isStartElementWithName(curEvent, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
                     reader.nextEvent();
                     curEvent = reader.peek();
                 }
