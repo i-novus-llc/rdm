@@ -16,9 +16,11 @@ public class UnversionedCreateFirstVersionStrategy extends DefaultCreateFirstVer
     private VersionNumberStrategy versionNumberStrategy;
 
     @Override
-    public RefBookVersionEntity create(RefBookEntity refBookEntity, RefBookCreateRequest request) {
+    protected RefBookVersionEntity createEntity(RefBookCreateRequest request,
+                                                RefBookEntity refBookEntity,
+                                                String storageCode) {
 
-        RefBookVersionEntity entity = super.create(refBookEntity, request);
+        RefBookVersionEntity entity = super.createEntity(request, refBookEntity, storageCode);
         entity.setStatus(RefBookVersionStatus.PUBLISHED);
         entity.setVersion(versionNumberStrategy.first());
         entity.setFromDate(TimeUtils.now());

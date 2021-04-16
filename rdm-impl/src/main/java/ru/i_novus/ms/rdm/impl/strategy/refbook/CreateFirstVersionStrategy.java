@@ -7,5 +7,7 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
 public interface CreateFirstVersionStrategy extends Strategy {
 
-    RefBookVersionEntity create(RefBookEntity refBookEntity, RefBookCreateRequest request);
+    RefBookVersionEntity create(RefBookCreateRequest request,
+                                RefBookEntity refBookEntity,
+                                String storageCode);
 }

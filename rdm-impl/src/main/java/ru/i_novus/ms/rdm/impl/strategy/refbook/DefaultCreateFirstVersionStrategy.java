@@ -1,19 +1,34 @@
 package ru.i_novus.ms.rdm.impl.strategy.refbook;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.toPassportValues;
 
 @Component
 public class DefaultCreateFirstVersionStrategy implements CreateFirstVersionStrategy {
 
+    @Autowired
+    private RefBookVersionRepository versionRepository;
+
     @Override
-    public RefBookVersionEntity create(RefBookEntity refBookEntity, RefBookCreateRequest request) {
+    public RefBookVersionEntity create(RefBookCreateRequest request,
+                                       RefBookEntity refBookEntity,
+                                       String storageCode) {
+
+        RefBookVersionEntity entity = createEntity(request, refBookEntity, storageCode);
+        return saveEntity(entity);
+    }
+
+    protected RefBookVersionEntity createEntity(RefBookCreateRequest request,
+                                                RefBookEntity refBookEntity,
+                                                String storageCode) {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setRefBook(refBookEntity);
@@ -24,7 +39,12 @@ public class DefaultCreateFirstVersionStrategy implements CreateFirstVersionStra
         }
 
         entity.setStructure(new Structure());
+        entity.setStorageCode(storageCode);
 
         return entity;
+    }
+
+    protected RefBookVersionEntity saveEntity(RefBookVersionEntity entity) {
+        return versionRepository.save(entity);
     }
 }

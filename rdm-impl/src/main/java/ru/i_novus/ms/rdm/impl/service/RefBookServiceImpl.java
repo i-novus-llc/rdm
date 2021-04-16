@@ -184,24 +184,22 @@ public class RefBookServiceImpl implements RefBookService {
     public RefBook create(RefBookCreateRequest request) {
 
         final RefBookType refBookType = request.getType();
-        getStrategy(refBookType, RefBookCreateValidationStrategy.class).validate(request.getCode());
+        getStrategy(refBookType, RefBookCreateValidationStrategy.class)
+                .validate(request.getCode());
 
-        RefBookEntity refBookEntity = getStrategy(refBookType, CreateRefBookEntityStrategy.class).create(request);
-        refBookEntity = refBookRepository.save(refBookEntity);
-
-        RefBookVersionEntity versionEntity = getStrategy(refBookType, CreateFirstVersionStrategy.class)
-                .create(refBookEntity, request);
+        RefBookEntity refBookEntity = getStrategy(refBookType, CreateRefBookEntityStrategy.class)
+                .create(request);
 
         String storageCode = getStrategy(refBookType, CreateFirstDataDraftStrategy.class).create();
-        versionEntity.setStorageCode(storageCode);
+        RefBookVersionEntity versionEntity = getStrategy(refBookType, CreateFirstVersionStrategy.class)
+                .create(request, refBookEntity, storageCode);
 
-        RefBookVersionEntity savedEntity = versionRepository.save(versionEntity);
-        RefBook refBook = refBookModel(savedEntity, false,
-            getSourceTypeVersion(savedEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
-            getSourceTypeVersion(savedEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
+        RefBook refBook = refBookModel(versionEntity, false,
+            getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
+            getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
         );
 
-        auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> savedEntity);
+        auditLogService.addAction(AuditAction.CREATE_REF_BOOK, () -> versionEntity);
 
         return refBook;
     }
