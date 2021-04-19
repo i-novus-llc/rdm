@@ -38,6 +38,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
     public static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    public static final String REFBOOK_WITH_CODE_IS_ARCHIVED_EXCEPTION_CODE = "refbook.with.code.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
