@@ -92,17 +92,6 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Общая проверка черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraft(Integer draftId) {
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
-    }
-
-    /**
      * Проверка кода справочника.
      *
      * @param refBookCode код справочника
@@ -150,6 +139,7 @@ public class VersionValidationImpl implements VersionValidation {
      * @param refBookCode код справочника
      */
     @Override
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     public void validateRefBookCodeNotExists(String refBookCode) {
 
         if (StringUtils.isEmpty(refBookCode)
@@ -255,20 +245,17 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования атрибута версии справочника.
+     * Проверка существования атрибута черновика справочника.
      *
-     * @param versionId идентификатор версии
+     * @param draftId   идентификатор черновика
+     * @param structure структура черновика
      * @param attribute код атрибута
      */
     @Override
-    public void validateDraftAttributeExists(Integer versionId, String attribute) {
+    public void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute) {
 
-        validateDraftExists(versionId);
-
-        Structure structure = versionRepository.getOne(versionId).getStructure();
-        if (structure.getAttribute(attribute) == null) {
-            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
-        }
+        if (structure.getAttribute(attribute) == null)
+            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, draftId, attribute));
     }
 
     /** Проверка структуры.
