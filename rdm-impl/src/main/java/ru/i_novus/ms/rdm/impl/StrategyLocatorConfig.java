@@ -30,7 +30,7 @@ public class StrategyLocatorConfig {
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
 
     @Autowired
-    private DefaultFileVersionStrategy defaultSaveFileStrategy;
+    private DefaultFileVersionStrategy defaultFileVersionStrategy;
 
     @Autowired
     private DefaultFilePathStrategy defaultFilePathStrategy;
@@ -68,7 +68,7 @@ public class StrategyLocatorConfig {
         result.put(CreateRefBookEntityStrategy.class, defaultCreateRefBookEntityStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
-        result.put(FileVersionStrategy.class, defaultSaveFileStrategy);
+        result.put(FileVersionStrategy.class, defaultFileVersionStrategy);
         result.put(FilePathStrategy.class, defaultFilePathStrategy);
 
         return result;
