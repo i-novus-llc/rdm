@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.impl.entity.RefBookOperationEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookOperationRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
@@ -25,7 +24,9 @@ import java.nio.file.StandardOpenOption;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -158,15 +159,6 @@ public class RefBookLockServiceImpl implements RefBookLockService {
                 logger.error("Lock with id {} was not deleted from database.", lockId);
             }
         }
-    }
-
-    @Override
-    public void validateRefBookNotBusyByVersionId(Integer versionId) {
-        Optional<RefBookVersionEntity> versionEntity = versionRepository.findById(versionId);
-        versionEntity.ifPresent(
-                refBookVersionEntity ->
-                        validateRefBookNotBusyByRefBookId(refBookVersionEntity.getRefBook().getId())
-        );
     }
 
     @Override
