@@ -703,7 +703,7 @@ public class DraftServiceImpl implements DraftService {
         getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
         getStrategy(draftEntity, ValidateDraftNotArchivedStrategy.class).validate(draftEntity);
 
-        refBookLockService.validateRefBookNotBusyByRefBookId(draftEntity.getRefBook().getId());
+        refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         removeDraft(draftEntity);
     }
 
@@ -743,7 +743,7 @@ public class DraftServiceImpl implements DraftService {
         getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
         getStrategy(draftEntity, ValidateDraftNotArchivedStrategy.class).validate(draftEntity);
 
-        refBookLockService.validateRefBookNotBusyByRefBookId(draftEntity.getRefBook().getId());
+        refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
@@ -791,7 +791,7 @@ public class DraftServiceImpl implements DraftService {
         getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
         getStrategy(draftEntity, ValidateDraftNotArchivedStrategy.class).validate(draftEntity);
 
-        refBookLockService.validateRefBookNotBusyByRefBookId(draftEntity.getRefBook().getId());
+        refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
@@ -906,7 +906,7 @@ public class DraftServiceImpl implements DraftService {
         getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
         getStrategy(draftEntity, ValidateDraftNotArchivedStrategy.class).validate(draftEntity);
 
-        refBookLockService.validateRefBookNotBusyByRefBookId(draftEntity.getRefBook().getId());
+        refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
 
         Structure structure = draftEntity.getStructure();
