@@ -17,6 +17,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.VersionService;
@@ -30,6 +31,11 @@ import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
 import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -119,6 +125,12 @@ public class DraftServiceTest {
     @Mock
     private RefBookConflictRepository conflictRepository;
 
+    @Mock
+    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
+
+    @Mock
+    private ValidateDraftNotArchivedStrategy validateDraftNotArchivedStrategy;
+
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
 
@@ -157,6 +169,9 @@ public class DraftServiceTest {
 
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
         when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
+
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
 
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("draftDataService"), draftDataService);
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("searchDataService"), searchDataService);
@@ -302,6 +317,7 @@ public class DraftServiceTest {
 
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
         when(versionRepository.getOne(draftId)).thenReturn(versionWithStructure);
+        when(versionRepository.findById(draftId)).thenReturn(Optional.of(versionWithStructure));
 
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
 
@@ -321,7 +337,7 @@ public class DraftServiceTest {
     public void testRemoveDraft() {
 
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity(REFBOOK_ID);
-        when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
+        when(versionRepository.findById(draftEntity.getId())).thenReturn(Optional.of(draftEntity));
 
         draftService.remove(draftEntity.getId());
 
@@ -333,7 +349,7 @@ public class DraftServiceTest {
 
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
         final Integer draftId = draftEntity.getId();
-        when(versionRepository.getOne(eq(draftId))).thenReturn(draftEntity);
+        when(versionRepository.findById(eq(draftId))).thenReturn(Optional.of(draftEntity));
         when(versionService.getStructure(eq(draftId))).thenReturn(draftEntity.getStructure());
 
         doCallRealMethod().when(versionValidation).validateAttribute(any());
@@ -531,11 +547,12 @@ public class DraftServiceTest {
 
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
         final Integer draftId = draftEntity.getId();
+
         String draftTable = draftEntity.getStorageCode();
         String draftTableWithData = draftTable + "_with_data";
         draftEntity.setStorageCode(draftTableWithData);
 
-        when(versionRepository.getOne(eq(draftId))).thenReturn(draftEntity);
+        when(versionRepository.findById(draftId)).thenReturn(Optional.of(draftEntity));
         when(versionService.getStructure(eq(draftId))).thenReturn(draftEntity.getStructure());
 
         when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
@@ -618,6 +635,7 @@ public class DraftServiceTest {
 
         when(searchDataService.getPagedData(any())).thenReturn(pagedData);
         when(versionRepository.getOne(draft.getId())).thenReturn(draft);
+        when(versionRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
         when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
 
         Map<String, Object> map = new HashMap<>();
@@ -829,5 +847,22 @@ public class DraftServiceTest {
             return e.getMessage();
 
         return null;
+    }
+
+    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
+        result.put(ValidateDraftNotArchivedStrategy.class, validateDraftNotArchivedStrategy);
+
+        return result;
     }
 }
