@@ -252,12 +252,11 @@ public class RefBookServiceImpl implements RefBookService {
 
         final Integer versionId = request.getVersionId();
         versionValidation.validateVersion(versionId);
-        refBookLockService.validateRefBookNotBusyByVersionId(versionId);
-
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), request.getOptLockValue());
 
         RefBookEntity refBookEntity = versionEntity.getRefBook();
+        refBookLockService.validateRefBookNotBusyByRefBookId(refBookEntity.getId());
+        versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), request.getOptLockValue());
 
         final String newCode = request.getCode();
         if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
