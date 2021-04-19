@@ -15,6 +15,7 @@ import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RowValuePage;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
@@ -32,6 +33,9 @@ import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.FileVersionStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -74,6 +78,7 @@ public class VersionServiceImpl implements VersionService {
     private VersionFileService versionFileService;
 
     private AuditLogService auditLogService;
+    private StrategyLocator strategyLocator;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -81,7 +86,8 @@ public class VersionServiceImpl implements VersionService {
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               VersionFileRepository versionFileRepository, VersionFileService versionFileService,
-                              AuditLogService auditLogService) {
+                              AuditLogService auditLogService,
+                              StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
@@ -93,6 +99,7 @@ public class VersionServiceImpl implements VersionService {
         this.versionFileService = versionFileService;
 
         this.auditLogService = auditLogService;
+        this.strategyLocator = strategyLocator;
     }
 
     @Override
@@ -311,16 +318,15 @@ public class VersionServiceImpl implements VersionService {
         if (path == null || !fileStorage.isExistContent(path))
             throw new RdmException("cannot generate file");
 
-        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionModel.getId(), fileType);
-        if (fileEntity == null && !versionModel.isDraft()) {
-            RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-            versionEntity.setId(versionModel.getId());
-
-            fileEntity = new VersionFileEntity(versionEntity, fileType, path);
-            versionFileRepository.save(fileEntity);
-        }
+        getStrategy(version.getRefBook().getType(), FileVersionStrategy.class)
+                .save(versionModel, fileType, path);
 
         return path;
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(refBookType, strategy);
     }
 
     private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
