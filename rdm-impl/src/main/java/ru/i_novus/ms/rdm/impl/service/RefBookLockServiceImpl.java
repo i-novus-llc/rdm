@@ -13,7 +13,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.impl.entity.RefBookOperationEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookOperationRepository;
-import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -48,13 +47,10 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     private static final String DEFAULT_USER = "admin";
 
     private RefBookOperationRepository operationRepository;
-    private RefBookVersionRepository versionRepository;
 
     @Autowired
-    public RefBookLockServiceImpl(RefBookOperationRepository operationRepository,
-                                  RefBookVersionRepository versionRepository) {
+    public RefBookLockServiceImpl(RefBookOperationRepository operationRepository) {
         this.operationRepository = operationRepository;
-        this.versionRepository = versionRepository;
     }
 
     @PostConstruct
@@ -108,21 +104,28 @@ public class RefBookLockServiceImpl implements RefBookLockService {
         addRefBookOperation(refBookId, RefBookOperation.UPDATING);
     }
 
+    @SuppressWarnings("java:S2139")
     private void addRefBookOperation(Integer refBookId, RefBookOperation operation) {
+
         if (LOCKS_COUNTER.get() == null) {
-            validateRefBookNotBusyByRefBookId(refBookId);
+            validateRefBookNotBusy(refBookId);
             String lockId = UUID.randomUUID().toString();
+
             WRITE_WAL_LOCK.lock();
             try {
                 Files.write(WAL_PATH, (LOCK_ACQUIRED + " " + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
+
             } catch (IOException e) {
                 logger.error("Can't acquire lock due to IO exception.", e);
                 throw new RdmException(e);
+
             } finally {
                 WRITE_WAL_LOCK.unlock();
             }
+
             operationRepository.save(new RefBookOperationEntity(refBookId, operation, lockId, DEFAULT_USER));
             LOCKS_COUNTER.set(Pair.of(lockId, 1));
+
         } else {
             int locksAcquired = LOCKS_COUNTER.get().getSecond();
             LOCKS_COUNTER.set(Pair.of(LOCKS_COUNTER.get().getFirst(), locksAcquired + 1));
@@ -162,11 +165,12 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     }
 
     @Override
-    public void validateRefBookNotBusyByRefBookId(Integer refBookId) {
+    public void validateRefBookNotBusy(Integer refBookId) {
 
         RefBookOperationEntity refBookOperationEntity;
         try {
             refBookOperationEntity = operationRepository.findByRefBookId(refBookId);
+
         } catch (Exception e) {
             logger.error("Error occurred on database level while trying to acquire exclusive lock.", e);
             throw new UserException(new Message("refbook.lock.cannot-be-acquired", refBookId));

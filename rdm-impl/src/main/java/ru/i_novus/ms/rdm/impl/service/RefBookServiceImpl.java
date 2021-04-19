@@ -255,7 +255,7 @@ public class RefBookServiceImpl implements RefBookService {
         RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
 
         RefBookEntity refBookEntity = versionEntity.getRefBook();
-        refBookLockService.validateRefBookNotBusyByRefBookId(refBookEntity.getId());
+        refBookLockService.validateRefBookNotBusy(refBookEntity.getId());
         versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), request.getOptLockValue());
 
         final String newCode = request.getCode();
@@ -285,7 +285,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void delete(int refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
-        refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
+        refBookLockService.validateRefBookNotBusy(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
