@@ -33,10 +33,19 @@ public class StrategyLocatorConfig {
     private DefaultFileVersionStrategy defaultSaveFileStrategy;
 
     @Autowired
+    private DefaultFilePathStrategy defaultFilePathStrategy;
+
+    @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
+
+    @Autowired
+    private UnversionedFileVersionStrategy unversionedFileVersionStrategy;
+
+    @Autowired
+    private UnversionedFilePathStrategy unversionedFilePathStrategy;
 
     @Bean
     public StrategyLocator strategyLocator() {
@@ -60,6 +69,7 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
         result.put(FileVersionStrategy.class, defaultSaveFileStrategy);
+        result.put(FilePathStrategy.class, defaultFilePathStrategy);
 
         return result;
     }
@@ -69,6 +79,8 @@ public class StrategyLocatorConfig {
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(CreateFirstVersionStrategy.class, unversionedCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
+        result.put(FileVersionStrategy.class, unversionedFileVersionStrategy);
+        result.put(FilePathStrategy.class, unversionedFilePathStrategy);
 
         return result;
     }

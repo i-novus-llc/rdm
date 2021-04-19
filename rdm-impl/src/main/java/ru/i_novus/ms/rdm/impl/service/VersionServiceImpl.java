@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -29,12 +28,12 @@ import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.FilePathStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.FileVersionStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -47,8 +46,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriter
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -307,16 +304,8 @@ public class VersionServiceImpl implements VersionService {
 
         RefBookVersion versionModel = ModelGenerator.versionModel(version);
 
-        String path;
-        try (InputStream is = generateVersionFile(versionModel, fileType)) {
-            path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
-
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
-
-        if (path == null || !fileStorage.isExistContent(path))
-            throw new RdmException("cannot generate file");
+        String path = getStrategy(version.getRefBook().getType(), FilePathStrategy.class)
+                .getPath(versionModel, fileType);
 
         getStrategy(version.getRefBook().getType(), FileVersionStrategy.class)
                 .save(versionModel, fileType, path);
@@ -327,12 +316,6 @@ public class VersionServiceImpl implements VersionService {
     private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
 
         return strategyLocator.getStrategy(refBookType, strategy);
-    }
-
-    private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
-
-        VersionDataIterator dataIterator = new VersionDataIterator(this, Collections.singletonList(versionModel.getId()));
-        return versionFileService.generate(versionModel, fileType, dataIterator);
     }
 
     /**
