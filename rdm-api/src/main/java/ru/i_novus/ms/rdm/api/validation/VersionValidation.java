@@ -10,8 +10,6 @@ public interface VersionValidation {
 
     void validateVersion(Integer versionId);
 
-    void validateDraft(Integer draftId);
-
     void validateRefBookCode(String refBookCode);
 
     void validateRefBookExists(Integer refBookId);
@@ -30,7 +28,7 @@ public interface VersionValidation {
 
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);
 
-    void validateDraftAttributeExists(Integer versionId, String attribute);
+    void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute);
 
     void validateStructure(Structure structure);
 
