@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.DefaultFileVersionStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
@@ -44,9 +43,6 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedFileVersionStrategy unversionedFileVersionStrategy;
 
-    @Autowired
-    private UnversionedFilePathStrategy unversionedFilePathStrategy;
-
     @Bean
     public StrategyLocator strategyLocator() {
         return new BaseStrategyLocator(getStrategiesMap());
@@ -80,7 +76,6 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstVersionStrategy.class, unversionedCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
         result.put(FileVersionStrategy.class, unversionedFileVersionStrategy);
-        result.put(FilePathStrategy.class, unversionedFilePathStrategy);
 
         return result;
     }
