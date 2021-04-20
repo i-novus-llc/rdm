@@ -18,20 +18,20 @@ public class UnversionedValidateDraftExistsStrategyTest {
     private UnversionedValidateDraftExistsStrategy strategy;
 
     @Test
-    public void testValidateUnversioned() {
+    public void testValidate() {
 
         RefBookVersionEntity entity = createVersionEntity();
 
-        testValidateUnversioned(entity);
+        testValidate(entity);
 
         entity.setStatus(RefBookVersionStatus.DRAFT);
-        testValidateUnversioned(entity);
+        testValidate(entity);
 
         entity.setStatus(RefBookVersionStatus.PUBLISHED);
-        testValidateUnversioned(entity);
+        testValidate(entity);
     }
 
-    private void testValidateUnversioned(RefBookVersionEntity entity) {
+    private void testValidate(RefBookVersionEntity entity) {
         try {
             strategy.validate(entity);
 
