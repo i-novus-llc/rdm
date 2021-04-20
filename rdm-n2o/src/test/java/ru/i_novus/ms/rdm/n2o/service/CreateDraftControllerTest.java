@@ -8,12 +8,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
@@ -25,6 +27,10 @@ import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
+import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
+import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -75,10 +81,18 @@ public class CreateDraftControllerTest extends BaseTest {
     @Mock
     private DataRecordController dataRecordController;
 
+    @Mock
+    private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
+    @Mock
+    private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
+
     @Before
     @SuppressWarnings("java:S2696")
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException {
         JsonUtil.jsonMapper = objectMapper;
+
+        final UiStrategyLocator strategyLocator = new BaseUiStrategyLocator(getStrategies());
+        FieldSetter.setField(controller, CreateDraftController.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test
@@ -99,8 +113,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, passport);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<RefBookUpdateRequest> captor = ArgumentCaptor.forClass(RefBookUpdateRequest.class);
         verify(refBookService, times(1)).update(captor.capture());
@@ -126,10 +143,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
     }
 
     @Test
@@ -139,11 +157,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(null);
-        when(draftService.createFromVersion(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
     }
 
     @Test
@@ -153,8 +171,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .createAttribute(eq(TEST_REFBOOK_VERSION_ID), eq(TEST_OPT_LOCK_VALUE), any(FormAttribute.class));
@@ -167,10 +188,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .createAttribute(eq(TEST_REFBOOK_DRAFT_ID), eq(TEST_DRAFT_OPT_LOCK_VALUE), any(FormAttribute.class));
@@ -183,8 +205,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .updateAttribute(eq(TEST_REFBOOK_VERSION_ID), eq(TEST_OPT_LOCK_VALUE), any(FormAttribute.class));
@@ -197,10 +222,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .updateAttribute(eq(TEST_REFBOOK_DRAFT_ID), eq(TEST_DRAFT_OPT_LOCK_VALUE), any(FormAttribute.class));
@@ -213,8 +239,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .deleteAttribute(eq(TEST_REFBOOK_VERSION_ID), eq(TEST_OPT_LOCK_VALUE), eq(NAME_ATTRIBUTE_CODE));
@@ -227,10 +256,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
                 .deleteAttribute(eq(TEST_REFBOOK_DRAFT_ID), eq(TEST_DRAFT_OPT_LOCK_VALUE), eq(NAME_ATTRIBUTE_CODE));
@@ -264,19 +294,26 @@ public class CreateDraftControllerTest extends BaseTest {
                     .thenReturn(new PageImpl<>(emptyList(), criteria, 1));
         }
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         verify(dataRecordController, times(1))
                 .updateData(eq(TEST_REFBOOK_VERSION_ID), eq(TEST_OPT_LOCK_VALUE), any(Row.class));
     }
 
     @Test
+    @SuppressWarnings("java:S5778")
     public void testCreateDataRecordFailed() {
 
         RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
+
+        UiDraft uiDraft = new UiDraft( version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         Row row = createRow(null);
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version.getStructure());
@@ -301,9 +338,12 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         Row row = createRow(1L);
         UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         verify(dataRecordController, times(1))
                 .updateData(eq(TEST_REFBOOK_VERSION_ID), eq(TEST_OPT_LOCK_VALUE), any(Row.class));
@@ -316,7 +356,8 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         RefBookRowValue oldRowValue = createRowValue();
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
@@ -329,7 +370,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
         Row row = createRow(1L);
         UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         verify(dataRecordController, times(1))
                 .updateData(eq(TEST_REFBOOK_DRAFT_ID), eq(TEST_DRAFT_OPT_LOCK_VALUE), any(Row.class));
@@ -344,6 +385,7 @@ public class CreateDraftControllerTest extends BaseTest {
         testUpdateDataRecordFailed(createEmptyRow(1L));
     }
 
+    @SuppressWarnings("java:S5778")
     private void testUpdateDataRecordFailed(Row row) {
 
         try {
@@ -363,8 +405,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_SYSTEM_ID);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
         verify(draftService, times(1))
@@ -389,7 +434,8 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         RefBookRowValue oldRowValue = createRowValue();
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
@@ -401,7 +447,7 @@ public class CreateDraftControllerTest extends BaseTest {
                 .thenReturn(new PageImpl<>(List.of(newRowValue), new SearchDataCriteria(), 1));
 
         UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, oldRowValue.getSystemId());
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
         verify(draftService, times(1))
@@ -426,8 +472,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
         verify(draftService, times(1))
@@ -445,10 +494,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        when(draftService.findDraft(eq(TEST_REFBOOK_CODE))).thenReturn(createDraft());
+        UiDraft uiDraft = createUiDraft();
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
         UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
-        assertEquals(createUiDraft(), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
         verify(draftService, times(1))
@@ -607,5 +657,22 @@ public class CreateDraftControllerTest extends BaseTest {
         longRowValue.setHash(TEST_ROW_VALUE_HASH);
 
         return new RefBookRowValue(longRowValue, TEST_REFBOOK_VERSION_ID);
+    }
+
+    private Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
+
+        Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends UiStrategy>, UiStrategy> getDefaultStrategies() {
+
+        Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
+        result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
+        result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
+
+        return result;
     }
 }

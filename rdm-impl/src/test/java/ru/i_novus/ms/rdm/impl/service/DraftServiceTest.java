@@ -127,7 +127,6 @@ public class DraftServiceTest {
 
     @Mock
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
-
     @Mock
     private ValidateDraftNotArchivedStrategy validateDraftNotArchivedStrategy;
 
