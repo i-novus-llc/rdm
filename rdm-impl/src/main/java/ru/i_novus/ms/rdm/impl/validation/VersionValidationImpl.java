@@ -2,9 +2,9 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 // Выделить RefBookValidation с refbookRepository.
@@ -497,7 +496,8 @@ public class VersionValidationImpl implements VersionValidation {
      */
     public boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                                    List<Structure.Attribute> primaries2) {
-        return !isEmpty(primaries1) && !isEmpty(primaries2)
+        return !CollectionUtils.isEmpty(primaries1) &&
+                !CollectionUtils.isEmpty(primaries2)
                 && primaries1.size() == primaries2.size()
                 && primaries1.stream().allMatch(primary1 -> containsPrimary(primaries2, primary1));
     }
