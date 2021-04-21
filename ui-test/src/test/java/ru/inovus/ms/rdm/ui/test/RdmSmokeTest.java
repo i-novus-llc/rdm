@@ -6,9 +6,12 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.collection.Fields;
+import net.n2oapp.framework.autotest.api.collection.Toolbar;
 import net.n2oapp.framework.autotest.api.component.button.StandardButton;
 import net.n2oapp.framework.autotest.api.component.field.StandardField;
+import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.api.component.region.TabsRegion;
+import net.n2oapp.framework.autotest.api.component.widget.table.TableWidget;
 import net.n2oapp.framework.autotest.impl.component.button.N2oDropdownButton;
 import net.n2oapp.framework.autotest.impl.component.control.*;
 import net.n2oapp.framework.autotest.impl.component.page.N2oPage;
@@ -21,12 +24,14 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.ui.test.custom.component.widget.CustomModalFormWidget;
-import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
+import ru.inovus.ms.rdm.ui.test.custom.component.widget.CustomModalFormWidget;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.N2oTableWidgetWrapper;
+import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.model.RefBookCreateModel;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
 
@@ -47,6 +52,9 @@ class RdmSmokeTest {
     private static final long LOADING_TIME = TimeUnit.MINUTES.toMillis(1);
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
+    private RefBookCreateModel refBookCreateModel;
+    private List<RefBookField> refBookFields;
+
     @BeforeAll
     public static void setUp() {
         Configuration.baseUrl = RDM_BASE_URL;
@@ -55,6 +63,12 @@ class RdmSmokeTest {
     @AfterAll
     public static void tearDown() {
         Selenide.closeWebDriver();
+    }
+
+    @BeforeEach
+    public void init() {
+        refBookCreateModel = getRefBookCreateModel();
+        refBookFields = getRefBookFields();
     }
 
     @Test
@@ -66,7 +80,7 @@ class RdmSmokeTest {
         page.shouldExists();
 
         // ------------------ Создание справочника ------------------------ //
-        N2oSimplePage refBookCreatePage = createRefBook(page);
+        N2oSimplePage refBookOperationsPage = createRefBook(page);
 
         // ------------------ Редактирование справочника ------------------------ //
         N2oStandardPage refBookEditPage = N2oSelenide.page(N2oStandardPage.class);
@@ -74,56 +88,141 @@ class RdmSmokeTest {
 
         // ------------------ Добавление полей ------------------------ //
         tabsRegion.element().waitUntil(Condition.visible, LOADING_TIME);
-        TabsRegion.TabItem structureTab = tabsRegion
-                .tab(Condition.text("Структура"));
-        structureTab.shouldExists();
-        structureTab.click();
-        createRefBookFields(refBookCreatePage, structureTab);
 
-        CustomModalFormWidget modalForm = refBookCreatePage.widget(CustomModalFormWidget.class);
+        createRefBookFields(refBookOperationsPage, tabsRegion);
+
+        CustomModalFormWidget modalForm = refBookOperationsPage.widget(CustomModalFormWidget.class);
 
         modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
+
         // ------------------ Добавление данных ------------------------ //
-        TabsRegion.TabItem dataTab = tabsRegion.tab(Condition.text("Данные"));
-        dataTab.shouldExists();
-        dataTab.click();
-
-        createRefBookDataRows(refBookCreatePage, dataTab);
+        createRefBookDataRows(refBookOperationsPage, tabsRegion);
 
         modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
 
-        N2oSelenide.open("/", N2oPage.class);
+        // ------------------ Публикация справочника ------------------------ //
+        publishRefBook(refBookOperationsPage);
+
+        // ------------------ Редактирование справочника ------------------------ //
+        N2oTableWidget refBookEditTableWidget = refBookOperationsPage.widget(N2oTableWidget.class);
+
+        TableWidget.Filters filters = refBookEditTableWidget.filters();
+        N2oTableWidgetWrapper n2oTableWidgetWrapper = new N2oTableWidgetWrapper(refBookEditTableWidget);
+        n2oTableWidgetWrapper.waitUntilFilterVisible(Condition.visible, TimeUnit.MINUTES.toMillis(1));
+        filters.shouldBeVisible();
+
+        Fields searchFilterFields = filters.fields();
+        searchFilterFields.field("Название справочника").control(N2oInputText.class).val(refBookCreateModel.getName());
+        searchFilterFields.field("Код справочника").control(N2oInputText.class).val(refBookCreateModel.getCode());
+
+        waitPublished();
+
+        filters.search();
+
+        refBookEditTableWidget.columns().rows().row(0).click();
+        refBookEditTableWidget.toolbar().topLeft().button("Изменить справочник").click();
+
+        editRefBookDataRows(refBookOperationsPage, tabsRegion);
+
+        // ------------------ Публикация справочника ------------------------ //
+        publishRefBook(refBookOperationsPage);
 
         logger.info("Test rdm page success");
     }
 
-    private void createRefBookDataRows(N2oSimplePage refBookCreatePage, TabsRegion.TabItem dataTab) {
+    private void waitPublished() {
+        try {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void editRefBookDataRows(N2oSimplePage refBookOperationsPage, N2oTabsRegion tabsRegion) {
+        TabsRegion.TabItem tabItem = tabsRegion.tab(Condition.text("Данные"));
+
+        tabItem.click();
+
+        N2oTableWidget refBookDataEditTable = tabItem.content().widget(N2oTableWidget.class);
+        refBookDataEditTable.shouldExists();
+
+        Toolbar toolbar = refBookDataEditTable.toolbar().topRight();
+
+        CustomModalFormWidget customModalFormWidget = refBookOperationsPage.widget(CustomModalFormWidget.class);
+        createRefBookDataRow(refBookDataEditTable, customModalFormWidget);
+
+        customModalFormWidget.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
+
+        TableWidget.Rows rows = refBookDataEditTable.columns().rows();
+        rows.row(2).click();
+        toolbar.button("Изменить").click();
+
+        fillFields(customModalFormWidget);
+        customModalFormWidget.save("Изменить");
+
+        customModalFormWidget.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
+
+        rows.row(3).click();
+        toolbar.button("Удалить").click();
+
+        Page.Dialog deleteDialog = refBookOperationsPage.dialog("Удалить");
+        deleteDialog.shouldBeVisible();
+        deleteDialog.click("Да");
+    }
+
+    private void publishRefBook(N2oSimplePage n2oSimplePage) {
+        N2oDropdownButton n2oDropdownButton = n2oSimplePage.widget(N2oFormWidget.class)
+                .toolbar().bottomLeft()
+                .button("Действия", N2oDropdownButton.class);
+        n2oDropdownButton.click();
+        n2oDropdownButton
+                .menuItem("Опубликовать").click();
+
+        n2oSimplePage.dialog("Публикация справочника").shouldBeVisible();
+        n2oSimplePage.dialog("Публикация справочника").click("Опубликовать");
+    }
+
+    private void createRefBookDataRows(N2oSimplePage refBookCreatePage, N2oTabsRegion tabsRegion) {
+        TabsRegion.TabItem dataTab = tabsRegion.tab(Condition.text("Данные"));
+        dataTab.shouldExists();
+        dataTab.click();
         dataTab.shouldBeActive();
         N2oTableWidget refBookDataEditTable = dataTab.content().widget(N2oTableWidget.class);
 
         CustomModalFormWidget modalForm = refBookCreatePage.widget(CustomModalFormWidget.class);
 
         for (int i = 0; i < REF_BOOK_DATA_ROWS_CREATE_COUNT; i++) {
-            StandardButton standardButton = refBookDataEditTable.toolbar().topRight().button("Добавить");
-            modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
-            standardButton.click();
-            for (RefBookField refBookField : getRefBookFields()) {
-                Fields refBookDataFields = modalForm.fields();
-                StandardField field = refBookDataFields.field(refBookField.getName());
-                switch (refBookField.getAttributeTypeName()) {
-                    case STRING -> field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
-                    case INTEGER -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
-                    case DOUBLE -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
-                    case DATE -> field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-                    case BOOLEAN -> field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
-                }
-            }
-            modalForm.save();
+            createRefBookDataRow(refBookDataEditTable, modalForm);
         }
     }
 
-    private void createRefBookFields(N2oSimplePage refBookCreatePage, TabsRegion.TabItem tabItem) {
-        List<RefBookField> refBookFields = getRefBookFields();
+    private void createRefBookDataRow(N2oTableWidget refBookDataEditTable, CustomModalFormWidget modalForm) {
+        StandardButton standardButton = refBookDataEditTable.toolbar().topRight().button("Добавить");
+        modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
+        standardButton.click();
+        fillFields(modalForm);
+        modalForm.save("Сохранить");
+    }
+
+    private void fillFields(CustomModalFormWidget modalForm) {
+        for (RefBookField refBookField : refBookFields) {
+            Fields refBookDataFields = modalForm.fields();
+            StandardField field = refBookDataFields.field(refBookField.getName());
+            switch (refBookField.getAttributeTypeName()) {
+                case STRING -> field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
+                case INTEGER -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
+                case DOUBLE -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
+                case DATE -> field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                case BOOLEAN -> field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
+            }
+        }
+    }
+
+    private void createRefBookFields(N2oSimplePage refBookCreatePage, N2oTabsRegion tabsRegion) {
+        TabsRegion.TabItem tabItem = tabsRegion
+                .tab(Condition.text("Структура"));
+        tabItem.shouldExists();
+        tabItem.click();
         for (RefBookField refBookField : refBookFields) {
             N2oTableWidget refBookStructureEditTable = tabItem.content().widget(N2oTableWidget.class);
 
@@ -145,7 +244,7 @@ class RdmSmokeTest {
             if (refBookField.getPrimaryKey()) {
                 structureModalFormFields.field("Первичный ключ").control(N2oCheckbox.class).setChecked(true);
             }
-            modalForm.save();
+            modalForm.save("Сохранить");
 
             logger.info("Add ref book field with name: \"{}\", type: \"{}\" success", refBookField.getName(),
                     refBookField.getAttributeTypeName().getTranslated());
@@ -189,12 +288,10 @@ class RdmSmokeTest {
     }
 
     private void fillForm(Fields formFields) {
-        RefBookCreateModel refBookCreateModel = getRefBookCreateModel();
         formFields.field("Код").control(N2oInputText.class).val(refBookCreateModel.getCode());
         formFields.field("Наименование").control(N2oInputText.class).val(refBookCreateModel.getName());
         formFields.field("Краткое наименование").control(N2oInputText.class).val(refBookCreateModel.getShortName());
-        //Локально не создается элемент для выпадающего элемента почему то
-//        formFields.field("Категория").control(N2oInputSelect.class).select(0);
+        formFields.field("Категория").control(N2oInputSelect.class).select(0);
         formFields.field("Описание").control(N2oTextArea.class).val(refBookCreateModel.getDescription());
     }
 

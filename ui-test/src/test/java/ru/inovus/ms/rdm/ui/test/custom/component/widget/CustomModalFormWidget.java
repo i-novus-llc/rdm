@@ -24,8 +24,8 @@ public class CustomModalFormWidget extends N2oFormWidget {
         modalContent.waitUntil(condition, timeoutMilliseconds);
     }
 
-    public void save() {
-        button("Сохранить").click();
+    public void save(String label) {
+        button(label).click();
     }
 
     private ElementsCollection buttons() {
