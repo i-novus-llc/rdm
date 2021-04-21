@@ -24,9 +24,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.ui.test.custom.CustomModalFormWidget;
-import ru.inovus.ms.rdm.ui.test.login.FieldType;
-import ru.inovus.ms.rdm.ui.test.login.LoginPage;
+import ru.inovus.ms.rdm.ui.test.custom.component.widget.CustomModalFormWidget;
+import ru.inovus.ms.rdm.ui.test.model.FieldType;
+import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
 import ru.inovus.ms.rdm.ui.test.model.RefBookCreateModel;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
 

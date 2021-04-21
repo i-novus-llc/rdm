@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test.custom;
+package ru.inovus.ms.rdm.ui.test.custom.component.widget;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;

@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test.login;
+package ru.inovus.ms.rdm.ui.test.custom.component.page;
 
 import net.n2oapp.framework.autotest.impl.component.page.N2oPage;
 

@@ -1,7 +1,5 @@
 package ru.inovus.ms.rdm.ui.test.model;
 
-import ru.inovus.ms.rdm.ui.test.login.FieldType;
-
 public class RefBookField {
 
     private final String code;

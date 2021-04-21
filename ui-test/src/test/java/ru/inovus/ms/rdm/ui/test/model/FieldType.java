@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test.login;
+package ru.inovus.ms.rdm.ui.test.model;
 
 public enum FieldType {
 
