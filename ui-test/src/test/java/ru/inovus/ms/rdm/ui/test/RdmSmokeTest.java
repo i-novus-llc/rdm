@@ -40,10 +40,12 @@ class RdmSmokeTest {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSmokeTest.class);
 
-    private static final long LOADING_TIME = TimeUnit.MINUTES.toMillis(1);
     private static final String RDM_BASE_URL = "http://localhost:8080";
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
+
+    private static final long LOADING_TIME = TimeUnit.MINUTES.toMillis(1);
+    private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
     @BeforeAll
     public static void setUp() {
@@ -76,7 +78,7 @@ class RdmSmokeTest {
                 .tab(Condition.text("Структура"));
         structureTab.shouldExists();
         structureTab.click();
-        createFields(refBookCreatePage, structureTab);
+        createRefBookFields(refBookCreatePage, structureTab);
 
         CustomModalFormWidget modalForm = refBookCreatePage.widget(CustomModalFormWidget.class);
 
@@ -101,7 +103,7 @@ class RdmSmokeTest {
 
         CustomModalFormWidget modalForm = refBookCreatePage.widget(CustomModalFormWidget.class);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < REF_BOOK_DATA_ROWS_CREATE_COUNT; i++) {
             StandardButton standardButton = refBookDataEditTable.toolbar().topRight().button("Добавить");
             modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
             standardButton.click();
@@ -109,33 +111,18 @@ class RdmSmokeTest {
                 Fields refBookDataFields = modalForm.fields();
                 StandardField field = refBookDataFields.field(refBookField.getName());
                 switch (refBookField.getAttributeTypeName()) {
-                    case STRING: {
-                        field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
-                        break;
-                    }
-                    case INTEGER: {
-                        field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
-                        break;
-                    }
-                    case DOUBLE: {
-                        field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
-                        break;
-                    }
-                    case DATE: {
-                        field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-                        break;
-                    }
-                    case BOOLEAN: {
-                        field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
-                        break;
-                    }
+                    case STRING -> field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
+                    case INTEGER -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
+                    case DOUBLE -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
+                    case DATE -> field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                    case BOOLEAN -> field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
                 }
             }
             modalForm.save();
         }
     }
 
-    private void createFields(N2oSimplePage refBookCreatePage, TabsRegion.TabItem tabItem) {
+    private void createRefBookFields(N2oSimplePage refBookCreatePage, TabsRegion.TabItem tabItem) {
         List<RefBookField> refBookFields = getRefBookFields();
         for (RefBookField refBookField : refBookFields) {
             N2oTableWidget refBookStructureEditTable = tabItem.content().widget(N2oTableWidget.class);
@@ -155,6 +142,9 @@ class RdmSmokeTest {
             structureModalFormFields.field("Наименование").control(N2oInputText.class).val(refBookField.getName());
             structureModalFormFields.field("Тип").control(N2oSelect.class)
                     .select(Condition.text(refBookField.getAttributeTypeName().getTranslated()));
+            if (refBookField.getPrimaryKey()) {
+                structureModalFormFields.field("Первичный ключ").control(N2oCheckbox.class).setChecked(true);
+            }
             modalForm.save();
 
             logger.info("Add ref book field with name: \"{}\", type: \"{}\" success", refBookField.getName(),
@@ -167,7 +157,11 @@ class RdmSmokeTest {
         FieldType[] fieldTypes = FieldType.values();
         for (FieldType fieldType : fieldTypes) {
             int ordinal = fieldType.ordinal() + 1;
-            list.add(new RefBookField("code" + ordinal, "name" + ordinal, fieldType));
+            RefBookField refBookField = new RefBookField("code" + ordinal, "name" + ordinal, fieldType);
+            if (fieldType.equals(FieldType.STRING)) {
+                refBookField.setPrimaryKey(true);
+            }
+            list.add(refBookField);
         }
         return list;
     }
