@@ -6,7 +6,8 @@ public enum FieldType {
     INTEGER("Целочисленный"),
     DOUBLE("Дробный"),
     DATE("Дата"),
-    BOOLEAN("Логический");
+    BOOLEAN("Логический"),
+    LINKED("Ссылочный");
 
     private final String translated;
 

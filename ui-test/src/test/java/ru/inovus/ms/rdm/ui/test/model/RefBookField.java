@@ -13,14 +13,6 @@ public class RefBookField {
         this.attributeTypeName = attributeTypeName;
     }
 
-    public Boolean getPrimaryKey() {
-        return isPrimaryKey;
-    }
-
-    public void setPrimaryKey(Boolean primaryKey) {
-        isPrimaryKey = primaryKey;
-    }
-
     public String getCode() {
         return code;
     }
@@ -31,5 +23,13 @@ public class RefBookField {
 
     public FieldType getAttributeTypeName() {
         return attributeTypeName;
+    }
+
+    public boolean isPrimaryKey() {
+        return isPrimaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        isPrimaryKey = primaryKey;
     }
 }

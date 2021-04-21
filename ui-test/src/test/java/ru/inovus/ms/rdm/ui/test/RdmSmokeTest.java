@@ -54,6 +54,7 @@ class RdmSmokeTest {
 
     private RefBookCreateModel refBookCreateModel;
     private List<RefBookField> refBookFields;
+    private List<RefBookField> refBookFieldsWithoutLink;
 
     @BeforeAll
     public static void setUp() {
@@ -68,7 +69,8 @@ class RdmSmokeTest {
     @BeforeEach
     public void init() {
         refBookCreateModel = getRefBookCreateModel();
-        refBookFields = getRefBookFields();
+        refBookFields = getRefBookFields(true);
+        refBookFieldsWithoutLink = getRefBookFields(false);
     }
 
     @Test
@@ -89,7 +91,7 @@ class RdmSmokeTest {
         // ------------------ Добавление полей ------------------------ //
         tabsRegion.element().waitUntil(Condition.visible, LOADING_TIME);
 
-        createRefBookFields(refBookOperationsPage, tabsRegion);
+        createRefBookFields(refBookOperationsPage, tabsRegion, refBookFields);
 
         CustomModalFormWidget modalForm = refBookOperationsPage.widget(CustomModalFormWidget.class);
 
@@ -115,7 +117,8 @@ class RdmSmokeTest {
         searchFilterFields.field("Название справочника").control(N2oInputText.class).val(refBookCreateModel.getName());
         searchFilterFields.field("Код справочника").control(N2oInputText.class).val(refBookCreateModel.getCode());
 
-        waitPublished();
+        //ждем пока справочник опубликуется
+        afterLagging();
 
         filters.search();
 
@@ -124,15 +127,23 @@ class RdmSmokeTest {
 
         editRefBookDataRows(refBookOperationsPage, tabsRegion);
 
+        /*
+        сложно определить в какой момент можно перейти к опубликованию справочника
+        может возникнуть ситуация, что строка из данных не удалится перед опубликованием
+         */
+        afterLagging();
+
         // ------------------ Публикация справочника ------------------------ //
         publishRefBook(refBookOperationsPage);
+
+        refBookOperationsPage = createRefBook(page);
 
         logger.info("Test rdm page success");
     }
 
-    private void waitPublished() {
+    private void afterLagging() {
         try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+            Thread.sleep(TimeUnit.SECONDS.toMillis(45));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -218,7 +229,7 @@ class RdmSmokeTest {
         }
     }
 
-    private void createRefBookFields(N2oSimplePage refBookCreatePage, N2oTabsRegion tabsRegion) {
+    private void createRefBookFields(N2oSimplePage refBookCreatePage, N2oTabsRegion tabsRegion, List<RefBookField> refBookFields) {
         TabsRegion.TabItem tabItem = tabsRegion
                 .tab(Condition.text("Структура"));
         tabItem.shouldExists();
@@ -239,10 +250,19 @@ class RdmSmokeTest {
             Fields structureModalFormFields = modalForm.fields();
             structureModalFormFields.field("Код").control(N2oInputText.class).val(refBookField.getCode());
             structureModalFormFields.field("Наименование").control(N2oInputText.class).val(refBookField.getName());
-            structureModalFormFields.field("Тип").control(N2oSelect.class)
-                    .select(Condition.text(refBookField.getAttributeTypeName().getTranslated()));
-            if (refBookField.getPrimaryKey()) {
+            if (refBookField.isPrimaryKey()) {
                 structureModalFormFields.field("Первичный ключ").control(N2oCheckbox.class).setChecked(true);
+            }
+
+            if (refBookField.getAttributeTypeName() == null) {
+                structureModalFormFields.field("Тип").control(N2oSelect.class)
+                        .select(Condition.text("Ссылочный"));
+                N2oInputSelect selectRefBook = structureModalFormFields.field("Выбор справочника").control(N2oInputSelect.class);
+                selectRefBook.expandPopUpOptions();
+                selectRefBook.select(Condition.matchesText(refBookField.getCode()));
+            } else {
+                structureModalFormFields.field("Тип").control(N2oSelect.class)
+                        .select(Condition.text(refBookField.getAttributeTypeName().getTranslated()));
             }
             modalForm.save("Сохранить");
 
@@ -251,7 +271,7 @@ class RdmSmokeTest {
         }
     }
 
-    private List<RefBookField> getRefBookFields() {
+    private List<RefBookField> getRefBookFields(boolean withoutLink) {
         List<RefBookField> list = new ArrayList<>();
         FieldType[] fieldTypes = FieldType.values();
         for (FieldType fieldType : fieldTypes) {
@@ -260,7 +280,14 @@ class RdmSmokeTest {
             if (fieldType.equals(FieldType.STRING)) {
                 refBookField.setPrimaryKey(true);
             }
-            list.add(refBookField);
+
+            if (withoutLink) {
+                if (!refBookField.getAttributeTypeName().equals(FieldType.LINKED)) {
+                    list.add(refBookField);
+                }
+            } else {
+                list.add(refBookField);
+            }
         }
         return list;
     }
