@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -65,7 +64,7 @@ import java.util.function.Supplier;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
@@ -296,8 +295,8 @@ public class DraftServiceImpl implements DraftService {
             passportValues = RefBookVersionEntity.toPassportValues(request.getPassport(), true, null);
         }
 
-        final Structure structure = request.getStructure();
         final String refBookCode = (draftVersion != null ? draftVersion : lastRefBookVersion).getRefBook().getCode();
+        final Structure structure = request.getStructure();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
         if (request.getReferrerValidationRequired())
@@ -323,7 +322,11 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void addValidations(Map<String, List<AttributeValidation>> validations, RefBookVersionEntity entity) {
-        if (validations != null) validations.forEach((attrCode, list) -> list.forEach(validation -> addAttributeValidation(entity.getId(), attrCode, validation)));
+
+        if (!isEmpty(validations))
+            validations.forEach((attrCode, list) ->
+                    list.forEach(validation -> addAttributeValidation(entity.getId(), attrCode, validation))
+            );
     }
 
     @Override
@@ -364,10 +367,12 @@ public class DraftServiceImpl implements DraftService {
             draftVersion.setStorageCode(draftCode);
 
         } else {
-            passportValueRepository.deleteInBatch(draftVersion.getPassportValues());
+            if (!isEmpty(draftVersion.getPassportValues())) {
+                passportValueRepository.deleteInBatch(draftVersion.getPassportValues());
+            }
             deleteDraftAllRows(draftVersion);
 
-            if (passportValues != null) draftVersion.setPassportValues(passportValues);
+            if (!isEmpty(passportValues)) draftVersion.setPassportValues(passportValues);
         }
 
         return draftVersion;
@@ -1034,7 +1039,7 @@ public class DraftServiceImpl implements DraftService {
             if (newAttribute.equalsReferenceDisplayExpression(oldAttribute))
                 return false;
 
-            return BooleanUtils.isTrue(
+            return Boolean.TRUE.equals(
                     conflictRepository.hasReferrerConflict(versionId, newAttribute.getAttribute().getCode(),
                             ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
             );
