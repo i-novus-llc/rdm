@@ -16,8 +16,4 @@ public class DefaultCreateFirstStorageStrategy implements CreateFirstStorageStra
     public String create() {
         return draftDataService.createDraft(emptyList());
     }
-
-    protected DraftDataService getDraftDataService() {
-        return draftDataService;
-    }
 }

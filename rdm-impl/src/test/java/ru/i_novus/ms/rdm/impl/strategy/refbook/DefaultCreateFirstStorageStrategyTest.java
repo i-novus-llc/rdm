@@ -33,10 +33,4 @@ public class DefaultCreateFirstStorageStrategyTest {
         verify(draftDataService).createDraft(eq(emptyList()));
         verifyNoMoreInteractions(draftDataService);
     }
-
-    @Test
-    public void testGetDraftDataService() {
-
-        assertEquals(draftDataService, strategy.getDraftDataService());
-    }
 }
