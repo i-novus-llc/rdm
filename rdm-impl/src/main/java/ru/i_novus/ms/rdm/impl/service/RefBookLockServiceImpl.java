@@ -135,26 +135,33 @@ public class RefBookLockServiceImpl implements RefBookLockService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteRefBookOperation(Integer refBookId) {
+
         int locksAcquired = LOCKS_COUNTER.get() == null ? 0 : LOCKS_COUNTER.get().getSecond();
         if (locksAcquired == 0) {
             logger.warn("Current thread {} tries to release non-existent lock.", Thread.currentThread().getName());
             throw new RdmException("No locks acquired.");
         }
+
         LOCKS_COUNTER.set(Pair.of(LOCKS_COUNTER.get().getFirst(), --locksAcquired));
         if (locksAcquired == 0) {
             String lockId = LOCKS_COUNTER.get().getFirst();
+
             int n;
             try {
                 n = operationRepository.deleteByRefBookId(refBookId);
+
             } finally {
                 LOCKS_COUNTER.remove();
             }
+
             if (n == 1) {
                 WRITE_WAL_LOCK.lock();
                 try {
                     Files.write(WAL_PATH, (LOCK_RELEASED + " " + lockId + "\n").getBytes(), StandardOpenOption.APPEND);
+
                 } catch (IOException e) {
                     logger.error("Can't access WAL. Lock release will be silently ignored.", e);
+
                 } finally {
                     WRITE_WAL_LOCK.unlock();
                 }
@@ -184,11 +191,11 @@ public class RefBookLockServiceImpl implements RefBookLockService {
             return;
         }
 
-        if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation())) {
+        if (RefBookOperation.PUBLISHING.equals(refBookOperationEntity.getOperation()))
             throw new UserException(new Message("refbook.lock.draft.is.publishing", refBookId));
-        } else if (RefBookOperation.UPDATING.equals(refBookOperationEntity.getOperation())) {
+
+        if (RefBookOperation.UPDATING.equals(refBookOperationEntity.getOperation()))
             throw new UserException(new Message("refbook.lock.draft.is.updating", refBookId));
-        }
     }
 
 }
