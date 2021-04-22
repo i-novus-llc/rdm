@@ -4,7 +4,6 @@ package ru.inovus.ms.rdm.ui.test;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.collection.Fields;
 import net.n2oapp.framework.autotest.api.collection.Toolbar;
 import net.n2oapp.framework.autotest.api.component.button.StandardButton;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inovus.ms.rdm.ui.test.custom.component.button.StandardButtonWrapper;
 import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
 import ru.inovus.ms.rdm.ui.test.custom.component.widget.CustomModalFormWidget;
 import ru.inovus.ms.rdm.ui.test.custom.wrapper.N2oTableWidgetWrapper;
@@ -40,6 +40,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static net.n2oapp.framework.autotest.N2oSelenide.open;
+import static net.n2oapp.framework.autotest.N2oSelenide.page;
 
 class RdmSmokeTest {
 
@@ -77,7 +80,7 @@ class RdmSmokeTest {
     void testRdmPage() {
         login();
 
-        N2oPage page = N2oSelenide.page(N2oPage.class);
+        N2oPage page = page(N2oPage.class);
 
         page.shouldExists();
 
@@ -95,7 +98,7 @@ class RdmSmokeTest {
 
         TableWidget.Filters filters = refBookEditTableWidget.filters();
         N2oTableWidgetWrapper n2oTableWidgetWrapper = new N2oTableWidgetWrapper(refBookEditTableWidget);
-        n2oTableWidgetWrapper.waitUntilFilterVisible(Condition.visible, TimeUnit.MINUTES.toMillis(1));
+        n2oTableWidgetWrapper.waitUntilFilterVisible(Condition.visible, LOADING_TIME);
         filters.shouldBeVisible();
 
         Fields searchFilterFields = filters.fields();
@@ -112,12 +115,6 @@ class RdmSmokeTest {
 
         editRefBookDataRows(refBookOperationsPage, tabsRegion);
 
-        /*
-        сложно определить в какой момент можно перейти к опубликованию справочника
-        может возникнуть ситуация, что строка из данных не удалится перед опубликованием
-         */
-        pause();
-
         // ------------------ Публикация справочника ------------------------ //
         publishRefBook(refBookOperationsPage);
 
@@ -130,37 +127,37 @@ class RdmSmokeTest {
 
         publishRefBook(refBookOperationsPage);
 
-        pause();
+        open("/", N2oSimplePage.class);
 
         N2oTableWidget widget = refBookOperationsPage.widget(N2oTableWidget.class);
 
         StandardButton deleteRefBook = widget.toolbar().topLeft().button("Удалить справочник");
+        StandardButtonWrapper deleteButtonWrapper = new StandardButtonWrapper(deleteRefBook);
+
+        N2oTableWidgetWrapper n2oTableWidgetWrapper1 = new N2oTableWidgetWrapper(widget);
+
         TableWidget.Rows rows = widget.columns().rows();
 
-        pause();
-
-        deleteRow(refBookOperationsPage, deleteRefBook, rows, 1);
-
-        pause();
-
-        deleteRow(refBookOperationsPage, deleteRefBook, rows, 1);
-
-        pause();
+        for (int i = 0; i < 2; i++) {
+            deleteRow(refBookOperationsPage, deleteButtonWrapper, rows, 1);
+        }
 
         logger.info("Test rdm page success");
     }
 
-    private void deleteRow(N2oSimplePage refBookOperationsPage, StandardButton deleteRefBook, TableWidget.Rows rows, int i) {
+    private void deleteRow(N2oSimplePage refBookOperationsPage, StandardButtonWrapper deleteRefBook, TableWidget.Rows rows, int i) {
+        pause();
         rows.row(i).click();
         deleteRefBook.click();
         Page.Dialog deleteDialog = refBookOperationsPage.dialog("Удалить");
         deleteDialog.shouldBeVisible();
         deleteDialog.click("Да");
+        deleteRefBook.waitUntil(Condition.visible, LOADING_TIME);
     }
 
     private N2oTabsRegion fillDataToRefBook(N2oSimplePage refBookOperationsPage, List<RefBookField> refBookFields) {
         // ------------------ Редактирование справочника ------------------------ //
-        N2oStandardPage refBookEditPage = N2oSelenide.page(N2oStandardPage.class);
+        N2oStandardPage refBookEditPage = page(N2oStandardPage.class);
         N2oTabsRegion tabsRegion = refBookEditPage.regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
 
         // ------------------ Добавление полей ------------------------ //
@@ -211,7 +208,7 @@ class RdmSmokeTest {
 
         customModalFormWidget.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
 
-        deleteRow(refBookOperationsPage, toolbar.button("Удалить"), rows, 3);
+        deleteRow(refBookOperationsPage, new StandardButtonWrapper(toolbar.button("Удалить")), rows, 3);
     }
 
     private void publishRefBook(N2oSimplePage n2oSimplePage) {
@@ -222,7 +219,8 @@ class RdmSmokeTest {
         n2oDropdownButton
                 .menuItem("Опубликовать").click();
 
-        n2oSimplePage.dialog("Публикация справочника").shouldBeVisible();
+        Page.Dialog publishDialog = n2oSimplePage.dialog("Публикация справочника");
+        publishDialog.shouldBeVisible();
         n2oSimplePage.dialog("Публикация справочника").click("Опубликовать");
     }
 
@@ -339,7 +337,7 @@ class RdmSmokeTest {
     }
 
     private N2oSimplePage createRefBook(N2oPage page, RefBookCreateModel refBookCreateModel) {
-        N2oSimplePage refBookCreatePage = N2oSelenide.page(N2oSimplePage.class);
+        N2oSimplePage refBookCreatePage = page(N2oSimplePage.class);
         N2oTableWidget refBookTable = refBookCreatePage
                 .widget(N2oTableWidget.class);
 
@@ -379,7 +377,7 @@ class RdmSmokeTest {
     }
 
     private void login() {
-        LoginPage loginPage = N2oSelenide.open("/", LoginPage.class);
+        LoginPage loginPage = open("/", LoginPage.class);
         loginPage.login(USERNAME, PASSWORD);
         logger.info("User logged in");
     }
