@@ -10,7 +10,12 @@ public class UnversionedValidateDraftExistsStrategy extends DefaultValidateDraft
     @Override
     protected boolean isDraft(RefBookVersionEntity entity) {
 
-        return super.isDraft(entity) ||
+        return super.isDraft(entity) || isUnversioned(entity);
+    }
+
+    protected boolean isUnversioned(RefBookVersionEntity entity) {
+
+        return entity != null &&
                 RefBookType.UNVERSIONED.equals(entity.getRefBook().getType());
     }
 }

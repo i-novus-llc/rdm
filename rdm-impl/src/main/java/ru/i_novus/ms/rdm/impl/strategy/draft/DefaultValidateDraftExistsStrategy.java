@@ -15,13 +15,18 @@ public class DefaultValidateDraftExistsStrategy implements ValidateDraftExistsSt
 
         if (!isDraft(entity)) {
             throw new NotFoundException(
-                    new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, entity.getId())
+                    new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, getId(entity))
             );
         }
     }
 
+    private Integer getId(RefBookVersionEntity entity) {
+        return (entity != null) ? entity.getId() : null;
+    }
+
     protected boolean isDraft(RefBookVersionEntity entity) {
 
-        return RefBookVersionStatus.DRAFT.equals(entity.getStatus());
+        return entity != null &&
+                RefBookVersionStatus.DRAFT.equals(entity.getStatus());
     }
 }
