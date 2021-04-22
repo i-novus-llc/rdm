@@ -115,6 +115,8 @@ class RdmSmokeTest {
 
         editRefBookDataRows(refBookOperationsPage, tabsRegion);
 
+        new N2oTableWidgetWrapper(refBookEditTableWidget).waitUntilTableContentLoaded(Condition.enabled, LOADING_TIME);
+
         // ------------------ Публикация справочника ------------------------ //
         publishRefBook(refBookOperationsPage);
 
@@ -139,6 +141,7 @@ class RdmSmokeTest {
         TableWidget.Rows rows = widget.columns().rows();
 
         for (int i = 0; i < 2; i++) {
+            pause();
             deleteRow(refBookOperationsPage, deleteButtonWrapper, rows, 1);
         }
 
@@ -146,7 +149,6 @@ class RdmSmokeTest {
     }
 
     private void deleteRow(N2oSimplePage refBookOperationsPage, StandardButtonWrapper deleteRefBook, TableWidget.Rows rows, int i) {
-        pause();
         rows.row(i).click();
         deleteRefBook.click();
         Page.Dialog deleteDialog = refBookOperationsPage.dialog("Удалить");
