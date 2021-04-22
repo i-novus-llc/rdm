@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.draft;
+package ru.i_novus.ms.rdm.impl.strategy.version;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
@@ -12,10 +12,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultValidateDraftNotArchivedStrategyTest {
+public class DefaultValidateVersionNotArchivedStrategyTest {
 
     @InjectMocks
-    private DefaultValidateDraftNotArchivedStrategy strategy;
+    private DefaultValidateVersionNotArchivedStrategy strategy;
 
     @Test
     public void testValidate() {

@@ -35,7 +35,7 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftNotArchivedStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -128,7 +128,7 @@ public class DraftServiceTest {
     @Mock
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
     @Mock
-    private ValidateDraftNotArchivedStrategy validateDraftNotArchivedStrategy;
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -860,7 +860,7 @@ public class DraftServiceTest {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
-        result.put(ValidateDraftNotArchivedStrategy.class, validateDraftNotArchivedStrategy);
+        result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
 
         return result;
     }

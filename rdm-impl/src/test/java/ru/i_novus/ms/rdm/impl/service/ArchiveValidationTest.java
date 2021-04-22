@@ -35,7 +35,7 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftNotArchivedStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.service.*;
 
@@ -96,7 +96,7 @@ public class ArchiveValidationTest {
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
 
     @Mock
-    private ValidateDraftNotArchivedStrategy validateDraftNotArchivedStrategy;
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -135,7 +135,7 @@ public class ArchiveValidationTest {
         RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findById(draftId)).thenReturn(Optional.of(draftEntity));
         doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
-                .when(validateDraftNotArchivedStrategy).validate(any());
+                .when(validateVersionNotArchivedStrategy).validate(any());
 
         try {
             executor.execute();
@@ -151,7 +151,7 @@ public class ArchiveValidationTest {
                 .when(versionValidation).validateVersion(eq(versionId));
 
         doNothing()
-                .when(validateDraftNotArchivedStrategy).validate(any());
+                .when(validateVersionNotArchivedStrategy).validate(any());
 
         try {
             executor.execute();
@@ -190,7 +190,7 @@ public class ArchiveValidationTest {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
-        result.put(ValidateDraftNotArchivedStrategy.class, validateDraftNotArchivedStrategy);
+        result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
 
         return result;
     }

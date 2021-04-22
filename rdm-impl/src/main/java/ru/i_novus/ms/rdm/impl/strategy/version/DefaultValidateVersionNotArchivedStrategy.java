@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.draft;
+package ru.i_novus.ms.rdm.impl.strategy.version;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
@@ -7,7 +7,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 
 @Component
-public class DefaultValidateDraftNotArchivedStrategy implements ValidateDraftNotArchivedStrategy {
+public class DefaultValidateVersionNotArchivedStrategy implements ValidateVersionNotArchivedStrategy {
 
     @Override
     public void validate(RefBookVersionEntity entity) {
