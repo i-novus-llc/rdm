@@ -1112,7 +1112,7 @@ public class DraftServiceImpl implements DraftService {
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
 
-        return strategyLocator.getStrategy(entity.getRefBook().getType(), strategy);
+        return strategyLocator.getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
     }
 
     /**

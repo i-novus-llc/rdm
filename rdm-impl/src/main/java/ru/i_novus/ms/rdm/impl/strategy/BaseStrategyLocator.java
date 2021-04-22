@@ -18,7 +18,7 @@ public class BaseStrategyLocator implements StrategyLocator {
     @Override
     public <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
 
-        T result = findStrategy(refBookType, strategy);
+        T result = findStrategy(refBookType != null ? refBookType : RefBookType.DEFAULT, strategy);
 
         if (result == null && !RefBookType.DEFAULT.equals(refBookType)) {
             result = findStrategy(RefBookType.DEFAULT, strategy);

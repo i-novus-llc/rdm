@@ -450,7 +450,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
 
-        return strategyLocator.getStrategy(entity.getRefBook().getType(), strategy);
+        return strategyLocator.getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
     }
 
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {
