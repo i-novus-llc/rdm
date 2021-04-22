@@ -12,10 +12,15 @@ public class DefaultValidateVersionNotArchivedStrategy implements ValidateVersio
     @Override
     public void validate(RefBookVersionEntity entity) {
 
-        if (Boolean.TRUE.equals(entity.getRefBook().getArchived())) {
+        if (isArchived(entity)) {
             throw new UserException(
                     new Message(VersionValidationImpl.REFBOOK_WITH_CODE_IS_ARCHIVED_EXCEPTION_CODE, entity.getRefBook().getCode())
             );
         }
+    }
+
+    private boolean isArchived(RefBookVersionEntity entity) {
+
+        return Boolean.TRUE.equals(entity.getRefBook().getArchived());
     }
 }
