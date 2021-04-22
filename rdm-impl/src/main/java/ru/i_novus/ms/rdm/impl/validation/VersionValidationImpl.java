@@ -80,17 +80,6 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Общая проверка версии справочника.
-     *
-     * @param versionId идентификатор версии
-     */
-    @Override
-    public void validateVersion(Integer versionId) {
-        validateVersionExists(versionId);
-        validateVersionNotArchived(versionId);
-    }
-
-    /**
      * Проверка кода справочника.
      *
      * @param refBookCode код справочника
@@ -198,19 +187,6 @@ public class VersionValidationImpl implements VersionValidation {
 
         if (refBookId != null
                 && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
-        }
-    }
-
-    /**
-     * Проверка наличия версии справочника не в архиве.
-     *
-     * @param versionId идентификатор версии
-     */
-    private void validateVersionNotArchived(Integer versionId) {
-
-        if (versionId != null
-                && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }

@@ -35,6 +35,7 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.service.*;
@@ -93,10 +94,13 @@ public class ArchiveValidationTest {
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     @Mock
-    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
+    private ValidateVersionExistsStrategy validateVersionExistsStrategy;
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+
+    @Mock
+    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -129,11 +133,12 @@ public class ArchiveValidationTest {
 
         doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(versionValidation).validateRefBook(eq(refBookId));
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
-                .when(versionValidation).validateVersion(eq(versionId));
 
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(versionId)).thenReturn(Optional.of(versionEntity));
         RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findById(draftId)).thenReturn(Optional.of(draftEntity));
+
         doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(validateVersionNotArchivedStrategy).validate(any());
 
@@ -147,8 +152,6 @@ public class ArchiveValidationTest {
 
         doNothing()
                 .when(versionValidation).validateRefBook(eq(refBookId));
-        doNothing()
-                .when(versionValidation).validateVersion(eq(versionId));
 
         doNothing()
                 .when(validateVersionNotArchivedStrategy).validate(any());
@@ -160,6 +163,17 @@ public class ArchiveValidationTest {
             assertNotEquals("refbook.is.archived", e.getMessage());
 
         } catch (Exception ignored){}
+    }
+
+    private RefBookVersionEntity createVersionEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(versionId);
+
+        RefBookEntity refBookEntity = new RefBookEntity();
+        entity.setRefBook(refBookEntity);
+
+        return entity;
     }
 
     private RefBookVersionEntity createDraftEntity() {
@@ -189,8 +203,9 @@ public class ArchiveValidationTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
+        result.put(ValidateVersionExistsStrategy.class, validateVersionExistsStrategy);
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
 
         return result;
     }

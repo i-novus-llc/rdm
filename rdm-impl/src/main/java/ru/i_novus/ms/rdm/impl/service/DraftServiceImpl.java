@@ -40,6 +40,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -333,18 +334,19 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft createFromVersion(Integer versionId) {
 
-        versionValidation.validateVersion(versionId);
-        RefBookVersionEntity sourceVersion = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = findVersion(versionId);
+        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity);
+        getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
         Map<String, Object> passport = new HashMap<>();
-        sourceVersion.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
+        versionEntity.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
 
         Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream()
                 .collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
-        CreateDraftRequest draftRequest = new CreateDraftRequest(sourceVersion.getRefBook().getId(), sourceVersion.getStructure(), passport, validations);
+        CreateDraftRequest draftRequest = new CreateDraftRequest(versionEntity.getRefBook().getId(), versionEntity.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
-        draftDataService.loadData(draft.getStorageCode(), sourceVersion.getStorageCode(), sourceVersion.getFromDate(), sourceVersion.getToDate());
+        draftDataService.loadData(draft.getStorageCode(), versionEntity.getStorageCode(), versionEntity.getFromDate(), versionEntity.getToDate());
         conflictRepository.copyByReferrerVersion(versionId, draft.getId());
 
         return draft;
@@ -386,13 +388,18 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntity newDraftVersion(Structure structure, List<PassportValueEntity> passportValues) {
 
-        RefBookVersionEntity draftVersion = new RefBookVersionEntity();
-        draftVersion.setStatus(RefBookVersionStatus.DRAFT);
-        draftVersion.setPassportValues(passportValues.stream()
-                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftVersion))
-                .collect(toList()));
-        draftVersion.setStructure(structure);
-        return draftVersion;
+        RefBookVersionEntity draftEntity = new RefBookVersionEntity();
+        draftEntity.setStatus(RefBookVersionStatus.DRAFT);
+
+        if (passportValues != null) {
+            draftEntity.setPassportValues(passportValues.stream()
+                    .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftEntity))
+                    .collect(toList()));
+        }
+
+        draftEntity.setStructure(structure);
+
+        return draftEntity;
     }
 
     private RefBookVersionEntity getDraftByRefBook(Integer refBookId) {

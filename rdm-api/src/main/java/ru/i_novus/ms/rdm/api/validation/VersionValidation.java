@@ -8,8 +8,6 @@ public interface VersionValidation {
 
     void validateRefBook(Integer refBookId);
 
-    void validateVersion(Integer versionId);
-
     void validateRefBookCode(String refBookCode);
 
     void validateRefBookExists(Integer refBookId);
