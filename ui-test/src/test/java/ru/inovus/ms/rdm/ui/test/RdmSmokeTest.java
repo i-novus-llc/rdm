@@ -103,7 +103,7 @@ class RdmSmokeTest {
         searchFilterFields.field("Код справочника").control(N2oInputText.class).val(refBookCreateModel.getCode());
 
         //ждем пока справочник опубликуется
-        afterLagging();
+        pause();
 
         filters.search();
 
@@ -116,19 +116,46 @@ class RdmSmokeTest {
         сложно определить в какой момент можно перейти к опубликованию справочника
         может возникнуть ситуация, что строка из данных не удалится перед опубликованием
          */
-        afterLagging();
+        pause();
 
         // ------------------ Публикация справочника ------------------------ //
         publishRefBook(refBookOperationsPage);
 
         RefBookCreateModel secondRefBook = getRefBookCreateModel();
 
+        // ------------------ Создание справочника с ссылкой ------------------------ //
         refBookOperationsPage = createRefBook(page, secondRefBook);
 
-        N2oTabsRegion n2oTabsRegion = fillDataToRefBook(refBookOperationsPage, fieldsWithLink);
+        fillDataToRefBook(refBookOperationsPage, fieldsWithLink);
 
+        publishRefBook(refBookOperationsPage);
+
+        pause();
+
+        N2oTableWidget widget = refBookOperationsPage.widget(N2oTableWidget.class);
+
+        StandardButton deleteRefBook = widget.toolbar().topLeft().button("Удалить справочник");
+        TableWidget.Rows rows = widget.columns().rows();
+
+        pause();
+
+        deleteRow(refBookOperationsPage, deleteRefBook, rows, 1);
+
+        pause();
+
+        deleteRow(refBookOperationsPage, deleteRefBook, rows, 1);
+
+        pause();
 
         logger.info("Test rdm page success");
+    }
+
+    private void deleteRow(N2oSimplePage refBookOperationsPage, StandardButton deleteRefBook, TableWidget.Rows rows, int i) {
+        rows.row(i).click();
+        deleteRefBook.click();
+        Page.Dialog deleteDialog = refBookOperationsPage.dialog("Удалить");
+        deleteDialog.shouldBeVisible();
+        deleteDialog.click("Да");
     }
 
     private N2oTabsRegion fillDataToRefBook(N2oSimplePage refBookOperationsPage, List<RefBookField> refBookFields) {
@@ -152,9 +179,9 @@ class RdmSmokeTest {
         return tabsRegion;
     }
 
-    private void afterLagging() {
+    private void pause() {
         try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(45));
+            Thread.sleep(TimeUnit.SECONDS.toMillis(35));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -184,12 +211,7 @@ class RdmSmokeTest {
 
         customModalFormWidget.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
 
-        rows.row(3).click();
-        toolbar.button("Удалить").click();
-
-        Page.Dialog deleteDialog = refBookOperationsPage.dialog("Удалить");
-        deleteDialog.shouldBeVisible();
-        deleteDialog.click("Да");
+        deleteRow(refBookOperationsPage, toolbar.button("Удалить"), rows, 3);
     }
 
     private void publishRefBook(N2oSimplePage n2oSimplePage) {
@@ -241,7 +263,7 @@ class RdmSmokeTest {
                 case LINKED -> {
                     N2oInputSelect control = field.control(N2oInputSelect.class);
                     control.expandPopUpOptions();
-                    control.select(Condition.matchesText(refBookCreateModel.getCode()));
+                    control.select(0);
                 }
             }
         }
@@ -268,9 +290,6 @@ class RdmSmokeTest {
             Fields structureModalFormFields = modalForm.fields();
             structureModalFormFields.field("Код").control(N2oInputText.class).val(refBookField.getCode());
             structureModalFormFields.field("Наименование").control(N2oInputText.class).val(refBookField.getName());
-            if (refBookField.isPrimaryKey()) {
-                structureModalFormFields.field("Первичный ключ").control(N2oCheckbox.class).setChecked(true);
-            }
 
             if (refBookField.getAttributeTypeName().equals(FieldType.LINKED)) {
                 structureModalFormFields.field("Тип").control(N2oSelect.class)
@@ -282,11 +301,15 @@ class RdmSmokeTest {
 
                 structureModalFormFields.field("Отображаемый атрибут").control(N2oInputSelect.class)
                         .select(0);
-
             } else {
                 structureModalFormFields.field("Тип").control(N2oSelect.class)
                         .select(Condition.text(refBookField.getAttributeTypeName().getTranslated()));
             }
+
+            if (refBookField.isPrimaryKey()) {
+                structureModalFormFields.field("Первичный ключ").control(N2oCheckbox.class).setChecked(true);
+            }
+
             modalForm.save("Сохранить");
 
             logger.info("Add ref book field with name: \"{}\", type: \"{}\" success", refBookField.getName(),
