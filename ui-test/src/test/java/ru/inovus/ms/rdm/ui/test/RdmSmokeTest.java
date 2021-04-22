@@ -84,7 +84,6 @@ class RdmSmokeTest {
 
         page.shouldExists();
 
-
         // ------------------ Создание справочника ------------------------ //
         N2oSimplePage refBookOperationsPage = createRefBook(page, refBookCreateModel);
 
@@ -92,6 +91,9 @@ class RdmSmokeTest {
 
         // ------------------ Публикация справочника ------------------------ //
         publishRefBook(refBookOperationsPage);
+
+        //ждем пока справочник опубликуется
+        Selenide.sleep(TimeUnit.SECONDS.toMillis(35));
 
         // ------------------ Редактирование справочника ------------------------ //
         N2oTableWidget refBookEditTableWidget = refBookOperationsPage.widget(N2oTableWidget.class);
@@ -104,9 +106,6 @@ class RdmSmokeTest {
         Fields searchFilterFields = filters.fields();
         searchFilterFields.field("Название справочника").control(N2oInputText.class).val(refBookCreateModel.getName());
         searchFilterFields.field("Код справочника").control(N2oInputText.class).val(refBookCreateModel.getCode());
-
-        //ждем пока справочник опубликуется
-        pause();
 
         filters.search();
 
@@ -136,12 +135,10 @@ class RdmSmokeTest {
         StandardButton deleteRefBook = widget.toolbar().topLeft().button("Удалить справочник");
         StandardButtonWrapper deleteButtonWrapper = new StandardButtonWrapper(deleteRefBook);
 
-        N2oTableWidgetWrapper n2oTableWidgetWrapper1 = new N2oTableWidgetWrapper(widget);
-
         TableWidget.Rows rows = widget.columns().rows();
 
         for (int i = 0; i < 2; i++) {
-            pause();
+            Selenide.sleep(TimeUnit.SECONDS.toMillis(35));
             deleteRow(refBookOperationsPage, deleteButtonWrapper, rows, 1);
         }
 
@@ -176,14 +173,6 @@ class RdmSmokeTest {
 
         modalForm.waitUntil(Condition.not(Condition.visible), LOADING_TIME);
         return tabsRegion;
-    }
-
-    private void pause() {
-        try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(35));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void editRefBookDataRows(N2oSimplePage refBookOperationsPage, N2oTabsRegion tabsRegion) {
@@ -370,7 +359,7 @@ class RdmSmokeTest {
 
     private RefBookCreateModel getRefBookCreateModel() {
         return new RefBookCreateModel(
-                RandomStringUtils.randomAlphabetic(5),
+                "D" + RandomStringUtils.randomAlphabetic(5),
                 RandomStringUtils.randomAlphabetic(5),
                 "shortName",
                 "system",
