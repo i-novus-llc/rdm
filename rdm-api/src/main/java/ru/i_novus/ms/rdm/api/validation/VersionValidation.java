@@ -14,11 +14,10 @@ public interface VersionValidation {
 
     void validateRefBookCodeExists(String refBookCode);
 
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     void validateRefBookCodeNotExists(String refBookCode);
 
     void validateVersionExists(Integer versionId);
-
-    void validateDraftExists(Integer draftId);
 
     void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
 

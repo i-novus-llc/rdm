@@ -150,20 +150,6 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraftExists(Integer draftId) {
-
-        if (draftId == null
-                || !versionRepository.existsByIdAndStatus(draftId, RefBookVersionStatus.DRAFT)) {
-            throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
-        }
-    }
-
-    /**
      * Проверка значения оптимистической блокировки черновика справочника.
      *
      * @param draftId        идентификатор черновика
