@@ -8,21 +8,16 @@ public interface VersionValidation {
 
     void validateRefBook(Integer refBookId);
 
-    void validateVersion(Integer versionId);
-
-    void validateDraft(Integer draftId);
-
     void validateRefBookCode(String refBookCode);
 
     void validateRefBookExists(Integer refBookId);
 
     void validateRefBookCodeExists(String refBookCode);
 
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     void validateRefBookCodeNotExists(String refBookCode);
 
     void validateVersionExists(Integer versionId);
-
-    void validateDraftExists(Integer draftId);
 
     void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
 
@@ -30,7 +25,7 @@ public interface VersionValidation {
 
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);
 
-    void validateDraftAttributeExists(Integer versionId, String attribute);
+    void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute);
 
     void validateStructure(Structure structure);
 

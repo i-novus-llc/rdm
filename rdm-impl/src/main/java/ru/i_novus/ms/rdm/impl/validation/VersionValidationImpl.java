@@ -2,9 +2,9 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 // Выделить RefBookValidation с refbookRepository.
@@ -38,6 +37,7 @@ public class VersionValidationImpl implements VersionValidation {
     private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
     public static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    public static final String REFBOOK_WITH_CODE_IS_ARCHIVED_EXCEPTION_CODE = "refbook.with.code.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
@@ -77,28 +77,6 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateRefBook(Integer refBookId) {
         validateRefBookExists(refBookId);
         validateRefBookNotArchived(refBookId);
-    }
-
-    /**
-     * Общая проверка версии справочника.
-     *
-     * @param versionId идентификатор версии
-     */
-    @Override
-    public void validateVersion(Integer versionId) {
-        validateVersionExists(versionId);
-        validateVersionNotArchived(versionId);
-    }
-
-    /**
-     * Общая проверка черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraft(Integer draftId) {
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
     }
 
     /**
@@ -149,6 +127,7 @@ public class VersionValidationImpl implements VersionValidation {
      * @param refBookCode код справочника
      */
     @Override
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     public void validateRefBookCodeNotExists(String refBookCode) {
 
         if (StringUtils.isEmpty(refBookCode)
@@ -167,20 +146,6 @@ public class VersionValidationImpl implements VersionValidation {
         if (versionId == null
                 || !versionRepository.existsById(versionId)) {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
-        }
-    }
-
-    /**
-     * Проверка существования черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraftExists(Integer draftId) {
-
-        if (draftId == null
-                || !versionRepository.existsByIdAndStatus(draftId, RefBookVersionStatus.DRAFT)) {
-            throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
         }
     }
 
@@ -208,19 +173,6 @@ public class VersionValidationImpl implements VersionValidation {
 
         if (refBookId != null
                 && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
-        }
-    }
-
-    /**
-     * Проверка наличия версии справочника не в архиве.
-     *
-     * @param versionId идентификатор версии
-     */
-    private void validateVersionNotArchived(Integer versionId) {
-
-        if (versionId != null
-                && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
             throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
@@ -254,20 +206,17 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования атрибута версии справочника.
+     * Проверка существования атрибута черновика справочника.
      *
-     * @param versionId идентификатор версии
+     * @param draftId   идентификатор черновика
+     * @param structure структура черновика
      * @param attribute код атрибута
      */
     @Override
-    public void validateDraftAttributeExists(Integer versionId, String attribute) {
+    public void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute) {
 
-        validateDraftExists(versionId);
-
-        Structure structure = versionRepository.getOne(versionId).getStructure();
-        if (structure.getAttribute(attribute) == null) {
-            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
-        }
+        if (structure.getAttribute(attribute) == null)
+            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, draftId, attribute));
     }
 
     /** Проверка структуры.
@@ -509,7 +458,8 @@ public class VersionValidationImpl implements VersionValidation {
      */
     public boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                                    List<Structure.Attribute> primaries2) {
-        return !isEmpty(primaries1) && !isEmpty(primaries2)
+        return !CollectionUtils.isEmpty(primaries1) &&
+                !CollectionUtils.isEmpty(primaries2)
                 && primaries1.size() == primaries2.size()
                 && primaries1.stream().allMatch(primary1 -> containsPrimary(primaries2, primary1));
     }

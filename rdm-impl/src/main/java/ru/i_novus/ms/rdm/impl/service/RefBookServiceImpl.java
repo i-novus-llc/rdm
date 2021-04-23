@@ -33,6 +33,8 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
@@ -204,11 +206,6 @@ public class RefBookServiceImpl implements RefBookService {
         return refBook;
     }
 
-    private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
-
-        return strategyLocator.getStrategy(refBookType, strategy);
-    }
-
     @Override
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
@@ -250,14 +247,13 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
-        final Integer versionId = request.getVersionId();
-        versionValidation.validateVersion(versionId);
-        refBookLockService.validateRefBookNotBusyByVersionId(versionId);
-
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        versionValidation.validateOptLockValue(versionId, versionEntity.getOptLockValue(), request.getOptLockValue());
+        RefBookVersionEntity versionEntity = findVersion(request.getVersionId());
+        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity);
+        getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
         RefBookEntity refBookEntity = versionEntity.getRefBook();
+        refBookLockService.validateRefBookNotBusy(refBookEntity.getId());
+        versionValidation.validateOptLockValue(versionEntity.getId(), versionEntity.getOptLockValue(), request.getOptLockValue());
 
         final String newCode = request.getCode();
         if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
@@ -286,7 +282,7 @@ public class RefBookServiceImpl implements RefBookService {
     public void delete(int refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
-        refBookLockService.validateRefBookNotBusyByRefBookId(refBookId);
+        refBookLockService.validateRefBookNotBusy(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
         List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
@@ -440,6 +436,21 @@ public class RefBookServiceImpl implements RefBookService {
         where.and(isVersionOfRefBook(refBookId));
         where.and(isRemovable().not().or(isArchived()).or(isPublished()));
         return (where.getValue() != null) && !versionRepository.exists(where.getValue());
+    }
+
+    protected RefBookVersionEntity findVersion(Integer id) {
+
+        return (id != null) ? versionRepository.findById(id).orElse(null) : null;
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(refBookType, strategy);
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
     }
 
     private void updateVersionFromPassport(RefBookVersionEntity versionEntity, Map<String, String> newPassport) {

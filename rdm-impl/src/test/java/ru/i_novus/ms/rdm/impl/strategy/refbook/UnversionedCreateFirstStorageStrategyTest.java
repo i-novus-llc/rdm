@@ -5,9 +5,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-
-import java.time.LocalDateTime;
+import ru.i_novus.platform.datastorage.temporal.service.StorageService;
 
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
@@ -21,21 +19,18 @@ public class UnversionedCreateFirstStorageStrategyTest {
     private UnversionedCreateFirstStorageStrategy strategy;
 
     @Mock
-    private DraftDataService draftDataService;
+    private StorageService storageService;
 
     @Test
     public void testCreate() {
 
         final String draftCode = "draft_code";
-        when(draftDataService.createDraft(eq(emptyList()))).thenReturn(draftCode);
-        final String appliedCode = "applied_code";
-        when(draftDataService.applyDraftItself(eq(draftCode), any(LocalDateTime.class))).thenReturn(appliedCode);
+        when(storageService.createStorage(eq(emptyList()))).thenReturn(draftCode);
 
         String result = strategy.create();
-        assertEquals(appliedCode, result);
+        assertEquals(draftCode, result);
 
-        verify(draftDataService).createDraft(eq(emptyList()));
-        verify(draftDataService).applyDraftItself(eq(draftCode), any(LocalDateTime.class));
-        verifyNoMoreInteractions(draftDataService);
+        verify(storageService).createStorage(eq(emptyList()));
+        verifyNoMoreInteractions(storageService);
     }
 }

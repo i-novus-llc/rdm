@@ -15,6 +15,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.DraftServiceImpl;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -46,7 +47,8 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                                 PassportValueRepository passportValueRepository,
                                 AttributeValidationRepository attributeValidationRepository,
                                 StructureChangeValidator structureChangeValidator,
-                                AuditLogService auditLogService) {
+                                AuditLogService auditLogService,
+                                StrategyLocator strategyLocator) {
 
         super(versionRepository, conflictRepository,
                 draftDataService, dropDataService, searchDataService,
@@ -54,7 +56,8 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                 fileStorage, fileNameGenerator, versionFileService,
                 versionValidation,
                 passportValueRepository, attributeValidationRepository, structureChangeValidator,
-                auditLogService);
+                auditLogService,
+                strategyLocator);
 
         this.storageCodeService = storageCodeService;
     }

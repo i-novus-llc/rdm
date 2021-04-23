@@ -20,6 +20,10 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.UiPassport;
+import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.ValidateIsDraftStrategy;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,8 +37,6 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 @SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver
 public class CreateDraftController {
 
-    private static final String VERSION_IS_NOT_DRAFT_EXCEPTION_CODE = "version.is.not.draft";
-    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
     private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
     private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
@@ -52,16 +54,21 @@ public class CreateDraftController {
     private StructureController structureController;
     private DataRecordController dataRecordController;
 
+    private UiStrategyLocator strategyLocator;
+
     @Autowired
     public CreateDraftController(RefBookService refBookService,
                                  VersionRestService versionService, DraftRestService draftService,
-                                 StructureController structureController, DataRecordController dataRecordController) {
+                                 StructureController structureController, DataRecordController dataRecordController,
+                                 UiStrategyLocator strategyLocator) {
         this.refBookService = refBookService;
         this.versionService = versionService;
         this.draftService = draftService;
 
         this.structureController = structureController;
         this.dataRecordController = dataRecordController;
+
+        this.strategyLocator = strategyLocator;
     }
 
     public UiDraft editPassport(Integer versionId, Integer optLockValue, UiPassport uiPassport) {
@@ -150,8 +157,8 @@ public class CreateDraftController {
 
         // Изменение записи в опубликованной версии:
         if (!uiDraft.isVersionDraft(versionId)) {
-            // Новый справочник, поэтому блокировки нет (см. также в других методах):
-            optLockValue = uiDraft.getOptLockValue();
+            // Новый черновик, поэтому значение блокировки - из черновика:
+            optLockValue = uiDraft.getOptLockValue(); // (см. также в других методах)
             row.setSystemId(findNewSystemId(row.getSystemId(), versionId, uiDraft.getId()));
         }
 
@@ -261,11 +268,7 @@ public class CreateDraftController {
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
-        if (version == null)
-            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
-
-        if (!version.isDraft())
-            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
+        validateDraft(version);
 
         Draft draft = draftService.create(version.getRefBookId(), fileModel);
         return new UiDraft(draft, version.getRefBookId());
@@ -274,11 +277,7 @@ public class CreateDraftController {
     public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
         RefBookVersion version = versionService.getById(versionId);
-        if (version == null)
-            throw new UserException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
-
-        if (!version.isDraft())
-            throw new UserException(new Message(VERSION_IS_NOT_DRAFT_EXCEPTION_CODE, versionId));
+        validateDraft(version);
 
         if (version.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
@@ -293,23 +292,21 @@ public class CreateDraftController {
     private UiDraft getOrCreateDraft(Integer versionId) {
 
         final RefBookVersion version = versionService.getById(versionId);
-        final Integer refBookId = version.getRefBookId();
+        return getStrategy(version, FindOrCreateDraftStrategy.class).findOrCreate(version);
+    }
 
-        if (version.isDraft()) {
-            return new UiDraft(version);
-        }
+    private void validateDraft(RefBookVersion version) {
 
-        Draft draft = draftService.findDraft(version.getCode());
-        if (draft != null) {
-            return new UiDraft(draft, refBookId);
-        }
-
-        Draft newDraft = draftService.createFromVersion(versionId);
-        return new UiDraft(newDraft, refBookId);
+        getStrategy(version, ValidateIsDraftStrategy.class).validate(version);
     }
 
     /** Операция-заглушка. */
     public void noOperation(Integer versionId, Integer optLockValue) {
         // Nothing to do.
+    }
+
+    private <T extends UiStrategy> T getStrategy(RefBookVersion version, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(version.getType(), strategy);
     }
 }

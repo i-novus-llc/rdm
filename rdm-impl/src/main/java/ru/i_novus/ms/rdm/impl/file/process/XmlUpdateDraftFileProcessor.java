@@ -76,6 +76,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
         return passport;
     }
 
+    @SuppressWarnings("unchecked")
     private void parseStructureAndValidations(Structure structure,
                                               Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
         reader.nextEvent();
@@ -83,7 +84,7 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
                 !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
 
             Map<String, Object> values = new LinkedHashMap<>();
-            reader.nextEvent();// current is <row> in <structure>
+            reader.nextEvent(); // current is <row> in <structure>
 
             XmlParseUtils.parseValues(reader, values, ROW_TAG_NAME);
 
