@@ -7,7 +7,10 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.*;
+import ru.i_novus.ms.rdm.impl.strategy.draft.DefaultValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.UnversionedValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.*;
 
@@ -40,10 +43,10 @@ public class StrategyLocatorConfig {
     private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
 
     @Autowired
-    private DefaultFileVersionStrategy defaultFileVersionStrategy;
+    private DefaultFindOrCreateFileStrategy defaultFindOrCreateFileStrategy;
 
     @Autowired
-    private DefaultFilePathStrategy defaultFilePathStrategy;
+    private DefaultSaveVersionFileStrategy defaultSaveVersionFileStrategy;
 
     @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
@@ -55,7 +58,7 @@ public class StrategyLocatorConfig {
     private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
 
     @Autowired
-    private UnversionedFileVersionStrategy unversionedFileVersionStrategy;
+    private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
 
     @Bean
     public StrategyLocator strategyLocator() {
@@ -84,8 +87,8 @@ public class StrategyLocatorConfig {
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         // File:
-        result.put(FileVersionStrategy.class, defaultFileVersionStrategy);
-        result.put(FilePathStrategy.class, defaultFilePathStrategy);
+        result.put(FindOrCreateFileStrategy.class, defaultFindOrCreateFileStrategy);
+        result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
 
         return result;
     }
@@ -99,7 +102,7 @@ public class StrategyLocatorConfig {
         // Version + Draft:
         result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
         // File:
-        result.put(FileVersionStrategy.class, unversionedFileVersionStrategy);
+        result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
 
         return result;
     }

@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.refbook;
+package ru.i_novus.ms.rdm.impl.strategy.file;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -14,17 +14,18 @@ import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+
+import static java.util.Collections.singletonList;
 
 @Component
-public class DefaultFilePathStrategy implements FilePathStrategy {
-
-    @Autowired
-    private VersionFileService versionFileService;
+public class DefaultFindOrCreateFileStrategy implements FindOrCreateFileStrategy {
 
     @Autowired
     @Lazy
     private VersionService versionService;
+
+    @Autowired
+    private VersionFileService versionFileService;
 
     @Autowired
     private FileStorage fileStorage;
@@ -33,24 +34,25 @@ public class DefaultFilePathStrategy implements FilePathStrategy {
     private FileNameGenerator fileNameGenerator;
 
     @Override
-    public String getPath(RefBookVersion versionModel, FileType fileType) {
+    public String findOrCreate(RefBookVersion version, FileType fileType) {
+
         String path;
-        try (InputStream is = generateVersionFile(versionModel, fileType)) {
-            path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(versionModel, fileType));
+        try (InputStream is = generateVersionFile(version, fileType)) {
+            path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(version, fileType));
 
         } catch (IOException e) {
             throw new RdmException(e);
         }
 
         if (path == null || !fileStorage.isExistContent(path))
-            throw new RdmException("cannot generate file");
+            throw new RdmException("Cannot generate file");
 
         return path;
     }
 
-    private InputStream generateVersionFile(RefBookVersion versionModel, FileType fileType) {
+    private InputStream generateVersionFile(RefBookVersion version, FileType fileType) {
 
-        VersionDataIterator dataIterator = new VersionDataIterator(versionService, Collections.singletonList(versionModel.getId()));
-        return versionFileService.generate(versionModel, fileType, dataIterator);
+        VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(version.getId()));
+        return versionFileService.generate(version, fileType, dataIterator);
     }
 }
