@@ -55,6 +55,7 @@ class RdmSmokeTest {
     private static final String PASSWORD = "admin";
 
     private static final long WAIT_TIME = TimeUnit.SECONDS.toMillis(35);
+    private static final int REF_BOOK_CREATED_COUNT = 2;
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
     private RefBook firstRefBook;
@@ -84,7 +85,7 @@ class RdmSmokeTest {
     void testRdmPage() {
         login();
 
-        rdmPageExists();
+        rdmPageShouldExists();
 
         createRefBook(firstRefBook);
         fillDataToRefBook(fieldsToFirstRefBook);
@@ -100,7 +101,7 @@ class RdmSmokeTest {
         deleteRefBooks();
     }
 
-    private void rdmPageExists() {
+    private void rdmPageShouldExists() {
         N2oPage rdmPage = page(N2oPage.class);
         rdmPage.shouldExists();
     }
@@ -110,27 +111,29 @@ class RdmSmokeTest {
     }
 
     private void deleteRefBooks() {
-        N2oSimplePage n2oSimplePage = open("/", N2oSimplePage.class);
+        open("/", N2oSimplePage.class);
 
-        N2oTableWidget tableWidget = n2oSimplePage.widget(N2oTableWidget.class);
-
-        TableWidget.Rows rows = tableWidget.columns().rows();
-        StandardButtonWrapper deleteButton =
-                new StandardButtonWrapper(tableWidget.toolbar().topLeft().button("Удалить справочник"));
-
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < REF_BOOK_CREATED_COUNT; i++) {
             Selenide.sleep(WAIT_TIME);
-            deleteRow(deleteButton, rows.row(1));
+            N2oTableWidgetWrapper table = getTableWidget();
+            StandardButtonWrapper deleteButton = getButton(table.toolbar().topLeft(), "Удалить справочник");
+            deleteRow(deleteButton, table.columns().rows().row(1));
         }
     }
 
     private void editRefBook(RefBook refBook) {
-        N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
-        N2oTableWidget refBookEditTableWidget = n2oSimplePage.widget(N2oTableWidget.class);
+        searchRefBook(refBook);
 
-        TableWidget.Filters filters = refBookEditTableWidget.filters();
-        N2oTableWidgetWrapper n2oTableWidgetWrapper = new N2oTableWidgetWrapper(refBookEditTableWidget);
-        n2oTableWidgetWrapper.waitUntilFilterVisible(Condition.visible, WAIT_TIME);
+        editRefBookDataRows();
+
+        getTableWidget().waitUntilTableContentLoaded(Condition.enabled, WAIT_TIME);
+    }
+
+    private void searchRefBook(RefBook refBook) {
+        N2oTableWidgetWrapper tableWidget = getTableWidget();
+        tableWidget.waitUntilFilterVisible(Condition.visible, WAIT_TIME);
+
+        TableWidget.Filters filters = tableWidget.filters();
         filters.shouldBeVisible();
 
         Fields searchFilterFields = filters.fields();
@@ -138,27 +141,25 @@ class RdmSmokeTest {
         searchFilterFields.field("Код справочника").control(N2oInputText.class).val(refBook.getCode());
 
         filters.search();
-
-        refBookEditTableWidget.columns().rows().row(0).click();
-        refBookEditTableWidget.toolbar().topLeft().button("Изменить справочник").click();
-
-        editRefBookDataRows();
-
-        new N2oTableWidgetWrapper(refBookEditTableWidget)
-                .waitUntilTableContentLoaded(Condition.enabled, WAIT_TIME);
     }
 
-    private void deleteRow(StandardButtonWrapper buttonWrapper, Cells cells) {
-        N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
+    private N2oTableWidgetWrapper getTableWidget() {
+        return new N2oTableWidgetWrapper(page(N2oSimplePage.class).widget(N2oTableWidget.class));
+    }
 
+    private void deleteRow(StandardButtonWrapper button, Cells cells) {
         cells.click();
-        buttonWrapper.click();
+        button.click();
 
-        Page.Dialog deleteDialog = n2oSimplePage.dialog("Удалить");
+        Page.Dialog deleteDialog = page(N2oSimplePage.class).dialog("Удалить");
         deleteDialog.shouldBeVisible();
         deleteDialog.click("Да");
 
-        buttonWrapper.waitUntil(Condition.visible, WAIT_TIME);
+        button.waitUntil(Condition.visible, WAIT_TIME);
+    }
+
+    private StandardButtonWrapper getButton(Toolbar toolbar, String buttonName) {
+        return new StandardButtonWrapper(toolbar.button(buttonName));
     }
 
     private void fillDataToRefBook(List<RefBookField> refBookFields) {
@@ -186,6 +187,11 @@ class RdmSmokeTest {
 
     private void editRefBookDataRows() {
 
+        N2oTableWidgetWrapper n2oTableWidget = getTableWidget();
+
+        n2oTableWidget.columns().rows().row(0).click();
+        n2oTableWidget.toolbar().topLeft().button("Изменить справочник").click();
+
         N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
         N2oStandardPage refBookEditPage = page(N2oStandardPage.class);
         N2oTabsRegion tabsRegion = refBookEditPage.regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
@@ -194,26 +200,22 @@ class RdmSmokeTest {
 
         tabItem.click();
 
-        N2oTableWidget refBookDataEditTable = tabItem.content().widget(N2oTableWidget.class);
-        refBookDataEditTable.shouldExists();
+        n2oTableWidget.shouldExists();
 
-        Toolbar toolbar = refBookDataEditTable.toolbar().topRight();
+        Toolbar toolbar = n2oTableWidget.toolbar().topRight();
 
-        CustomModalFormWidget customModalFormWidget = n2oSimplePage.widget(CustomModalFormWidget.class);
-        createRefBookDataRow(refBookDataEditTable, customModalFormWidget, fieldsToFirstRefBook);
+        createRefBookDataRow(n2oTableWidget.original(), fieldsToFirstRefBook);
 
-        customModalFormWidget.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
-
-        TableWidget.Rows rows = refBookDataEditTable.columns().rows();
+        TableWidget.Rows rows = n2oTableWidget.columns().rows();
         rows.row(2).click();
         toolbar.button("Изменить").click();
 
-        fillFields(customModalFormWidget, fieldsToFirstRefBook);
-        customModalFormWidget.save("Изменить");
+        fillFields(fieldsToFirstRefBook);
+        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        modalForm.save("Изменить");
+        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
 
-        customModalFormWidget.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
-
-        StandardButtonWrapper deleteButton = new StandardButtonWrapper(toolbar.button("Удалить"));
+        StandardButtonWrapper deleteButton = getButton(toolbar, "Удалить");
         deleteRow(deleteButton, rows.row(3));
     }
 
@@ -241,12 +243,11 @@ class RdmSmokeTest {
         dataTab.shouldExists();
         dataTab.click();
         dataTab.shouldBeActive();
+
         N2oTableWidget refBookDataEditTable = dataTab.content().widget(N2oTableWidget.class);
 
-        CustomModalFormWidget modalForm = n2oSimplePage.widget(CustomModalFormWidget.class);
-
         for (int i = 0; i < REF_BOOK_DATA_ROWS_CREATE_COUNT; i++) {
-            createRefBookDataRow(refBookDataEditTable, modalForm, refBookFields);
+            createRefBookDataRow(refBookDataEditTable, refBookFields);
         }
     }
 
@@ -256,17 +257,20 @@ class RdmSmokeTest {
                 .region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
     }
 
-    private void createRefBookDataRow(N2oTableWidget refBookDataEditTable,
-                                      CustomModalFormWidget modalForm,
-                                      List<RefBookField> refBookFields) {
-        StandardButton standardButton = refBookDataEditTable.toolbar().topRight().button("Добавить");
+    private void createRefBookDataRow(N2oTableWidget n2oTableWidget, List<RefBookField> refBookFields) {
+        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
+
+        StandardButtonWrapper standardButton = getButton(n2oTableWidget.toolbar().topRight(), "Добавить");
         standardButton.click();
-        fillFields(modalForm, refBookFields);
+        fillFields(refBookFields);
+
         modalForm.save("Сохранить");
+        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
     }
 
-    private void fillFields(CustomModalFormWidget modalForm, List<RefBookField> refBookFields) {
+    private void fillFields(List<RefBookField> refBookFields) {
+        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
         for (RefBookField refBookField : refBookFields) {
             Fields refBookDataFields = modalForm.fields();
             StandardField field = refBookDataFields.field(refBookField.getName());
