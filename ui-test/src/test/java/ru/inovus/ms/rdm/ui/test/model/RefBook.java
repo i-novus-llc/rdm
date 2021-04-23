@@ -1,6 +1,6 @@
 package ru.inovus.ms.rdm.ui.test.model;
 
-public class RefBookCreateModel {
+public class RefBook {
 
     private final String code;
     private final String name;
@@ -8,7 +8,7 @@ public class RefBookCreateModel {
     private final String category;
     private final String description;
 
-    public RefBookCreateModel(String code, String name, String shortName, String category, String description) {
+    public RefBook(String code, String name, String shortName, String category, String description) {
         this.code = code;
         this.name = name;
         this.shortName = shortName;
