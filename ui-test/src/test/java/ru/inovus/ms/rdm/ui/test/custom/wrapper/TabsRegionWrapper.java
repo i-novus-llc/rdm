@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test.custom.component;
+package ru.inovus.ms.rdm.ui.test.custom.wrapper;
 
 import com.codeborne.selenide.Condition;
 import net.n2oapp.framework.autotest.impl.component.region.N2oTabsRegion;

@@ -7,11 +7,11 @@ import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 import static com.codeborne.selenide.Selectors.byClassName;
 import static com.codeborne.selenide.Selenide.$;
 
-public class N2oTableWidgetWrapper {
+public class TableWidgetWrapper {
 
     private final N2oTableWidget n2oTableWidget;
 
-    public N2oTableWidgetWrapper(N2oTableWidget n2oTableWidget) {
+    public TableWidgetWrapper(N2oTableWidget n2oTableWidget) {
         this.n2oTableWidget = n2oTableWidget;
     }
 

@@ -26,11 +26,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.ui.test.custom.component.TabsRegionWrapper;
-import ru.inovus.ms.rdm.ui.test.custom.component.button.StandardButtonWrapper;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.TabsRegionWrapper;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.StandardButtonWrapper;
 import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
-import ru.inovus.ms.rdm.ui.test.custom.component.widget.CustomModalFormWidget;
-import ru.inovus.ms.rdm.ui.test.custom.wrapper.N2oTableWidgetWrapper;
+import ru.inovus.ms.rdm.ui.test.custom.component.form.ModalFormWidget;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.TableWidgetWrapper;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.model.RefBook;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
@@ -100,7 +100,7 @@ class RdmSmokeTest {
 
         for (int i = 0; i < REF_BOOK_CREATED_COUNT; i++) {
             Selenide.sleep(WAIT_TIME);
-            N2oTableWidgetWrapper table = getTableWidget();
+            TableWidgetWrapper table = getTableWidget();
             StandardButtonWrapper deleteButton = getButton(table.toolbar().topLeft(), "Удалить справочник");
             Cells row = table.columns().rows().row(1);
             deleteRow(deleteButton, row);
@@ -116,7 +116,7 @@ class RdmSmokeTest {
     }
 
     private void searchRefBook(RefBook refBook) {
-        N2oTableWidgetWrapper tableWidget = getTableWidget();
+        TableWidgetWrapper tableWidget = getTableWidget();
         tableWidget.waitUntilFilterVisible(Condition.visible, WAIT_TIME);
 
         TableWidget.Filters filters = tableWidget.filters();
@@ -152,7 +152,7 @@ class RdmSmokeTest {
     }
 
     private void editRefBookDataRows() {
-        N2oTableWidgetWrapper refBooksTable = getTableWidget();
+        TableWidgetWrapper refBooksTable = getTableWidget();
 
         refBooksTable.columns().rows().row(0)
                 .click();
@@ -185,7 +185,7 @@ class RdmSmokeTest {
 
         fillFields(fieldsToFirstRefBook);
 
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        ModalFormWidget modalForm = page(N2oSimplePage.class).widget(ModalFormWidget.class);
         modalForm.save("Изменить");
 
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
@@ -207,7 +207,7 @@ class RdmSmokeTest {
     }
 
     private void createRefBookDataRows(List<RefBookField> refBookFields) {
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        ModalFormWidget modalForm = page(N2oSimplePage.class).widget(ModalFormWidget.class);
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
 
         N2oTabsRegion tabsRegion = getTabsRegion();
@@ -225,7 +225,7 @@ class RdmSmokeTest {
     }
 
     private void createRow(StandardButtonWrapper button, List<RefBookField> refBookFields) {
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        ModalFormWidget modalForm = page(N2oSimplePage.class).widget(ModalFormWidget.class);
 
         button.click();
         fillFields(refBookFields);
@@ -235,7 +235,7 @@ class RdmSmokeTest {
     }
 
     private void fillFields(List<RefBookField> refBookFields) {
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        ModalFormWidget modalForm = page(N2oSimplePage.class).widget(ModalFormWidget.class);
         for (RefBookField refBookField : refBookFields) {
             Fields refBookDataFields = modalForm.fields();
             StandardField field = refBookDataFields.field(refBookField.getName());
@@ -262,7 +262,7 @@ class RdmSmokeTest {
 
         N2oTableWidget refBookStructureEditTable = tabItem.content().widget(N2oTableWidget.class);
 
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        ModalFormWidget modalForm = page(N2oSimplePage.class).widget(ModalFormWidget.class);
 
         for (RefBookField refBookField : refBookFields) {
             refBookStructureEditTable.toolbar()
@@ -349,8 +349,8 @@ class RdmSmokeTest {
         Selenide.sleep(WAIT_TIME);
     }
 
-    private N2oTableWidgetWrapper getTableWidget() {
-        return new N2oTableWidgetWrapper(page(N2oSimplePage.class).widget(N2oTableWidget.class));
+    private TableWidgetWrapper getTableWidget() {
+        return new TableWidgetWrapper(page(N2oSimplePage.class).widget(N2oTableWidget.class));
     }
 
     private static List<RefBookField> getRefBookFields(boolean withoutLink) {

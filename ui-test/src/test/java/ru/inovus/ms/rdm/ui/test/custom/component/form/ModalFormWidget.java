@@ -1,4 +1,4 @@
-package ru.inovus.ms.rdm.ui.test.custom.component.widget;
+package ru.inovus.ms.rdm.ui.test.custom.component.form;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
@@ -9,7 +9,7 @@ import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 import static com.codeborne.selenide.Selectors.byClassName;
 import static com.codeborne.selenide.Selenide.$;
 
-public class CustomModalFormWidget extends N2oFormWidget {
+public class ModalFormWidget extends N2oFormWidget {
 
     private final SelenideElement modalContent = $(byClassName("modal-content"));
     private final N2oFormWidget n2oFormWidget = new N2oFormWidget();
