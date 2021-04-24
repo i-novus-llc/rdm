@@ -24,7 +24,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,14 +57,18 @@ class RdmSmokeTest {
     private static final int REF_BOOK_CREATED_COUNT = 2;
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
-    private RefBook firstRefBook;
-    private RefBook secondRefBook;
-    private List<RefBookField> fieldsToFirstRefBook;
-    private List<RefBookField> fieldsToSecondRefBook;
+    private static RefBook firstRefBook;
+    private static RefBook secondRefBook;
+    private static List<RefBookField> fieldsToFirstRefBook;
+    private static List<RefBookField> fieldsToSecondRefBook;
 
     @BeforeAll
     public static void setUp() {
         Configuration.baseUrl = RDM_BASE_URL;
+        firstRefBook = getRefBook();
+        secondRefBook = getRefBook();
+        fieldsToFirstRefBook = getRefBookFields(true);
+        fieldsToSecondRefBook = getRefBookFields(false);
     }
 
     @AfterAll
@@ -73,14 +76,7 @@ class RdmSmokeTest {
         Selenide.closeWebDriver();
     }
 
-    @BeforeEach
-    public void init() {
-        firstRefBook = getRefBook();
-        secondRefBook = getRefBook();
-        fieldsToFirstRefBook = getRefBookFields(true);
-        fieldsToSecondRefBook = getRefBookFields(false);
-    }
-
+    //+
     @Test
     void testRdmPage() {
         login();
@@ -101,15 +97,7 @@ class RdmSmokeTest {
         deleteRefBooks();
     }
 
-    private void rdmPageShouldExists() {
-        N2oPage rdmPage = page(N2oPage.class);
-        rdmPage.shouldExists();
-    }
-
-    private void waitPublishing() {
-        Selenide.sleep(WAIT_TIME);
-    }
-
+    //+
     private void deleteRefBooks() {
         open("/", N2oSimplePage.class);
 
@@ -117,10 +105,12 @@ class RdmSmokeTest {
             Selenide.sleep(WAIT_TIME);
             N2oTableWidgetWrapper table = getTableWidget();
             StandardButtonWrapper deleteButton = getButton(table.toolbar().topLeft(), "Удалить справочник");
-            deleteRow(deleteButton, table.columns().rows().row(1));
+            Cells row = table.columns().rows().row(1);
+            deleteRow(deleteButton, row);
         }
     }
 
+    //+
     private void editRefBook(RefBook refBook) {
         searchRefBook(refBook);
 
@@ -129,12 +119,12 @@ class RdmSmokeTest {
         getTableWidget().waitUntilTableContentLoaded(Condition.enabled, WAIT_TIME);
     }
 
+    //+
     private void searchRefBook(RefBook refBook) {
         N2oTableWidgetWrapper tableWidget = getTableWidget();
         tableWidget.waitUntilFilterVisible(Condition.visible, WAIT_TIME);
 
         TableWidget.Filters filters = tableWidget.filters();
-        filters.shouldBeVisible();
 
         Fields searchFilterFields = filters.fields();
         searchFilterFields.field("Название справочника").control(N2oInputText.class).val(refBook.getName());
@@ -143,10 +133,7 @@ class RdmSmokeTest {
         filters.search();
     }
 
-    private N2oTableWidgetWrapper getTableWidget() {
-        return new N2oTableWidgetWrapper(page(N2oSimplePage.class).widget(N2oTableWidget.class));
-    }
-
+    //+
     private void deleteRow(StandardButtonWrapper button, Cells cells) {
         cells.click();
         button.click();
@@ -158,16 +145,9 @@ class RdmSmokeTest {
         button.waitUntil(Condition.visible, WAIT_TIME);
     }
 
-    private StandardButtonWrapper getButton(Toolbar toolbar, String buttonName) {
-        return new StandardButtonWrapper(toolbar.button(buttonName));
-    }
-
+    //+
     private void fillDataToRefBook(List<RefBookField> refBookFields) {
-        N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
-
-        N2oStandardPage refBookEditPage = page(N2oStandardPage.class);
-
-        TabsRegionWrapper refBookTabsRegion = new TabsRegionWrapper(refBookEditPage
+        TabsRegionWrapper refBookTabsRegion = new TabsRegionWrapper(page(N2oStandardPage.class)
                 .regions()
                 .region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class));
 
@@ -175,53 +155,51 @@ class RdmSmokeTest {
 
         createRefBookFields(refBookFields);
 
-        CustomModalFormWidget modalForm = n2oSimplePage.widget(CustomModalFormWidget.class);
-
-        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
-
-        // ------------------ Добавление данных ------------------------ //
         createRefBookDataRows(refBookFields);
-
-        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
     }
 
     private void editRefBookDataRows() {
-
         N2oTableWidgetWrapper refBookActionsTable = getTableWidget();
 
-        refBookActionsTable.columns().rows().row(0).click();
-        refBookActionsTable.toolbar().topLeft().button("Изменить справочник").click();
+        refBookActionsTable.columns().rows().row(0)
+                .click();
+        refBookActionsTable.toolbar().topLeft().button("Изменить справочник")
+                .click();
 
-        N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
-        N2oStandardPage refBookEditPage = page(N2oStandardPage.class);
-        N2oTabsRegion tabsRegion = refBookEditPage.regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
+        N2oTabsRegion tabsRegion = page(N2oStandardPage.class)
+                .regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
 
         TabsRegion.TabItem tabItem = tabsRegion.tab(Condition.text("Данные"));
 
         tabItem.click();
 
-        refBookActionsTable.shouldExists();
-
         N2oTableWidget refBookDataTab = getTabsRegion().tab(Condition.text("Данные")).content().widget(N2oTableWidget.class);
         Toolbar refBookDataToolbar = refBookDataTab.toolbar().topRight();
 
-        createRefBookDataRow(refBookDataToolbar, fieldsToFirstRefBook);
+        createRow(getButton(refBookDataToolbar, "Добавить"), fieldsToFirstRefBook);
 
         TableWidget.Rows rows = refBookDataTab.columns().rows();
-        rows.row(2).click();
-        refBookDataToolbar.button("Изменить").click();
 
-        fillFields(fieldsToFirstRefBook);
-        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
-        modalForm.save("Изменить");
-        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
+        editRow(getButton(refBookDataToolbar, "Изменить"), rows.row(2));
 
-        StandardButtonWrapper deleteButton = getButton(refBookDataToolbar, "Удалить");
-        deleteRow(deleteButton, rows.row(3));
+        deleteRow(getButton(refBookDataToolbar, "Удалить"), rows.row(3));
     }
 
-    private void publishRefBook() {
+    //+
+    private void editRow(StandardButtonWrapper button, Cells row) {
+        row.click();
+        button.click();
 
+        fillFields(fieldsToFirstRefBook);
+
+        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        modalForm.save("Изменить");
+
+        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
+    }
+
+    //+
+    private void publishRefBook() {
         N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
 
         N2oDropdownButton n2oDropdownButton = n2oSimplePage.widget(N2oFormWidget.class)
@@ -236,7 +214,11 @@ class RdmSmokeTest {
         n2oSimplePage.dialog("Публикация справочника").click("Опубликовать");
     }
 
+    //+
     private void createRefBookDataRows(List<RefBookField> refBookFields) {
+        CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
+        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
+
         N2oTabsRegion tabsRegion = getTabsRegion();
 
         TabsRegion.TabItem dataTab = tabsRegion.tab(Condition.text("Данные"));
@@ -247,28 +229,22 @@ class RdmSmokeTest {
         N2oTableWidget refBookDataEditTable = dataTab.content().widget(N2oTableWidget.class);
 
         for (int i = 0; i < REF_BOOK_DATA_ROWS_CREATE_COUNT; i++) {
-            createRefBookDataRow(refBookDataEditTable.toolbar().topRight(), refBookFields);
+            createRow(getButton(refBookDataEditTable.toolbar().topRight(), "Добавить"), refBookFields);
         }
     }
 
-    private N2oTabsRegion getTabsRegion() {
-        return page(N2oStandardPage.class)
-                .regions()
-                .region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
-    }
-
-    private void createRefBookDataRow(Toolbar toolbar, List<RefBookField> refBookFields) {
+    //+
+    private void createRow(StandardButtonWrapper button, List<RefBookField> refBookFields) {
         CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
-        modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
 
-        StandardButtonWrapper standardButton = getButton(toolbar, "Добавить");
-        standardButton.click();
+        button.click();
         fillFields(refBookFields);
 
         modalForm.save("Сохранить");
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
     }
 
+    //+
     private void fillFields(List<RefBookField> refBookFields) {
         CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
         for (RefBookField refBookField : refBookFields) {
@@ -339,27 +315,6 @@ class RdmSmokeTest {
         }
     }
 
-    private List<RefBookField> getRefBookFields(boolean withoutLink) {
-        List<RefBookField> list = new ArrayList<>();
-        FieldType[] fieldTypes = FieldType.values();
-        for (FieldType fieldType : fieldTypes) {
-            int ordinal = fieldType.ordinal() + 1;
-            RefBookField refBookField = new RefBookField("code" + ordinal, "name" + ordinal, fieldType);
-            if (fieldType.equals(FieldType.STRING)) {
-                refBookField.setPrimaryKey(true);
-            }
-
-            if (withoutLink) {
-                if (!refBookField.getAttributeTypeName().equals(FieldType.LINKED)) {
-                    list.add(refBookField);
-                }
-            } else {
-                list.add(refBookField);
-            }
-        }
-        return list;
-    }
-
     private void createRefBook(RefBook refBook) {
 
         N2oPage page = page(N2oPage.class);
@@ -383,15 +338,69 @@ class RdmSmokeTest {
         page.toolbar().bottomRight().button("Сохранить").click();
     }
 
+    //+
     private void fillForm(Fields formFields, RefBook refBook) {
         formFields.field("Код").control(N2oInputText.class).val(refBook.getCode());
         formFields.field("Наименование").control(N2oInputText.class).val(refBook.getName());
         formFields.field("Краткое наименование").control(N2oInputText.class).val(refBook.getShortName());
-//        formFields.field("Категория").control(N2oInputSelect.class).select(0);
+        formFields.field("Категория").control(N2oInputSelect.class).select(0);
         formFields.field("Описание").control(N2oTextArea.class).val(refBook.getDescription());
     }
 
-    private RefBook getRefBook() {
+    //+
+    private void login() {
+        LoginPage loginPage = open("/", LoginPage.class);
+        loginPage.login(USERNAME, PASSWORD);
+        logger.info("User logged in");
+    }
+
+    private StandardButtonWrapper getButton(Toolbar toolbar, String buttonName) {
+        return new StandardButtonWrapper(toolbar.button(buttonName));
+    }
+
+    //+
+    private void rdmPageShouldExists() {
+        N2oPage rdmPage = page(N2oPage.class);
+        rdmPage.shouldExists();
+    }
+
+    private void waitPublishing() {
+        Selenide.sleep(WAIT_TIME);
+    }
+
+    private N2oTableWidgetWrapper getTableWidget() {
+        return new N2oTableWidgetWrapper(page(N2oSimplePage.class).widget(N2oTableWidget.class));
+    }
+
+    private static List<RefBookField> getRefBookFields(boolean withoutLink) {
+        List<RefBookField> list = new ArrayList<>();
+        FieldType[] fieldTypes = FieldType.values();
+        for (FieldType fieldType : fieldTypes) {
+            int ordinal = fieldType.ordinal() + 1;
+            RefBookField refBookField = new RefBookField("code" + ordinal, "name" + ordinal, fieldType);
+
+            if (fieldType.equals(FieldType.STRING)) {
+                refBookField.setPrimaryKey(true);
+            }
+
+            if (withoutLink) {
+                if (!refBookField.getAttributeTypeName().equals(FieldType.LINKED)) {
+                    list.add(refBookField);
+                }
+            } else {
+                list.add(refBookField);
+            }
+        }
+        return list;
+    }
+
+    private N2oTabsRegion getTabsRegion() {
+        return page(N2oStandardPage.class)
+                .regions()
+                .region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
+    }
+
+    private static RefBook getRefBook() {
         return new RefBook(
                 "D" + RandomStringUtils.randomAlphabetic(5),
                 RandomStringUtils.randomAlphabetic(5),
@@ -399,11 +408,5 @@ class RdmSmokeTest {
                 "system",
                 "description"
         );
-    }
-
-    private void login() {
-        LoginPage loginPage = open("/", LoginPage.class);
-        loginPage.login(USERNAME, PASSWORD);
-        logger.info("User logged in");
     }
 }
