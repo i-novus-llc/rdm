@@ -75,7 +75,6 @@ class RdmSmokeTest {
         Selenide.closeWebDriver();
     }
 
-    //+
     @Test
     void testRdmPage() {
         login();
@@ -96,7 +95,6 @@ class RdmSmokeTest {
         deleteRefBooks();
     }
 
-    //+
     private void deleteRefBooks() {
         open("/", N2oSimplePage.class);
 
@@ -109,7 +107,6 @@ class RdmSmokeTest {
         }
     }
 
-    //+
     private void editRefBook(RefBook refBook) {
         searchRefBook(refBook);
 
@@ -118,7 +115,6 @@ class RdmSmokeTest {
         getTableWidget().waitUntilTableContentLoaded(Condition.enabled, WAIT_TIME);
     }
 
-    //+
     private void searchRefBook(RefBook refBook) {
         N2oTableWidgetWrapper tableWidget = getTableWidget();
         tableWidget.waitUntilFilterVisible(Condition.visible, WAIT_TIME);
@@ -132,7 +128,6 @@ class RdmSmokeTest {
         filters.search();
     }
 
-    //+
     private void deleteRow(StandardButtonWrapper button, Cells cells) {
         cells.click();
         button.click();
@@ -144,7 +139,6 @@ class RdmSmokeTest {
         button.waitUntil(Condition.visible, WAIT_TIME);
     }
 
-    //+
     private void fillDataToRefBook(List<RefBookField> refBookFields) {
         TabsRegionWrapper refBookTabsRegion = new TabsRegionWrapper(page(N2oStandardPage.class)
                 .regions()
@@ -157,7 +151,6 @@ class RdmSmokeTest {
         createRefBookDataRows(refBookFields);
     }
 
-    //+
     private void editRefBookDataRows() {
         N2oTableWidgetWrapper refBooksTable = getTableWidget();
 
@@ -186,7 +179,6 @@ class RdmSmokeTest {
         Selenide.sleep(WAIT_TIME);
     }
 
-    //+
     private void editRow(StandardButtonWrapper button, Cells row) {
         row.click();
         button.click();
@@ -199,7 +191,6 @@ class RdmSmokeTest {
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
     }
 
-    //+
     private void publishRefBook() {
         N2oSimplePage n2oSimplePage = page(N2oSimplePage.class);
 
@@ -215,7 +206,6 @@ class RdmSmokeTest {
         n2oSimplePage.dialog("Публикация справочника").click("Опубликовать");
     }
 
-    //+
     private void createRefBookDataRows(List<RefBookField> refBookFields) {
         CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
@@ -234,7 +224,6 @@ class RdmSmokeTest {
         }
     }
 
-    //+
     private void createRow(StandardButtonWrapper button, List<RefBookField> refBookFields) {
         CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
 
@@ -245,7 +234,6 @@ class RdmSmokeTest {
         modalForm.waitUntil(Condition.not(Condition.visible), WAIT_TIME);
     }
 
-    //+
     private void fillFields(List<RefBookField> refBookFields) {
         CustomModalFormWidget modalForm = page(N2oSimplePage.class).widget(CustomModalFormWidget.class);
         for (RefBookField refBookField : refBookFields) {
@@ -266,7 +254,6 @@ class RdmSmokeTest {
         }
     }
 
-    //-
     private void createRefBookFields(List<RefBookField> refBookFields) {
         TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Структура"));
 
@@ -314,7 +301,6 @@ class RdmSmokeTest {
         }
     }
 
-    //+
     private void createRefBook(RefBook refBook) {
         N2oSimplePage page = page(N2oSimplePage.class);
 
@@ -336,7 +322,6 @@ class RdmSmokeTest {
         page.toolbar().bottomRight().button("Сохранить").click();
     }
 
-    //+
     private void fillForm(Fields formFields, RefBook refBook) {
         formFields.field("Код").control(N2oInputText.class).val(refBook.getCode());
         formFields.field("Наименование").control(N2oInputText.class).val(refBook.getName());
@@ -345,7 +330,6 @@ class RdmSmokeTest {
         formFields.field("Описание").control(N2oTextArea.class).val(refBook.getDescription());
     }
 
-    //+
     private void login() {
         LoginPage loginPage = open("/", LoginPage.class);
         loginPage.login(USERNAME, PASSWORD);
@@ -356,7 +340,6 @@ class RdmSmokeTest {
         return new StandardButtonWrapper(toolbar.button(buttonName));
     }
 
-    //+
     private void rdmPageShouldExists() {
         N2oPage rdmPage = page(N2oPage.class);
         rdmPage.shouldExists();
