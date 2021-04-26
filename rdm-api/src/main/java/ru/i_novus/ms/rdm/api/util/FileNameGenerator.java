@@ -7,5 +7,5 @@ public interface FileNameGenerator {
 
     String generateName(RefBookVersion version, FileType fileType);
 
-    String generateZipName(RefBookVersion version, FileType fileTypes);
+    String generateZipName(RefBookVersion version, FileType fileType);
 }

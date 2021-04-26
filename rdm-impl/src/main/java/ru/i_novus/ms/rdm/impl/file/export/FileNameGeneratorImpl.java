@@ -19,9 +19,9 @@ public class FileNameGeneratorImpl implements FileNameGenerator {
     }
 
     @Override
-    public String generateZipName(RefBookVersion version, FileType fileTypes) {
+    public String generateZipName(RefBookVersion version, FileType fileType) {
         return version.getCode() + "_" +
                 (version.isDraft() ? "0.0" : version.getVersion()) +
-                "_" + fileTypes.name() + ".zip";
+                "_" + fileType.name() + ".zip";
     }
 }
