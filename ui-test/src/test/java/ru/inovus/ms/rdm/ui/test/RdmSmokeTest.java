@@ -21,16 +21,16 @@ import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.inovus.ms.rdm.ui.test.custom.wrapper.TabsRegionWrapper;
-import ru.inovus.ms.rdm.ui.test.custom.wrapper.StandardButtonWrapper;
-import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
 import ru.inovus.ms.rdm.ui.test.custom.component.form.ModalFormWidget;
+import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.StandardButtonWrapper;
 import ru.inovus.ms.rdm.ui.test.custom.wrapper.TableWidgetWrapper;
+import ru.inovus.ms.rdm.ui.test.custom.wrapper.TabsRegionWrapper;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.model.RefBook;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import static net.n2oapp.framework.autotest.N2oSelenide.open;
 import static net.n2oapp.framework.autotest.N2oSelenide.page;
 
-class RdmSmokeTest {
+public class RdmSmokeTest {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSmokeTest.class);
 
@@ -61,7 +61,7 @@ class RdmSmokeTest {
     private static List<RefBookField> fieldsToFirstRefBook;
     private static List<RefBookField> fieldsToSecondRefBook;
 
-    @BeforeAll
+    @BeforeClass
     public static void setUp() {
         Configuration.baseUrl = RDM_BASE_URL;
         firstRefBook = getRefBook();
@@ -70,13 +70,13 @@ class RdmSmokeTest {
         fieldsToSecondRefBook = getRefBookFields(false);
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDown() {
         Selenide.closeWebDriver();
     }
 
     @Test
-    void testRdmPage() {
+    public void testRdmPage() {
         login();
 
         rdmPageShouldExists();

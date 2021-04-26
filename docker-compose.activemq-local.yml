@@ -1,9 +1,0 @@
-# временный, потом удалю
-version: "3.6"
-
-services:
-  activemq:
-    image: rmohr/activemq
-    ports:
-    - 61616:61616
-    - 8161:8161
