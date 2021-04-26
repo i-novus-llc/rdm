@@ -20,7 +20,7 @@ public class DefaultSaveVersionFileStrategyTest {
     private static final Integer VERSION_ID = 2;
     private static final Integer FILE_ID = 3;
     private static final FileType FILE_TYPE = FileType.XML;
-    private static final String FILE_PATH = "/";
+    private static final String FILE_PATH = "/refBook_1.0.XML.zip";
 
     @InjectMocks
     private DefaultSaveVersionFileStrategy strategy;

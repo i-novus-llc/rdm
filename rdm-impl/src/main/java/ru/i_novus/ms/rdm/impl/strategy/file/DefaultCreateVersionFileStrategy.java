@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.file;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
@@ -21,7 +20,6 @@ import static java.util.Collections.singletonList;
 public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrategy {
 
     @Autowired
-    @Lazy
     private VersionService versionService;
 
     @Autowired
@@ -36,18 +34,18 @@ public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrate
     @Override
     public String create(RefBookVersion version, FileType fileType) {
 
-        String path;
+        String filePath;
         try (InputStream is = generateVersionFile(version, fileType)) {
-            path = fileStorage.saveContent(is, fileNameGenerator.generateZipName(version, fileType));
+            filePath = fileStorage.saveContent(is, fileNameGenerator.generateZipName(version, fileType));
 
         } catch (IOException e) {
             throw new RdmException(e);
         }
 
-        if (path == null || !fileStorage.isExistContent(path))
+        if (filePath == null || !fileStorage.isExistContent(filePath))
             throw new RdmException("Cannot generate file");
 
-        return path;
+        return filePath;
     }
 
     private InputStream generateVersionFile(RefBookVersion version, FileType fileType) {
