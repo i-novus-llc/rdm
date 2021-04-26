@@ -15,15 +15,15 @@ public class DefaultSaveVersionFileStrategy implements SaveVersionFileStrategy {
     private VersionFileRepository versionFileRepository;
 
     @Override
-    public void save(RefBookVersion version, FileType fileType, String path) {
+    public void save(RefBookVersion version, FileType fileType, String filePath) {
 
         VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(version.getId(), fileType);
 
-        save(fileEntity, version, fileType, path);
+        save(fileEntity, version, fileType, filePath);
     }
 
     protected void save(VersionFileEntity fileEntity,
-                        RefBookVersion version, FileType fileType, String path) {
+                        RefBookVersion version, FileType fileType, String filePath) {
 
         if (fileEntity != null || version.isDraft())
             return;
@@ -31,7 +31,7 @@ public class DefaultSaveVersionFileStrategy implements SaveVersionFileStrategy {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(version.getId());
 
-        VersionFileEntity newEntity = new VersionFileEntity(versionEntity, fileType, path);
+        VersionFileEntity newEntity = new VersionFileEntity(versionEntity, fileType, filePath);
         versionFileRepository.save(newEntity);
     }
 }

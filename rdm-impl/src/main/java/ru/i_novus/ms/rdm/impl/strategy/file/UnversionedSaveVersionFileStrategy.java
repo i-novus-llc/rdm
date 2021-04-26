@@ -10,7 +10,7 @@ public class UnversionedSaveVersionFileStrategy extends DefaultSaveVersionFileSt
 
     @Override
     protected void save(VersionFileEntity fileEntity,
-                        RefBookVersion version, FileType fileType, String path) {
+                        RefBookVersion version, FileType fileType, String filePath) {
         // Nothing to do.
     }
 }

@@ -6,5 +6,5 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
 public interface SaveVersionFileStrategy extends Strategy {
 
-    void save(RefBookVersion version, FileType fileType, String path);
+    void save(RefBookVersion version, FileType fileType, String filePath);
 }
