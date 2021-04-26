@@ -5,9 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.VersionServiceImpl;
@@ -32,12 +30,10 @@ public class L10nVersionServiceImpl extends VersionServiceImpl {
     public L10nVersionServiceImpl(L10nStorageCodeService storageCodeService,
                                   RefBookVersionRepository versionRepository,
                                   SearchDataService searchDataService,
-                                  FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                                   AuditLogService auditLogService,
                                   StrategyLocator strategyLocator) {
 
         super(versionRepository, searchDataService,
-                fileStorage, fileNameGenerator,
                 auditLogService, strategyLocator);
 
         this.storageCodeService = storageCodeService;

@@ -20,18 +20,14 @@ import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.CreateVersionFileStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.file.FindVersionFileStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.file.SaveVersionFileStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -61,29 +57,22 @@ public class VersionServiceImpl implements VersionService {
     private static final String VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE = "version.actual.on.date.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
 
-    private RefBookVersionRepository versionRepository;
+    private final RefBookVersionRepository versionRepository;
 
-    private SearchDataService searchDataService;
+    private final SearchDataService searchDataService;
 
-    private FileStorage fileStorage;
-    private FileNameGenerator fileNameGenerator;
-
-    private AuditLogService auditLogService;
-    private StrategyLocator strategyLocator;
+    private final AuditLogService auditLogService;
+    private final StrategyLocator strategyLocator;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
-                              FileStorage fileStorage, FileNameGenerator fileNameGenerator,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
-
-        this.fileStorage = fileStorage;
-        this.fileNameGenerator = fileNameGenerator;
 
         this.auditLogService = auditLogService;
         this.strategyLocator = strategyLocator;
@@ -281,10 +270,8 @@ public class VersionServiceImpl implements VersionService {
             getStrategy(versionEntity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
         }
 
-        ExportFile exportFile = new ExportFile(
-                fileStorage.getContent(filePath),
-                fileNameGenerator.generateZipName(version, fileType)
-        );
+        ExportFile exportFile = getStrategy(versionEntity, ExportVersionFileStrategy.class)
+                .export(version, fileType, filePath);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
 
