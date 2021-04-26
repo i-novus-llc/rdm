@@ -8,6 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 
@@ -16,61 +17,68 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultSaveVersionFileStrategyTest {
 
+    private static final Integer VERSION_ID = 2;
+    private static final Integer FILE_ID = 3;
+    private static final FileType FILE_TYPE = FileType.XML;
+    private static final String FILE_PATH = "/";
+
     @InjectMocks
-    private DefaultSaveVersionFileStrategy defaultFileVersionStrategy;
+    private DefaultSaveVersionFileStrategy strategy;
 
     @Mock
     private VersionFileRepository versionFileRepository;
 
-    private static final FileType TYPE_XML = FileType.XML;
-
     @Test
     public void testSaveDraftRefBook() {
 
-        RefBookVersion version = getRefBookVersion(RefBookVersionStatus.DRAFT);
+        VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
+        versionFileEntity.setId(FILE_ID);
 
-        VersionFileEntity versionFileEntity = getVersionFileEntity();
+        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(versionFileEntity);
 
-        when(versionFileRepository.findByVersionIdAndType(version.getId(), TYPE_XML))
-                .thenReturn(versionFileEntity);
+        RefBookVersion version = createRefBookVersion(RefBookVersionStatus.DRAFT);
+        strategy.save(version, FILE_TYPE, FILE_PATH);
 
-        defaultFileVersionStrategy.save(version, TYPE_XML, "/");
+        verify(versionFileRepository).findByVersionIdAndType(VERSION_ID, FILE_TYPE);
 
-        verify(versionFileRepository, times(0)).save(argThat(entity ->
-                entity.getVersion().getId().equals(51) && entity.getType().equals(TYPE_XML)
-        ));
+        verifyNoMoreInteractions(versionFileRepository);
     }
 
     @Test
     public void testSaveRefBookNotDraft() {
 
-        RefBookVersion version = getRefBookVersion(RefBookVersionStatus.PUBLISHED);
+        VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
 
-        when(versionFileRepository.findByVersionIdAndType(version.getId(), TYPE_XML))
-                .thenReturn(null);
+        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(null);
 
-        defaultFileVersionStrategy.save(version, TYPE_XML, "/");
+        RefBookVersion version = createRefBookVersion(RefBookVersionStatus.PUBLISHED);
+        strategy.save(version, FILE_TYPE, FILE_PATH);
 
-        verify(versionFileRepository, times(1)).save(argThat(entity ->
-                entity.getVersion().getId().equals(51) && entity.getType().equals(TYPE_XML)
-        ));
+        verify(versionFileRepository).findByVersionIdAndType(VERSION_ID, FILE_TYPE);
+        verify(versionFileRepository).save(eq(versionFileEntity));
+
+        verifyNoMoreInteractions(versionFileRepository);
     }
 
-    private RefBookVersion getRefBookVersion(RefBookVersionStatus refBookVersionStatus) {
+    private RefBookVersion createRefBookVersion(RefBookVersionStatus status) {
 
-        RefBookVersion refBookVersion = new RefBookVersion();
-        refBookVersion.setId(51);
-        refBookVersion.setStatus(refBookVersionStatus);
+        RefBookVersion result = new RefBookVersion();
+        result.setId(VERSION_ID);
+        result.setStatus(status);
 
-        return refBookVersion;
+        return result;
     }
 
-    private VersionFileEntity getVersionFileEntity() {
+    private VersionFileEntity createVersionFileEntity(Integer versionId) {
 
-        VersionFileEntity entity = new VersionFileEntity();
-        entity.setId(12);
-        entity.setType(FileType.XML);
+        VersionFileEntity result = new VersionFileEntity();
+        result.setType(FILE_TYPE);
+        result.setPath(FILE_PATH);
 
-        return entity;
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(versionId);
+        result.setVersion(versionEntity);
+
+        return result;
     }
 }

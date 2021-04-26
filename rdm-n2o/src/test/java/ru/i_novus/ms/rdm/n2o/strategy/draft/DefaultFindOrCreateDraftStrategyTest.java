@@ -22,7 +22,7 @@ public class DefaultFindOrCreateDraftStrategyTest {
     private static final String REFBOOK_CODE = "TEST_CODE";
 
     private static final int VERSION_ID = 2;
-    private static final int DRAFT_ID = 2;
+    private static final int DRAFT_ID = 3;
 
     @InjectMocks
     private DefaultFindOrCreateDraftStrategy strategy;

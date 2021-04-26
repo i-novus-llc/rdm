@@ -9,7 +9,6 @@ import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.VersionServiceImpl;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
@@ -34,13 +33,11 @@ public class L10nVersionServiceImpl extends VersionServiceImpl {
                                   RefBookVersionRepository versionRepository,
                                   SearchDataService searchDataService,
                                   FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                                  VersionFileRepository versionFileRepository,
                                   AuditLogService auditLogService,
                                   StrategyLocator strategyLocator) {
 
         super(versionRepository, searchDataService,
                 fileStorage, fileNameGenerator,
-                versionFileRepository,
                 auditLogService, strategyLocator);
 
         this.storageCodeService = storageCodeService;

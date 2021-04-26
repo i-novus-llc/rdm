@@ -24,14 +24,13 @@ import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.FindOrCreateFileStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.CreateVersionFileStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.FindVersionFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.SaveVersionFileStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -69,8 +68,6 @@ public class VersionServiceImpl implements VersionService {
     private FileStorage fileStorage;
     private FileNameGenerator fileNameGenerator;
 
-    private VersionFileRepository versionFileRepository;
-
     private AuditLogService auditLogService;
     private StrategyLocator strategyLocator;
 
@@ -79,7 +76,6 @@ public class VersionServiceImpl implements VersionService {
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
                               FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                              VersionFileRepository versionFileRepository,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
@@ -88,8 +84,6 @@ public class VersionServiceImpl implements VersionService {
 
         this.fileStorage = fileStorage;
         this.fileNameGenerator = fileNameGenerator;
-
-        this.versionFileRepository = versionFileRepository;
 
         this.auditLogService = auditLogService;
         this.strategyLocator = strategyLocator;
@@ -279,11 +273,13 @@ public class VersionServiceImpl implements VersionService {
             return null;
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
+        String path = getStrategy(versionEntity, FindVersionFileStrategy.class).find(versionId, fileType);
 
-        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
-        String path = (fileEntity != null) ? fileEntity.getPath() : null;
         if (path == null || !fileStorage.isExistContent(path)) {
-            path = generateVersionFile(versionEntity, fileType);
+
+            RefBookVersion version = ModelGenerator.versionModel(versionEntity);
+            path = getStrategy(versionEntity, CreateVersionFileStrategy.class).create(version, fileType);
+            getStrategy(versionEntity, SaveVersionFileStrategy.class).save(version, fileType, path);
         }
 
         ExportFile exportFile = new ExportFile(
@@ -294,19 +290,6 @@ public class VersionServiceImpl implements VersionService {
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
 
         return exportFile;
-    }
-
-    private String generateVersionFile(RefBookVersionEntity entity, FileType fileType) {
-
-        RefBookVersion version = ModelGenerator.versionModel(entity);
-
-        String path = getStrategy(entity, FindOrCreateFileStrategy.class)
-                .findOrCreate(version, fileType);
-
-        getStrategy(entity, SaveVersionFileStrategy.class)
-                .save(version, fileType, path);
-
-        return path;
     }
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {

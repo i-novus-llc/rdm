@@ -4,7 +4,7 @@ import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
-public interface FindOrCreateFileStrategy extends Strategy {
+public interface CreateVersionFileStrategy extends Strategy {
 
-    String findOrCreate(RefBookVersion version, FileType fileType);
+    String create(RefBookVersion version, FileType fileType);
 }

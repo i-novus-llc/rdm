@@ -12,43 +12,51 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UnversionedSaveVersionFileStrategyTest {
+public class DefaultFindVersionFileStrategyTest {
 
-    private static final int VERSION_ID = 2;
-    private static final int FILE_ID = 3;
+    private static final Integer VERSION_ID = 2;
+    private static final Integer FILE_ID = 3;
     private static final FileType FILE_TYPE = FileType.XML;
     private static final String FILE_PATH = "/";
 
     @InjectMocks
-    private UnversionedSaveVersionFileStrategy strategy;
+    private DefaultFindVersionFileStrategy strategy;
 
     @Mock
     private VersionFileRepository versionFileRepository;
 
     @Test
-    public void testUnversionedFileNotSaved() {
+    public void testFind() {
 
         VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
         versionFileEntity.setId(FILE_ID);
 
-        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(versionFileEntity);
+        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE))
+                .thenReturn(versionFileEntity);
 
-        RefBookVersion version = createRefBookVersion();
-        strategy.save(version, FILE_TYPE, FILE_PATH);
-
-        verify(versionFileRepository).findByVersionIdAndType(VERSION_ID, FILE_TYPE);
-
-        verifyNoMoreInteractions(versionFileRepository);
+        String filePath = strategy.find(VERSION_ID, FILE_TYPE);
+        assertEquals(FILE_PATH, filePath);
     }
 
-    private RefBookVersion createRefBookVersion() {
+    @Test
+    public void testFindNull() {
+
+        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(null);
+
+        String filePath = strategy.find(VERSION_ID, FILE_TYPE);
+        assertNull(filePath);
+    }
+
+    private RefBookVersion createRefBookVersion(RefBookVersionStatus status) {
 
         RefBookVersion result = new RefBookVersion();
         result.setId(VERSION_ID);
-        result.setStatus(RefBookVersionStatus.PUBLISHED);
+        result.setStatus(status);
 
         return result;
     }

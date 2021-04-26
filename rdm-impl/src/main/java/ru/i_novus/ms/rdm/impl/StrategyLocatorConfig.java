@@ -43,7 +43,7 @@ public class StrategyLocatorConfig {
     private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
 
     @Autowired
-    private DefaultFindOrCreateFileStrategy defaultFindOrCreateFileStrategy;
+    private DefaultCreateVersionFileStrategy defaultCreateVersionFileStrategy;
 
     @Autowired
     private DefaultSaveVersionFileStrategy defaultSaveVersionFileStrategy;
@@ -87,7 +87,7 @@ public class StrategyLocatorConfig {
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         // File:
-        result.put(FindOrCreateFileStrategy.class, defaultFindOrCreateFileStrategy);
+        result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
 
         return result;

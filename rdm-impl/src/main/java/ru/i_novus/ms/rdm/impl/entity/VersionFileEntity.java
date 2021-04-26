@@ -3,15 +3,14 @@ package ru.i_novus.ms.rdm.impl.entity;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * Created by znurgaliev on 08.08.2018.
  */
-
 @Entity
 @Table(name = "ref_book_version_file", schema = "n2o_rdm_management" )
 public class VersionFileEntity {
-
 
     @Id
     @Column(name = "id", nullable = false)
@@ -30,9 +29,11 @@ public class VersionFileEntity {
     private String path;
 
     public VersionFileEntity() {
+        // Nothing to do.
     }
 
     public VersionFileEntity(RefBookVersionEntity version, FileType type, String path) {
+
         this.version = version;
         this.type = type;
         this.path = path;
@@ -68,5 +69,22 @@ public class VersionFileEntity {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        VersionFileEntity that = (VersionFileEntity) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(version, that.version) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, version, type, path);
     }
 }

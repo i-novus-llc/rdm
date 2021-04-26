@@ -18,7 +18,7 @@ import java.io.InputStream;
 import static java.util.Collections.singletonList;
 
 @Component
-public class DefaultFindOrCreateFileStrategy implements FindOrCreateFileStrategy {
+public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrategy {
 
     @Autowired
     @Lazy
@@ -34,7 +34,7 @@ public class DefaultFindOrCreateFileStrategy implements FindOrCreateFileStrategy
     private FileNameGenerator fileNameGenerator;
 
     @Override
-    public String findOrCreate(RefBookVersion version, FileType fileType) {
+    public String create(RefBookVersion version, FileType fileType) {
 
         String path;
         try (InputStream is = generateVersionFile(version, fileType)) {
