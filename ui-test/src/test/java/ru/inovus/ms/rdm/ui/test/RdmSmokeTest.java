@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.system.SystemProperties;
 import ru.inovus.ms.rdm.ui.test.custom.component.form.ModalFormWidget;
 import ru.inovus.ms.rdm.ui.test.custom.component.page.LoginPage;
 import ru.inovus.ms.rdm.ui.test.custom.wrapper.StandardButtonWrapper;
@@ -48,7 +49,6 @@ public class RdmSmokeTest {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmSmokeTest.class);
 
-    private static final String RDM_BASE_URL = "http://localhost:8080";
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
 
@@ -63,11 +63,19 @@ public class RdmSmokeTest {
 
     @BeforeClass
     public static void setUp() {
-        Configuration.baseUrl = RDM_BASE_URL;
+        Configuration.baseUrl = getBaseUrl();
         firstRefBook = getRefBook();
         secondRefBook = getRefBook();
         fieldsToFirstRefBook = getRefBookFields(true);
         fieldsToSecondRefBook = getRefBookFields(false);
+    }
+
+    private static String getBaseUrl() {
+        String baseUrl = SystemProperties.get("rdm.url");
+        if (baseUrl == null) {
+            baseUrl = "http://localhost:8080";
+        }
+        return baseUrl;
     }
 
     @AfterClass
