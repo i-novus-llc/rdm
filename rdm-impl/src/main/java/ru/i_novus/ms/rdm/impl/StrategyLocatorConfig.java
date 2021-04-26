@@ -43,6 +43,9 @@ public class StrategyLocatorConfig {
     private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
 
     @Autowired
+    private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
+
+    @Autowired
     private DefaultCreateVersionFileStrategy defaultCreateVersionFileStrategy;
 
     @Autowired
@@ -61,6 +64,7 @@ public class StrategyLocatorConfig {
     private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
 
     @Bean
+    @SuppressWarnings("unused")
     public StrategyLocator strategyLocator() {
         return new BaseStrategyLocator(getStrategiesMap());
     }
@@ -87,6 +91,7 @@ public class StrategyLocatorConfig {
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         // File:
+        result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
 
