@@ -46,4 +46,17 @@ public class DefaultValidateDraftExistsStrategyTest {
             assertEquals("draft.not.found", e.getMessage());
         }
     }
+
+    @Test
+    public void validateWhenNull() {
+
+        try {
+            strategy.validate(null);
+            fail("Validate null");
+
+        } catch (Exception e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals("draft.not.found", e.getMessage());
+        }
+    }
 }
