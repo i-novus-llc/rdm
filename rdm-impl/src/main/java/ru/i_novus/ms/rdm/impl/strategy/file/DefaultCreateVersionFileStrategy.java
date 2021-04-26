@@ -20,9 +20,6 @@ import static java.util.Collections.singletonList;
 public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrategy {
 
     @Autowired
-    private VersionService versionService;
-
-    @Autowired
     private VersionFileService versionFileService;
 
     @Autowired
@@ -32,10 +29,10 @@ public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrate
     private FileNameGenerator fileNameGenerator;
 
     @Override
-    public String create(RefBookVersion version, FileType fileType) {
+    public String create(RefBookVersion version, FileType fileType, VersionService versionService) {
 
         String filePath;
-        try (InputStream is = generateVersionFile(version, fileType)) {
+        try (InputStream is = generateVersionFile(version, fileType, versionService)) {
             filePath = fileStorage.saveContent(is, fileNameGenerator.generateZipName(version, fileType));
 
         } catch (IOException e) {
@@ -48,7 +45,7 @@ public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrate
         return filePath;
     }
 
-    private InputStream generateVersionFile(RefBookVersion version, FileType fileType) {
+    private InputStream generateVersionFile(RefBookVersion version, FileType fileType, VersionService versionService) {
 
         VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(version.getId()));
         return versionFileService.generate(version, fileType, dataIterator);

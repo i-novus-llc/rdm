@@ -57,7 +57,7 @@ public class DefaultCreateVersionFileStrategyTest {
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(Boolean.TRUE);
 
-        String filePath = strategy.create(version, FILE_TYPE);
+        String filePath = strategy.create(version, FILE_TYPE, versionService);
         assertEquals(FILE_PATH, filePath);
     }
 
@@ -72,7 +72,7 @@ public class DefaultCreateVersionFileStrategyTest {
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(Boolean.FALSE);
 
         try {
-            strategy.create(version, FILE_TYPE);
+            strategy.create(version, FILE_TYPE, versionService);
             fail("Create file without content");
 
         } catch (RuntimeException e) {

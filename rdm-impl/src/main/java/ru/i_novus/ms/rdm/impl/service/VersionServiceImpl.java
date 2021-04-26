@@ -28,6 +28,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -249,11 +250,6 @@ public class VersionServiceImpl implements VersionService {
         return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
     }
 
-    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
-        return versionRepository.findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
-    }
-
     @Override
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
@@ -261,21 +257,33 @@ public class VersionServiceImpl implements VersionService {
         if (fileType == null)
             return null;
 
-        RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-        RefBookVersion version = ModelGenerator.versionModel(versionEntity);
+        RefBookVersionEntity entity = findVersion(versionId);
+        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity);
 
-        String filePath = getStrategy(versionEntity, FindVersionFileStrategy.class).find(versionId, fileType);
+        RefBookVersion version = ModelGenerator.versionModel(entity);
+
+        String filePath = getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType);
         if (filePath == null) {
-            filePath = getStrategy(versionEntity, CreateVersionFileStrategy.class).create(version, fileType);
-            getStrategy(versionEntity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
+            filePath = getStrategy(entity, CreateVersionFileStrategy.class).create(version, fileType, this);
+            getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
         }
 
-        ExportFile exportFile = getStrategy(versionEntity, ExportVersionFileStrategy.class)
+        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class)
                 .export(version, fileType, filePath);
 
-        auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
+        auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
         return exportFile;
+    }
+
+    protected RefBookVersionEntity findVersion(Integer id) {
+
+        return (id != null) ? versionRepository.findById(id).orElse(null) : null;
+    }
+
+    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
+        return versionRepository.findById(versionId)
+                .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
     }
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
