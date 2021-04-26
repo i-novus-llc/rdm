@@ -55,6 +55,9 @@ public class StrategyLocatorConfig {
     private DefaultExportVersionFileStrategy defaultExportVersionFileStrategy;
 
     @Autowired
+    private DefaultExportDraftFileStrategy defaultExportDraftFileStrategy;
+
+    @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
@@ -98,6 +101,7 @@ public class StrategyLocatorConfig {
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
         result.put(ExportVersionFileStrategy.class, defaultExportVersionFileStrategy);
+        result.put(ExportDraftFileStrategy.class, defaultExportDraftFileStrategy);
 
         return result;
     }

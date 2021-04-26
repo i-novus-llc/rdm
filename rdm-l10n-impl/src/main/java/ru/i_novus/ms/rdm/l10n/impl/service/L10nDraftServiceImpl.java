@@ -5,9 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -41,8 +39,7 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                                 DraftDataService draftDataService, DropDataService dropDataService,
                                 SearchDataService searchDataService,
                                 RefBookLockService refBookLockService, VersionService versionService,
-                                FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                                VersionFileService versionFileService,
+                                FileStorage fileStorage,
                                 VersionValidation versionValidation,
                                 PassportValueRepository passportValueRepository,
                                 AttributeValidationRepository attributeValidationRepository,
@@ -53,7 +50,7 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
         super(versionRepository, conflictRepository,
                 draftDataService, dropDataService, searchDataService,
                 refBookLockService, versionService,
-                fileStorage, fileNameGenerator, versionFileService,
+                fileStorage,
                 versionValidation,
                 passportValueRepository, attributeValidationRepository, structureChangeValidator,
                 auditLogService,

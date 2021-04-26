@@ -25,9 +25,7 @@ import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
@@ -40,6 +38,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
@@ -88,8 +87,6 @@ public class DraftServiceImpl implements DraftService {
     private VersionService versionService;
 
     private FileStorage fileStorage;
-    private FileNameGenerator fileNameGenerator;
-    private VersionFileService versionFileService;
 
     private VersionValidation versionValidation;
 
@@ -109,8 +106,7 @@ public class DraftServiceImpl implements DraftService {
                             DraftDataService draftDataService, DropDataService dropDataService,
                             SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
-                            FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                            VersionFileService versionFileService,
+                            FileStorage fileStorage,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository,
                             AttributeValidationRepository attributeValidationRepository,
@@ -128,8 +124,6 @@ public class DraftServiceImpl implements DraftService {
         this.versionService = versionService;
 
         this.fileStorage = fileStorage;
-        this.fileNameGenerator = fileNameGenerator;
-        this.versionFileService = versionFileService;
 
         this.versionValidation = versionValidation;
 
@@ -1090,15 +1084,17 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public ExportFile getDraftFile(Integer draftId, FileType fileType) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        RefBookVersionEntity entity = findVersion(draftId);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity);
 
-        RefBookVersion versionModel = ModelGenerator.versionModel(draftEntity);
-        VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(versionModel.getId()));
+        RefBookVersion version = ModelGenerator.versionModel(entity);
 
-        return new ExportFile(
-                versionFileService.generate(versionModel, fileType, dataIterator),
-                fileNameGenerator.generateZipName(versionModel, fileType));
+        ExportFile exportFile = getStrategy(entity, ExportDraftFileStrategy.class)
+                .export(version, fileType, versionService);
+
+        auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
+
+        return exportFile;
     }
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
