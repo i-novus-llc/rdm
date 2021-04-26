@@ -4,23 +4,23 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="201907301144-EPMP-38_1.2" author="arahmatullin" dbms="postgresql">
+    <changeSet id="201907301144-EPMP-38_1.1" author="arahmatullin" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
         </preConditions>
         <sql>
             delete from sec.role_permission
-             where permission_code in (
-                   select code from sec.permission
+             where permission_id in (
+                   select id from sec.permission
                     where code in ('nsi.read', 'nsi.list')
                    );
 
             delete from sec.permission
              where code in ('nsi.read', 'nsi.list');
 
-            insert into sec.permission(name, code, parent_code)
+            insert into sec.permission(name, code, parent_id)
                 select 'Выгрузка справочников', 'nsi.download',
-                    (select code from sec.permission where code = 'nsi')
+                    (select id from sec.permission where code = 'nsi')
                  where not exists (select 1 from sec.permission where code = 'nsi.download');
         </sql>
     </changeSet>
