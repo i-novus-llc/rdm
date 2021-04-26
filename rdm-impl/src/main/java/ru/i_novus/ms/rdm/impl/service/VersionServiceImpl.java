@@ -273,18 +273,17 @@ public class VersionServiceImpl implements VersionService {
             return null;
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
-        String path = getStrategy(versionEntity, FindVersionFileStrategy.class).find(versionId, fileType);
+        RefBookVersion version = ModelGenerator.versionModel(versionEntity);
 
-        if (path == null || !fileStorage.isExistContent(path)) {
-
-            RefBookVersion version = ModelGenerator.versionModel(versionEntity);
-            path = getStrategy(versionEntity, CreateVersionFileStrategy.class).create(version, fileType);
-            getStrategy(versionEntity, SaveVersionFileStrategy.class).save(version, fileType, path);
+        String filePath = getStrategy(versionEntity, FindVersionFileStrategy.class).find(versionId, fileType);
+        if (filePath == null) {
+            filePath = getStrategy(versionEntity, CreateVersionFileStrategy.class).create(version, fileType);
+            getStrategy(versionEntity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
         }
 
         ExportFile exportFile = new ExportFile(
-                fileStorage.getContent(path),
-                fileNameGenerator.generateZipName(ModelGenerator.versionModel(versionEntity), fileType)
+                fileStorage.getContent(filePath),
+                fileNameGenerator.generateZipName(version, fileType)
         );
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> versionEntity);
