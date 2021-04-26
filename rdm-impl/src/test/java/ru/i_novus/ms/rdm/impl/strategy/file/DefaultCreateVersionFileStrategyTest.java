@@ -21,8 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultCreateVersionFileStrategyTest {
@@ -59,6 +58,13 @@ public class DefaultCreateVersionFileStrategyTest {
 
         String filePath = strategy.create(version, FILE_TYPE, versionService);
         assertEquals(FILE_PATH, filePath);
+
+        verify(versionFileService).generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class));
+        verify(fileNameGenerator).generateZipName(eq(version), eq(FILE_TYPE));
+        verify(fileStorage).saveContent(is, ZIP_NAME);
+        verify(fileStorage).isExistContent(FILE_PATH);
+
+        verifyNoMoreInteractions(versionFileService, fileNameGenerator, fileStorage);
     }
 
     @Test
