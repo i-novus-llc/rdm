@@ -23,8 +23,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.ATTRIBUTE_LIST;
-import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.REFERENCE_LIST;
+import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.DEFAULT_STRUCTURE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataRecordControllerTest extends BaseTest {
@@ -132,11 +131,9 @@ public class DataRecordControllerTest extends BaseTest {
         return version;
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     private Row createUpdatingRow() {

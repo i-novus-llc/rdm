@@ -577,13 +577,6 @@ public class CreateDraftControllerTest extends BaseTest {
         }
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
-    private Structure createStructure() {
-
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
-    }
-
     private RefBookVersion createVersion() {
 
         RefBookVersion version = new RefBookVersion();
@@ -612,6 +605,11 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStructure(createStructure());
 
         return version;
+    }
+
+    private Structure createStructure() {
+
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     private Draft createDraft() {

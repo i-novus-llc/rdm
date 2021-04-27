@@ -20,8 +20,7 @@ import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_CREATE;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.DATA_ACTION_UPDATE;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
-import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.ATTRIBUTE_LIST;
-import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.REFERENCE_LIST;
+import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.DEFAULT_STRUCTURE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CreateRecordGetterResolverTest extends BaseTest {
@@ -116,10 +115,8 @@ public class CreateRecordGetterResolverTest extends BaseTest {
         return version;
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 }

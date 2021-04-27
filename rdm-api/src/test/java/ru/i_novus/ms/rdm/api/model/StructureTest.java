@@ -717,8 +717,7 @@ public class StructureTest extends BaseTest {
     /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     /** Поверхностное копирование структуры. */

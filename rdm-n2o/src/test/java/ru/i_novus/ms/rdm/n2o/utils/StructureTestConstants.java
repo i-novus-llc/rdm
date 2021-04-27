@@ -78,6 +78,8 @@ public class StructureTestConstants {
             REFERENCE, SELF_REFER
     );
 
+    public static final Structure DEFAULT_STRUCTURE = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
+
     public static final String CHANGE_ATTRIBUTE_CODE = "CHANGE";
     public static final Structure.Attribute CHANGE_ATTRIBUTE = Structure.Attribute.build(
             CHANGE_ATTRIBUTE_CODE, CHANGE_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "change");
