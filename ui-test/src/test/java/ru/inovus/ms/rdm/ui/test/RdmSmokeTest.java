@@ -248,15 +248,31 @@ public class RdmSmokeTest {
             Fields refBookDataFields = modalForm.fields();
             StandardField field = refBookDataFields.field(refBookField.getName());
             switch (refBookField.getAttributeTypeName()) {
-                case STRING -> field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
-                case INTEGER -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
-                case DOUBLE -> field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
-                case DATE -> field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-                case BOOLEAN -> field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
-                case LINKED -> {
+                case STRING: {
+                    field.control(N2oInputText.class).val(RandomStringUtils.randomAlphabetic(5));
+                    break;
+                }
+                case INTEGER: {
+                    field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextInt()));
+                    break;
+                }
+                case DOUBLE: {
+                    field.control(N2oInputText.class).val(String.valueOf(RandomUtils.nextDouble()));
+                    break;
+                }
+                case DATE: {
+                    field.control(N2oDateInput.class).val(LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+                    break;
+                }
+                case BOOLEAN: {
+                    field.control(N2oCheckbox.class).setChecked(RandomUtils.nextBoolean());
+                    break;
+                }
+                case LINKED: {
                     N2oInputSelect control = field.control(N2oInputSelect.class);
                     control.expandPopUpOptions();
                     control.select(0);
+                    break;
                 }
             }
         }
