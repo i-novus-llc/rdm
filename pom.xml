@@ -33,7 +33,7 @@
         <javax.activation.version>1.1.1</javax.activation.version>
         <security.admin.version>4.3</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
-        <audit.version>2.3.2</audit.version>
+        <audit.version>2.4.25</audit.version>
     </properties>
 
     <name>rdm</name>
