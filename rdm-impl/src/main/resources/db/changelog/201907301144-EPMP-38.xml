@@ -7,6 +7,9 @@
     <changeSet id="201907301144-EPMP-38_1.1" author="arahmatullin" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
+            <columnExists schemaName="sec" tableName="role_permission" columnName="permission_id"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="id"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
         </preConditions>
         <sql>
             delete from sec.role_permission

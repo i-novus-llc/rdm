@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="permission" schemaName="sec"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="code"/>
+        </preConditions>
+        <sql>
+            insert into sec.permission(name, code)
+            select 'Доступ к справочникам', 'nsi'
+            where not exists(select 1 from sec.permission where code = 'nsi');
+            insert into sec.permission(name, code, parent_code)
+            select 'Добавление/редактирование справочников',
+                   'nsi.edit',
+                   (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.edit');
+            insert into sec.permission(name, code, parent_code)
+            select 'Архивирование справочников', 'nsi.archive', (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.archive');
+            insert into sec.permission(name, code)
+            select 'Аудит', 'audit'
+            where not exists(select 1 from sec.permission where code = 'audit');
+        </sql>
+    </changeSet>
+
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="permission" schemaName="sec"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="code"/>
+        </preConditions>
+        <sql>
+            insert into sec.permission(name, code, parent_code)
+            select 'Просмотр справочников', 'nsi.read', (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.read');
+
+        </sql>
+    </changeSet>
+
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="permission" schemaName="sec"/>
+            <columnExists schemaName="sec" tableName="role_permission" columnName="permission_code"/>
+            <columnExists schemaName="sec" tableName="permission" columnName="code"/>
+        </preConditions>
+        <sql>
+            delete
+            from sec.role_permission
+            where permission_code in (
+                select code
+                from sec.permission
+                where code in ('nsi.read', 'nsi.list')
+            );
+
+            delete
+            from sec.permission
+            where code in ('nsi.read', 'nsi.list');
+
+            insert into sec.permission(name, code, parent_code)
+            select 'Выгрузка справочников',
+                   'nsi.download',
+                   (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.download');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
