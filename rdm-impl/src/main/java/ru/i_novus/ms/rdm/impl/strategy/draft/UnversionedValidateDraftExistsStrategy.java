@@ -16,6 +16,7 @@ public class UnversionedValidateDraftExistsStrategy extends DefaultValidateDraft
     protected boolean isUnversioned(RefBookVersionEntity entity) {
 
         return entity != null &&
+                entity.getRefBook() != null &&
                 RefBookType.UNVERSIONED.equals(entity.getRefBook().getType());
     }
 }

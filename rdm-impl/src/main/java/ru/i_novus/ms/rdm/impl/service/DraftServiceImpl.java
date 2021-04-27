@@ -329,7 +329,7 @@ public class DraftServiceImpl implements DraftService {
     public Draft createFromVersion(Integer versionId) {
 
         RefBookVersionEntity versionEntity = findVersion(versionId);
-        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity);
+        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity, versionId);
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
         Map<String, Object> passport = new HashMap<>();
@@ -654,7 +654,7 @@ public class DraftServiceImpl implements DraftService {
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
         RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
 
         return getRowValuesOfDraft(draftEntity, criteria);
     }
@@ -685,7 +685,7 @@ public class DraftServiceImpl implements DraftService {
     public Boolean hasData(Integer draftId) {
 
         RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
 
         return searchDataService.hasData(draftEntity.getStorageCode());
     }
@@ -720,7 +720,7 @@ public class DraftServiceImpl implements DraftService {
     public Draft getDraft(Integer draftId) {
 
         RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
 
         return draftEntity.toDraft();
     }
@@ -1065,7 +1065,7 @@ public class DraftServiceImpl implements DraftService {
     public ExportFile getDraftFile(Integer draftId, FileType fileType) {
 
         RefBookVersionEntity entity = findVersion(draftId);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
         RefBookVersion version = ModelGenerator.versionModel(entity);
 
@@ -1084,7 +1084,7 @@ public class DraftServiceImpl implements DraftService {
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
         RefBookVersionEntity draftEntity = findVersion(id);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, id);
         getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
 
         return draftEntity;

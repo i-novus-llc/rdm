@@ -17,28 +17,28 @@ public class DefaultValidateVersionExistsStrategyTest {
     private DefaultValidateVersionExistsStrategy strategy;
 
     @Test
-    public void validate() {
-
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-
-        try {
-            strategy.validate(entity);
-
-        } catch (Exception e) {
-            fail("Unexpected exception throws");
-        }
-    }
-
-    @Test
     public void validateWhenNull() {
 
         try {
-            strategy.validate(null);
+            strategy.validate(null, 0);
             fail("Validate null");
 
         } catch (Exception e) {
             assertEquals(NotFoundException.class, e.getClass());
             assertEquals("version.not.found", e.getMessage());
+        }
+    }
+
+    @Test
+    public void validate() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+
+        try {
+            strategy.validate(entity, entity.getId());
+
+        } catch (Exception e) {
+            fail("Unexpected exception throws");
         }
     }
 }

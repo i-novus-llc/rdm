@@ -279,7 +279,7 @@ public class VersionServiceImpl implements VersionService {
     private RefBookVersionEntity findOrThrow(Integer id) {
 
         RefBookVersionEntity entity = (id != null) ? versionRepository.findById(id).orElse(null) : null;
-        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity);
+        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity, id);
         return entity;
     }
 

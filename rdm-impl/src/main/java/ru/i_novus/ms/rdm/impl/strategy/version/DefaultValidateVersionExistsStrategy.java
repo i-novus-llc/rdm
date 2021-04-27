@@ -10,17 +10,13 @@ import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 public class DefaultValidateVersionExistsStrategy implements ValidateVersionExistsStrategy {
 
     @Override
-    public void validate(RefBookVersionEntity entity) {
+    public void validate(RefBookVersionEntity entity, Integer id) {
 
         if (!isVersion(entity)) {
             throw new NotFoundException(
-                    new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, getId(entity))
+                    new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, id)
             );
         }
-    }
-
-    private Integer getId(RefBookVersionEntity entity) {
-        return (entity != null) ? entity.getId() : null;
     }
 
     protected boolean isVersion(RefBookVersionEntity entity) {

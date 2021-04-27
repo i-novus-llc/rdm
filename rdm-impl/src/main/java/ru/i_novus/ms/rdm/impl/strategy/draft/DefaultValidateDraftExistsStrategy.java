@@ -11,17 +11,13 @@ import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 public class DefaultValidateDraftExistsStrategy implements ValidateDraftExistsStrategy {
 
     @Override
-    public void validate(RefBookVersionEntity entity) {
+    public void validate(RefBookVersionEntity entity, Integer id) {
 
         if (!isDraft(entity)) {
             throw new NotFoundException(
-                    new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, getId(entity))
+                    new Message(VersionValidationImpl.DRAFT_NOT_FOUND_EXCEPTION_CODE, id)
             );
         }
-    }
-
-    private Integer getId(RefBookVersionEntity entity) {
-        return (entity != null) ? entity.getId() : null;
     }
 
     protected boolean isDraft(RefBookVersionEntity entity) {

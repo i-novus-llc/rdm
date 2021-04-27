@@ -18,13 +18,26 @@ public class DefaultValidateDraftExistsStrategyTest {
     private DefaultValidateDraftExistsStrategy strategy;
 
     @Test
+    public void validateWhenNull() {
+
+        try {
+            strategy.validate(null, 0);
+            fail("Validate null");
+
+        } catch (Exception e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals("draft.not.found", e.getMessage());
+        }
+    }
+
+    @Test
     public void testValidateDraft() {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setStatus(RefBookVersionStatus.DRAFT);
 
         try {
-            strategy.validate(entity);
+            strategy.validate(entity, entity.getId());
 
         } catch (Exception e) {
             fail("Unexpected exception throws");
@@ -38,21 +51,8 @@ public class DefaultValidateDraftExistsStrategyTest {
         entity.setStatus(RefBookVersionStatus.PUBLISHED);
 
         try {
-            strategy.validate(entity);
+            strategy.validate(entity, entity.getId());
             fail(String.format("Exception expected with message: %s", "draft.not.found"));
-
-        } catch (Exception e) {
-            assertEquals(NotFoundException.class, e.getClass());
-            assertEquals("draft.not.found", e.getMessage());
-        }
-    }
-
-    @Test
-    public void validateWhenNull() {
-
-        try {
-            strategy.validate(null);
-            fail("Validate null");
 
         } catch (Exception e) {
             assertEquals(NotFoundException.class, e.getClass());

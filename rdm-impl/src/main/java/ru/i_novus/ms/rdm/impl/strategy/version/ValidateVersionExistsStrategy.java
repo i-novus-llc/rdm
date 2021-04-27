@@ -5,5 +5,5 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
 public interface ValidateVersionExistsStrategy extends Strategy {
 
-    void validate(RefBookVersionEntity entity);
+    void validate(RefBookVersionEntity entity, Integer id);
 }

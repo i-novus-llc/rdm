@@ -20,6 +20,19 @@ public class UnversionedValidateDraftExistsStrategyTest {
     private UnversionedValidateDraftExistsStrategy strategy;
 
     @Test
+    public void validateWhenNull() {
+
+        try {
+            strategy.validate(null, 0);
+            fail("Validate null");
+
+        } catch (Exception e) {
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals("draft.not.found", e.getMessage());
+        }
+    }
+
+    @Test
     public void testValidate() {
 
         RefBookVersionEntity entity = createVersionEntity();
@@ -33,22 +46,9 @@ public class UnversionedValidateDraftExistsStrategyTest {
         testValidate(entity);
     }
 
-    @Test
-    public void validateWhenNull() {
-
-        try {
-            strategy.validate(null);
-            fail("Validate null");
-
-        } catch (Exception e) {
-            assertEquals(NotFoundException.class, e.getClass());
-            assertEquals("draft.not.found", e.getMessage());
-        }
-    }
-
     private void testValidate(RefBookVersionEntity entity) {
         try {
-            strategy.validate(entity);
+            strategy.validate(entity, entity.getId());
 
         } catch (Exception e) {
             fail("Unexpected exception throws");
