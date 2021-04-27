@@ -153,14 +153,15 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook getByVersionId(Integer versionId) {
 
-        versionValidation.validateVersionExists(versionId);
+        RefBookVersionEntity versionEntity = findVersion(versionId);
+        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity);
 
-        RefBookVersionEntity version = versionRepository.getOne(versionId);
-        boolean hasReferrerVersions = hasReferrerVersions(version.getRefBook().getCode());
+        boolean hasReferrerVersions = hasReferrerVersions(versionEntity.getRefBook().getCode());
 
-        return refBookModel(version, hasReferrerVersions,
-                getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.DRAFT),
-                getSourceTypeVersion(version.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED));
+        return refBookModel(versionEntity, hasReferrerVersions,
+                getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
+                getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.LAST_PUBLISHED)
+        );
     }
 
     @Override

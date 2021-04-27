@@ -15,6 +15,7 @@ import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
@@ -68,6 +69,35 @@ public class DefaultCreateVersionFileStrategyTest {
     }
 
     @Test
+    public void testCreateFailed() throws IOException {
+
+        RefBookVersion version = createRefBookVersion();
+        InputStream is = mock(InputStream.class);
+        when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
+        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
+
+        final String failedMessage = "fail";
+        doThrow(new IOException(failedMessage)).when(is).close();
+        
+        try {
+            strategy.create(version, FILE_TYPE, versionService);
+            fail("Create file failed on close");
+
+        } catch (RuntimeException e) {
+            assertEquals(RdmException.class, e.getClass());
+            assertEquals(IOException.class, e.getCause().getClass());
+            assertEquals(failedMessage, e.getCause().getMessage());
+        }
+
+        verify(versionFileService).generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class));
+        verify(fileNameGenerator).generateZipName(eq(version), eq(FILE_TYPE));
+        verify(fileStorage).saveContent(is, ZIP_NAME);
+
+        verifyNoMoreInteractions(versionFileService, fileNameGenerator, fileStorage);
+    }
+
+    @Test
     public void testCreateWithoutContent() {
 
         RefBookVersion version = createRefBookVersion();
@@ -76,6 +106,24 @@ public class DefaultCreateVersionFileStrategyTest {
         when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(Boolean.FALSE);
+
+        try {
+            strategy.create(version, FILE_TYPE, versionService);
+            fail("Create file without content");
+
+        } catch (RuntimeException e) {
+            assertEquals(RdmException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void testCreateWithoutFilePath() {
+
+        RefBookVersion version = createRefBookVersion();
+        InputStream is = mock(InputStream.class);
+        when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
+        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(null);
 
         try {
             strategy.create(version, FILE_TYPE, versionService);

@@ -340,8 +340,10 @@ public class DraftServiceImpl implements DraftService {
         CreateDraftRequest draftRequest = new CreateDraftRequest(versionEntity.getRefBook().getId(), versionEntity.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
-        draftDataService.loadData(draft.getStorageCode(), versionEntity.getStorageCode(), versionEntity.getFromDate(), versionEntity.getToDate());
-        conflictRepository.copyByReferrerVersion(versionId, draft.getId());
+        if (!versionEntity.getId().equals(draft.getId())) {
+            draftDataService.loadData(draft.getStorageCode(), versionEntity.getStorageCode(), versionEntity.getFromDate(), versionEntity.getToDate());
+            conflictRepository.copyByReferrerVersion(versionId, draft.getId());
+        }
 
         return draft;
     }
@@ -404,9 +406,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateData(Integer draftId, UpdateDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         List<Object> addedData = null;
         List<RowDiff> updatedDiffData = null;
@@ -497,9 +497,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteData(Integer draftId, DeleteDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
@@ -608,9 +606,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAllData(Integer draftId, DeleteAllDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
@@ -636,9 +632,7 @@ public class DraftServiceImpl implements DraftService {
     @Override
     public void updateFromFile(Integer draftId, UpdateFromFileRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
@@ -705,9 +699,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void remove(Integer draftId) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         removeDraft(draftEntity);
@@ -745,9 +737,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void createAttribute(Integer draftId, CreateAttributeRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
@@ -793,9 +783,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateAttribute(Integer draftId, UpdateAttributeRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
@@ -908,9 +896,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAttribute(Integer draftId, DeleteAttributeRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
@@ -948,9 +934,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void addAttributeValidation(Integer draftId, String attribute, AttributeValidation attributeValidation) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         versionValidation.validateDraftAttributeExists(draftId, draftEntity.getStructure(), attribute);
 
@@ -966,9 +950,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAttributeValidation(Integer draftId, String attribute, AttributeValidationType type) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         List<AttributeValidationEntity> validations;
         if (attribute == null) {
@@ -998,9 +980,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateAttributeValidations(Integer draftId, AttributeValidationRequest request) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         updateAttributeValidations(draftEntity, request.getOldAttribute(), request.getNewAttribute(), request.getValidations());
     }
@@ -1099,6 +1079,15 @@ public class DraftServiceImpl implements DraftService {
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
+    }
+
+    protected RefBookVersionEntity findForUpdate(Integer id) {
+
+        RefBookVersionEntity draftEntity = findVersion(id);
+        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity);
+        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+
+        return draftEntity;
     }
 
     protected RefBookVersionEntity findVersion(Integer id) {

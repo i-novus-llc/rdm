@@ -30,15 +30,37 @@ public class DefaultCreateRefBookEntityStrategyTest {
         when(refBookRepository.save(any(RefBookEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
+        RefBookCreateRequest request = new RefBookCreateRequest("test_code", null, "category", null);
+        RefBookEntity entity = strategy.create(request);
+
+        assertNotNull(entity);
+        request.setType(RefBookType.DEFAULT);
+        assertEqualsRequestToEntity(request, entity);
+
+        verify(refBookRepository).save(any(RefBookEntity.class));
+        verifyNoMoreInteractions(refBookRepository);
+    }
+
+    @Test
+    public void testCreateUnversioned() {
+
+        when(refBookRepository.save(any(RefBookEntity.class)))
+                .thenAnswer(invocation -> invocation.getArguments()[0]);
+
         RefBookCreateRequest request = new RefBookCreateRequest("test_code", RefBookType.UNVERSIONED, "category", null);
         RefBookEntity entity = strategy.create(request);
 
         assertNotNull(entity);
-        assertEquals(request.getCode(), entity.getCode());
-        assertEquals(request.getType(), entity.getType());
-        assertEquals(request.getCategory(), entity.getCategory());
+        assertEqualsRequestToEntity(request, entity);
 
         verify(refBookRepository).save(any(RefBookEntity.class));
         verifyNoMoreInteractions(refBookRepository);
+    }
+
+    private void assertEqualsRequestToEntity(RefBookCreateRequest request, RefBookEntity entity) {
+
+        assertEquals(request.getCode(), entity.getCode());
+        assertEquals(request.getType(), entity.getType());
+        assertEquals(request.getCategory(), entity.getCategory());
     }
 }

@@ -2,16 +2,24 @@ package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -19,6 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +36,11 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 @RunWith(MockitoJUnitRunner.class)
 public class VersionServiceTest {
 
-    private static final String TEST_STORAGE_CODE = "test_storage_code";
+    private static final int REFBOOK_ID = 1;
+    private static final String REF_BOOK_CODE = "test_refbook";
+
+    private static final int VERSION_ID = 2;
+    private static final String STORAGE_CODE = "test_storage_code";
 
     @InjectMocks
     private VersionServiceImpl versionService;
@@ -38,20 +51,30 @@ public class VersionServiceTest {
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private ValidateVersionExistsStrategy validateVersionExistsStrategy;
+
+    @Before
+    public void setUp() throws Exception {
+
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        FieldSetter.setField(versionService, VersionServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+    }
+
     @Test
     public void testSearchVersion() {
 
-        RefBookVersionEntity testVersion = createTestVersion();
+        RefBookVersionEntity versionEntity = createVersionEntity();
 
-        when(versionRepository.findById(anyInt())).thenReturn(Optional.of(testVersion));
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, Collections.emptyList(), new Criteria()));
+        when(versionRepository.findById(anyInt())).thenReturn(Optional.of(versionEntity));
+        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilters(new HashSet<>());
         searchDataCriteria.setCommonFilter("commonFilter");
-        versionService.search(1, searchDataCriteria);
+        versionService.search(VERSION_ID, searchDataCriteria);
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(TEST_STORAGE_CODE, testVersion.getFromDate(), testVersion.getToDate(),
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(STORAGE_CODE, versionEntity.getFromDate(), versionEntity.getToDate(),
                 new ArrayList<>(), toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
         dataCriteria.setPage(searchDataCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(searchDataCriteria.getPageSize());
@@ -59,14 +82,41 @@ public class VersionServiceTest {
         verify(searchDataService).getPagedData(eq(dataCriteria));
     }
 
-    private RefBookVersionEntity createTestVersion() {
-        RefBookVersionEntity testVersion = new RefBookVersionEntity();
-        testVersion.setId(1);
-        testVersion.setStorageCode(TEST_STORAGE_CODE);
-        testVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-        testVersion.setStructure(new Structure());
-        testVersion.setFromDate(LocalDateTime.now());
-        return testVersion;
+    private RefBookVersionEntity createVersionEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(VERSION_ID);
+        entity.setRefBook(createRefBookEntity());
+        entity.setStructure(new Structure());
+        entity.setStorageCode(STORAGE_CODE);
+        entity.setStatus(RefBookVersionStatus.PUBLISHED);
+        entity.setFromDate(LocalDateTime.now());
+
+        return entity;
     }
 
+    private RefBookEntity createRefBookEntity() {
+
+        RefBookEntity entity = new RefBookEntity();
+        entity.setId(REFBOOK_ID);
+        entity.setCode(REF_BOOK_CODE);
+
+        return entity;
+    }
+
+    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(ValidateVersionExistsStrategy.class, validateVersionExistsStrategy);
+
+        return result;
+    }
 }

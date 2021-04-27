@@ -51,6 +51,19 @@ public class StructureTest extends BaseTest {
         assertFalse(structure.hasPrimary());
         structure.clearPrimary();
         assertFalse(structure.hasPrimary());
+    }
+
+    @Test
+    public void testEmptyToString() {
+
+        Structure structure = new Structure();
+        assertNotNull(structure.toString());
+    }
+
+    @Test
+    public void testEmptyByEmpty() {
+
+        Structure structure = new Structure();
 
         Structure sameStructure = new Structure(null, null);
         assertObjects(Assert::assertEquals, structure, sameStructure);

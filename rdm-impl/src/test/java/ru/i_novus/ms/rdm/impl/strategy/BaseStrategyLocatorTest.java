@@ -19,9 +19,10 @@ public class BaseStrategyLocatorTest extends BaseTest {
     @Mock
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
     @Mock
-    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
-    @Mock
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
+
+    @Mock
+    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
 
     /**
      * Случай:

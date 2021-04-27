@@ -82,8 +82,8 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Page<RefBookRowValue> search(Integer versionId, SearchDataCriteria criteria) {
 
-        RefBookVersionEntity version = getVersionOrThrow(versionId);
-        return getRowValuesOfVersion(version, criteria);
+        RefBookVersionEntity entity = findOrThrow(versionId);
+        return getRowValuesOfVersion(entity, criteria);
     }
 
     @Override
@@ -103,8 +103,8 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion getById(Integer versionId) {
 
-        RefBookVersionEntity version = getVersionOrThrow(versionId);
-        return ModelGenerator.versionModel(version);
+        RefBookVersionEntity entity = findOrThrow(versionId);
+        return ModelGenerator.versionModel(entity);
     }
 
     @Override
@@ -122,39 +122,40 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion getLastPublishedVersion(String refBookCode) {
 
-        RefBookVersionEntity versionEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
-        if (versionEntity == null)
+        RefBookVersionEntity entity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (entity == null)
             throw new NotFoundException(new Message(VersionValidationImpl.LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, refBookCode));
 
-        return ModelGenerator.versionModel(versionEntity);
+        return ModelGenerator.versionModel(entity);
     }
 
     @Override
     public Page<RefBookRowValue> search(String refBookCode, LocalDateTime date, SearchDataCriteria criteria) {
 
-        RefBookVersionEntity version = versionRepository.findActualOnDate(refBookCode, date);
-        if (version == null)
+        RefBookVersionEntity entity = versionRepository.findActualOnDate(refBookCode, date);
+        if (entity == null)
             throw new NotFoundException(new Message(VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE));
 
-        return getRowValuesOfVersion(version, criteria);
+        return getRowValuesOfVersion(entity, criteria);
     }
 
     @Override
     public Page<RefBookRowValue> search(String refBookCode, SearchDataCriteria criteria) {
+
         return search(refBookCode, TimeUtils.now(), criteria);
     }
 
-    private Page<RefBookRowValue> getRowValuesOfVersion(RefBookVersionEntity version, SearchDataCriteria criteria) {
+    private Page<RefBookRowValue> getRowValuesOfVersion(RefBookVersionEntity entity, SearchDataCriteria criteria) {
 
-        List<Field> fields = makeOutputFields(version, criteria.getLocaleCode());
+        List<Field> fields = makeOutputFields(entity, criteria.getLocaleCode());
 
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getAttributeFilters()));
-        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), version.getStructure()));
+        fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), entity.getStructure()));
 
-        String storageCode = toStorageCode(version, criteria);
+        String storageCode = toStorageCode(entity, criteria);
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, version.getFromDate(), version.getToDate(),
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, entity.getFromDate(), entity.getToDate(),
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
         dataCriteria.setHashList(criteria.getRowHashList());
         dataCriteria.setSystemIds(criteria.getRowSystemIds());
@@ -164,23 +165,23 @@ public class VersionServiceImpl implements VersionService {
         Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, version.getId()));
+        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, entity.getId()));
     }
 
     @Override
     @Transactional
     public Structure getStructure(Integer versionId) {
 
-        RefBookVersionEntity entity = getVersionOrThrow(versionId);
-        return entity.getStructure();
+        RefBookVersionEntity entity = findOrThrow(versionId);
+        return entity != null ? entity.getStructure() : null;
     }
 
     @Override
     @Transactional
     public String getStorageCode(Integer versionId) {
 
-        RefBookVersionEntity entity = getVersionOrThrow(versionId);
-        return entity.getStorageCode();
+        RefBookVersionEntity entity = findOrThrow(versionId);
+        return entity != null ? entity.getStorageCode() : null;
     }
 
     @Override
@@ -231,13 +232,14 @@ public class VersionServiceImpl implements VersionService {
 
         String[] split = rowId.split("\\$");
         final Integer versionId = Integer.parseInt(split[1]);
-        RefBookVersionEntity version = getVersionOrThrow(versionId);
+        RefBookVersionEntity entity = findOrThrow(versionId);
+        if (entity == null) return null;
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                version.getStorageCode(),
-                version.getFromDate(),
-                version.getToDate(),
-                ConverterUtil.fields(version.getStructure()));
+                entity.getStorageCode(),
+                entity.getFromDate(),
+                entity.getToDate(),
+                ConverterUtil.fields(entity.getStructure()));
         dataCriteria.setHashList(singletonList(split[0]));
 
         List<RowValue> data = searchDataService.getData(dataCriteria);
@@ -247,7 +249,7 @@ public class VersionServiceImpl implements VersionService {
         if (data.size() > 1)
             throw new IllegalStateException("more than one row with id " + rowId);
 
-        return new RefBookRowValue((LongRowValue) data.get(0), version.getId());
+        return new RefBookRowValue((LongRowValue) data.get(0), entity.getId());
     }
 
     @Override
@@ -257,9 +259,7 @@ public class VersionServiceImpl implements VersionService {
         if (fileType == null)
             return null;
 
-        RefBookVersionEntity entity = findVersion(versionId);
-        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity);
-
+        RefBookVersionEntity entity = findOrThrow(versionId);
         RefBookVersion version = ModelGenerator.versionModel(entity);
 
         String filePath = getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType);
@@ -276,14 +276,11 @@ public class VersionServiceImpl implements VersionService {
         return exportFile;
     }
 
-    protected RefBookVersionEntity findVersion(Integer id) {
+    private RefBookVersionEntity findOrThrow(Integer id) {
 
-        return (id != null) ? versionRepository.findById(id).orElse(null) : null;
-    }
-
-    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
-        return versionRepository.findById(versionId)
-                .orElseThrow(() -> new NotFoundException(new Message(VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE, versionId)));
+        RefBookVersionEntity entity = (id != null) ? versionRepository.findById(id).orElse(null) : null;
+        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity);
+        return entity;
     }
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
