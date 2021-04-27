@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="202104271323-RDM-862_1" author="bhafizullin" dbms="postgresql">
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
@@ -28,7 +28,7 @@
         </sql>
     </changeSet>
 
-    <changeSet id="202104271323-RDM-862_2" author="bhafizullin" dbms="postgresql">
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
@@ -42,7 +42,7 @@
         </sql>
     </changeSet>
 
-    <changeSet id="202104271323-RDM-862_3" author="bhafizullin" dbms="postgresql">
+    <changeSet id="202104271323-RDM-862" author="bhafizullin" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="role_permission" columnName="permission_code"/>
