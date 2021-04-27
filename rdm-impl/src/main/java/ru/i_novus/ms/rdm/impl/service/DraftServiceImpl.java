@@ -76,27 +76,27 @@ public class DraftServiceImpl implements DraftService {
     public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
 
-    private DraftDataService draftDataService;
-    private DropDataService dropDataService;
-    private SearchDataService searchDataService;
+    private final DraftDataService draftDataService;
+    private final DropDataService dropDataService;
+    private final SearchDataService searchDataService;
 
-    private RefBookLockService refBookLockService;
-    private VersionService versionService;
+    private final RefBookLockService refBookLockService;
+    private final VersionService versionService;
 
-    private FileStorage fileStorage;
+    private final FileStorage fileStorage;
 
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
-    private PassportValueRepository passportValueRepository;
-    private AttributeValidationRepository attributeValidationRepository;
-    private StructureChangeValidator structureChangeValidator;
+    private final PassportValueRepository passportValueRepository;
+    private final AttributeValidationRepository attributeValidationRepository;
+    private final StructureChangeValidator structureChangeValidator;
 
-    private AuditLogService auditLogService;
+    private final AuditLogService auditLogService;
 
-    private StrategyLocator strategyLocator;
+    private final StrategyLocator strategyLocator;
 
     private int errorCountLimit = 100;
 

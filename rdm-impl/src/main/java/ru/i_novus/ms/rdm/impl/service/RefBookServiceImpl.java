@@ -59,27 +59,27 @@ public class RefBookServiceImpl implements RefBookService {
     private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private RefBookRepository refBookRepository;
-    private RefBookVersionRepository versionRepository;
-    private RefBookModelDataRepository refBookModelDataRepository;
+    private final RefBookRepository refBookRepository;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookModelDataRepository refBookModelDataRepository;
 
-    private DropDataService dropDataService;
+    private final DropDataService dropDataService;
 
-    private RefBookLockService refBookLockService;
+    private final RefBookLockService refBookLockService;
 
-    private PassportValueRepository passportValueRepository;
-    private RefBookVersionQueryProvider refBookVersionQueryProvider;
+    private final PassportValueRepository passportValueRepository;
+    private final RefBookVersionQueryProvider refBookVersionQueryProvider;
 
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
-    private FileStorage fileStorage;
+    private final FileStorage fileStorage;
 
-    private DraftService draftService;
-    private PublishService publishService;
+    private final DraftService draftService;
+    private final PublishService publishService;
 
-    private AuditLogService auditLogService;
+    private final AuditLogService auditLogService;
 
-    private StrategyLocator strategyLocator;
+    private final StrategyLocator strategyLocator;
 
     @Autowired
     @SuppressWarnings("squid:S00107")

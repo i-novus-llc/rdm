@@ -63,6 +63,7 @@ public class VersionServiceImpl implements VersionService {
     private final SearchDataService searchDataService;
 
     private final AuditLogService auditLogService;
+
     private final StrategyLocator strategyLocator;
 
     @Autowired
@@ -76,6 +77,7 @@ public class VersionServiceImpl implements VersionService {
         this.searchDataService = searchDataService;
 
         this.auditLogService = auditLogService;
+
         this.strategyLocator = strategyLocator;
     }
 

@@ -47,14 +47,14 @@ public class CreateDraftController {
     private static final String PASSPORT_REFBOOK_SHORT_NAME = "shortName";
     private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
 
-    private RefBookService refBookService;
-    private VersionRestService versionService;
-    private DraftRestService draftService;
+    private final RefBookService refBookService;
+    private final VersionRestService versionService;
+    private final DraftRestService draftService;
 
-    private StructureController structureController;
-    private DataRecordController dataRecordController;
+    private final StructureController structureController;
+    private final DataRecordController dataRecordController;
 
-    private UiStrategyLocator strategyLocator;
+    private final UiStrategyLocator strategyLocator;
 
     @Autowired
     public CreateDraftController(RefBookService refBookService,
