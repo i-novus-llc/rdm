@@ -24,7 +24,7 @@
         <l10n.vds.version>3.13</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
-        <filestorage.version>2.2</filestorage.version>
+        <filestorage.version>2.3</filestorage.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
