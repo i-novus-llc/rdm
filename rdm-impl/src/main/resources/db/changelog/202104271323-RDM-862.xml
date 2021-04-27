@@ -12,16 +12,16 @@
         </preConditions>
         <sql>
             insert into sec.permission(name, code)
-            select 'Доступ к справочникам', 'rdm'
-            where not exists(select 1 from sec.permission where code = 'rdm');
+            select 'Доступ к справочникам', 'nsi'
+            where not exists(select 1 from sec.permission where code = 'nsi');
             insert into sec.permission(name, code, parent_code)
             select 'Добавление/редактирование справочников',
-                   'rdm.edit',
-                   (select code from sec.permission where code = 'rdm')
-            where not exists(select 1 from sec.permission where code = 'rdm.edit');
+                   'nsi.edit',
+                   (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.edit');
             insert into sec.permission(name, code, parent_code)
-            select 'Архивирование справочников', 'rdm.archive', (select code from sec.permission where code = 'rdm')
-            where not exists(select 1 from sec.permission where code = 'rdm.archive');
+            select 'Архивирование справочников', 'nsi.archive', (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.archive');
             insert into sec.permission(name, code)
             select 'Аудит', 'audit'
             where not exists(select 1 from sec.permission where code = 'audit');
@@ -36,8 +36,8 @@
         </preConditions>
         <sql>
             insert into sec.permission(name, code, parent_code)
-            select 'Просмотр справочников', 'rdm.read', (select code from sec.permission where code = 'rdm')
-            where not exists(select 1 from sec.permission where code = 'rdm.read');
+            select 'Просмотр справочников', 'nsi.read', (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.read');
 
         </sql>
     </changeSet>
@@ -54,18 +54,18 @@
             where permission_code in (
                 select code
                 from sec.permission
-                where code in ('rdm.read', 'rdm.list')
+                where code in ('nsi.read', 'nsi.list')
             );
 
             delete
             from sec.permission
-            where code in ('rdm.read', 'rdm.list');
+            where code in ('nsi.read', 'nsi.list');
 
             insert into sec.permission(name, code, parent_code)
             select 'Выгрузка справочников',
-                   'rdm.download',
-                   (select code from sec.permission where code = 'rdm')
-            where not exists(select 1 from sec.permission where code = 'rdm.download');
+                   'nsi.download',
+                   (select code from sec.permission where code = 'nsi')
+            where not exists(select 1 from sec.permission where code = 'nsi.download');
         </sql>
     </changeSet>
 
