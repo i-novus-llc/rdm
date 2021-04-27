@@ -9,8 +9,6 @@
     <changeSet id="201812121044-RDM-176_1.1" author="tnurdinov" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
-            <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
-            <columnExists schemaName="sec" tableName="permission" columnName="id"/>
         </preConditions>
         <sql>
             insert into sec.permission(name, code) select 'Доступ к справочникам', 'nsi' where not exists (select 1 from sec.permission where code = 'nsi');
@@ -25,8 +23,6 @@
     <changeSet id="201812261200-RDM-176_read_permission_1.0" author="znurgaliev" dbms="postgresql">
         <preConditions onFail="CONTINUE">
             <tableExists tableName="permission" schemaName="sec"/>
-            <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
-            <columnExists schemaName="sec" tableName="permission" columnName="id"/>
         </preConditions>
         <sql>
             insert into sec.permission(name, code, parent_id)
