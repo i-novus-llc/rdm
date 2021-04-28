@@ -40,3 +40,4 @@ buildNumber.properties
 /rdm-n2o/rdm-react/packages/n2o-config-rdm/node_modules/
 /rdm-rest/rdm_log/
 /rdm-rest/src/test/resources/rdm/temp/
+/rdm-rest/activemq-data/
