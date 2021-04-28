@@ -188,7 +188,8 @@
             </tab>
 
             <tab name="Переведённые данные">
-                <form id="locale_select">
+                <form id="locale_select" depends-on="version_select"
+                      visible="{${rdm.l10n.support} &amp;&amp; version.isLocalizable}">
                     <fields>
                         <set field-label-location="left">
                             <output-text id="id">

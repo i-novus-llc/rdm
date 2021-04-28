@@ -262,6 +262,22 @@
                 <module>rdm-loader-client-starter</module>
                 <module>rdm-n2o-api</module>
                 <module>rdm-impl</module>
+                <module>rdm-rest</module>
+                <module>rdm-n2o</module>
+                <module>rdm-frontend</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>l10n</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>rdm-esnsi</module>
+                <module>rdm-loader-client-starter</module>
+                <module>rdm-n2o-api</module>
+                <module>rdm-impl</module>
                 <module>rdm-l10n-api</module>
                 <module>rdm-l10n-impl</module>
                 <module>rdm-rest</module>
