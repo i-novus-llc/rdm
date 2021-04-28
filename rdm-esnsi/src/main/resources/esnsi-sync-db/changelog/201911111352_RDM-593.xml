@@ -6,9 +6,11 @@
 
     <changeSet id="201911111352_RDM-593" author="Ikarimullin" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
-            <tableExists tableName="qrtz_job_details"/>
-            <tableExists tableName="qrtz_triggers"/>
-            <tableExists tableName="qrtz_fired_triggers"/>
+            <not>
+                <tableExists tableName="qrtz_job_details"/>
+                <tableExists tableName="qrtz_triggers"/>
+                <tableExists tableName="qrtz_fired_triggers"/>
+            </not>
         </preConditions>
         <sql splitStatements="false">
             CREATE TABLE IF NOT EXISTS qrtz_job_details
