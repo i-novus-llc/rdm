@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <changeSet id="201907301144-EPMP-38_1.1" author="arahmatullin" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="role_permission" columnName="permission_id"/>
             <columnExists schemaName="sec" tableName="permission" columnName="id"/>
@@ -28,8 +28,8 @@
         </sql>
     </changeSet>
 
-    <changeSet id="201907301144-EPMP-38_2.1" author="arahmatullin" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+    <changeSet id="201907301144-EPMP-38_2.1" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <not>
                 <columnExists schemaName="sec" tableName="role_permission" columnName="permission_id"/>

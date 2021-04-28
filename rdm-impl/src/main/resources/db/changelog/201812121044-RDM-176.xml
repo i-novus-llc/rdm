@@ -7,7 +7,7 @@
 
 
     <changeSet id="201812121044-RDM-176_1.1" author="tnurdinov" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
             <columnExists schemaName="sec" tableName="permission" columnName="id"/>
@@ -23,7 +23,7 @@
     </changeSet>
 
     <changeSet id="201812261200-RDM-176_read_permission_1.0" author="znurgaliev" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
             <columnExists schemaName="sec" tableName="permission" columnName="id"/>
@@ -35,8 +35,8 @@
         </sql>
     </changeSet>
 
-    <changeSet id="201812121044-RDM-176_2.1" author="tnurdinov" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+    <changeSet id="201812121044-RDM-176_2.1" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
             <not>
@@ -53,8 +53,8 @@
         </sql>
     </changeSet>
 
-    <changeSet id="201812261200-RDM-176_read_permission_2.0" author="znurgaliev" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
+    <changeSet id="201812261200-RDM-176_read_permission_2.0" author="bhafizullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="permission" schemaName="sec"/>
             <columnExists schemaName="sec" tableName="permission" columnName="parent_code"/>
             <not>
