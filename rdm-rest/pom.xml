@@ -185,6 +185,7 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+
             <dependencies>
                 <dependency>
                     <groupId>org.springframework.cloud</groupId>
@@ -198,6 +199,7 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+
             <dependencies>
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>

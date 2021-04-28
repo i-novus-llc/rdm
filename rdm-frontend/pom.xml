@@ -84,18 +84,8 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.framework.security</groupId>
-            <artifactId>security-auth-oauth2</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.framework.security</groupId>
-            <artifactId>security-auth-oauth2-gateway</artifactId>
         </dependency>
 
         <dependency>
@@ -254,10 +244,12 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+
             <properties>
                 <rdm.l10n.support>true</rdm.l10n.support>
                 <rdm.l10n.messages>,messages.rdm_n2o_l10n</rdm.l10n.messages>
             </properties>
+
             <dependencies>
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
