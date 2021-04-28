@@ -28,4 +28,26 @@
         </sql>
     </changeSet>
 
+    <changeSet id="201907301144-EPMP-38_2.1" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="permission" schemaName="sec"/>
+            <not>
+                <columnExists schemaName="sec" tableName="role_permission" columnName="permission_id"/>
+                <columnExists schemaName="sec" tableName="permission" columnName="id"/>
+                <columnExists schemaName="sec" tableName="permission" columnName="parent_id"/>
+            </not>
+        </preConditions>
+        <sql>
+            delete from sec.role_permission
+            where permission_code in ('nsi.read', 'nsi.list');
+
+            delete from sec.permission
+            where code in ('nsi.read', 'nsi.list');
+
+            insert into sec.permission(name, code, parent_code)
+            select 'Выгрузка справочников', 'nsi.download', 'nsi'
+            where not exists (select 1 from sec.permission where code = 'nsi.download');
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

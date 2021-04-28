@@ -5,31 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <changeSet id="201911111352_RDM-593" author="Ikarimullin" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
-            <sqlCheck expectedResult="0">
-                select count(*)
-                from pg_indexes
-                where indexname similar to 'idx_qrtz_j_req_recovery|' ||
-                                           'idx_qrtz_j_grp|' ||
-                                           'idx_qrtz_t_j|' ||
-                                           'idx_qrtz_t_jg|' ||
-                                           'idx_qrtz_t_c|' ||
-                                           'idx_qrtz_t_g|' ||
-                                           'idx_qrtz_t_state|' ||
-                                           'idx_qrtz_t_n_state|' ||
-                                           'idx_qrtz_t_n_g_state|' ||
-                                           'idx_qrtz_t_next_fire_time|' ||
-                                           'idx_qrtz_t_nft_st|' ||
-                                           'idx_qrtz_t_nft_misfire|' ||
-                                           'idx_qrtz_ft_trig_inst_name|' ||
-                                           'idx_qrtz_ft_inst_job_req_rcvry|' ||
-                                           'idx_qrtz_ft_j_g|' ||
-                                           'idx_qrtz_ft_jg|' ||
-                                           'idx_qrtz_ft_t_g|' ||
-                                           'idx_qrtz_ft_tg|' ||
-                                           'idx_qrtz_t_nft_st_misfire_grp|' ||
-                                           'idx_qrtz_t_nft_st_misfire';
-            </sqlCheck>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="qrtz_job_details"/>
+            <tableExists tableName="qrtz_triggers"/>
+            <tableExists tableName="qrtz_fired_triggers"/>
         </preConditions>
         <sql splitStatements="false">
             CREATE TABLE IF NOT EXISTS qrtz_job_details
