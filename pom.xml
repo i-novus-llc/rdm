@@ -4,7 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>3.1.5-SNAPSHOT</version>
+    <version>3.1.13-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -19,12 +19,12 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.15.0</n2o.version>
-        <vds.version>3.9</vds.version>
+        <n2o.version>7.15.2</n2o.version>
+        <vds.version>3.11</vds.version>
         <l10n.vds.version>3.13</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
-        <filestorage.version>2.2</filestorage.version>
+        <filestorage.version>2.3</filestorage.version>
         <itext.version>5.5.9</itext.version>
         <commons.text.version>1.6</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
@@ -33,7 +33,7 @@
         <javax.activation.version>1.1.1</javax.activation.version>
         <security.admin.version>4.3</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
-        <audit.version>2.3.2</audit.version>
+        <audit.version>2.4.25</audit.version>
     </properties>
 
     <name>rdm</name>
@@ -256,6 +256,22 @@
             <id>build-all-modules</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>rdm-esnsi</module>
+                <module>rdm-loader-client-starter</module>
+                <module>rdm-n2o-api</module>
+                <module>rdm-impl</module>
+                <module>rdm-rest</module>
+                <module>rdm-n2o</module>
+                <module>rdm-frontend</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>l10n</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <modules>
                 <module>rdm-esnsi</module>
