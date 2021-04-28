@@ -4,7 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>3.1.11-SNAPSHOT</version>
+    <version>3.1.13-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -19,7 +19,7 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.15.0</n2o.version>
+        <n2o.version>7.15.2</n2o.version>
         <vds.version>3.11</vds.version>
         <l10n.vds.version>3.13</l10n.vds.version>
 
