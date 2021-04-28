@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm;
 
-import net.n2oapp.framework.security.auth.oauth2.gateway.GatewayPrincipalExtractor;
+import net.n2oapp.security.auth.common.GatewayPrincipalExtractor;
 import net.n2oapp.security.auth.common.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

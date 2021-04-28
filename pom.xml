@@ -172,9 +172,21 @@
             </dependency>
 
             <dependency>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-auth</artifactId>
+                <version>${security.admin.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.springframework.security.oauth.boot</groupId>
                 <artifactId>spring-security-oauth2-autoconfigure</artifactId>
                 <version>${security.oauth2.autoconfigure.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.framework.security</groupId>
+                <artifactId>security-auth-common</artifactId>
+                <version>${security.admin.version}</version>
             </dependency>
 
             <dependency>
