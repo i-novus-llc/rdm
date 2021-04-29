@@ -1,18 +1,25 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import com.querydsl.core.types.Predicate;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -27,9 +34,10 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -58,11 +66,11 @@ public class VersionServiceTest {
     }
 
     @Test
-    public void testSearchVersion() {
+    public void testSearch() {
 
-        RefBookVersionEntity versionEntity = createVersionEntity();
+        RefBookVersionEntity entity = createVersionEntity();
 
-        when(versionRepository.findById(anyInt())).thenReturn(Optional.of(versionEntity));
+        when(versionRepository.findById(anyInt())).thenReturn(Optional.of(entity));
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
@@ -70,12 +78,49 @@ public class VersionServiceTest {
         searchDataCriteria.setCommonFilter("commonFilter");
         versionService.search(VERSION_ID, searchDataCriteria);
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(STORAGE_CODE, versionEntity.getFromDate(), versionEntity.getToDate(),
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(STORAGE_CODE, entity.getFromDate(), entity.getToDate(),
                 new ArrayList<>(), toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
         dataCriteria.setPage(searchDataCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(searchDataCriteria.getPageSize());
 
         verify(searchDataService).getPagedData(eq(dataCriteria));
+
+        verifyNoMoreInteractions(versionRepository);
+    }
+
+    @Test
+    public void testGetVersions() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        PageImpl<RefBookVersionEntity> entityPage = new PageImpl<>(List.of(entity));
+
+        VersionCriteria criteria = new VersionCriteria();
+        criteria.setId(0); // для формирования предиката поиска
+        criteria.setPageNumber(0);
+        criteria.setPageSize(2);
+
+        when(versionRepository.findAll(any(Predicate.class), any(PageRequest.class))).thenReturn(entityPage);
+
+        Page<RefBookVersion> versionPage = versionService.getVersions(criteria);
+        assertNotNull(versionPage);
+        assertEquals(entityPage.getTotalElements(), versionPage.getTotalElements());
+        assertEquals(entityPage.getContent().size(), versionPage.getContent().size());
+
+        RefBookVersion version = versionPage.getContent().get(0);
+        assertNotNull(version);
+        assertEquals(entity.getId(), version.getId());
+        assertEquals(entity.getRefBook().getId(), version.getRefBookId());
+        assertEquals(entity.getRefBook().getCode(), version.getCode());
+        assertEquals(entity.getStructure(), version.getStructure());
+
+        ArgumentCaptor<PageRequest> captor = ArgumentCaptor.forClass(PageRequest.class);
+        verify(versionRepository).findAll(any(Predicate.class), captor.capture());
+
+        PageRequest request = captor.getValue();
+        assertEquals(criteria.getPageNumber(), request.getPageNumber());
+        assertEquals(criteria.getPageSize(), request.getPageSize());
+
+        verifyNoMoreInteractions(versionRepository);
     }
 
     private RefBookVersionEntity createVersionEntity() {
