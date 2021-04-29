@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm;
 
-import net.n2oapp.security.auth.oauth2.OpenIdSecurityConfigurerAdapter;
+import net.n2oapp.security.auth.OpenIdSecurityConfigurerAdapter;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory;
 import org.springframework.context.annotation.Bean;

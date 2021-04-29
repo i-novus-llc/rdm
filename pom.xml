@@ -31,7 +31,7 @@
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>4.3</security.admin.version>
+        <security.admin.version>5.0.0</security.admin.version>
         <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
     </properties>
@@ -88,25 +88,7 @@
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-l10n-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-l10n-impl</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-n2o-l10n</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -114,12 +96,6 @@
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.components</groupId>
-                <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
-                <version>${l10n.vds.version}</version>
             </dependency>
 
             <dependency>
@@ -197,7 +173,7 @@
 
             <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
-                <artifactId>security-auth-oauth2</artifactId>
+                <artifactId>security-auth</artifactId>
                 <version>${security.admin.version}</version>
             </dependency>
 
@@ -209,7 +185,7 @@
 
             <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
-                <artifactId>security-auth-oauth2-gateway</artifactId>
+                <artifactId>security-auth-common</artifactId>
                 <version>${security.admin.version}</version>
             </dependency>
 
@@ -257,6 +233,7 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
@@ -273,6 +250,7 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
@@ -285,6 +263,34 @@
                 <module>rdm-n2o</module>
                 <module>rdm-frontend</module>
             </modules>
+
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>ru.i-novus.components</groupId>
+                        <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+                        <version>${l10n.vds.version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>ru.i-novus.ms.rdm</groupId>
+                        <artifactId>rdm-l10n-api</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>ru.i-novus.ms.rdm</groupId>
+                        <artifactId>rdm-l10n-impl</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>ru.i-novus.ms.rdm</groupId>
+                        <artifactId>rdm-n2o-l10n</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>
