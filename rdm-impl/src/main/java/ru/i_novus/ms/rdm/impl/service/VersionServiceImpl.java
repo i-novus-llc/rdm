@@ -28,7 +28,6 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
-import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -49,6 +48,7 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
@@ -174,16 +174,14 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public Structure getStructure(Integer versionId) {
 
-        RefBookVersionEntity entity = findOrThrow(versionId);
-        return entity != null ? entity.getStructure() : null;
+        return findOrThrow(versionId).getStructure();
     }
 
     @Override
     @Transactional
     public String getStorageCode(Integer versionId) {
 
-        RefBookVersionEntity entity = findOrThrow(versionId);
-        return entity != null ? entity.getStorageCode() : null;
+        return findOrThrow(versionId).getStorageCode();
     }
 
     @Override
@@ -235,7 +233,6 @@ public class VersionServiceImpl implements VersionService {
         String[] split = rowId.split("\\$");
         final Integer versionId = Integer.parseInt(split[1]);
         RefBookVersionEntity entity = findOrThrow(versionId);
-        if (entity == null) return null;
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
                 entity.getStorageCode(),
@@ -281,7 +278,9 @@ public class VersionServiceImpl implements VersionService {
     private RefBookVersionEntity findOrThrow(Integer id) {
 
         RefBookVersionEntity entity = (id != null) ? versionRepository.findById(id).orElse(null) : null;
-        getStrategy(entity, ValidateVersionExistsStrategy.class).validate(entity, id);
+        if (entity == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, id));
+
         return entity;
     }
 
