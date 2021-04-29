@@ -6,7 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
@@ -58,7 +58,7 @@ public class UnversionedValidateDraftExistsStrategyTest {
     private RefBookVersionEntity createVersionEntity() {
 
         RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setType(RefBookType.UNVERSIONED);
+        refBookEntity.setType(RefBookTypeEnum.UNVERSIONED);
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setRefBook(refBookEntity);

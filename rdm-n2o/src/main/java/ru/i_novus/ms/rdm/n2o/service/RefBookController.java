@@ -11,7 +11,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
@@ -120,12 +120,12 @@ public class RefBookController {
     public Page<UiRefBookType> getTypeList() {
 
         List<UiRefBookType> list = new ArrayList<>();
-        list.add(getRefBookType(RefBookType.UNVERSIONED, REFBOOK_TYPE_UNVERSIONED));
+        list.add(getRefBookType(RefBookTypeEnum.UNVERSIONED, REFBOOK_TYPE_UNVERSIONED));
 
         return new RestPage<>(list, Pageable.unpaged(), list.size());
     }
 
-    private UiRefBookType getRefBookType(RefBookType type, String code) {
+    private UiRefBookType getRefBookType(RefBookTypeEnum type, String code) {
         return new UiRefBookType(type, messages.getMessage(code));
     }
 

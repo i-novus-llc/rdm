@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.strategy;
 
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 public interface UiStrategyLocator {
 
@@ -12,5 +12,5 @@ public interface UiStrategyLocator {
      * @param <T>         тип интерфейса
      * @return Объект требуемой стратегии
      */
-    <T extends UiStrategy> T getStrategy(RefBookType refBookType, Class<T> strategy);
+    <T extends UiStrategy> T getStrategy(RefBookTypeEnum refBookType, Class<T> strategy);
 }

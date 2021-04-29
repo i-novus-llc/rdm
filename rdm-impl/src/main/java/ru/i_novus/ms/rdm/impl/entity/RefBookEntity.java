@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -22,7 +22,7 @@ public class RefBookEntity implements Serializable {
 
     @Column(name = "type")
     @Enumerated(value = EnumType.STRING)
-    private RefBookType type;
+    private RefBookTypeEnum type;
 
     @Column(name = "category")
     private String category;
@@ -52,11 +52,11 @@ public class RefBookEntity implements Serializable {
         this.code = code;
     }
 
-    public RefBookType getType() {
+    public RefBookTypeEnum getType() {
         return type;
     }
 
-    public void setType(RefBookType type) {
+    public void setType(RefBookTypeEnum type) {
         this.type = type;
     }
 

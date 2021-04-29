@@ -1,29 +1,29 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 /**
  * Тип справочника для списка.
  */
 public class UiRefBookType {
 
-    private RefBookType id;
+    private RefBookTypeEnum id;
     private String name;
 
     @SuppressWarnings("unused")
     public UiRefBookType() {
     }
 
-    public UiRefBookType(RefBookType id, String name) {
+    public UiRefBookType(RefBookTypeEnum id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public RefBookType getId() {
+    public RefBookTypeEnum getId() {
         return id;
     }
 
-    public void setId(RefBookType id) {
+    public void setId(RefBookTypeEnum id) {
         this.id = id;
     }
 

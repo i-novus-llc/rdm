@@ -9,7 +9,7 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -45,7 +45,7 @@ public class DefaultCreateFirstVersionStrategyTest {
         Map<String, String> passport = new HashMap<>(1);
         passport.put(refBookName, "Reference book");
 
-        RefBookCreateRequest request = new RefBookCreateRequest(refBookCode, RefBookType.UNVERSIONED, "category", passport);
+        RefBookCreateRequest request = new RefBookCreateRequest(refBookCode, RefBookTypeEnum.UNVERSIONED, "category", passport);
         RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
 
         assertEquals(refBookEntity, entity.getRefBook());

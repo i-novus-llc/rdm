@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
 
 import java.util.HashMap;
@@ -33,9 +33,9 @@ public class BaseUiStrategyLocatorTest {
         BaseUiStrategyLocator locator = new BaseUiStrategyLocator(getStrategies());
 
         FindOrCreateDraftStrategy defaultStrategy =
-                locator.getStrategy(RefBookType.DEFAULT, FindOrCreateDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
         FindOrCreateDraftStrategy unversionedStrategy =
-                locator.getStrategy(RefBookType.UNVERSIONED, FindOrCreateDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -52,9 +52,9 @@ public class BaseUiStrategyLocatorTest {
         BaseUiStrategyLocator locator = new BaseUiStrategyLocator(getStrategies());
 
         ValidateIsDraftStrategy defaultStrategy =
-                locator.getStrategy(RefBookType.DEFAULT, ValidateIsDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, ValidateIsDraftStrategy.class);
         ValidateIsDraftStrategy unversionedStrategy =
-                locator.getStrategy(RefBookType.UNVERSIONED, ValidateIsDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, ValidateIsDraftStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -72,19 +72,19 @@ public class BaseUiStrategyLocatorTest {
         BaseUiStrategyLocator locator = new BaseUiStrategyLocator(new HashMap<>());
 
         FindOrCreateDraftStrategy defaultStrategy =
-                locator.getStrategy(RefBookType.DEFAULT, FindOrCreateDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
         FindOrCreateDraftStrategy unversionedStrategy =
-                locator.getStrategy(RefBookType.UNVERSIONED, FindOrCreateDraftStrategy.class);
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNull(defaultStrategy);
         assertNull(unversionedStrategy);
     }
 
-    private Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
 
-        Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
-        result.put(RefBookType.UNVERSIONED, getUnversionedStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
+        result.put(RefBookTypeEnum.UNVERSIONED, getUnversionedStrategies());
 
         return result;
     }

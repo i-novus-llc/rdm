@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 
 import static org.junit.Assert.fail;
@@ -19,7 +19,7 @@ public class UnversionedValidateIsDraftStrategyTest {
     public void validate() {
 
         RefBookVersion version = new RefBookVersion();
-        version.setType(RefBookType.UNVERSIONED);
+        version.setType(RefBookTypeEnum.UNVERSIONED);
 
         try {
             strategy.validate(version);

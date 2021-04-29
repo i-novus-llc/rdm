@@ -185,7 +185,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook create(RefBookCreateRequest request) {
 
-        final RefBookType refBookType = request.getType();
+        final RefBookTypeEnum refBookType = request.getType();
         getStrategy(refBookType, RefBookCreateValidationStrategy.class)
                 .validate(request.getCode());
 
@@ -446,7 +446,7 @@ public class RefBookServiceImpl implements RefBookService {
         return entity;
     }
 
-    private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {
+    private <T extends Strategy> T getStrategy(RefBookTypeEnum refBookType, Class<T> strategy) {
 
         return strategyLocator.getStrategy(refBookType, strategy);
     }

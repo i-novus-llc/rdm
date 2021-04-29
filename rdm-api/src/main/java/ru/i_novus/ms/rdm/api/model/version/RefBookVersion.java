@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class RefBookVersion {
     private String code;
 
     @ApiModelProperty("Тип справочника")
-    private RefBookType type = RefBookType.DEFAULT;
+    private RefBookTypeEnum type = RefBookTypeEnum.DEFAULT;
 
     @ApiModelProperty("Категория")
     private String category;
@@ -115,11 +115,11 @@ public class RefBookVersion {
         this.code = code;
     }
 
-    public RefBookType getType() {
+    public RefBookTypeEnum getType() {
         return type;
     }
 
-    public void setType(RefBookType type) {
+    public void setType(RefBookTypeEnum type) {
         this.type = type;
     }
 
