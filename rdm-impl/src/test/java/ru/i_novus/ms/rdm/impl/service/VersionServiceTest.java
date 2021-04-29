@@ -28,14 +28,17 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,7 +87,7 @@ public class VersionServiceTest {
 
         verify(versionRepository).findById(entity.getId());
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(STORAGE_CODE,
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(entity.getStorageCode(),
                 entity.getFromDate(), entity.getToDate(), new ArrayList<>(),
                 toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
         dataCriteria.setPage(searchDataCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
@@ -153,6 +156,32 @@ public class VersionServiceTest {
             assertEquals(NotFoundException.class, e.getClass());
             assertEquals("version.not.found", e.getMessage());
         }
+    }
+
+    @Test
+    public void testGetRow() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+
+        when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
+        RowValue dataRowValue = new LongRowValue(11L, emptyList());
+        when(searchDataService.getData(any())).thenReturn(singletonList(dataRowValue));
+
+        final String rowHash = "hash";
+        String rowId = rowHash + "$" + VERSION_ID;
+        RefBookRowValue rowValue = versionService.getRow(rowId);
+        assertNotNull(rowValue);
+
+        verify(versionRepository).findById(entity.getId());
+
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(entity.getStorageCode(),
+                entity.getFromDate(), entity.getToDate(), new ArrayList<>());
+        dataCriteria.setHashList(singletonList(rowHash));
+
+        verify(searchDataService).getData(eq(dataCriteria));
+
+        verifyNoMoreInteractions(versionRepository, searchDataService);
     }
 
     private void assertVersion(RefBookVersionEntity entity, RefBookVersion version) {
