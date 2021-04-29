@@ -206,6 +206,9 @@ public class RdmSmokeTest {
         N2oDropdownButton n2oDropdownButton = n2oSimplePage.widget(N2oFormWidget.class)
                 .toolbar().bottomLeft()
                 .button("Действия", N2oDropdownButton.class);
+
+        n2oDropdownButton.shouldBeVisible();
+
         n2oDropdownButton.click();
         n2oDropdownButton
                 .menuItem("Опубликовать").click();
