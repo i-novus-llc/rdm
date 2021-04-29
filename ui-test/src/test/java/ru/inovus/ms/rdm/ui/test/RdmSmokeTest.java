@@ -52,7 +52,8 @@ public class RdmSmokeTest {
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
 
-    private static final long WAIT_TIME = TimeUnit.SECONDS.toMillis(35);
+    private static final long WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
+    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(35);
     private static final int REF_BOOK_CREATED_COUNT = 2;
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
@@ -107,7 +108,7 @@ public class RdmSmokeTest {
         open("/", N2oSimplePage.class);
 
         for (int i = 0; i < REF_BOOK_CREATED_COUNT; i++) {
-            Selenide.sleep(WAIT_TIME);
+            Selenide.sleep(SLEEP_TIME);
             TableWidgetWrapper table = getTableWidget();
             StandardButtonWrapper deleteButton = getButton(table.toolbar().topLeft(), "Удалить справочник");
             Cells row = table.columns().rows().row(1);
@@ -184,7 +185,7 @@ public class RdmSmokeTest {
 
         deleteRow(getButton(refBookDataToolbar, "Удалить"), rows.row(3));
 
-        Selenide.sleep(WAIT_TIME);
+        Selenide.sleep(SLEEP_TIME);
     }
 
     private void editRow(StandardButtonWrapper button, Cells row) {
@@ -370,7 +371,7 @@ public class RdmSmokeTest {
     }
 
     private void waitPublishing() {
-        Selenide.sleep(WAIT_TIME);
+        Selenide.sleep(SLEEP_TIME);
     }
 
     private TableWidgetWrapper getTableWidget() {
