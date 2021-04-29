@@ -12,7 +12,8 @@ import ru.i_novus.ms.rdm.impl.strategy.draft.UnversionedValidateDraftExistsStrat
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
-import ru.i_novus.ms.rdm.impl.strategy.version.*;
+import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -32,9 +33,6 @@ public class StrategyLocatorConfig {
 
     @Autowired
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
-
-    @Autowired
-    private DefaultValidateVersionExistsStrategy defaultValidateVersionExistsStrategy;
 
     @Autowired
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
@@ -93,7 +91,6 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
         // Version + Draft:
-        result.put(ValidateVersionExistsStrategy.class, defaultValidateVersionExistsStrategy);
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         // File:

@@ -39,7 +39,6 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -67,6 +66,7 @@ import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
@@ -328,8 +328,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft createFromVersion(Integer versionId) {
 
-        RefBookVersionEntity versionEntity = findVersion(versionId);
-        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity, versionId);
+        RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
         Map<String, Object> passport = new HashMap<>();
@@ -653,10 +652,10 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
+        RefBookVersionEntity entity = findVersion(draftId);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
-        return getRowValuesOfDraft(draftEntity, criteria);
+        return getRowValuesOfDraft(entity, criteria);
     }
 
     private Page<RefBookRowValue> getRowValuesOfDraft(RefBookVersionEntity draft, SearchDataCriteria criteria) {
@@ -684,10 +683,10 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Boolean hasData(Integer draftId) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
+        RefBookVersionEntity entity = findVersion(draftId);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
-        return searchDataService.hasData(draftEntity.getStorageCode());
+        return searchDataService.hasData(entity.getStorageCode());
     }
 
     private RefBookVersionEntity getLastRefBookVersion(Integer refBookId) {
@@ -719,10 +718,10 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft getDraft(Integer draftId) {
 
-        RefBookVersionEntity draftEntity = findVersion(draftId);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, draftId);
+        RefBookVersionEntity entity = findVersion(draftId);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
-        return draftEntity.toDraft();
+        return entity.toDraft();
     }
 
     // RDM-827: Задать стратегию для неверсионного справочника.
@@ -1083,11 +1082,20 @@ public class DraftServiceImpl implements DraftService {
 
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
-        RefBookVersionEntity draftEntity = findVersion(id);
-        getStrategy(draftEntity, ValidateDraftExistsStrategy.class).validate(draftEntity, id);
-        getStrategy(draftEntity, ValidateVersionNotArchivedStrategy.class).validate(draftEntity);
+        RefBookVersionEntity entity = findVersion(id);
+        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, id);
+        getStrategy(entity, ValidateVersionNotArchivedStrategy.class).validate(entity);
 
-        return draftEntity;
+        return entity;
+    }
+
+    private RefBookVersionEntity findVersionOrThrow(Integer id) {
+
+        RefBookVersionEntity entity = findVersion(id);
+        if (entity == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, id));
+
+        return entity;
     }
 
     protected RefBookVersionEntity findVersion(Integer id) {

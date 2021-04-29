@@ -35,7 +35,6 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.service.*;
@@ -92,9 +91,6 @@ public class ArchiveValidationTest {
     private VersionValidation versionValidation;
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
-
-    @Mock
-    private ValidateVersionExistsStrategy validateVersionExistsStrategy;
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
@@ -203,7 +199,6 @@ public class ArchiveValidationTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(ValidateVersionExistsStrategy.class, validateVersionExistsStrategy);
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
 

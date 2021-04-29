@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.*;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -33,7 +34,6 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
-import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -49,6 +49,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary
 @Service
@@ -153,9 +154,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook getByVersionId(Integer versionId) {
 
-        RefBookVersionEntity versionEntity = findVersion(versionId);
-        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity, versionId);
-
+        RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
         boolean hasReferrerVersions = hasReferrerVersions(versionEntity.getRefBook().getCode());
 
         return refBookModel(versionEntity, hasReferrerVersions,
@@ -248,9 +247,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional
     public RefBook update(RefBookUpdateRequest request) {
 
-        final Integer versionId = request.getVersionId();
-        RefBookVersionEntity versionEntity = findVersion(versionId);
-        getStrategy(versionEntity, ValidateVersionExistsStrategy.class).validate(versionEntity, versionId);
+        RefBookVersionEntity versionEntity = findVersionOrThrow(request.getVersionId());
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
         RefBookEntity refBookEntity = versionEntity.getRefBook();
@@ -440,9 +437,13 @@ public class RefBookServiceImpl implements RefBookService {
         return (where.getValue() != null) && !versionRepository.exists(where.getValue());
     }
 
-    protected RefBookVersionEntity findVersion(Integer id) {
+    private RefBookVersionEntity findVersionOrThrow(Integer id) {
 
-        return (id != null) ? versionRepository.findById(id).orElse(null) : null;
+        RefBookVersionEntity entity = (id != null) ? versionRepository.findById(id).orElse(null) : null;
+        if (entity == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, id));
+
+        return entity;
     }
 
     private <T extends Strategy> T getStrategy(RefBookType refBookType, Class<T> strategy) {

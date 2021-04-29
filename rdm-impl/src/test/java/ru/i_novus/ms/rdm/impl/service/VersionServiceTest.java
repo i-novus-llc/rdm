@@ -19,7 +19,6 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionExistsStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -50,9 +49,6 @@ public class VersionServiceTest {
 
     @Mock
     private SearchDataService searchDataService;
-
-    @Mock
-    private ValidateVersionExistsStrategy validateVersionExistsStrategy;
 
     @Before
     public void setUp() throws Exception {
@@ -114,9 +110,6 @@ public class VersionServiceTest {
 
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
-        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(ValidateVersionExistsStrategy.class, validateVersionExistsStrategy);
-
-        return result;
+        return new HashMap<>();
     }
 }
