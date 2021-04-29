@@ -5,7 +5,7 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.exception.FileContentException;
 import ru.i_novus.ms.rdm.api.exception.FileProcessingException;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 
 import javax.xml.stream.XMLEventReader;
@@ -71,7 +71,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
         }
 
         if (!StringUtils.isEmpty(refBookCode)) {
-            return new RefBookCreateRequest(refBookCode, RefBookType.fromValue(refBookType), null, null);
+            return new RefBookCreateRequest(refBookCode, RefBookTypeEnum.fromValue(refBookType), null, null);
         }
 
         throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);

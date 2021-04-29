@@ -13,7 +13,7 @@ public class RefBookCreateRequest implements Serializable {
     private String code;
 
     /** Тип справочника. */
-    private RefBookType type;
+    private RefBookTypeEnum type;
 
     /** Категория справочника. */
     private String category;
@@ -25,7 +25,7 @@ public class RefBookCreateRequest implements Serializable {
         // Nothing to do.
     }
 
-    public RefBookCreateRequest(String code, RefBookType type, String category, Map<String, String> passport) {
+    public RefBookCreateRequest(String code, RefBookTypeEnum type, String category, Map<String, String> passport) {
 
         this.code = code;
         this.type = type;
@@ -41,11 +41,11 @@ public class RefBookCreateRequest implements Serializable {
         this.code = code;
     }
 
-    public RefBookType getType() {
+    public RefBookTypeEnum getType() {
         return type;
     }
 
-    public void setType(RefBookType type) {
+    public void setType(RefBookTypeEnum type) {
         this.type = type;
     }
 

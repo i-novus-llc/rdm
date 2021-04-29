@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.VersionService;
@@ -342,6 +342,7 @@ public class DraftServiceTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5961")
     public void testChangeStructure() {
 
         RefBookVersionEntity draftEntity = createDraftEntity();
@@ -856,10 +857,10 @@ public class DraftServiceTest {
         return null;
     }
 
-    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
 
-        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
     }

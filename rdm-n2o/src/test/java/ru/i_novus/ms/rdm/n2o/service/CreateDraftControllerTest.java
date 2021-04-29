@@ -15,7 +15,7 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
@@ -676,10 +676,10 @@ public class CreateDraftControllerTest extends BaseTest {
         return new RefBookRowValue(longRowValue, TEST_REFBOOK_VERSION_ID);
     }
 
-    private Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
 
-        Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
     }

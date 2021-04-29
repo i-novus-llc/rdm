@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 
@@ -38,7 +38,7 @@ public class UnversionedFindOrCreateDraftStrategyTest {
         result.setId(VERSION_ID);
         result.setRefBookId(REFBOOK_ID);
         result.setCode(REFBOOK_CODE);
-        result.setType(RefBookType.UNVERSIONED);
+        result.setType(RefBookTypeEnum.UNVERSIONED);
 
         return result;
     }

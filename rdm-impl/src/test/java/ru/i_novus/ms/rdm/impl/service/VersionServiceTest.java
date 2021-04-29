@@ -11,7 +11,7 @@ import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -100,10 +100,10 @@ public class VersionServiceTest {
         return entity;
     }
 
-    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
 
-        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
     }

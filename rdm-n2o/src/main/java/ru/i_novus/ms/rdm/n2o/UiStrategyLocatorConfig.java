@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.n2o;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
@@ -33,11 +33,11 @@ public class UiStrategyLocatorConfig {
         return new BaseUiStrategyLocator(getStrategiesMap());
     }
 
-    private Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategiesMap() {
+    private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategiesMap() {
 
-        Map<RefBookType, Map<Class<? extends UiStrategy>, UiStrategy>> result = new EnumMap<>(RefBookType.class);
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
-        result.put(RefBookType.UNVERSIONED, getUnversionedStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new EnumMap<>(RefBookTypeEnum.class);
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
+        result.put(RefBookTypeEnum.UNVERSIONED, getUnversionedStrategies());
 
         return result;
     }

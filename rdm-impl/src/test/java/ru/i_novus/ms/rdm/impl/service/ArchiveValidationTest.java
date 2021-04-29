@@ -14,7 +14,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
@@ -188,10 +188,10 @@ public class ArchiveValidationTest {
         void execute();
     }
 
-    private Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
 
-        Map<RefBookType, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
-        result.put(RefBookType.DEFAULT, getDefaultStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
     }

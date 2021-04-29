@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
@@ -139,7 +139,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
         writeElement(CODE_TAG_NAME, version.getCode());
 
-        if (!RefBookType.DEFAULT.equals(version.getType())) {
+        if (!RefBookTypeEnum.DEFAULT.equals(version.getType())) {
             writeElement(TYPE_TAG_NAME, version.getType().name());
         }
     }

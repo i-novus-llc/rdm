@@ -8,7 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookType;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -43,7 +43,7 @@ public class UnversionedCreateFirstVersionStrategyTest {
         RefBookEntity refBookEntity = new RefBookEntity();
         refBookEntity.setCode(refBookCode);
 
-        RefBookCreateRequest request = new RefBookCreateRequest(refBookCode, RefBookType.UNVERSIONED, "category", null);
+        RefBookCreateRequest request = new RefBookCreateRequest(refBookCode, RefBookTypeEnum.UNVERSIONED, "category", null);
         RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
 
         assertEquals(refBookEntity, entity.getRefBook());
