@@ -14,9 +14,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.ExistsData;
+import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -29,6 +31,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -57,6 +60,9 @@ public class VersionServiceTest {
     private static final String STORAGE_CODE = "test_storage_code";
     private static final String ROW_HASH = "hash";
 
+    private static final FileType FILE_TYPE = FileType.XML;
+    private static final String FILE_PATH = "/refBook_1.0.XML.zip";
+
     @InjectMocks
     private VersionServiceImpl versionService;
 
@@ -65,6 +71,18 @@ public class VersionServiceTest {
 
     @Mock
     private SearchDataService searchDataService;
+
+    @Mock
+    private AuditLogService auditLogService;
+
+    @Mock
+    private FindVersionFileStrategy findVersionFileStrategy;
+    @Mock
+    private CreateVersionFileStrategy createVersionFileStrategy;
+    @Mock
+    private SaveVersionFileStrategy saveVersionFileStrategy;
+    @Mock
+    private ExportVersionFileStrategy exportVersionFileStrategy;
 
     @Before
     public void setUp() throws Exception {
@@ -77,8 +95,8 @@ public class VersionServiceTest {
     public void testSearch() {
 
         RefBookVersionEntity entity = createVersionEntity();
-
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
@@ -186,7 +204,6 @@ public class VersionServiceTest {
     public void testGetRow() {
 
         RefBookVersionEntity entity = createVersionEntity();
-
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
         RowValue dataRowValue = new LongRowValue(11L, emptyList());
@@ -205,6 +222,35 @@ public class VersionServiceTest {
         verify(searchDataService).getData(eq(dataCriteria));
 
         verifyNoMoreInteractions(versionRepository, searchDataService);
+    }
+
+    @Test
+    public void testGetVersionFile() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
+        when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(FILE_PATH);
+
+        when(exportVersionFileStrategy.export(any(), eq(FILE_TYPE), eq(FILE_PATH))).thenReturn(new ExportFile());
+
+        ExportFile exportFile = versionService.getVersionFile(entity.getId(), FILE_TYPE);
+        assertNotNull(exportFile);
+    }
+
+    @Test
+    public void testGetVersionFileWhenNotFound() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
+        when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(null);
+        when(createVersionFileStrategy.create(any(), eq(FILE_TYPE), eq(versionService))).thenReturn(FILE_PATH);
+
+        when(exportVersionFileStrategy.export(any(), eq(FILE_TYPE), eq(FILE_PATH))).thenReturn(new ExportFile());
+
+        ExportFile exportFile = versionService.getVersionFile(entity.getId(), FILE_TYPE);
+        assertNotNull(exportFile);
     }
 
     private void assertVersion(RefBookVersionEntity entity, RefBookVersion version) {
@@ -248,6 +294,12 @@ public class VersionServiceTest {
 
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
-        return new HashMap<>();
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(FindVersionFileStrategy.class, findVersionFileStrategy);
+        result.put(CreateVersionFileStrategy.class, createVersionFileStrategy);
+        result.put(SaveVersionFileStrategy.class, saveVersionFileStrategy);
+        result.put(ExportVersionFileStrategy.class, exportVersionFileStrategy);
+
+        return result;
     }
 }

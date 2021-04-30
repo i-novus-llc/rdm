@@ -274,8 +274,7 @@ public class VersionServiceImpl implements VersionService {
             getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
         }
 
-        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class)
-                .export(version, fileType, filePath);
+        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class).export(version, fileType, filePath);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
