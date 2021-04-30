@@ -331,6 +331,9 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
+        if (getStrategy(versionEntity, ValidateDraftExistsStrategy.class).isDraft(versionEntity))
+            return new Draft(versionEntity.getId(), versionEntity.getStorageCode(), versionEntity.getOptLockValue());
+
         Map<String, Object> passport = new HashMap<>();
         versionEntity.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
 

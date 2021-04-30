@@ -8,7 +8,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 public class UnversionedValidateDraftExistsStrategy extends DefaultValidateDraftExistsStrategy {
 
     @Override
-    protected boolean isDraft(RefBookVersionEntity entity) {
+    public boolean isDraft(RefBookVersionEntity entity) {
 
         return super.isDraft(entity) || isUnversioned(entity);
     }

@@ -20,7 +20,8 @@ public class DefaultValidateDraftExistsStrategy implements ValidateDraftExistsSt
         }
     }
 
-    protected boolean isDraft(RefBookVersionEntity entity) {
+    @Override
+    public boolean isDraft(RefBookVersionEntity entity) {
 
         return entity != null &&
                 RefBookVersionStatus.DRAFT.equals(entity.getStatus());
