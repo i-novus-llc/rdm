@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
+import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -54,6 +55,7 @@ public class VersionServiceTest {
 
     private static final int VERSION_ID = 2;
     private static final String STORAGE_CODE = "test_storage_code";
+    private static final String ROW_HASH = "hash";
 
     @InjectMocks
     private VersionServiceImpl versionService;
@@ -159,6 +161,39 @@ public class VersionServiceTest {
     }
 
     @Test
+    public void testExistsData() {
+
+        final String rowId = ROW_HASH + "$" + VERSION_ID;
+        final String badFormedHash = "bad-" + ROW_HASH;
+        final String nonExistentHash = "non-" + ROW_HASH;
+        final String badFormedRowId = badFormedHash + "$" + "VER";
+        final String nonExistentRowId = nonExistentHash + "$" + VERSION_ID;
+
+        when(versionRepository.exists(any(Predicate.class))).thenReturn(true);
+
+        RefBookVersionEntity entity = createVersionEntity();
+        when(versionRepository.getOne(entity.getId())).thenReturn(entity);
+
+        when(searchDataService.findExistentHashes(eq(entity.getStorageCode()),
+                eq(entity.getFromDate()), eq(entity.getToDate()),
+                eq(List.of(ROW_HASH, nonExistentHash))))
+                .thenReturn(List.of(ROW_HASH));
+
+        ExistsData expected = new ExistsData(false, List.of(badFormedRowId, nonExistentRowId));
+
+        ExistsData actual = versionService.existsData(List.of(rowId, badFormedRowId, nonExistentRowId));
+        assertEquals(expected.isExists(), actual.isExists());
+        assertEquals(expected.getNotExistingRowIds(), actual.getNotExistingRowIds());
+
+        verify(versionRepository, times(2)).exists(any(Predicate.class));
+        verify(versionRepository).getOne(entity.getId());
+        verify(searchDataService).findExistentHashes(eq(entity.getStorageCode()),
+                        eq(entity.getFromDate()), eq(entity.getToDate()),
+                        eq(List.of(ROW_HASH, nonExistentHash)));
+        verifyNoMoreInteractions(versionRepository, searchDataService);
+    }
+
+    @Test
     public void testGetRow() {
 
         RefBookVersionEntity entity = createVersionEntity();
@@ -168,8 +203,7 @@ public class VersionServiceTest {
         RowValue dataRowValue = new LongRowValue(11L, emptyList());
         when(searchDataService.getData(any())).thenReturn(singletonList(dataRowValue));
 
-        final String rowHash = "hash";
-        String rowId = rowHash + "$" + VERSION_ID;
+        String rowId = ROW_HASH + "$" + VERSION_ID;
         RefBookRowValue rowValue = versionService.getRow(rowId);
         assertNotNull(rowValue);
 
@@ -177,7 +211,7 @@ public class VersionServiceTest {
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(entity.getStorageCode(),
                 entity.getFromDate(), entity.getToDate(), new ArrayList<>());
-        dataCriteria.setHashList(singletonList(rowHash));
+        dataCriteria.setHashList(singletonList(ROW_HASH));
 
         verify(searchDataService).getData(eq(dataCriteria));
 
