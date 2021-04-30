@@ -220,10 +220,10 @@ public class VersionServiceImpl implements VersionService {
             Integer versionId = entry.getKey();
             RefBookVersionEntity entity = versionRepository.getOne(versionId);
 
-            List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),
-                    entity.getFromDate(), entity.getToDate(), entry.getValue());
-
             List<String> versionHashes = new ArrayList<>(entry.getValue());
+            List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),
+                    entity.getFromDate(), entity.getToDate(), versionHashes);
+
             versionHashes.removeAll(existentHashes);
             notExistent.addAll(versionHashes.stream().map(hash -> hash + "$" + versionId).collect(toList()));
         }

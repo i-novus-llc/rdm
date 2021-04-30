@@ -139,10 +139,6 @@ public class VersionServiceTest {
 
         RefBookVersion version = versionService.getById(entity.getId());
         assertVersion(entity, version);
-
-        verify(versionRepository).findById(entity.getId());
-
-        verifyNoMoreInteractions(versionRepository);
     }
 
     @Test
@@ -184,13 +180,6 @@ public class VersionServiceTest {
         ExistsData actual = versionService.existsData(List.of(rowId, badFormedRowId, nonExistentRowId));
         assertEquals(expected.isExists(), actual.isExists());
         assertEquals(expected.getNotExistingRowIds(), actual.getNotExistingRowIds());
-
-        verify(versionRepository, times(2)).exists(any(Predicate.class));
-        verify(versionRepository).getOne(entity.getId());
-        verify(searchDataService).findExistentHashes(eq(entity.getStorageCode()),
-                        eq(entity.getFromDate()), eq(entity.getToDate()),
-                        eq(List.of(ROW_HASH, nonExistentHash)));
-        verifyNoMoreInteractions(versionRepository, searchDataService);
     }
 
     @Test
