@@ -58,6 +58,10 @@ public class VersionServiceImpl implements VersionService {
     private static final String VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE = "version.actual.on.date.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
 
+    // Формат параметра rowId: <хеш записи>$<идентификатор версии>
+    private static final String HASH_ROW_ID_REGEX = "^.+\\$\\d+$";
+    private static final String HASH_ROW_ID_SPLIT_REGEX = "\\$";
+
     private final RefBookVersionRepository versionRepository;
 
     private final SearchDataService searchDataService;
@@ -113,11 +117,11 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public RefBookVersion getVersion(String version, String refBookCode) {
 
-        RefBookVersionEntity versionEntity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
-        if (versionEntity == null)
+        RefBookVersionEntity entity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
+        if (entity == null)
             throw new NotFoundException(new Message(VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE, version, refBookCode));
 
-        return ModelGenerator.versionModel(versionEntity);
+        return ModelGenerator.versionModel(entity);
     }
 
     @Override
@@ -192,14 +196,17 @@ public class VersionServiceImpl implements VersionService {
         Map<Integer, List<String>> hashes = new HashMap<>();
 
         for (String rowId : rowIds) {
-            if (!rowId.matches("^.+\\$\\d+$")) {
+            if (!rowId.matches(HASH_ROW_ID_REGEX)) {
                 notExistent.add(rowId);
                 continue;
             }
-            String[] split = rowId.split("\\$");
+
+            String[] split = rowId.split(HASH_ROW_ID_SPLIT_REGEX);
             Integer versionId = Integer.parseInt(split[1]);
+            // to-do: Кешировать результат exists.
             if (!versionRepository.exists(hasVersionId(versionId))) {
                 notExistent.add(rowId);
+
             } else {
                 String hash = split[0];
                 if (hashes.containsKey(versionId))
@@ -213,10 +220,10 @@ public class VersionServiceImpl implements VersionService {
             Integer versionId = entry.getKey();
             RefBookVersionEntity entity = versionRepository.getOne(versionId);
 
-            List<String> versionHashes = new ArrayList<>(entry.getValue());
             List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),
-                    entity.getFromDate(), entity.getToDate(), versionHashes);
+                    entity.getFromDate(), entity.getToDate(), entry.getValue());
 
+            List<String> versionHashes = new ArrayList<>(entry.getValue());
             versionHashes.removeAll(existentHashes);
             notExistent.addAll(versionHashes.stream().map(hash -> hash + "$" + versionId).collect(toList()));
         }
@@ -227,10 +234,10 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public RefBookRowValue getRow(String rowId) {
 
-        if (!rowId.matches("^.+\\$\\d+$"))
+        if (!rowId.matches(HASH_ROW_ID_REGEX))
             throw new NotFoundException(new Message(ROW_NOT_FOUND_EXCEPTION_CODE, rowId));
 
-        String[] split = rowId.split("\\$");
+        String[] split = rowId.split(HASH_ROW_ID_SPLIT_REGEX);
         final Integer versionId = Integer.parseInt(split[1]);
         RefBookVersionEntity entity = findOrThrow(versionId);
 
