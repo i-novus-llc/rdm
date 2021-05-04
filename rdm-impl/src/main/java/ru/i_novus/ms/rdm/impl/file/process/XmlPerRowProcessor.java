@@ -9,10 +9,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static ru.i_novus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
@@ -36,7 +33,7 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
         reader = createEventReader(inputStream, FACTORY);
     }
 
-    // check if next tag is <row>. Will move to next tag if meets <data> tag
+    // check if next tag is <row>. Will move to next tag if <data> tag meets
     @Override
     public boolean hasNext() {
         try {
@@ -45,14 +42,14 @@ public class XmlPerRowProcessor extends FilePerRowProcessor {
             }
 
             XMLEvent next = reader.peek();
-            if(isStartElementWithName(next, ROW_TAG_NAME)) {
+            if (isStartElementWithName(next, ROW_TAG_NAME)) {
                 return true;
             }
             while (!isStartElementWithName(next, DATA_TAG_NAME) && reader.hasNext()) {
                 reader.nextEvent();
                 next = reader.peek();
             }
-            if(!isStartElementWithName(next, DATA_TAG_NAME)) {
+            if (!isStartElementWithName(next, DATA_TAG_NAME)) {
                 return false;
             }
             reader.nextEvent();
