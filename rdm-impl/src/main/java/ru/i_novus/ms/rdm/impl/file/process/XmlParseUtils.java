@@ -117,14 +117,49 @@ public class XmlParseUtils {
         });
     }
 
+    /**
+     * Проверка события на наличие наименования начального элемента в списке тегов.
+     *
+     * @param event    xml-событие
+     * @param tagNames список проверяемых тегов
+     * @return Результат проверки
+     */
     public static boolean isStartElementWithName(XMLEvent event, String... tagNames) {
         return event != null && event.isStartElement()
                 && asList(tagNames).contains(event.asStartElement().getName().getLocalPart());
     }
 
+    /**
+     * Проверка события на наличие наименования конечного элемента в списке тегов.
+     *
+     * @param event    xml-событие
+     * @param tagNames список проверяемых тегов
+     * @return Результат проверки
+     */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isEndElementWithName(XMLEvent event, String... tagNames) {
         return event.isEndElement()
                 && asList(tagNames).contains(event.asEndElement().getName().getLocalPart());
+    }
+
+    /**
+     * Поиск события с наименованием начального элемента из списка тегов.
+     *
+     * @param reader   xml-reader
+     * @param tagNames список тегов
+     * @return Найденное событие или null
+     */
+    public static XMLEvent findStartElementWithName(XMLEventReader reader, String... tagNames) throws XMLStreamException {
+
+        XMLEvent event = reader.peek();
+        while (event != null &&
+                !(isStartElementWithName(event, tagNames))) {
+            if (!reader.hasNext())
+                return null;
+
+            reader.nextEvent();
+            event = reader.peek(); // after nextEvent!
+        }
+        return event;
     }
 }
