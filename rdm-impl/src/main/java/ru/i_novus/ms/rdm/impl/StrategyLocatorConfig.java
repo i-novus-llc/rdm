@@ -7,9 +7,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.DefaultValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.UnversionedValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
@@ -21,6 +19,8 @@ import java.util.Map;
 
 @Configuration
 public class StrategyLocatorConfig {
+
+    /* Default Strategies: */
 
     @Autowired
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
@@ -41,6 +41,9 @@ public class StrategyLocatorConfig {
     private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
 
     @Autowired
+    private DefaultCreateDraftEntityStrategy defaultCreateDraftEntityStrategy;
+
+    @Autowired
     private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
 
     @Autowired
@@ -55,6 +58,8 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultExportDraftFileStrategy defaultExportDraftFileStrategy;
 
+    /* Unversioned Strategies: */
+
     @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
@@ -63,6 +68,9 @@ public class StrategyLocatorConfig {
 
     @Autowired
     private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
+
+    @Autowired
+    private UnversionedCreateDraftEntityStrategy unversionedCreateDraftEntityStrategy;
 
     @Autowired
     private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
@@ -93,6 +101,7 @@ public class StrategyLocatorConfig {
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
+        result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         // File:
         result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
@@ -111,6 +120,7 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
         // Version + Draft:
         result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
+        result.put(CreateDraftEntityStrategy.class, unversionedCreateDraftEntityStrategy);
         // File:
         result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
 
