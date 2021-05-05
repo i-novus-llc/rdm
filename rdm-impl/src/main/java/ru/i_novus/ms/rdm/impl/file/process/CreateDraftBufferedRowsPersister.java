@@ -15,19 +15,21 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
-    private BufferedRowsPersister bufferedRowsPersister;
+    private final DraftDataService draftDataService;
 
-    private DraftDataService draftDataService;
+    private final BiConsumer<String, Structure> saveDraftConsumer;
 
-    private boolean isFirstRowAppended;
+    private final Set<String> allKeys = new LinkedHashSet<>();
 
     private int bufferSize = 100;
 
-    private BiConsumer<String, Structure> saveDraftConsumer;
+    private boolean isFirstRowAppended;
+
+    private Structure structure = null;
 
     private String storageCode;
-    private Structure structure = null;
-    private Set<String> allKeys = new LinkedHashSet<>();
+
+    private BufferedRowsPersister bufferedRowsPersister;
 
     public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,
                                             BiConsumer<String, Structure> saveDraftConsumer) {
@@ -44,11 +46,14 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     @Override
     public Result append(Row row) {
+
         if (!isFirstRowAppended) {
             allKeys.addAll(row.getData().keySet());
             structure = stringStructure(allKeys);
             storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
+
             this.bufferedRowsPersister = new BufferedRowsPersister(bufferSize, draftDataService, storageCode, structure);
+
             isFirstRowAppended = true;
 
         } else {
