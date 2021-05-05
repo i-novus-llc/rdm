@@ -52,7 +52,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
             structure = stringStructure(allKeys);
             storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
 
-            this.bufferedRowsPersister = new BufferedRowsPersister(bufferSize, draftDataService, storageCode, structure);
+            this.bufferedRowsPersister = new BufferedRowsPersister(draftDataService, draftCode, structure, bufferSize);
 
             isFirstRowAppended = true;
 
@@ -84,6 +84,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     }
 
     private Structure.Attribute stringAttribute(String attrCode) {
+
         return Structure.Attribute.build(attrCode, attrCode, FieldType.STRING, attrCode);
     }
 
