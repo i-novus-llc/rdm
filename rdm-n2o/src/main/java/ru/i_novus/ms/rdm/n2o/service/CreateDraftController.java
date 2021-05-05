@@ -37,6 +37,7 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 @SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver
 public class CreateDraftController {
 
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
     private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
     private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
@@ -260,15 +261,15 @@ public class CreateDraftController {
     public UiDraft createFromFile(FileModel fileModel) {
 
         Integer versionId = refBookService.create(fileModel).getId();
-        RefBookVersion version = versionService.getById(versionId);
+        RefBookVersion version = findOrThrow(versionId);
 
         return new UiDraft(version);
     }
 
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
-        RefBookVersion version = versionService.getById(versionId);
-        validateDraft(version);
+        RefBookVersion version = findOrThrow(versionId);
+        //validateDraft(version); // DEBUG: for NNOP-184
 
         Draft draft = draftService.create(version.getRefBookId(), fileModel);
         return new UiDraft(draft, version.getRefBookId());
@@ -276,7 +277,7 @@ public class CreateDraftController {
 
     public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
-        RefBookVersion version = versionService.getById(versionId);
+        RefBookVersion version = findOrThrow(versionId);
         validateDraft(version);
 
         if (version.hasEmptyStructure())
@@ -291,8 +292,17 @@ public class CreateDraftController {
     /** Получение черновика или создание на основе текущей версии. */
     private UiDraft getOrCreateDraft(Integer versionId) {
 
-        final RefBookVersion version = versionService.getById(versionId);
+        final RefBookVersion version = findOrThrow(versionId);
         return getStrategy(version, FindOrCreateDraftStrategy.class).findOrCreate(version);
+    }
+
+    private RefBookVersion findOrThrow(Integer versionId) {
+
+        RefBookVersion version = versionService.getById(versionId);
+        if (version == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
+
+        return version;
     }
 
     private void validateDraft(RefBookVersion version) {
