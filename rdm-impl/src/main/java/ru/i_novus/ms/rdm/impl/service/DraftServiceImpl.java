@@ -19,6 +19,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationRequest;
@@ -37,6 +38,7 @@ import ru.i_novus.ms.rdm.impl.file.process.*;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
@@ -383,19 +385,8 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
                                                    List<PassportValueEntity> passportValues) {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setRefBook(refBookEntity);
-        entity.setStatus(RefBookVersionStatus.DRAFT);
-
-        if (passportValues != null) {
-            entity.setPassportValues(passportValues.stream()
-                    .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), entity))
-                    .collect(toList()));
-        }
-
-        entity.setStructure(structure);
-
-        return entity;
+        return getStrategy(refBookEntity.getType(), CreateDraftEntityStrategy.class)
+                .create(refBookEntity, structure, passportValues);
     }
 
     private RefBookVersionEntity findLastPublishedEntity(Integer refBookId) {
@@ -1107,7 +1098,12 @@ public class DraftServiceImpl implements DraftService {
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
 
-        return strategyLocator.getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
+        return getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookTypeEnum type, Class<T> strategy) {
+
+        return strategyLocator.getStrategy(type, strategy);
     }
 
     /**

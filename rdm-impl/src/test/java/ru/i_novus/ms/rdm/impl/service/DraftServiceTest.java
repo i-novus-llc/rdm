@@ -34,6 +34,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -128,9 +129,11 @@ public class DraftServiceTest {
     private RefBookConflictRepository conflictRepository;
 
     @Mock
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+    @Mock
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
     @Mock
-    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+    private CreateDraftEntityStrategy createDraftEntityStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -186,7 +189,8 @@ public class DraftServiceTest {
     public void testCreateWhenDraftWithSameStructure() {
 
         RefBookVersionEntity draftEntity = createDraftEntity();
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
+                .thenReturn(draftEntity);
         when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(draftEntity);
 
         Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
@@ -210,6 +214,8 @@ public class DraftServiceTest {
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
 
+        mockCreateDraftEntityStrategy(draftEntity.getRefBook(), structure);
+
         Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
 
         assertNotEquals(draftEntity.getId(), draftActual.getId());
@@ -224,6 +230,8 @@ public class DraftServiceTest {
         RefBookVersionEntity publishedEntity = createPublishedEntity();
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(publishedEntity);
+
+        mockCreateDraftEntityStrategy(publishedEntity.getRefBook(), publishedEntity.getStructure());
 
         RefBookVersionEntity savedDraftEntity = createDraftEntity();
         savedDraftEntity.setId(null);
@@ -245,8 +253,13 @@ public class DraftServiceTest {
         when(attributeValidationRepository.findAllByVersionId(versionEntity.getId())).thenReturn(emptyList());
 
         // .create
-        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(versionEntity.getRefBook().getId(), RefBookVersionStatus.PUBLISHED))
+        RefBookEntity refBookEntity = versionEntity.getRefBook();
+
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookEntity.getId(), RefBookVersionStatus.PUBLISHED))
                 .thenReturn(versionEntity);
+
+        mockCreateDraftEntityStrategy(refBookEntity, versionEntity.getStructure());
+
         ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         when(versionRepository.save(captor.capture())).thenReturn(new RefBookVersionEntity());
 
@@ -258,7 +271,7 @@ public class DraftServiceTest {
         assertNotNull(draftEntity);
         assertNull(draftEntity.getId());
         assertEquals(NEW_DRAFT_CODE, draftEntity.getStorageCode());
-        assertEquals(versionEntity.getRefBook(), draftEntity.getRefBook());
+        assertEquals(refBookEntity, draftEntity.getRefBook());
         assertEquals(versionEntity.getStructure(), draftEntity.getStructure());
     }
 
@@ -302,7 +315,8 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(publishedEntity);
 
-        RefBookVersionEntity draftEntity = createDraftEntity(publishedEntity.getRefBook());
+        RefBookEntity refBookEntity = publishedEntity.getRefBook();
+        RefBookVersionEntity draftEntity = createDraftEntity(refBookEntity);
         draftEntity.setId(null);
         draftEntity.setStorageCode(NEW_DRAFT_CODE);
 
@@ -310,7 +324,10 @@ public class DraftServiceTest {
         setTestStructure(structure);
         draftEntity.setStructure(structure);
 
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(draftEntity);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null)
+                .thenReturn(draftEntity);
+
+        mockCreateDraftEntityStrategy(refBookEntity, structure);
 
         draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
 
@@ -357,9 +374,11 @@ public class DraftServiceTest {
         when(versionRepository.getOne(draftId)).thenReturn(uploadedDraftEntity);
         when(versionRepository.findById(draftId)).thenReturn(Optional.of(uploadedDraftEntity));
 
-        ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        mockCreateDraftEntityStrategy(uploadedDraftEntity.getRefBook(), uploadedDraftEntity.getStructure());
 
         draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
+
+        ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(versionRepository).save(draftCaptor.capture());
 
         uploadedDraftEntity.setStructure(UploadFileTestData.createStructure());
@@ -369,6 +388,16 @@ public class DraftServiceTest {
         Assert.assertEquals(uploadedDraftEntity, draftCaptor.getValue());
 
         // Old draft is not dropped since its structure is changed.
+    }
+
+    private void mockCreateDraftEntityStrategy(RefBookEntity refBookEntity, Structure structure) {
+
+        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
+        createdEntity.setId(null);
+        createdEntity.setStructure(structure);
+
+        when(createDraftEntityStrategy.create(eq(refBookEntity), eq(structure), any()))
+                .thenReturn(createdEntity);
     }
 
     @Test
@@ -909,8 +938,9 @@ public class DraftServiceTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
+        result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
 
         return result;
     }
