@@ -181,7 +181,7 @@ public class DraftServiceImpl implements DraftService {
 
         String extension = FileUtil.getExtension(fileModel.getName());
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, saveDraftConsumer);
+        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, this::createDraftStorage, saveDraftConsumer);
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
 
         return findDraftEntity(refBookId).toDraft();
@@ -306,8 +306,7 @@ public class DraftServiceImpl implements DraftService {
             if (passportValues == null) passportValues = publishedEntity.getPassportValues();
             draftEntity = createDraftEntity(publishedEntity.getRefBook(), structure, passportValues);
 
-            List<Field> fields = ConverterUtil.fields(structure);
-            String draftCode = draftDataService.createDraft(fields);
+            String draftCode = createDraftStorage(structure);
             draftEntity.setStorageCode(draftCode);
 
         } else {
@@ -366,8 +365,7 @@ public class DraftServiceImpl implements DraftService {
 
             draftEntity = createDraftEntity(draftEntity.getRefBook(), structure, passportValues);
 
-            List<Field> fields = ConverterUtil.fields(structure);
-            String draftCode = draftDataService.createDraft(fields);
+            String draftCode = createDraftStorage(structure);
             draftEntity.setStorageCode(draftCode);
 
         } else {
@@ -380,6 +378,11 @@ public class DraftServiceImpl implements DraftService {
         }
 
         return draftEntity;
+    }
+
+    private String createDraftStorage(Structure structure) {
+
+        return draftDataService.createDraft(ConverterUtil.fields(structure));
     }
 
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
