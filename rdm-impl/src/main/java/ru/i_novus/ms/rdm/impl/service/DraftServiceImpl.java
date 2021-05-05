@@ -167,11 +167,11 @@ public class DraftServiceImpl implements DraftService {
 
         Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX": return createFromXlsx(refBookId, fileModel, inputStreamSupplier);
-            case "XML": return createFromXml(refBookId, fileModel, inputStreamSupplier);
-            default: throw new FileExtensionException();
-        }
+        return switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX" -> createFromXlsx(refBookId, fileModel, inputStreamSupplier);
+            case "XML" -> createFromXml(refBookId, fileModel, inputStreamSupplier);
+            default -> throw new FileExtensionException();
+        };
     }
 
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel,
@@ -256,7 +256,7 @@ public class DraftServiceImpl implements DraftService {
             // Валидация структуры ссылочного справочника не нужна, т.к. все атрибуты строковые.
 
             if (draftEntity == null) {
-                draftEntity = createDraftEntity(structure, publishedEntity.getPassportValues());
+                draftEntity = createDraftEntity(publishedEntity.getRefBook(), structure, publishedEntity.getPassportValues());
 
             } else if (draftEntity.hasEmptyStructure()) {
                 draftEntity.setStructure(structure);
@@ -265,10 +265,9 @@ public class DraftServiceImpl implements DraftService {
                 removeDraft(draftEntity);
                 versionRepository.flush(); // Delete old draft before insert new draft!
 
-                draftEntity = createDraftEntity(structure, draftEntity.getPassportValues());
+                draftEntity = createDraftEntity(draftEntity.getRefBook(), structure, draftEntity.getPassportValues());
             }
 
-            draftEntity.setRefBook(newRefBook(refBookId));
             draftEntity.setStorageCode(storageCode);
 
             versionRepository.save(draftEntity);
@@ -303,9 +302,7 @@ public class DraftServiceImpl implements DraftService {
 
         if (draftEntity == null) {
             if (passportValues == null) passportValues = publishedEntity.getPassportValues();
-            draftEntity = createDraftEntity(structure, passportValues);
-
-            draftEntity.setRefBook(newRefBook(refBookId));
+            draftEntity = createDraftEntity(publishedEntity.getRefBook(), structure, passportValues);
 
             List<Field> fields = ConverterUtil.fields(structure);
             String draftCode = draftDataService.createDraft(fields);
@@ -360,14 +357,12 @@ public class DraftServiceImpl implements DraftService {
                                                Structure structure, List<PassportValueEntity> passportValues) {
 
         if (!structure.equals(draftEntity.getStructure())) {
-            Integer refBookId = draftEntity.getRefBook().getId();
 
             if (passportValues == null) passportValues = draftEntity.getPassportValues();
 
             removeDraft(draftEntity);
 
-            draftEntity = createDraftEntity(structure, passportValues);
-            draftEntity.setRefBook(newRefBook(refBookId));
+            draftEntity = createDraftEntity(draftEntity.getRefBook(), structure, passportValues);
 
             List<Field> fields = ConverterUtil.fields(structure);
             String draftCode = draftDataService.createDraft(fields);
@@ -385,28 +380,22 @@ public class DraftServiceImpl implements DraftService {
         return draftEntity;
     }
 
-    private RefBookEntity newRefBook(Integer refBookId) {
+    private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
+                                                   List<PassportValueEntity> passportValues) {
 
-        RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setId(refBookId);
-
-        return refBookEntity;
-    }
-
-    private RefBookVersionEntity createDraftEntity(Structure structure, List<PassportValueEntity> passportValues) {
-
-        RefBookVersionEntity draftEntity = new RefBookVersionEntity();
-        draftEntity.setStatus(RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setRefBook(refBookEntity);
+        entity.setStatus(RefBookVersionStatus.DRAFT);
 
         if (passportValues != null) {
-            draftEntity.setPassportValues(passportValues.stream()
-                    .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), draftEntity))
+            entity.setPassportValues(passportValues.stream()
+                    .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), entity))
                     .collect(toList()));
         }
 
-        draftEntity.setStructure(structure);
+        entity.setStructure(structure);
 
-        return draftEntity;
+        return entity;
     }
 
     private RefBookVersionEntity findLastPublishedEntity(Integer refBookId) {

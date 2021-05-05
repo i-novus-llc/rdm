@@ -302,7 +302,7 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(publishedEntity);
 
-        RefBookVersionEntity draftEntity = createDraftEntityWithoutRefBookCode(REFBOOK_ID);
+        RefBookVersionEntity draftEntity = createDraftEntity(publishedEntity.getRefBook());
         draftEntity.setId(null);
         draftEntity.setStorageCode(NEW_DRAFT_CODE);
 
