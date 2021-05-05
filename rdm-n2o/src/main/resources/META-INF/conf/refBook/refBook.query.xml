@@ -62,6 +62,10 @@
             <sorting/>
         </field>
 
+        <field id="type.id" domain="string">
+            <select mapping="type"/>
+        </field>
+
         <field id="status" domain="string">
             <filters>
                 <eq filter-id="status.id" mapping="status" domain="string"/>

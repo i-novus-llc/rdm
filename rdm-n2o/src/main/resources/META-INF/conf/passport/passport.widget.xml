@@ -2,11 +2,16 @@
 <form xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-4.0"
       name="Паспорт" query-id="refBook" object-id="refBook">
     <fields>
-        <input-text id="code" label="Код" required="true">
-            <dependencies>
-                <enabling>!hasReferrer</enabling>
-            </dependencies>
-        </input-text>
+        <row>
+            <input-text id="code" label="Код" required="true">
+                <dependencies>
+                    <enabling>!hasReferrer</enabling>
+                </dependencies>
+            </input-text>
+            <input-select id="type" label="Тип"
+                          query-id="refBookTypeList" label-field-id="name" enabled="false"/>
+        </row>
+
         <input-text id="name" label="Наименование" required="true"/>
         <input-text id="shortName" label="Краткое наименование"/>
         <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>

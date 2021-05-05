@@ -10,10 +10,16 @@
     <fields>
         <field id="id" domain="string">
             <select/>
+            <filters>
+                <eq filter-id="id" mapping="id"/>
+            </filters>
         </field>
 
         <field id="name" domain="string">
             <select/>
+            <filters>
+                <eq filter-id="name" mapping="name"/>
+            </filters>
         </field>
     </fields>
 </query>
