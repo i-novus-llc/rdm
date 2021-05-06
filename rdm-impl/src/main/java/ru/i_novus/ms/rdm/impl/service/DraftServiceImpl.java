@@ -190,7 +190,7 @@ public class DraftServiceImpl implements DraftService {
         String extension = FileUtil.getExtension(fileModel.getName());
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
 
-        return findDraftEntity(refBookId).toDraft();
+        return findDraftEntity(kit.getRefBook()).toDraft();
     }
 
     private Draft createFromXml(Integer refBookId, FileModel fileModel,
@@ -406,24 +406,22 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntityKit findEntityKit(Integer refBookId) {
 
-        RefBookVersionEntity publishedEntity = findLastPublishedEntity(refBookId);
+        RefBookVersionEntity publishedEntity = versionRepository
+                .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
+
         RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
                 ? publishedEntity
-                : findDraftEntity(refBookId);
+                : versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+
         if (draftEntity == null && publishedEntity == null)
             throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return new RefBookVersionEntityKit(publishedEntity, draftEntity);
     }
 
-    private RefBookVersionEntity findLastPublishedEntity(Integer refBookId) {
+    private RefBookVersionEntity findDraftEntity(RefBookEntity refBookEntity) {
 
-        return versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
-    }
-
-    private RefBookVersionEntity findDraftEntity(Integer refBookId) {
-
-        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
+        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookEntity.getId());
     }
 
     @Override
