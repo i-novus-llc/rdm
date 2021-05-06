@@ -34,9 +34,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
@@ -133,6 +131,8 @@ public class DraftServiceTest {
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
     @Mock
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
+    @Mock
+    private FindDraftEntityStrategy findDraftEntityStrategy;
     @Mock
     private CreateDraftEntityStrategy createDraftEntityStrategy;
     @Mock
@@ -298,17 +298,19 @@ public class DraftServiceTest {
         RefBookVersionEntity draftEntity = createDraftEntityWithoutRefBookCode(REFBOOK_ID);
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
 
-        RefBookVersionEntity expectedDraftEntity = createDraftEntityWithoutRefBookCode(draftEntity.getRefBook().getId());
-        expectedDraftEntity.setId(draftEntity.getId());
-        expectedDraftEntity.setStorageCode(NEW_DRAFT_CODE);
+        RefBookVersionEntity createdEntity = createDraftEntityWithoutRefBookCode(draftEntity.getRefBook().getId());
+        createdEntity.setId(draftEntity.getId());
+        createdEntity.setStorageCode(NEW_DRAFT_CODE);
 
         Structure structure = new Structure();
         setTestStructure(structure);
-        expectedDraftEntity.setStructure(structure);
+        createdEntity.setStructure(structure);
+
+        when(findDraftEntityStrategy.find(draftEntity.getRefBook())).thenReturn(createdEntity);
 
         draftService.create(draftEntity.getRefBook().getId(), createTestFileModel("/", "R002", "xlsx"));
 
-        verify(versionRepository).save(eq(expectedDraftEntity));
+        verify(versionRepository).save(eq(createdEntity));
     }
 
     @Test
@@ -317,24 +319,24 @@ public class DraftServiceTest {
         RefBookVersionEntity publishedEntity = createPublishedEntity();
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(publishedEntity);
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
 
         RefBookEntity refBookEntity = publishedEntity.getRefBook();
-        RefBookVersionEntity draftEntity = createDraftEntity(refBookEntity);
-        draftEntity.setId(null);
-        draftEntity.setStorageCode(NEW_DRAFT_CODE);
+        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
+        createdEntity.setId(null);
+        createdEntity.setStorageCode(NEW_DRAFT_CODE);
 
         Structure structure = new Structure();
         setTestStructure(structure);
-        draftEntity.setStructure(structure);
+        createdEntity.setStructure(structure);
 
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null)
-                .thenReturn(draftEntity);
+        when(findDraftEntityStrategy.find(publishedEntity.getRefBook())).thenReturn(createdEntity);
 
         mockCreateDraftEntityStrategy(refBookEntity, structure);
 
         draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
 
-        verify(versionRepository).save(eq(draftEntity));
+        verify(versionRepository).save(eq(createdEntity));
     }
 
     private void setTestStructure(Structure structure) {
@@ -943,6 +945,7 @@ public class DraftServiceTest {
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
+        result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
 

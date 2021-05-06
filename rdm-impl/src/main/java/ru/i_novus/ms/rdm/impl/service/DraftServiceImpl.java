@@ -39,9 +39,7 @@ import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
@@ -190,7 +188,9 @@ public class DraftServiceImpl implements DraftService {
         String extension = FileUtil.getExtension(fileModel.getName());
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
 
-        return findDraftEntity(kit.getRefBook()).toDraft();
+        RefBookVersionEntity createdEntity = getStrategy(kit.getRefBook().getType(), FindDraftEntityStrategy.class)
+                .find(kit.getRefBook());
+        return createdEntity.toDraft();
     }
 
     private Draft createFromXml(Integer refBookId, FileModel fileModel,
@@ -417,11 +417,6 @@ public class DraftServiceImpl implements DraftService {
             throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return new RefBookVersionEntityKit(publishedEntity, draftEntity);
-    }
-
-    private RefBookVersionEntity findDraftEntity(RefBookEntity refBookEntity) {
-
-        return versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookEntity.getId());
     }
 
     @Override
