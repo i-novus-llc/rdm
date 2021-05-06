@@ -70,8 +70,6 @@ public interface RefBookVersionRepository extends
 
     boolean existsById(@NonNull Integer id);
 
-    boolean existsByIdAndStatus(@NonNull Integer id, RefBookVersionStatus status);
-
     RefBookVersionEntity findByStatusAndRefBookId(RefBookVersionStatus status, Integer refBookId);
 
     RefBookVersionEntity findByVersionAndRefBookCode(String version, String refBookCode);
