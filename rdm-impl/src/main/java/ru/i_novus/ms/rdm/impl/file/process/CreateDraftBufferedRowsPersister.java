@@ -17,7 +17,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
     private final DraftDataService draftDataService;
 
-    private final Function<Structure, String> createDraftStorage;
+    private final Function<Structure, String> newDraftStorage;
 
     private final BiConsumer<String, Structure> saveDraftConsumer;
 
@@ -34,10 +34,10 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     private BufferedRowsPersister bufferedRowsPersister;
 
     public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,
-                                            Function<Structure, String> createDraftStorage,
+                                            Function<Structure, String> newDraftStorage,
                                             BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
-        this.createDraftStorage = createDraftStorage;
+        this.newDraftStorage = newDraftStorage;
         this.saveDraftConsumer = saveDraftConsumer;
     }
 
@@ -51,7 +51,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
         if (!isFirstRowAppended) {
             allKeys.addAll(row.getData().keySet());
             structure = stringStructure(allKeys);
-            draftCode = createDraftStorage.apply(structure);
+            draftCode = newDraftStorage.apply(structure);
 
             this.bufferedRowsPersister = new BufferedRowsPersister(draftDataService, draftCode, structure, bufferSize);
 

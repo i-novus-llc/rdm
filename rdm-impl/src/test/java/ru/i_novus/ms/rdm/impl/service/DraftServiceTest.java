@@ -35,6 +35,7 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -134,6 +135,8 @@ public class DraftServiceTest {
     private ValidateDraftExistsStrategy validateDraftExistsStrategy;
     @Mock
     private CreateDraftEntityStrategy createDraftEntityStrategy;
+    @Mock
+    private CreateDraftStorageStrategy createDraftStorageStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -172,7 +175,7 @@ public class DraftServiceTest {
         JsonUtil.jsonMapper = objectMapper;
 
         reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
-        when(draftDataService.createDraft(anyList())).thenReturn(NEW_DRAFT_CODE);
+        when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
         FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
@@ -941,6 +944,7 @@ public class DraftServiceTest {
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
 
         return result;
     }

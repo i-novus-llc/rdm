@@ -35,10 +35,12 @@ import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.file.process.*;
+import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
@@ -61,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.*;
@@ -179,9 +182,12 @@ public class DraftServiceImpl implements DraftService {
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel,
                                  Supplier<InputStream> inputStreamSupplier) {
 
-        String extension = FileUtil.getExtension(fileModel.getName());
+        RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        Function<Structure, String> newDraftStorage = getNewDraftStorage(kit.getRefBook());
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, this::createDraftStorage, saveDraftConsumer);
+        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
+
+        String extension = FileUtil.getExtension(fileModel.getName());
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
 
         return findDraftEntity(refBookId).toDraft();
@@ -235,7 +241,18 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /**
-     * Создание черновика при загрузке из XLSX (в виде consumer'а).
+     * Создание хранилища для черновика при загрузке из XLSX (в виде function).
+     *
+     * @param entity сущность-справочник
+     * @return function
+     */
+    private Function<Structure, String> getNewDraftStorage(RefBookEntity entity) {
+
+        return structure -> createDraftStorage(entity, structure);
+    }
+
+    /**
+     * Создание черновика при загрузке из XLSX (в виде consumer).
      * <p>
      * Таблица черновика не меняется,
      * т.к. уже изменена внутри CreateDraftBufferedRowsPersister.append .
@@ -244,21 +261,18 @@ public class DraftServiceImpl implements DraftService {
      * @return consumer
      */
     private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
+
         return (storageCode, structure) -> {
 
-            RefBookVersionEntity publishedEntity = findLastPublishedEntity(refBookId);
-            RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
-                    ? publishedEntity
-                    : findDraftEntity(refBookId);
-            if (draftEntity == null && publishedEntity == null)
-                throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+            RefBookVersionEntityKit kit = findEntityKit(refBookId);
+            RefBookEntity refBookEntity = kit.getRefBook();
 
-            final String refBookCode = (draftEntity != null ? draftEntity : publishedEntity).getRefBook().getCode();
-            versionValidation.validateDraftStructure(refBookCode, structure);
+            versionValidation.validateDraftStructure(refBookEntity.getCode(), structure);
             // Валидация структуры ссылочного справочника не нужна, т.к. все атрибуты строковые.
 
+            RefBookVersionEntity draftEntity = kit.getDraftEntity();
             if (draftEntity == null) {
-                draftEntity = createDraftEntity(publishedEntity.getRefBook(), structure, publishedEntity.getPassportValues());
+                draftEntity = createDraftEntity(refBookEntity, structure, kit.getPublishedEntity().getPassportValues());
 
             } else if (draftEntity.hasEmptyStructure()) {
                 draftEntity.setStructure(structure);
@@ -283,30 +297,27 @@ public class DraftServiceImpl implements DraftService {
         final Integer refBookId = request.getRefBookId();
         versionValidation.validateRefBook(refBookId);
 
-        RefBookVersionEntity publishedEntity = findLastPublishedEntity(refBookId);
-        RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
-                ? publishedEntity
-                : findDraftEntity(refBookId);
-        if (draftEntity == null && publishedEntity == null)
-            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+        RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        RefBookEntity refBookEntity = kit.getRefBook();
 
         List<PassportValueEntity> passportValues = null;
         if (request.getPassport() != null) {
             passportValues = RefBookVersionEntity.toPassportValues(request.getPassport(), true, null);
         }
 
-        final String refBookCode = (draftEntity != null ? draftEntity : publishedEntity).getRefBook().getCode();
+        final String refBookCode = refBookEntity.getCode();
         final Structure structure = request.getStructure();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
         if (request.getReferrerValidationRequired())
             versionValidation.validateReferrerStructure(structure);
 
+        RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
-            if (passportValues == null) passportValues = publishedEntity.getPassportValues();
-            draftEntity = createDraftEntity(publishedEntity.getRefBook(), structure, passportValues);
+            if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
+            draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
-            String draftCode = createDraftStorage(structure);
+            String draftCode = createDraftStorage(refBookEntity, structure);
             draftEntity.setStorageCode(draftCode);
 
         } else {
@@ -363,9 +374,10 @@ public class DraftServiceImpl implements DraftService {
 
             removeDraft(draftEntity);
 
-            draftEntity = createDraftEntity(draftEntity.getRefBook(), structure, passportValues);
+            RefBookEntity refBookEntity = draftEntity.getRefBook();
+            draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
-            String draftCode = createDraftStorage(structure);
+            String draftCode = createDraftStorage(refBookEntity, structure);
             draftEntity.setStorageCode(draftCode);
 
         } else {
@@ -380,16 +392,28 @@ public class DraftServiceImpl implements DraftService {
         return draftEntity;
     }
 
-    private String createDraftStorage(Structure structure) {
-
-        return draftDataService.createDraft(ConverterUtil.fields(structure));
-    }
-
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
                                                    List<PassportValueEntity> passportValues) {
 
         return getStrategy(refBookEntity.getType(), CreateDraftEntityStrategy.class)
                 .create(refBookEntity, structure, passportValues);
+    }
+
+    private String createDraftStorage(RefBookEntity refBookEntity, Structure structure) {
+
+        return getStrategy(refBookEntity.getType(), CreateDraftStorageStrategy.class).create(structure);
+    }
+
+    private RefBookVersionEntityKit findEntityKit(Integer refBookId) {
+
+        RefBookVersionEntity publishedEntity = findLastPublishedEntity(refBookId);
+        RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
+                ? publishedEntity
+                : findDraftEntity(refBookId);
+        if (draftEntity == null && publishedEntity == null)
+            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+
+        return new RefBookVersionEntityKit(publishedEntity, draftEntity);
     }
 
     private RefBookVersionEntity findLastPublishedEntity(Integer refBookId) {
