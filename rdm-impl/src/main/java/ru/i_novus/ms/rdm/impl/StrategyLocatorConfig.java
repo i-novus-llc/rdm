@@ -22,6 +22,7 @@ public class StrategyLocatorConfig {
 
     /* Default Strategies: */
 
+    // RefBook:
     @Autowired
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
@@ -34,6 +35,7 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
 
+    // Version + Draft:
     @Autowired
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
 
@@ -43,6 +45,10 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultCreateDraftEntityStrategy defaultCreateDraftEntityStrategy;
 
+    @Autowired
+    private DefaultCreateDraftStorageStrategy defaultCreateDraftStorageStrategy;
+
+    // File:
     @Autowired
     private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
 
@@ -60,18 +66,24 @@ public class StrategyLocatorConfig {
 
     /* Unversioned Strategies: */
 
+    // RefBook:
     @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
+    // Version + Draft:
     @Autowired
     private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
 
     @Autowired
     private UnversionedCreateDraftEntityStrategy unversionedCreateDraftEntityStrategy;
 
+    @Autowired
+    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+
+    // File:
     @Autowired
     private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
 
@@ -102,6 +114,7 @@ public class StrategyLocatorConfig {
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
         // File:
         result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
@@ -121,6 +134,7 @@ public class StrategyLocatorConfig {
         // Version + Draft:
         result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
         result.put(CreateDraftEntityStrategy.class, unversionedCreateDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
         result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
 
