@@ -22,19 +22,16 @@ import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
 import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
-import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
+import ru.i_novus.ms.rdm.impl.strategy.file.SupplyPathFileContentStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
@@ -96,11 +93,6 @@ public class DraftServiceTest {
     @Mock
     private RefBookLockService refBookLockService;
 
-    @Spy
-    private final FileStorage fileStorage = new MockFileStorage();
-    @Mock
-    private FileNameGenerator fileNameGenerator;
-
     @Mock
     private VersionValidationImpl versionValidation;
     @Mock
@@ -111,9 +103,6 @@ public class DraftServiceTest {
 
     @Mock
     private AttributeValidationRepository attributeValidationRepository;
-
-    @Mock
-    private PerRowFileGeneratorFactory fileGeneratorFactory;
 
     @Mock
     private FieldFactory fieldFactory;
@@ -137,6 +126,8 @@ public class DraftServiceTest {
     private CreateDraftEntityStrategy createDraftEntityStrategy;
     @Mock
     private CreateDraftStorageStrategy createDraftStorageStrategy;
+    @Mock
+    private SupplyPathFileContentStrategy supplyPathFileContentStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -174,7 +165,7 @@ public class DraftServiceTest {
 
         JsonUtil.jsonMapper = objectMapper;
 
-        reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
+        reset(draftDataService);
         when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
@@ -308,7 +299,7 @@ public class DraftServiceTest {
 
         when(findDraftEntityStrategy.find(draftEntity.getRefBook())).thenReturn(createdEntity);
 
-        draftService.create(draftEntity.getRefBook().getId(), createTestFileModel("/", "R002", "xlsx"));
+        draftService.create(draftEntity.getRefBook().getId(), createFileModel("/", "R002", "xlsx"));
 
         verify(versionRepository).save(eq(createdEntity));
     }
@@ -334,7 +325,7 @@ public class DraftServiceTest {
 
         mockCreateDraftEntityStrategy(refBookEntity, structure);
 
-        draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
+        draftService.create(REFBOOK_ID, createFileModel("/", "R002", "xlsx"));
 
         verify(versionRepository).save(eq(createdEntity));
     }
@@ -355,7 +346,7 @@ public class DraftServiceTest {
         RefBookVersionEntity firstDraftEntity = createDraftEntityWithoutRefBookCode(REFBOOK_ID);
 
         Integer draftId = 1;
-        RefBookVersionEntity uploadedDraftEntity = createUploadedDraftEntity();
+        RefBookVersionEntity uploadedDraftEntity = createUploadedDraftEntity(firstDraftEntity.getRefBook());
         uploadedDraftEntity.setId(draftId);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
@@ -381,7 +372,7 @@ public class DraftServiceTest {
 
         mockCreateDraftEntityStrategy(uploadedDraftEntity.getRefBook(), uploadedDraftEntity.getStructure());
 
-        draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
+        draftService.create(REFBOOK_ID, createFileModel("/file/", "uploadFile", "xml"));
 
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(versionRepository).save(draftCaptor.capture());
@@ -806,29 +797,21 @@ public class DraftServiceTest {
      * fileName = 'uploadFile'
      * extension = 'xml'
      **/
-    private FileModel createTestFileModel(String path, String fileName, String extension) {
+    private FileModel createFileModel(String path, String fileName, String extension) {
+
         String fullName = fileName + "." + extension;
 
         FileModel fileModel = new FileModel(fileName, fullName); // NB: fileName as path!
-        if (fileStorage instanceof MockFileStorage) {
-            ((MockFileStorage)fileStorage).setFileModel(fileModel);
-            ((MockFileStorage)fileStorage).setFilePath(path + fullName);
-        }
+        fileModel.setPath(fileModel.generateFullPath());
 
         InputStream input = DraftServiceTest.class.getResourceAsStream(path + fullName);
 
-        if (!(fileStorage instanceof MockFileStorage)) {
-            when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
-            when(fileStorage.getContent(eq(fileModel.generateFullPath())))
-                    .thenReturn(input,
-                            DraftServiceTest.class.getResourceAsStream(path + fullName),
-                            DraftServiceTest.class.getResourceAsStream(path + fullName),
-                            DraftServiceTest.class.getResourceAsStream(path + fullName));
-        }
+        when(supplyPathFileContentStrategy.supply(fileModel.generateFullPath()))
+                .thenReturn(() -> input)
+                .thenReturn(() -> DraftServiceTest.class.getResourceAsStream(path + fullName))
+                .thenReturn(() -> DraftServiceTest.class.getResourceAsStream(path + fullName))
+                .thenReturn(() -> DraftServiceTest.class.getResourceAsStream(path + fullName));
 
-        // NB: Check mock.
-        String fullPath = fileStorage.saveContent(input, fileModel.getPath());
-        fileModel.setPath(fullPath);
         return fileModel;
     }
 
@@ -905,10 +888,11 @@ public class DraftServiceTest {
     /*
      * Creates a version entity to be saved while creating a version from xml-file with passport values
      * */
-    private RefBookVersionEntity createUploadedDraftEntity() {
+    private RefBookVersionEntity createUploadedDraftEntity(RefBookEntity refBookEntity) {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(null);
+        entity.setRefBook(refBookEntity);
         entity.setStructure(null);
         entity.setStatus(RefBookVersionStatus.DRAFT);
         entity.setPassportValues(UploadFileTestData.createPassportValues(entity));
@@ -943,11 +927,14 @@ public class DraftServiceTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
+        // File:
+        result.put(SupplyPathFileContentStrategy.class, supplyPathFileContentStrategy);
 
         return result;
     }

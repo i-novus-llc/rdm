@@ -19,7 +19,6 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationRequest;
@@ -32,7 +31,6 @@ import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.*;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.file.process.*;
 import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
@@ -41,6 +39,7 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.SupplyPathFileContentStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -89,8 +88,6 @@ public class DraftServiceImpl implements DraftService {
     private final RefBookLockService refBookLockService;
     private final VersionService versionService;
 
-    private final FileStorage fileStorage;
-
     private final VersionValidation versionValidation;
 
     private final PassportValueRepository passportValueRepository;
@@ -109,7 +106,6 @@ public class DraftServiceImpl implements DraftService {
                             DraftDataService draftDataService, DropDataService dropDataService,
                             SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
-                            FileStorage fileStorage,
                             VersionValidation versionValidation,
                             PassportValueRepository passportValueRepository,
                             AttributeValidationRepository attributeValidationRepository,
@@ -125,8 +121,6 @@ public class DraftServiceImpl implements DraftService {
 
         this.refBookLockService = refBookLockService;
         this.versionService = versionService;
-
-        this.fileStorage = fileStorage;
 
         this.versionValidation = versionValidation;
 
@@ -168,58 +162,63 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-
         return switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX" -> createFromXlsx(refBookId, fileModel, inputStreamSupplier);
-            case "XML" -> createFromXml(refBookId, fileModel, inputStreamSupplier);
+            case "XLSX" -> createFromXlsx(refBookId, fileModel);
+            case "XML" -> createFromXml(refBookId, fileModel);
             default -> throw new FileExtensionException();
         };
     }
 
-    private Draft createFromXlsx(Integer refBookId, FileModel fileModel,
-                                 Supplier<InputStream> inputStreamSupplier) {
+    private Draft createFromXlsx(Integer refBookId, FileModel fileModel) {
 
         RefBookVersionEntityKit kit = findEntityKit(refBookId);
-        Function<Structure, String> newDraftStorage = getNewDraftStorage(kit.getRefBook());
+        RefBookEntity refBookEntity = kit.getRefBook();
+
+        Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
         String extension = FileUtil.getExtension(fileModel.getName());
-        processFileRows(extension, rowsProcessor, new PlainRowMapper(), inputStreamSupplier);
+        Supplier<InputStream> fileSource = getStrategy(refBookEntity, SupplyPathFileContentStrategy.class)
+                .supply(fileModel.getPath());
+        processFileRows(extension, rowsProcessor, new PlainRowMapper(), fileSource);
 
-        RefBookVersionEntity createdEntity = getStrategy(kit.getRefBook().getType(), FindDraftEntityStrategy.class)
-                .find(kit.getRefBook());
+        RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
+                .find(refBookEntity);
         return createdEntity.toDraft();
     }
 
-    private Draft createFromXml(Integer refBookId, FileModel fileModel,
-                                Supplier<InputStream> inputStreamSupplier) {
+    private Draft createFromXml(Integer refBookId, FileModel fileModel) {
+
+        RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        Supplier<InputStream> fileSource = getStrategy(kit.getRefBook(), SupplyPathFileContentStrategy.class)
+                .supply(fileModel.getPath());
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
-            Draft draft = xmlUpdateDraftFileProcessor.process(inputStreamSupplier);
+            Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
             updateDataFromFile(versionRepository.getOne(draft.getId()), fileModel);
             return draft;
         }
     }
 
     /** Обновление данных черновика из файла. */
-    private void updateDataFromFile(RefBookVersionEntity draft, FileModel fileModel) {
+    private void updateDataFromFile(RefBookVersionEntity draftEntity, FileModel fileModel) {
 
-        Structure structure = draft.getStructure();
+        Structure structure = draftEntity.getStructure();
 
         String extension = FileUtil.getExtension(fileModel.getName());
-        Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
+        Supplier<InputStream> fileSource = getStrategy(draftEntity.getRefBook(), SupplyPathFileContentStrategy.class)
+                .supply(fileModel.getPath());
 
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
-                structure, draft.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draft.getId()));
+                structure, draftEntity.getStorageCode(), errorCountLimit, false,
+                attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-        processFileRows(extension, rowsValidator, nonStrictOnTypeRowMapper, inputStreamSupplier);
+        processFileRows(extension, rowsValidator, nonStrictOnTypeRowMapper, fileSource);
 
-        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draft.getStorageCode(), structure);
+        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draftEntity.getStorageCode(), structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
-        processFileRows(extension, rowsPersister, structureRowMapper, inputStreamSupplier);
+        processFileRows(extension, rowsPersister, structureRowMapper, fileSource);
     }
 
     /** Обработка строк файла в соответствии с заданными параметрами. */
@@ -395,13 +394,13 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
                                                    List<PassportValueEntity> passportValues) {
 
-        return getStrategy(refBookEntity.getType(), CreateDraftEntityStrategy.class)
+        return getStrategy(refBookEntity, CreateDraftEntityStrategy.class)
                 .create(refBookEntity, structure, passportValues);
     }
 
     private String createDraftStorage(RefBookEntity refBookEntity, Structure structure) {
 
-        return getStrategy(refBookEntity.getType(), CreateDraftStorageStrategy.class).create(structure);
+        return getStrategy(refBookEntity, CreateDraftStorageStrategy.class).create(structure);
     }
 
     private RefBookVersionEntityKit findEntityKit(Integer refBookId) {
@@ -1118,12 +1117,12 @@ public class DraftServiceImpl implements DraftService {
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
 
-        return getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
+        return getStrategy(entity != null ? entity.getRefBook() : null, strategy);
     }
 
-    private <T extends Strategy> T getStrategy(RefBookTypeEnum type, Class<T> strategy) {
+    private <T extends Strategy> T getStrategy(RefBookEntity entity, Class<T> strategy) {
 
-        return strategyLocator.getStrategy(type, strategy);
+        return strategyLocator.getStrategy(entity != null ? entity.getType() : null, strategy);
     }
 
     /**
