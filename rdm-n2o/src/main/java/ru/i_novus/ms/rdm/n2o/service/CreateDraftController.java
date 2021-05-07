@@ -38,7 +38,6 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 public class CreateDraftController {
 
     private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
-    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
     private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
     private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
     private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
@@ -279,9 +278,6 @@ public class CreateDraftController {
 
         RefBookVersion version = findOrThrow(versionId);
         validateDraft(version);
-
-        if (version.hasEmptyStructure())
-            throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
 
         UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
         draftService.updateFromFile(versionId, request);

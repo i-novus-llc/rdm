@@ -74,6 +74,7 @@ import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NO
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class DraftServiceImpl implements DraftService {
 
+    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
@@ -649,6 +650,9 @@ public class DraftServiceImpl implements DraftService {
     public void updateFromFile(Integer draftId, UpdateFromFileRequest request) {
 
         RefBookVersionEntity draftEntity = findForUpdate(draftId);
+
+        if (draftEntity.hasEmptyStructure())
+            throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, draftEntity.getId()));
 
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);

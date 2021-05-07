@@ -558,25 +558,6 @@ public class CreateDraftControllerTest extends BaseTest {
         assertEquals(fileModel, request.getFileModel());
     }
 
-    @Test
-    public void testUploadDataWhenEmptyStructure() {
-
-        RefBookVersion version = createVersion();
-        version.setStructure(new Structure());
-        version.setStatus(RefBookVersionStatus.DRAFT);
-        when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
-
-        FileModel fileModel = new FileModel("path", "name");
-        try {
-            controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
-            fail("Upload data to draft with empty structure");
-
-        } catch (Exception e) {
-            assertEquals(UserException.class, e.getClass());
-            assertEquals("version.has.not.structure", e.getMessage());
-        }
-    }
-
     private RefBookVersion createVersion() {
 
         RefBookVersion version = new RefBookVersion();
