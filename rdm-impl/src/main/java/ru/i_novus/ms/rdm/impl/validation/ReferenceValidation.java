@@ -19,7 +19,9 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.Serializable;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -36,12 +38,12 @@ public class ReferenceValidation implements RdmValidation {
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String ATTRIBUTE_VALUE_INCONVERTIBLE_TO_NEW_TYPE_EXCEPTION_CODE = "attribute.value.inconvertible.to.new.type";
 
-    private SearchDataService searchDataService;
-    private RefBookVersionRepository versionRepository;
+    private final SearchDataService searchDataService;
+    private final RefBookVersionRepository versionRepository;
 
-    private Structure.Reference reference;
-    private Integer draftId;
-    private Integer bufSize;
+    private final Structure.Reference reference;
+    private final Integer draftId;
+    private final Integer bufferSize;
 
     public ReferenceValidation(SearchDataService searchDataService,
                                RefBookVersionRepository versionRepository,
@@ -52,12 +54,12 @@ public class ReferenceValidation implements RdmValidation {
     @SuppressWarnings("WeakerAccess")
     public ReferenceValidation(SearchDataService searchDataService,
                                RefBookVersionRepository versionRepository,
-                               Structure.Reference reference, Integer draftId, Integer bufSize) {
+                               Structure.Reference reference, Integer draftId, Integer bufferSize) {
         this.searchDataService = searchDataService;
         this.versionRepository = versionRepository;
         this.reference = reference;
         this.draftId = draftId;
-        this.bufSize = bufSize;
+        this.bufferSize = bufferSize;
     }
 
     @Override
@@ -65,14 +67,12 @@ public class ReferenceValidation implements RdmValidation {
     public List<Message> validate() {
 
         RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
-        Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
-        Field draftField = ConverterUtil.field(draftAttribute);
 
         // Использовать VersionValidationImpl.validateReferenceCode
         RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
-        if (Objects.isNull(referredEntity))
+        if (referredEntity == null)
             return singletonList(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
-        if (Objects.isNull(referredEntity.getStructure()))
+        if (referredEntity.hasEmptyStructure())
             return singletonList(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, referredEntity.getId()));
 
         Structure.Attribute referredAttribute;
@@ -93,10 +93,13 @@ public class ReferenceValidation implements RdmValidation {
                     .collect(toList());
         }
 
+        Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
+        Field draftField = ConverterUtil.field(draftAttribute);
+
         StorageDataCriteria draftDataCriteria = new StorageDataCriteria(draftEntity.getStorageCode(), null, null,
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        draftDataCriteria.setSize(bufSize);
+        draftDataCriteria.setSize(bufferSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,
         // либо значения, не найденные в версии, на которую ссылаемся.
@@ -145,12 +148,12 @@ public class ReferenceValidation implements RdmValidation {
             });
         }
 
-        int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * bufSize - draftDataCriteria.getSize();
+        int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * bufferSize - draftDataCriteria.getSize();
         if (remainCount <= 0)
             return;
 
         draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
-        draftDataCriteria.setSize((remainCount >= bufSize) ? bufSize : remainCount);
+        draftDataCriteria.setSize((remainCount >= bufferSize) ? bufferSize : remainCount);
         validateData(draftDataCriteria, incorrectValues, referredEntity, referredField);
     }
 }
