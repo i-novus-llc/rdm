@@ -39,12 +39,12 @@ public class RefBookPublishController {
     private static final String REFERRER_NAME_SEPARATOR = ", ";
     private static final String REFERRER_NAME_LIST_END = ".";
 
-    private RefBookService refBookService;
-    private DraftRestService draftService;
-    private PublishService publishService;
-    private ConflictService conflictService;
+    private final RefBookService refBookService;
+    private final DraftRestService draftService;
+    private final PublishService publishService;
+    private final ConflictService conflictService;
 
-    private Messages messages;
+    private final Messages messages;
 
     @Autowired
     public RefBookPublishController(RefBookService refBookService, DraftRestService draftService,
@@ -69,10 +69,9 @@ public class RefBookPublishController {
     public UiRefBookPublish getDraft(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
-
         UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
 
-        String message = checkPublishedDraft(versionId);
+        String message = checkPublishedDraft(refBook);
         if (!StringUtils.isEmpty(message)) {
             uiRefBookPublish.setErrorMessage(message);
             return uiRefBookPublish;
@@ -90,15 +89,13 @@ public class RefBookPublishController {
     }
 
     /** Проверка публикуемого черновика перед открытием окна публикации. */
-    public String checkPublishedDraft(Integer versionId) {
-
-        RefBook refBook = refBookService.getByVersionId(versionId);
+    public String checkPublishedDraft(RefBook refBook) {
 
         if (refBook.hasEmptyStructure()) {
             return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
         }
 
-        if (!Boolean.TRUE.equals(draftService.hasData(versionId))) {
+        if (!Boolean.TRUE.equals(draftService.hasData(refBook.getId()))) {
             return messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
         }
 

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @ApiModel("Справочник")
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("I-novus:MethodNameWordCountRule")
 public class RefBook extends RefBookVersion {
 
     @ApiModelProperty("Признак возможности удаления")
@@ -51,12 +52,6 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Наличие конфликта в последней опубликованной версии")
     private Boolean lastHasConflict;
 
-    @ApiModelProperty("Публикуется ли данный справочник в данный момент")
-    private Boolean publishing;
-
-    @ApiModelProperty("Обновляется ли данный справочник в данный момент")
-    private Boolean updating;
-
     public RefBook() {
     }
 
@@ -75,9 +70,12 @@ public class RefBook extends RefBookVersion {
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
 
         this.currentOperation = refBook.getCurrentOperation();
+
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
+        this.hasReferrer = refBook.getHasReferrer();
 
         this.hasDataConflict = refBook.getHasDataConflict();
+
         this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
         this.hasAlteredConflict = refBook.getHasAlteredConflict();
         this.hasStructureConflict = refBook.getHasStructureConflict();
@@ -187,21 +185,5 @@ public class RefBook extends RefBookVersion {
 
     public void setLastHasConflict(Boolean lastHasConflict) {
         this.lastHasConflict = lastHasConflict;
-    }
-
-    public Boolean getPublishing() {
-        return publishing;
-    }
-
-    public void setPublishing(Boolean publishing) {
-        this.publishing = publishing;
-    }
-
-    public Boolean getUpdating() {
-        return updating;
-    }
-
-    public void setUpdating(Boolean updating) {
-        this.updating = updating;
     }
 }

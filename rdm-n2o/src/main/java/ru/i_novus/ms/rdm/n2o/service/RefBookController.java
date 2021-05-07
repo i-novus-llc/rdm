@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
@@ -15,12 +16,12 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
-import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
-import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
-import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
+import ru.i_novus.ms.rdm.n2o.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Controller
 public class RefBookController {
@@ -33,11 +34,11 @@ public class RefBookController {
     private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
     private static final String REFBOOK_STATUS_PUBLISHED = "refbook.status.published";
 
-    private RefBookService refBookService;
+    private final RefBookService refBookService;
 
-    private Messages messages;
+    private final Messages messages;
 
-    private RdmPermission rdmPermission;
+    private final RdmPermission rdmPermission;
 
     @Autowired
     public RefBookController(RefBookService refBookService,
@@ -50,14 +51,33 @@ public class RefBookController {
     }
 
     /**
+     * Поиск справочников.
+     * Обёртка над сервисным методом для учёта прав доступа.
+     *
+     * @param criteria критерий поиска
+     * @return Список справочников
+     */
+    @SuppressWarnings("unused") // used in: refBook.query.xml
+    public Page<UiRefBook> getList(RefBookCriteria criteria) {
+
+        Page<RefBook> refBooks = refBookService.search(permitCriteria(criteria));
+        if (CollectionUtils.isEmpty(refBooks.getContent()))
+            return new RestPage<>();
+
+        List<UiRefBook> list = refBooks.getContent().stream().map(this::toUiRefBook).collect(toList());
+
+        return new RestPage<>(list, criteria, refBooks.getTotalElements());
+    }
+
+    /**
      * Поиск справочника по версии.
      * Обёртка над сервисным методом для учёта прав доступа.
      *
-     * @param criteria критерий поиска справочника
+     * @param criteria критерий поиска
      * @return Справочник
      */
     @SuppressWarnings("unused") // used in: refBook.query.xml
-    public RefBook searchRefBook(RefBookCriteria criteria) {
+    public UiRefBook searchRefBook(RefBookCriteria criteria) {
 
         RefBook refBook = refBookService.getByVersionId(permitCriteria(criteria).getVersionId());
         if (refBook == null)
@@ -66,7 +86,7 @@ public class RefBookController {
         if (criteria.getExcludeDraft())
             refBook.setDraftVersionId(null);
 
-        return refBook;
+        return toUiRefBook(refBook);
     }
 
     /**
@@ -79,8 +99,7 @@ public class RefBookController {
     public RefBook searchLastVersion(RefBookCriteria criteria) {
 
         Page<RefBook> refBooks = refBookService.searchVersions(permitCriteria(criteria));
-
-        if (refBooks == null || CollectionUtils.isEmpty(refBooks.getContent()))
+        if (CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
         return refBooks.getContent().get(0);
@@ -114,6 +133,16 @@ public class RefBookController {
         criteria.setExcludeDraft(rdmPermission.excludeDraft());
 
         return criteria;
+    }
+
+    private UiRefBook toUiRefBook(RefBook refBook) {
+
+        UiRefBook result = new UiRefBook(refBook);
+
+        result.setUpdating(result.isOperation(RefBookOperation.UPDATING));
+        result.setPublishing(result.isOperation(RefBookOperation.PUBLISHING));
+
+        return result;
     }
 
     @SuppressWarnings("unused") // used in: refBookTypeList.query.xml
