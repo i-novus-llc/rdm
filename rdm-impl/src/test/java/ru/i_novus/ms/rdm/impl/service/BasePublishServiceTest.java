@@ -7,7 +7,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,15 +23,12 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.entity.*;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGenerator;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
@@ -59,7 +58,7 @@ public class BasePublishServiceTest {
     private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private BasePublishService basePublishService;
@@ -81,11 +80,6 @@ public class BasePublishServiceTest {
     private VersionService versionService;
     @Mock
     private ConflictService conflictService;
-
-    @Spy
-    private FileStorage fileStorage = new MockFileStorage();
-    @Mock
-    private FileNameGenerator fileNameGenerator;
 
     @Mock
     private VersionFileService versionFileService;
@@ -124,12 +118,13 @@ public class BasePublishServiceTest {
 
         JsonUtil.jsonMapper = objectMapper;
 
-        reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
+        reset(draftDataService, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(searchDataService.hasData(any())).thenReturn(true);
     }
 
     @Test
+    @SuppressWarnings("java:S5778")
     public void testPublishFirstDraft() {
 
         RefBookVersionEntity draftVersionEntity = createTestDraftVersionEntity();
@@ -169,6 +164,7 @@ public class BasePublishServiceTest {
         try {
             publish(draftVersionEntity.getId(), "1.1", now, null, false);
             fail();
+
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.name", e.getCode());
             Assert.assertEquals("1.1", e.getArgs()[0]);
@@ -179,6 +175,7 @@ public class BasePublishServiceTest {
         try {
             publish(draftVersionEntity.getId(), null, now, LocalDateTime.MIN, false);
             fail();
+
         } catch (UserException e) {
             Assert.assertEquals("invalid.version.period", e.getCode());
         }
