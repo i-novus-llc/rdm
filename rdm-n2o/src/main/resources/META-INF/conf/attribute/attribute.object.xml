@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Атрибут">
+<object xmlns="http://n2oapp.net/framework/config/schema/object-4.0"
+        name="Атрибут версии справочника">
 
     <operations>
         <operation id="createAttribute" name="Добавление атрибута"
@@ -17,36 +18,36 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
 
-                <param id="code" mapping="[2].code" domain="string"/>
-                <param id="name" mapping="[2].name" domain="string"/>
-                <param id="attrType.id" mapping="[2].type" domain="string"/>
-                <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
-                <param id="localizable" mapping="[2].localizable" domain="boolean"/>
-                <param id="description" mapping="[2].description" domain="string"/>
-                <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
-                <param id="displayExpression" mapping="[2].displayExpression"/>
+                <field id="code" mapping="[2].code" domain="string"/>
+                <field id="name" mapping="[2].name" domain="string"/>
+                <field id="attrType.id" mapping="[2].type" domain="string"/>
+                <field id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <field id="localizable" mapping="[2].localizable" domain="boolean"/>
+                <field id="description" mapping="[2].description" domain="string"/>
+                <field id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
+                <field id="displayExpression" mapping="[2].displayExpression"/>
 
                 <!-- Пользовательские проверки -->
-                <param id="required" mapping="[2].required" domain="boolean"/>
-                <param id="unique" mapping="[2].unique" domain="boolean"/>
-                <param id="plainSize" mapping="[2].plainSize" domain="integer"/>
-                <param id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
-                <param id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
-                <param id="minInteger" mapping="[2].minInteger" domain="integer"/>
-                <param id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
-                <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
-                <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
+                <field id="required" mapping="[2].required" domain="boolean"/>
+                <field id="unique" mapping="[2].unique" domain="boolean"/>
+                <field id="plainSize" mapping="[2].plainSize" domain="integer"/>
+                <field id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
+                <field id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
+                <field id="minInteger" mapping="[2].minInteger" domain="integer"/>
+                <field id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
+                <field id="minFloat" mapping="[2].minFloat" domain="numeric"/>
+                <field id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
+                <field id="dateInterval.begin" mapping="[2].minDate" domain="date"
                        normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
-                <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
+                <field id="dateInterval.end" mapping="[2].maxDate" domain="date"
                        normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
-                <param id="regExp" mapping="[2].regExp" domain="string"/>
+                <field id="regExp" mapping="[2].regExp" domain="string"/>
                 <!-- / Пользовательские проверки -->
-            </in-parameters>
+            </in>
 
             <validations white-list="checkMinMaxInt"/>
         </operation>
@@ -66,36 +67,36 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
 
-                <param id="code" mapping="[2].code" domain="string"/>
-                <param id="name" mapping="[2].name" domain="string"/>
-                <param id="attrType.id" mapping="[2].type" domain="string"/>
-                <param id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
-                <param id="localizable" mapping="[2].localizable" domain="boolean"/>
-                <param id="description" mapping="[2].description" domain="string"/>
-                <param id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
-                <param id="displayExpression" mapping="[2].displayExpression"/>
+                <field id="code" mapping="[2].code" domain="string"/>
+                <field id="name" mapping="[2].name" domain="string"/>
+                <field id="attrType.id" mapping="[2].type" domain="string"/>
+                <field id="isPrimary" mapping="[2].isPrimary" domain="boolean"/>
+                <field id="localizable" mapping="[2].localizable" domain="boolean"/>
+                <field id="description" mapping="[2].description" domain="string"/>
+                <field id="referenceRefBook.code" mapping="[2].referenceCode" domain="string"/>
+                <field id="displayExpression" mapping="[2].displayExpression"/>
 
                 <!-- Пользовательские проверки -->
-                <param id="required" mapping="[2].required" domain="boolean"/>
-                <param id="unique" mapping="[2].unique" domain="boolean"/>
-                <param id="plainSize" mapping="[2].plainSize" domain="integer"/>
-                <param id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
-                <param id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
-                <param id="minInteger" mapping="[2].minInteger" domain="integer"/>
-                <param id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
-                <param id="minFloat" mapping="[2].minFloat" domain="numeric"/>
-                <param id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
-                <param id="dateInterval.begin" mapping="[2].minDate" domain="date"
+                <field id="required" mapping="[2].required" domain="boolean"/>
+                <field id="unique" mapping="[2].unique" domain="boolean"/>
+                <field id="plainSize" mapping="[2].plainSize" domain="integer"/>
+                <field id="intPartSize" mapping="[2].intPartSize" domain="integer"/>
+                <field id="fracPartSize" mapping="[2].fracPartSize" domain="integer"/>
+                <field id="minInteger" mapping="[2].minInteger" domain="integer"/>
+                <field id="maxInteger" mapping="[2].maxInteger" domain="integer"/>
+                <field id="minFloat" mapping="[2].minFloat" domain="numeric"/>
+                <field id="maxFloat" mapping="[2].maxFloat" domain="numeric"/>
+                <field id="dateInterval.begin" mapping="[2].minDate" domain="date"
                        normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
-                <param id="dateInterval.end" mapping="[2].maxDate" domain="date"
+                <field id="dateInterval.end" mapping="[2].maxDate" domain="date"
                        normalize="T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)"/>
-                <param id="regExp" mapping="[2].regExp" domain="string"/>
+                <field id="regExp" mapping="[2].regExp" domain="string"/>
                 <!-- / Пользовательские проверки -->
-            </in-parameters>
+            </in>
 
             <validations white-list="checkMinMaxInt"/>
         </operation>
@@ -115,11 +116,11 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-                <param id="code" mapping="[2]" domain="string" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="code" mapping="[2]" domain="string"/>
+            </in>
         </operation>
 
         <operation id="noOperation" name="Без выполнения действия" success-text="Выполнено"
@@ -136,10 +137,10 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+            </in>
         </operation>
     </operations>
 
@@ -151,7 +152,6 @@
             typeof maxInteger == 'undefined' || maxInteger == null || maxInteger == '' ||
             maxInteger > minInteger
         </condition>
-
     </validations>
 
 </object>
