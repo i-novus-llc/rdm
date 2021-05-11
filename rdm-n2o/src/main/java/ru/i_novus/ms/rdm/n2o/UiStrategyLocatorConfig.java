@@ -8,6 +8,9 @@ import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
+import ru.i_novus.ms.rdm.n2o.strategy.version.DefaultGetDisplayNumberStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.version.GetDisplayNumberStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.version.UnversionedGetDisplayNumberStrategy;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -16,11 +19,23 @@ import java.util.Map;
 @Configuration
 public class UiStrategyLocatorConfig {
 
+    /* Default Strategies: */
+
+    // Version + Draft:
+    @Autowired
+    private DefaultGetDisplayNumberStrategy defaultGetDisplayNumberStrategy;
+
     @Autowired
     private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
 
     @Autowired
     private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
+
+    /* Unversioned Strategies: */
+
+    // Version + Draft:
+    @Autowired
+    private UnversionedGetDisplayNumberStrategy unversionedGetDisplayNumberStrategy;
 
     @Autowired
     private UnversionedFindOrCreateDraftStrategy unversionedFindOrCreateDraftStrategy;
@@ -45,8 +60,8 @@ public class UiStrategyLocatorConfig {
     private Map<Class<? extends UiStrategy>, UiStrategy> getDefaultStrategies() {
 
         Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
-        // RefBook:
-        // Draft:
+        // Version + Draft:
+        result.put(GetDisplayNumberStrategy.class, defaultGetDisplayNumberStrategy);
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
         result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
 
@@ -56,8 +71,8 @@ public class UiStrategyLocatorConfig {
     private Map<Class<? extends UiStrategy>, UiStrategy> getUnversionedStrategies() {
 
         Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
-        // RefBook:
-        // Draft:
+        // Version + Draft:
+        result.put(GetDisplayNumberStrategy.class, unversionedGetDisplayNumberStrategy);
         result.put(FindOrCreateDraftStrategy.class, unversionedFindOrCreateDraftStrategy);
         result.put(ValidateIsDraftStrategy.class, unversionedValidateIsDraftStrategy);
 
