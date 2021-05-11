@@ -53,7 +53,7 @@ public class RdmSmokeTest {
     private static final String PASSWORD = "admin";
 
     private static final long WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
-    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(35);
+    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(30);
     private static final int REF_BOOK_CREATED_COUNT = 2;
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
