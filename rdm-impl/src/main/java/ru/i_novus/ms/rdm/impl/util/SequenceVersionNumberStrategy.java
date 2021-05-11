@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.impl.util;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -13,10 +13,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Primary
 @Component
 public class SequenceVersionNumberStrategy implements VersionNumberStrategy {
 
-    private static final String VERSION_REGEX = "\\d*\\.\\d*";
+    private static final String VERSION_REGEX = "(-)?\\d*\\.\\d*";
     private static final  Pattern VERSION_PATTERN = Pattern.compile("^(" + VERSION_REGEX + ")");
     private static final String FIRST_VERSION = "1.0";
     private static final String SEQUENCE_START_VERSION = "0.0";

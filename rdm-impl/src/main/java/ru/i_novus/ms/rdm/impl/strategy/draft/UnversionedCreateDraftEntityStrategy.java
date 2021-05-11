@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.util.UnversionedVersionNumberStrategy;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public class UnversionedCreateDraftEntityStrategy extends DefaultCreateDraftEntityStrategy {
 
     @Autowired
-    private VersionNumberStrategy versionNumberStrategy;
+    private UnversionedVersionNumberStrategy versionNumberStrategy;
 
     @Override
     protected RefBookVersionEntity createEntity(RefBookEntity refBookEntity, Structure structure,

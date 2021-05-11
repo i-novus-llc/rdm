@@ -8,10 +8,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.util.UnversionedVersionNumberStrategy;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -26,7 +26,7 @@ public class UnversionedCreateFirstVersionStrategyTest {
     private RefBookVersionRepository versionRepository;
 
     @Mock
-    private VersionNumberStrategy versionNumberStrategy;
+    private UnversionedVersionNumberStrategy versionNumberStrategy;
 
     @Test
     public void testCreate() {
@@ -34,7 +34,7 @@ public class UnversionedCreateFirstVersionStrategyTest {
         when(versionRepository.save(any(RefBookVersionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        final String firstVersion = "1.0";
+        final String firstVersion = "-1.0";
         when(versionNumberStrategy.first()).thenReturn(firstVersion);
 
         RefBookEntity refBookEntity = createRefBookEntity();
