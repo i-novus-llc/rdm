@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
-import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 
 /**
@@ -8,44 +7,49 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
  */
 public class UiRefBook extends RefBook {
 
-    /**
-     * Признак нахождения справочника в состоянии публикации.
-     */
-    private Boolean publishing;
+    /** Отображаемый номер версии. */
+    private String displayNumber;
 
-    /**
-     * Признак нахождения справочника в состоянии обновления.
-     */
-    private Boolean updating;
+    /** Отображаемый статус. */
+    private String displayStatus;
+
+    /** Отображаемое наименование операции. */
+    private String displayOperation;
 
     public UiRefBook(RefBook refBook) {
         super(refBook);
     }
 
-    public Boolean getPublishing() {
-        return publishing;
+    public UiRefBook(UiRefBook uiRefBook) {
+
+        this((RefBook) uiRefBook);
+
+        this.displayNumber = uiRefBook.getDisplayNumber();
+        this.displayStatus = uiRefBook.getDisplayStatus();
+        this.displayOperation = uiRefBook.getDisplayOperation();
     }
 
-    public void setPublishing(Boolean publishing) {
-        this.publishing = publishing;
+    public String getDisplayNumber() {
+        return displayNumber;
     }
 
-    public Boolean getUpdating() {
-        return updating;
+    public void setDisplayNumber(String displayNumber) {
+        this.displayNumber = displayNumber;
     }
 
-    public void setUpdating(Boolean updating) {
-        this.updating = updating;
+    public String getDisplayStatus() {
+        return displayStatus;
     }
 
-    /**
-     * Проверка на операцию, выполняемую над справочником.
-     *
-     * @param operation операция
-     * @return Результат проверки
-     */
-    public boolean isOperation(RefBookOperation operation) {
+    public void setDisplayStatus(String displayStatus) {
+        this.displayStatus = displayStatus;
+    }
 
-        return getCurrentOperation() != null && operation.equals(getCurrentOperation());
+    public String getDisplayOperation() {
+        return displayOperation;
+    }
+
+    public void setDisplayOperation(String displayOperation) {
+        this.displayOperation = displayOperation;
     }
 }

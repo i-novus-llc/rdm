@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
@@ -17,6 +16,7 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,15 +36,20 @@ public class RefBookController {
 
     private final RefBookService refBookService;
 
+    private final RefBookAdapter refBookAdapter;
+
     private final Messages messages;
 
     private final RdmPermission rdmPermission;
 
     @Autowired
     public RefBookController(RefBookService refBookService,
+                             RefBookAdapter refBookAdapter,
                              Messages messages,
                              RdmPermission rdmPermission) {
+
         this.refBookService = refBookService;
+        this.refBookAdapter = refBookAdapter;
 
         this.messages = messages;
         this.rdmPermission = rdmPermission;
@@ -64,8 +69,7 @@ public class RefBookController {
         if (CollectionUtils.isEmpty(refBooks.getContent()))
             return new RestPage<>();
 
-        List<UiRefBook> list = refBooks.getContent().stream().map(this::toUiRefBook).collect(toList());
-
+        List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
         return new RestPage<>(list, criteria, refBooks.getTotalElements());
     }
 
@@ -86,7 +90,7 @@ public class RefBookController {
         if (criteria.getExcludeDraft())
             refBook.setDraftVersionId(null);
 
-        return toUiRefBook(refBook);
+        return refBookAdapter.toUiRefBook(refBook);
     }
 
     /**
@@ -102,7 +106,7 @@ public class RefBookController {
         if (CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
-        return toUiRefBook(refBooks.getContent().get(0));
+        return refBookAdapter.toUiRefBook(refBooks.getContent().get(0));
     }
 
     /**
@@ -133,16 +137,6 @@ public class RefBookController {
         criteria.setExcludeDraft(rdmPermission.excludeDraft());
 
         return criteria;
-    }
-
-    private UiRefBook toUiRefBook(RefBook refBook) {
-
-        UiRefBook result = new UiRefBook(refBook);
-
-        result.setUpdating(result.isOperation(RefBookOperation.UPDATING));
-        result.setPublishing(result.isOperation(RefBookOperation.PUBLISHING));
-
-        return result;
     }
 
     @SuppressWarnings("unused") // used in: refBookTypeList.query.xml

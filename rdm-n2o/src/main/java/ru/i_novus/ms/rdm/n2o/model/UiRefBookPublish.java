@@ -1,14 +1,12 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
-import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Информация о публикуемом черновике справочника для UI.
  */
-public class UiRefBookPublish extends RefBook {
+public class UiRefBookPublish extends UiRefBook {
 
     /**
      * Текст сообщения об ошибке, возникшей
@@ -24,8 +22,8 @@ public class UiRefBookPublish extends RefBook {
      */
     private Map<String, String> conflictingReferrerNames = new HashMap<>(0);
 
-    public UiRefBookPublish(RefBook refBook) {
-        super(refBook);
+    public UiRefBookPublish(UiRefBook uiRefBook) {
+        super(uiRefBook);
     }
 
     public String getErrorMessage() {

@@ -2,8 +2,9 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
 
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
-        <java method="getVersions">
-            <spring bean="versionRestServiceJaxRsProxyClient"/>
+        <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
+              method="getList">
+            <spring/>
 
             <arguments>
                 <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
@@ -12,7 +13,8 @@
     </list>
 
     <unique filters="id,excludeDraft" result-mapping="#this">
-        <java method="getVersion" class="ru.i_novus.ms.rdm.n2o.service.VersionController">
+        <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
+              method="getVersion">
             <spring/>
 
             <arguments>
@@ -64,7 +66,7 @@
         </field>
 
         <field id="version" domain="string">
-            <select mapping="version?:'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) + ')'"/>
+            <select mapping="displayNumber"/>
             <filters/>
         </field>
 

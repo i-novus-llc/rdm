@@ -3,7 +3,7 @@
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
-                      method="getList">
+              method="getList">
             <spring/>
 
             <arguments>
@@ -44,17 +44,6 @@
 
         <field id="optLockValue" domain="integer">
             <select/>
-        </field>
-
-        <field id="version.version" domain="string">
-            <select mapping="
-                (archived ? 'В архиве: ' : '') +
-                (status?.toString()!='DRAFT' ?
-                 version :
-                 'Новая (изм. ' +
-                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
-                    ')')
-                "/>
         </field>
 
         <field id="code" domain="string">
@@ -195,14 +184,6 @@
             <select/>
         </field>
 
-        <field id="publishing" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="updating" domain="boolean">
-            <select/>
-        </field>
-
         <field id="lastHasConflictMsg" domain="string">
             <select mapping="
                 (lastHasConflict ? 'В опубликованной версии есть ссылки на неактуальные данные' : '')
@@ -215,18 +196,7 @@
         </field>
 
         <field id="displayVersion" domain="string">
-            <select mapping="(publishing ? 'Публикуется' : updating ? 'Обновляется' : (archived ? 'В архиве: ' : '') + (status?.toString() != 'DRAFT' ? version : 'Новая (изм. ' + editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +')'))"/>
-        </field>
-
-        <field id="displayCode" domain="string">
-            <select mapping="
-                    code +
-                    (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
-                    (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
-                "/>
-            <filters>
-                <eq filter-id="displayCode" mapping="displayCode"/>
-            </filters>
+            <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
         </field>
 
     </fields>

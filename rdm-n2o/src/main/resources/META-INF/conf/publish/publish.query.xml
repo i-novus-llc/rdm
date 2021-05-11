@@ -33,14 +33,7 @@
         </field>
 
         <field id="version.version" domain="string">
-            <select mapping="
-                (archived ? 'В архиве: ' : '') +
-                (status?.toString()!='DRAFT' ?
-                 version :
-                 'Новая (изм. ' +
-                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
-                    ')')
-                "/>
+            <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
         </field>
 
         <field id="version.optLockValue" domain="integer">

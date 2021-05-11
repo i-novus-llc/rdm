@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookPublish;
+import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +32,8 @@ public class RefBookPublishController {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookPublishController.class);
 
+    private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
+
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
@@ -44,17 +48,22 @@ public class RefBookPublishController {
     private final PublishService publishService;
     private final ConflictService conflictService;
 
+    private final RefBookAdapter refBookAdapter;
+
     private final Messages messages;
 
     @Autowired
     public RefBookPublishController(RefBookService refBookService, DraftRestService draftService,
                                     PublishService publishService, ConflictService conflictService,
+                                    RefBookAdapter refBookAdapter,
                                     Messages messages) {
         this.refBookService = refBookService;
         this.draftService = draftService;
 
         this.publishService = publishService;
         this.conflictService = conflictService;
+
+        this.refBookAdapter = refBookAdapter;
 
         this.messages = messages;
     }
@@ -69,7 +78,10 @@ public class RefBookPublishController {
     public UiRefBookPublish getDraft(Integer versionId, Integer optLockValue) {
 
         RefBook refBook = refBookService.getByVersionId(versionId);
-        UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBook);
+        if (refBook == null)
+            throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
+
+        UiRefBookPublish uiRefBookPublish = new UiRefBookPublish(refBookAdapter.toUiRefBook(refBook));
 
         String message = checkPublishedDraft(refBook);
         if (!StringUtils.isEmpty(message)) {
