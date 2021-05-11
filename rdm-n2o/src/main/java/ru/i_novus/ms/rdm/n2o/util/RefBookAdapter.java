@@ -9,6 +9,9 @@ import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.version.GetDisplayNumberStrategy;
 
+/**
+ * Адаптер модели справочника к UI.
+ */
 @Component
 public class RefBookAdapter {
 
@@ -23,6 +26,7 @@ public class RefBookAdapter {
     @Autowired
     public RefBookAdapter(UiStrategyLocator strategyLocator,
                           Messages messages) {
+
         this.strategyLocator = strategyLocator;
 
         this.messages = messages;
