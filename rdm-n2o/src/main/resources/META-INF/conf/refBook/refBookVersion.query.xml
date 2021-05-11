@@ -5,6 +5,7 @@
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="searchLastVersion">
             <spring/>
+
             <arguments>
                 <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>

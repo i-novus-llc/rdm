@@ -5,6 +5,7 @@
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
               method="getDraft">
             <spring/>
+
             <arguments>
                 <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                 <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>

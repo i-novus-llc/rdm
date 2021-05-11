@@ -4,6 +4,7 @@
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
         <java method="getVersions">
             <spring bean="versionRestServiceJaxRsProxyClient"/>
+
             <arguments>
                 <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
             </arguments>
@@ -13,6 +14,7 @@
     <unique filters="id,excludeDraft" result-mapping="#this">
         <java method="getVersion" class="ru.i_novus.ms.rdm.n2o.service.VersionController">
             <spring/>
+
             <arguments>
                 <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
             </arguments>
