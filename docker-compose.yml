@@ -129,6 +129,7 @@ services:
       ESNSI_SYNC_DISABLE_MSG_FETCHER: "true" # Только чтобы отдебажиться
     depends_on:
       - db
+      - backend
     restart: on-failure
     ports:
       - "8080"
