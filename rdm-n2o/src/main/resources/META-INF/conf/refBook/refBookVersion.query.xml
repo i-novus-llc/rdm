@@ -3,7 +3,7 @@
 
     <unique filters="refBookId" result-mapping="#this">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
-              method="searchLastVersion">
+              method="getLastVersion">
             <spring/>
 
             <arguments>

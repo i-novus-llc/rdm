@@ -77,7 +77,7 @@ public class RefBookController {
      * @return Справочник
      */
     @SuppressWarnings("unused") // used in: refBook.query.xml
-    public UiRefBook searchRefBook(RefBookCriteria criteria) {
+    public UiRefBook getVersionRefBook(RefBookCriteria criteria) {
 
         RefBook refBook = refBookService.getByVersionId(permitCriteria(criteria).getVersionId());
         if (refBook == null)
@@ -96,13 +96,13 @@ public class RefBookController {
      * @return Справочник по последней версии
      */
     @SuppressWarnings("unused") // used in: refBookVersion.query.xml
-    public RefBook searchLastVersion(RefBookCriteria criteria) {
+    public UiRefBook getLastVersion(RefBookCriteria criteria) {
 
         Page<RefBook> refBooks = refBookService.searchVersions(permitCriteria(criteria));
         if (CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
-        return refBooks.getContent().get(0);
+        return toUiRefBook(refBooks.getContent().get(0));
     }
 
     /**
