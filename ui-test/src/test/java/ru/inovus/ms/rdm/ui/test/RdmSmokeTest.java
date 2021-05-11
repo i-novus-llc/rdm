@@ -52,8 +52,8 @@ public class RdmSmokeTest {
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
 
-    private static final long WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
-    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(30);
+    private static final long WAIT_TIME = TimeUnit.SECONDS.toMillis(6);
+    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
     private static final int REF_BOOK_CREATED_COUNT = 2;
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
@@ -354,7 +354,7 @@ public class RdmSmokeTest {
         formFields.field("Код").control(N2oInputText.class).val(refBook.getCode());
         formFields.field("Наименование").control(N2oInputText.class).val(refBook.getName());
         formFields.field("Краткое наименование").control(N2oInputText.class).val(refBook.getShortName());
-//        formFields.field("Категория").control(N2oInputSelect.class).select(0);
+        formFields.field("Категория").control(N2oInputSelect.class).select(0);
         formFields.field("Описание").control(N2oTextArea.class).val(refBook.getDescription());
     }
 
