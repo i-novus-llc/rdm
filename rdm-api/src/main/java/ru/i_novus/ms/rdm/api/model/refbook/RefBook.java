@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 @SuppressWarnings("I-novus:MethodNameWordCountRule")
 public class RefBook extends RefBookVersion {
 
+    @ApiModelProperty("Текущая операция над справочником")
+    private RefBookOperation currentOperation;
+
     @ApiModelProperty("Признак возможности удаления")
     private Boolean removable;
 
@@ -27,9 +30,6 @@ public class RefBook extends RefBookVersion {
 
     @ApiModelProperty("Дата публикации последней версии")
     private LocalDateTime lastPublishedVersionFromDate;
-
-    @ApiModelProperty("Текущая операция над справочником")
-    private RefBookOperation currentOperation;
 
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
@@ -62,14 +62,13 @@ public class RefBook extends RefBookVersion {
     public RefBook(RefBook refBook) {
         super(refBook);
 
+        this.currentOperation = refBook.getCurrentOperation();
         this.removable = refBook.getRemovable();
 
         this.draftVersionId = refBook.getDraftVersionId();
         this.lastPublishedVersionId = refBook.getLastPublishedVersionId();
         this.lastPublishedVersion = refBook.getLastPublishedVersion();
         this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
-
-        this.currentOperation = refBook.getCurrentOperation();
 
         this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
         this.hasReferrer = refBook.getHasReferrer();
@@ -81,6 +80,14 @@ public class RefBook extends RefBookVersion {
         this.hasStructureConflict = refBook.getHasStructureConflict();
 
         this.lastHasConflict = refBook.getLastHasConflict();
+    }
+
+    public RefBookOperation getCurrentOperation() {
+        return currentOperation;
+    }
+
+    public void setCurrentOperation(RefBookOperation currentOperation) {
+        this.currentOperation = currentOperation;
     }
 
     public Boolean getRemovable() {
@@ -121,14 +128,6 @@ public class RefBook extends RefBookVersion {
 
     public void setLastPublishedVersionFromDate(LocalDateTime lastPublishedVersionFromDate) {
         this.lastPublishedVersionFromDate = lastPublishedVersionFromDate;
-    }
-
-    public RefBookOperation getCurrentOperation() {
-        return currentOperation;
-    }
-
-    public void setCurrentOperation(RefBookOperation currentOperation) {
-        this.currentOperation = currentOperation;
     }
 
     public Boolean getHasPrimaryAttribute() {

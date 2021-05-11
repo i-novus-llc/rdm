@@ -26,7 +26,7 @@ public interface RefBookModelDataRepository extends
 
     @SuppressWarnings("squid:S1192")
     String FIND_CONFLICT_DATA = "select \n" +
-            "  :referrerVersionId as referrer_version_id, \n" +
+            "  :currentVersionId as current_version_id, \n" +
             "  null as draft_version_id, \n" +
             "  null as last_published_version_id, \n" +
             "\n" +
@@ -34,7 +34,7 @@ public interface RefBookModelDataRepository extends
             "  exists( \n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c \n" +
             INNER_JOIN_REFERRED +
-            "     where c.referrer_id = :referrerVersionId \n" +
+            "     where c.referrer_id = :currentVersionId \n" +
             "       and c.ref_recordid is not null \n" +
             AND_REFERRED_IS_LAST_PUBLISHED_ONLY +
             "  ) as has_data_conflict, \n" +
@@ -42,7 +42,7 @@ public interface RefBookModelDataRepository extends
             "  exists( \n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c \n" +
             INNER_JOIN_REFERRED +
-            "     where c.referrer_id = :referrerVersionId \n" +
+            "     where c.referrer_id = :currentVersionId \n" +
             "       and c.conflict_type = 'UPDATED' \n" +
             AND_REFERRED_IS_LAST_PUBLISHED_ONLY +
             "  ) as has_updated_conflict, \n" +
@@ -50,7 +50,7 @@ public interface RefBookModelDataRepository extends
             "  exists( \n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c \n" +
             INNER_JOIN_REFERRED +
-            "     where c.referrer_id = :referrerVersionId \n" +
+            "     where c.referrer_id = :currentVersionId \n" +
             "       and c.conflict_type = 'ALTERED' \n" +
             AND_REFERRED_IS_LAST_PUBLISHED_ONLY +
             "  ) as has_altered_conflict, \n" +
@@ -58,7 +58,7 @@ public interface RefBookModelDataRepository extends
             "  exists( \n" +
             "    select 1 from n2o_rdm_management.ref_book_conflict c \n" +
             INNER_JOIN_REFERRED +
-            "     where c.referrer_id = :referrerVersionId \n" +
+            "     where c.referrer_id = :currentVersionId \n" +
             "       and c.ref_recordid is null \n" +
             AND_REFERRED_IS_LAST_PUBLISHED_ONLY +
             "  ) as has_structure_conflict, \n" +
@@ -78,7 +78,7 @@ public interface RefBookModelDataRepository extends
      *
      */
     @Query(nativeQuery = true, value = FIND_CONFLICT_DATA)
-    RefBookModelData findData(@Param("referrerVersionId") Integer referrerVersionId,
+    RefBookModelData findData(@Param("currentVersionId") Integer currentVersionId,
                               @Param("hasLastPublishedReferrerVersion") boolean hasLastPublishedReferrerVersion,
                               @Param("lastPublishedReferrerVersionId") Integer lastPublishedReferrerVersionId);
 }

@@ -386,6 +386,12 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
+
+        if (entity.getRefBookOperation() != null) {
+            model.setCurrentOperation(entity.getRefBookOperation().getOperation());
+        }
+
+        // to-do: Получать в refBookModelData (?).
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
 
         if (draftVersion != null) {
@@ -396,10 +402,6 @@ public class RefBookServiceImpl implements RefBookService {
             model.setLastPublishedVersionId(lastPublishedVersion.getId());
             model.setLastPublishedVersion(lastPublishedVersion.getVersion());
             model.setLastPublishedVersionFromDate(lastPublishedVersion.getFromDate());
-        }
-
-        if (entity.getRefBookOperation() != null) {
-            model.setCurrentOperation(entity.getRefBookOperation().getOperation());
         }
 
         Structure structure = entity.getStructure();

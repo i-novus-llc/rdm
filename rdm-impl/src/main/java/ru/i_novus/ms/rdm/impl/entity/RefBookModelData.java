@@ -9,48 +9,51 @@ import javax.persistence.*;
 @SuppressWarnings("unused")
 public class RefBookModelData {
 
+    /** Текущая (рассматриваемая) версия. */
     @Id
-    @Column(name = "referrer_version_id")
-    private Integer referrerVersionId;
+    @Column(name = "current_version_id")
+    private Integer currentVersionId;
 
+    /** Версия-черновик. */
     @ManyToOne
     @JoinColumn(name = "draft_version_id")
     private RefBookVersionEntity draftVersion;
 
+    /** Последняя опубликованная версия. */
     @ManyToOne
     @JoinColumn(name = "last_published_version_id")
     private RefBookVersionEntity lastPublishedVersion;
 
-    /** Наличие конфликта данных */
+    /** Наличие конфликта данных. */
     @Column(name = "has_data_conflict")
     private Boolean hasDataConflict;
 
-    /** Наличие конфликта обновления записи */
+    /** Наличие конфликта обновления записи. */
     @Column(name = "has_updated_conflict")
     private Boolean hasUpdatedConflict;
 
-    /** Наличие конфликта изменения структуры */
+    /** Наличие конфликта изменения структуры. */
     @Column(name = "has_altered_conflict")
     private Boolean hasAlteredConflict;
 
-    /** Наличие конфликта структуры */
+    /** Наличие конфликта структуры. */
     @Column(name = "has_structure_conflict")
     private Boolean hasStructureConflict;
 
-    /** Наличие конфликта в последней опубликованной версии */
+    /** Наличие конфликта в последней опубликованной версии. */
     @Column(name = "last_has_conflict")
     private Boolean lastHasConflict;
 
     public RefBookModelData() {
-        // nothing to do.
+        // Nothing to do.
     }
 
-    public Integer getReferrerVersionId() {
-        return referrerVersionId;
+    public Integer getCurrentVersionId() {
+        return currentVersionId;
     }
 
-    public void setReferrerVersionId(Integer referrerVersionId) {
-        this.referrerVersionId = referrerVersionId;
+    public void setCurrentVersionId(Integer currentVersionId) {
+        this.currentVersionId = currentVersionId;
     }
 
     public RefBookVersionEntity getDraftVersion() {
