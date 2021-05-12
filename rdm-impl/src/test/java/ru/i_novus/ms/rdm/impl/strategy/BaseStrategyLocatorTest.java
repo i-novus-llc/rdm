@@ -6,7 +6,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.BaseTest;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.DefaultCreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.UnversionedCreateFirstVersionStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,12 +19,9 @@ import static org.junit.Assert.*;
 public class BaseStrategyLocatorTest extends BaseTest {
 
     @Mock
-    private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
+    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
     @Mock
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
-
-    @Mock
-    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
 
     /**
      * Случай:
@@ -50,12 +49,15 @@ public class BaseStrategyLocatorTest extends BaseTest {
     @Test
     public void testGetStrategyWhenDefaultOnly() {
 
-        BaseStrategyLocator locator = new BaseStrategyLocator(getStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> strategiesMap = getStrategies();
+        strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(CreateFirstVersionStrategy.class);
 
-        RefBookCreateValidationStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, RefBookCreateValidationStrategy.class);
-        RefBookCreateValidationStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, RefBookCreateValidationStrategy.class);
+        BaseStrategyLocator locator = new BaseStrategyLocator(strategiesMap);
+
+        CreateFirstVersionStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
+        CreateFirstVersionStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstVersionStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -69,12 +71,12 @@ public class BaseStrategyLocatorTest extends BaseTest {
     @Test
     public void testGetStrategyWhenBothAbsent() {
 
-        BaseStrategyLocator locator = new BaseStrategyLocator(getStrategies());
+        BaseStrategyLocator locator = new BaseStrategyLocator(new HashMap<>());
 
-        CreateFirstStorageStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstStorageStrategy.class);
-        CreateFirstStorageStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstStorageStrategy.class);
+        CreateFirstVersionStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
+        CreateFirstVersionStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstVersionStrategy.class);
 
         assertNull(defaultStrategy);
         assertNull(unversionedStrategy);
@@ -92,7 +94,6 @@ public class BaseStrategyLocatorTest extends BaseTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(RefBookCreateValidationStrategy.class, defaultRefBookCreateValidationStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
 
         return result;

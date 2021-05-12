@@ -7,7 +7,9 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.UnversionedFindOrCreateDraftStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.version.DefaultGetDisplayNumberStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.version.GetDisplayNumberStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.version.UnversionedGetDisplayNumberStrategy;
@@ -28,9 +30,6 @@ public class UiStrategyLocatorConfig {
     @Autowired
     private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
 
-    @Autowired
-    private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
-
     /* Unversioned Strategies: */
 
     // Version + Draft:
@@ -39,9 +38,6 @@ public class UiStrategyLocatorConfig {
 
     @Autowired
     private UnversionedFindOrCreateDraftStrategy unversionedFindOrCreateDraftStrategy;
-
-    @Autowired
-    private UnversionedValidateIsDraftStrategy unversionedValidateIsDraftStrategy;
 
     @Bean
     public UiStrategyLocator strategyLocator() {
@@ -63,7 +59,6 @@ public class UiStrategyLocatorConfig {
         // Version + Draft:
         result.put(GetDisplayNumberStrategy.class, defaultGetDisplayNumberStrategy);
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
-        result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
 
         return result;
     }
@@ -74,7 +69,6 @@ public class UiStrategyLocatorConfig {
         // Version + Draft:
         result.put(GetDisplayNumberStrategy.class, unversionedGetDisplayNumberStrategy);
         result.put(FindOrCreateDraftStrategy.class, unversionedFindOrCreateDraftStrategy);
-        result.put(ValidateIsDraftStrategy.class, unversionedValidateIsDraftStrategy);
 
         return result;
     }

@@ -5,7 +5,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.UnversionedFindOrCreateDraftStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +21,6 @@ public class BaseUiStrategyLocatorTest {
     private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
     @Mock
     private UnversionedFindOrCreateDraftStrategy unversionedFindOrCreateDraftStrategy;
-
-    @Mock
-    private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
 
     /**
      * Случай:
@@ -49,12 +48,15 @@ public class BaseUiStrategyLocatorTest {
     @Test
     public void testGetStrategyWhenDefaultOnly() {
 
-        BaseUiStrategyLocator locator = new BaseUiStrategyLocator(getStrategies());
+        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> strategiesMap = getStrategies();
+        strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(FindOrCreateDraftStrategy.class);
 
-        ValidateIsDraftStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, ValidateIsDraftStrategy.class);
-        ValidateIsDraftStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, ValidateIsDraftStrategy.class);
+        BaseUiStrategyLocator locator = new BaseUiStrategyLocator(strategiesMap);
+
+        FindOrCreateDraftStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
+        FindOrCreateDraftStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -68,7 +70,6 @@ public class BaseUiStrategyLocatorTest {
     @Test
     public void testGetStrategyWhenBothAbsent() {
 
-        // Т.к. нет 3-й интерфейса стратегии, вместо getStrategies() заглушка:
         BaseUiStrategyLocator locator = new BaseUiStrategyLocator(new HashMap<>());
 
         FindOrCreateDraftStrategy defaultStrategy =
@@ -93,7 +94,6 @@ public class BaseUiStrategyLocatorTest {
 
         Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
-        result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
 
         return result;
     }

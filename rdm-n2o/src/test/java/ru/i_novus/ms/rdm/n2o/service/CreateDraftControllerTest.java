@@ -30,7 +30,8 @@ import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -83,8 +84,6 @@ public class CreateDraftControllerTest extends BaseTest {
 
     @Mock
     private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
-    @Mock
-    private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
 
     @Before
     @SuppressWarnings("java:S2696")
@@ -672,7 +671,6 @@ public class CreateDraftControllerTest extends BaseTest {
 
         Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
-        result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
 
         return result;
     }
