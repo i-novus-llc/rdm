@@ -60,13 +60,13 @@
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     color="primary" visible="{isPublishable}">
-                <invoke operation-id="publishDraft" close-after-success="true"
+                <invoke operation-id="publishDraft" close-after-success="true" message-on-success="false"
                         redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visible="{isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)}">
-                <invoke operation-id="publishAndRefresh" close-after-success="true"
+                <invoke operation-id="publishAndRefresh" close-after-success="true" message-on-success="false"
                         redirect-target="application" redirect-url="${rdm.context-path}/main"/>
             </button>
 
