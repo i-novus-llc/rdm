@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.api.enumeration;
 /**
  * Операция, выполняемая над справочником.
  */
-@SuppressWarnings("I-novus:EnumName")
 public enum RefBookOperation {
 
     PUBLISHING("Публикуется"),

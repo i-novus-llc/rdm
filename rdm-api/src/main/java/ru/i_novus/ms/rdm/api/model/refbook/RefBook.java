@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 
 @ApiModel("Справочник")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@SuppressWarnings("I-novus:MethodNameWordCountRule")
 public class RefBook extends RefBookVersion {
 
     @ApiModelProperty("Текущая операция над справочником")
