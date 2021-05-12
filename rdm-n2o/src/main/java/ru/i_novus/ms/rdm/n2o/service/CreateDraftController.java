@@ -23,7 +23,6 @@ import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.ValidateIsDraftStrategy;
 
 import java.util.HashMap;
 import java.util.List;
@@ -276,13 +275,16 @@ public class CreateDraftController {
 
     public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
-        RefBookVersion version = findOrThrow(versionId);
-        validateDraft(version);
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
+
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+        }
 
         UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
-        draftService.updateFromFile(versionId, request);
+        draftService.updateFromFile(uiDraft.getId(), request);
 
-        return new UiDraft(version);
+        return uiDraft;
     }
 
     /** Получение черновика или создание на основе текущей версии. */
@@ -299,11 +301,6 @@ public class CreateDraftController {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
         return version;
-    }
-
-    private void validateDraft(RefBookVersion version) {
-
-        getStrategy(version, ValidateIsDraftStrategy.class).validate(version);
     }
 
     /** Операция-заглушка. */

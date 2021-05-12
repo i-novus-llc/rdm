@@ -544,9 +544,12 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         FileModel fileModel = new FileModel("path", "name");
         UiDraft actual = controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<UpdateFromFileRequest> captor = ArgumentCaptor.forClass(UpdateFromFileRequest.class);
         verify(draftService, times(1))
