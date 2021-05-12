@@ -176,6 +176,25 @@
                 <field id="refBookId" mapping="['refBookId']" domain="integer"/>
             </in>
         </operation>
+
+        <operation id="noOperation" name="Без выполнения действия" success-text="Данные не изменены">
+            <invocation>
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
+                      method="noOperation">
+                    <spring/>
+
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                    </arguments>
+                </java>
+            </invocation>
+
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+            </in>
+        </operation>
     </operations>
 
 </object>
