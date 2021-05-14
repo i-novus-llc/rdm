@@ -56,6 +56,9 @@ public class StrategyLocatorConfig {
     private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
 
     @Autowired
+    private DefaultGenerateFileNameStrategy defaultGenerateFileNameStrategy;
+
+    @Autowired
     private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
 
     @Autowired
@@ -69,6 +72,9 @@ public class StrategyLocatorConfig {
 
     @Autowired
     private DefaultSupplyPathFileContentStrategy defaultSupplyPathFileContentStrategy;
+
+    @Autowired
+    private DefaultGetExportFileStrategy defaultGetExportFileStrategy;
 
     /* Unversioned Strategies: */
 
@@ -97,7 +103,13 @@ public class StrategyLocatorConfig {
     private UnversionedAllowStoreVersionFileStrategy unversionedAllowStoreVersionFileStrategy;
 
     @Autowired
+    private UnversionedGenerateFileNameStrategy unversionedGenerateFileNameStrategy;
+
+    @Autowired
     private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
+
+    @Autowired
+    private UnversionedGetExportFileStrategy unversionedGetExportFileStrategy;
 
     @Bean
     @SuppressWarnings("unused")
@@ -130,11 +142,13 @@ public class StrategyLocatorConfig {
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
+        result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
         result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
         result.put(ExportVersionFileStrategy.class, defaultExportVersionFileStrategy);
         result.put(SupplyPathFileContentStrategy.class, defaultSupplyPathFileContentStrategy);
+        result.put(GetExportFileStrategy.class, defaultGetExportFileStrategy);
 
         return result;
     }
@@ -152,7 +166,30 @@ public class StrategyLocatorConfig {
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
+        result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
         result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
+        result.put(GetExportFileStrategy.class, unversionedGetExportFileStrategy);
+
+        return result;
+    }
+
+    @Bean(name = "fileNameStrategyLocator")
+    @SuppressWarnings("unused")
+    public StrategyLocator fileNameStrategyLocator() {
+        return new BaseStrategyLocator(getFileNameStrategiesMap());
+    }
+
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getFileNameStrategiesMap() {
+
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new EnumMap<>(RefBookTypeEnum.class);
+
+        Map<Class<? extends Strategy>, Strategy> defaultStrategies = new HashMap<>();
+        defaultStrategies.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
+        result.put(RefBookTypeEnum.DEFAULT, defaultStrategies);
+
+        Map<Class<? extends Strategy>, Strategy> unversionedStrategies = new HashMap<>();
+        unversionedStrategies.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
+        result.put(RefBookTypeEnum.UNVERSIONED, unversionedStrategies);
 
         return result;
     }
