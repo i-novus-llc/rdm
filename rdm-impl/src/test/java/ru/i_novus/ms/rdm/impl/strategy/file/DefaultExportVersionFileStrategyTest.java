@@ -9,7 +9,6 @@ import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 
 import java.io.InputStream;
@@ -32,7 +31,7 @@ public class DefaultExportVersionFileStrategyTest {
     private FileStorage fileStorage;
 
     @Mock
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     @Test
     public void testExport() {
@@ -40,16 +39,16 @@ public class DefaultExportVersionFileStrategyTest {
         RefBookVersion version = createRefBookVersion();
         InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
-        when(fileNameGenerator.generateZipName(version, FILE_TYPE)).thenReturn(ZIP_NAME);
+        when(generateFileNameStrategy.generateZipName(version, FILE_TYPE)).thenReturn(ZIP_NAME);
 
         ExportFile expected = new ExportFile(is, ZIP_NAME);
         ExportFile actual = strategy.export(version, FILE_TYPE, FILE_PATH);
         assertEquals(expected, actual);
 
         verify(fileStorage).getContent(FILE_PATH);
-        verify(fileNameGenerator).generateZipName(version, FILE_TYPE);
+        verify(generateFileNameStrategy).generateZipName(version, FILE_TYPE);
 
-        verifyNoMoreInteractions(fileStorage, fileNameGenerator);
+        verifyNoMoreInteractions(fileStorage, generateFileNameStrategy);
     }
 
     private RefBookVersion createRefBookVersion() {

@@ -10,17 +10,14 @@ import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.impl.file.export.Archiver;
-import ru.i_novus.ms.rdm.impl.file.export.FileGenerator;
-import ru.i_novus.ms.rdm.impl.file.export.PassportPdfFileGenerator;
-import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
+import ru.i_novus.ms.rdm.impl.file.export.*;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +31,7 @@ public class VersionFileServiceImpl implements VersionFileService {
     private VersionFileRepository versionFileRepository;
 
     private FileStorage fileStorage;
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     private PerRowFileGeneratorFactory fileGeneratorFactory;
     private PassportValueRepository passportValueRepository;
@@ -47,14 +44,14 @@ public class VersionFileServiceImpl implements VersionFileService {
     public VersionFileServiceImpl(RefBookVersionRepository versionRepository,
                                   VersionFileRepository versionFileRepository,
                                   FileStorage fileStorage,
-                                  FileNameGenerator fileNameGenerator,
+                                  GenerateFileNameStrategy generateFileNameStrategy,
                                   PerRowFileGeneratorFactory fileGeneratorFactory,
                                   PassportValueRepository passportValueRepository) {
         this.versionRepository = versionRepository;
         this.versionFileRepository = versionFileRepository;
 
         this.fileStorage = fileStorage;
-        this.fileNameGenerator = fileNameGenerator;
+        this.generateFileNameStrategy = generateFileNameStrategy;
 
         this.fileGeneratorFactory = fileGeneratorFactory;
         this.passportValueRepository = passportValueRepository;
@@ -80,12 +77,12 @@ public class VersionFileServiceImpl implements VersionFileService {
             if (includePassport) {
                 try (FileGenerator passportFileGenerator =
                              new PassportPdfFileGenerator(passportValueRepository, version, passportFileHead)) {
-                    archiver.addEntry(passportFileGenerator, fileNameGenerator.generateName(version, FileType.PDF));
+                    archiver.addEntry(passportFileGenerator, generateFileNameStrategy.generateName(version, FileType.PDF));
                 }
             }
 
             return archiver
-                    .addEntry(fileGenerator, fileNameGenerator.generateName(version, fileType))
+                    .addEntry(fileGenerator, generateFileNameStrategy.generateName(version, fileType))
                     .getArchive();
 
         } catch (IOException e) {
@@ -102,7 +99,7 @@ public class VersionFileServiceImpl implements VersionFileService {
             RefBookVersionEntity versionEntity = versionRepository.getOne(version.getId());
 
             versionFileRepository.save(new VersionFileEntity(versionEntity, fileType,
-                    fileStorage.saveContent(inputStream, fileNameGenerator.generateZipName(version, fileType))));
+                    fileStorage.saveContent(inputStream, generateFileNameStrategy.generateZipName(version, fileType))));
 
         } catch (IOException e) {
             throw new RdmException(e);

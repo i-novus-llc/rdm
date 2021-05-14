@@ -11,7 +11,6 @@ import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 
@@ -45,7 +44,7 @@ public class DefaultCreateVersionFileStrategyTest {
     private FileStorage fileStorage;
 
     @Mock
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     @Test
     public void testCreate() {
@@ -53,7 +52,7 @@ public class DefaultCreateVersionFileStrategyTest {
         RefBookVersion version = createRefBookVersion();
         InputStream is = mock(InputStream.class);
         when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
-        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(Boolean.TRUE);
 
@@ -61,11 +60,11 @@ public class DefaultCreateVersionFileStrategyTest {
         assertEquals(FILE_PATH, filePath);
 
         verify(versionFileService).generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class));
-        verify(fileNameGenerator).generateZipName(eq(version), eq(FILE_TYPE));
+        verify(generateFileNameStrategy).generateZipName(eq(version), eq(FILE_TYPE));
         verify(fileStorage).saveContent(is, ZIP_NAME);
         verify(fileStorage).isExistContent(FILE_PATH);
 
-        verifyNoMoreInteractions(versionFileService, fileNameGenerator, fileStorage);
+        verifyNoMoreInteractions(versionFileService, generateFileNameStrategy, fileStorage);
     }
 
     @Test
@@ -74,7 +73,7 @@ public class DefaultCreateVersionFileStrategyTest {
         RefBookVersion version = createRefBookVersion();
         InputStream is = mock(InputStream.class);
         when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
-        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
 
         final String failedMessage = "fail";
@@ -91,10 +90,10 @@ public class DefaultCreateVersionFileStrategyTest {
         }
 
         verify(versionFileService).generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class));
-        verify(fileNameGenerator).generateZipName(eq(version), eq(FILE_TYPE));
+        verify(generateFileNameStrategy).generateZipName(eq(version), eq(FILE_TYPE));
         verify(fileStorage).saveContent(is, ZIP_NAME);
 
-        verifyNoMoreInteractions(versionFileService, fileNameGenerator, fileStorage);
+        verifyNoMoreInteractions(versionFileService, generateFileNameStrategy, fileStorage);
     }
 
     @Test
@@ -103,7 +102,7 @@ public class DefaultCreateVersionFileStrategyTest {
         RefBookVersion version = createRefBookVersion();
         InputStream is = mock(InputStream.class);
         when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
-        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(FILE_PATH);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(Boolean.FALSE);
 
@@ -122,7 +121,7 @@ public class DefaultCreateVersionFileStrategyTest {
         RefBookVersion version = createRefBookVersion();
         InputStream is = mock(InputStream.class);
         when(versionFileService.generate(eq(version), eq(FILE_TYPE), any(VersionDataIterator.class))).thenReturn(is);
-        when(fileNameGenerator.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
+        when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(is, ZIP_NAME)).thenReturn(null);
 
         try {

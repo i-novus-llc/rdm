@@ -7,7 +7,6 @@ import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 
@@ -26,14 +25,14 @@ public class DefaultCreateVersionFileStrategy implements CreateVersionFileStrate
     private FileStorage fileStorage;
 
     @Autowired
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     @Override
     public String create(RefBookVersion version, FileType fileType, VersionService versionService) {
 
         String filePath;
         try (InputStream is = generateVersionFile(version, fileType, versionService)) {
-            filePath = fileStorage.saveContent(is, fileNameGenerator.generateZipName(version, fileType));
+            filePath = fileStorage.saveContent(is, generateFileNameStrategy.generateZipName(version, fileType));
 
         } catch (IOException e) {
             throw new RdmException(e);

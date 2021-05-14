@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 
 @Component
@@ -15,14 +14,14 @@ public class DefaultExportVersionFileStrategy implements ExportVersionFileStrate
     private FileStorage fileStorage;
 
     @Autowired
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     @Override
     public ExportFile export(RefBookVersion version, FileType fileType, String filePath) {
 
         return new ExportFile(
                 fileStorage.getContent(filePath),
-                fileNameGenerator.generateZipName(version, fileType)
+                generateFileNameStrategy.generateZipName(version, fileType)
         );
     }
 }
