@@ -16,7 +16,6 @@ import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.provider.*;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
@@ -69,13 +68,6 @@ public class BackendConfiguration {
     @Bean
     RdmMapperConfigurer rdmMapperConfigurer(){
         return new RdmMapperConfigurer();
-    }
-
-    @Bean("fnsiFileNameGenerator")
-    @Primary
-    @ConditionalOnProperty(name = "rdm.download.name-generator-class", havingValue = "FnsiFileNameGenerator")
-    public FileNameGenerator fnsiFileNameGenerator(){
-        return new FnsiFileNameGenerator();
     }
 
     @Bean
