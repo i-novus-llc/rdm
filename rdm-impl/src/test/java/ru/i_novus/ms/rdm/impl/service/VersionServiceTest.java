@@ -89,7 +89,7 @@ public class VersionServiceTest {
     @Before
     public void setUp() throws Exception {
 
-        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategiesMap());
         FieldSetter.setField(versionService, VersionServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
@@ -287,7 +287,7 @@ public class VersionServiceTest {
         return entity;
     }
 
-    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
 
         Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
@@ -298,11 +298,7 @@ public class VersionServiceTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(AllowStoreVersionFileStrategy.class, allowStoreVersionFileStrategy);
-        result.put(FindVersionFileStrategy.class, findVersionFileStrategy);
-        result.put(CreateVersionFileStrategy.class, createVersionFileStrategy);
-        result.put(SaveVersionFileStrategy.class, saveVersionFileStrategy);
-        result.put(ExportVersionFileStrategy.class, exportVersionFileStrategy);
+        result.put(GetExportFileStrategy.class, getExportFileStrategy);
 
         return result;
     }

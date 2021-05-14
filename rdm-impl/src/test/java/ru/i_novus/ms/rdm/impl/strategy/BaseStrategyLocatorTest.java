@@ -30,7 +30,7 @@ public class BaseStrategyLocatorTest extends BaseTest {
     @Test
     public void testGetStrategyWhenBothPresent() {
 
-        BaseStrategyLocator locator = new BaseStrategyLocator(getStrategies());
+        BaseStrategyLocator locator = new BaseStrategyLocator(getStrategiesMap());
 
         CreateFirstVersionStrategy defaultStrategy =
                 locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
@@ -49,7 +49,7 @@ public class BaseStrategyLocatorTest extends BaseTest {
     @Test
     public void testGetStrategyWhenDefaultOnly() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> strategiesMap = getStrategies();
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> strategiesMap = getStrategiesMap();
         strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(CreateFirstVersionStrategy.class);
 
         BaseStrategyLocator locator = new BaseStrategyLocator(strategiesMap);
@@ -82,7 +82,7 @@ public class BaseStrategyLocatorTest extends BaseTest {
         assertNull(unversionedStrategy);
     }
 
-    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
 
         Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
