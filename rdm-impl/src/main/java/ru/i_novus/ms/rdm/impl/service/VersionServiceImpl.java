@@ -262,16 +262,19 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
 
-        if (fileType == null)
-            return null;
+        if (fileType == null) return null;
 
         RefBookVersionEntity entity = findOrThrow(versionId);
         RefBookVersion version = ModelGenerator.versionModel(entity);
 
-        String filePath = getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType);
+        boolean allowStore = getStrategy(entity, AllowStoreVersionFileStrategy.class).allow(entity);
+        String filePath = allowStore ? getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType) : null;
         if (filePath == null) {
             filePath = getStrategy(entity, CreateVersionFileStrategy.class).create(version, fileType, this);
-            getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
+
+            if (allowStore) {
+                getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
+            }
         }
 
         ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class).export(version, fileType, filePath);

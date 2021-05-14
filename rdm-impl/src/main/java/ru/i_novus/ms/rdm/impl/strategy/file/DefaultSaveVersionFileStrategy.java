@@ -17,15 +17,22 @@ public class DefaultSaveVersionFileStrategy implements SaveVersionFileStrategy {
     @Override
     public void save(RefBookVersion version, FileType fileType, String filePath) {
 
-        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(version.getId(), fileType);
+        if (!allowSave(version))
+            return;
 
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(version.getId(), fileType);
         save(fileEntity, version, fileType, filePath);
     }
 
-    protected void save(VersionFileEntity fileEntity,
-                        RefBookVersion version, FileType fileType, String filePath) {
+    protected boolean allowSave(RefBookVersion version) {
 
-        if (fileEntity != null || version.isDraft())
+        return version != null && !version.isDraft();
+    }
+
+    private void save(VersionFileEntity fileEntity,
+                      RefBookVersion version, FileType fileType, String filePath) {
+
+        if (fileEntity != null)
             return;
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();

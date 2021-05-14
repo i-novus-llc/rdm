@@ -76,6 +76,8 @@ public class VersionServiceTest {
     private AuditLogService auditLogService;
 
     @Mock
+    private AllowStoreVersionFileStrategy allowStoreVersionFileStrategy;
+    @Mock
     private FindVersionFileStrategy findVersionFileStrategy;
     @Mock
     private CreateVersionFileStrategy createVersionFileStrategy;
@@ -230,8 +232,8 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
+        when(allowStoreVersionFileStrategy.allow(entity)).thenReturn(true);
         when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(FILE_PATH);
-
         when(exportVersionFileStrategy.export(any(), eq(FILE_TYPE), eq(FILE_PATH))).thenReturn(new ExportFile());
 
         ExportFile exportFile = versionService.getVersionFile(entity.getId(), FILE_TYPE);
@@ -244,6 +246,7 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
+        when(allowStoreVersionFileStrategy.allow(entity)).thenReturn(true);
         when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(null);
         when(createVersionFileStrategy.create(any(), eq(FILE_TYPE), eq(versionService))).thenReturn(FILE_PATH);
 
@@ -295,6 +298,7 @@ public class VersionServiceTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(AllowStoreVersionFileStrategy.class, allowStoreVersionFileStrategy);
         result.put(FindVersionFileStrategy.class, findVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, createVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, saveVersionFileStrategy);

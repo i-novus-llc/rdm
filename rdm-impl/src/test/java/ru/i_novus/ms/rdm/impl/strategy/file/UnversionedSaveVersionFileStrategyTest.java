@@ -8,11 +8,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UnversionedSaveVersionFileStrategyTest {
@@ -31,15 +29,8 @@ public class UnversionedSaveVersionFileStrategyTest {
     @Test
     public void testUnversionedFileNotSaved() {
 
-        VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
-        versionFileEntity.setId(FILE_ID);
-
-        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(versionFileEntity);
-
         RefBookVersion version = createRefBookVersion();
         strategy.save(version, FILE_TYPE, FILE_PATH);
-
-        verify(versionFileRepository).findByVersionIdAndType(VERSION_ID, FILE_TYPE);
 
         verifyNoMoreInteractions(versionFileRepository);
     }
@@ -49,19 +40,6 @@ public class UnversionedSaveVersionFileStrategyTest {
         RefBookVersion result = new RefBookVersion();
         result.setId(VERSION_ID);
         result.setStatus(RefBookVersionStatus.PUBLISHED);
-
-        return result;
-    }
-
-    private VersionFileEntity createVersionFileEntity(Integer versionId) {
-
-        VersionFileEntity result = new VersionFileEntity();
-        result.setType(FILE_TYPE);
-        result.setPath(FILE_PATH);
-
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setId(versionId);
-        result.setVersion(versionEntity);
 
         return result;
     }

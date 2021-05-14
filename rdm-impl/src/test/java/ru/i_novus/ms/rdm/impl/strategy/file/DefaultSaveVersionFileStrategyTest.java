@@ -29,23 +29,16 @@ public class DefaultSaveVersionFileStrategyTest {
     private VersionFileRepository versionFileRepository;
 
     @Test
-    public void testSaveDraftRefBook() {
-
-        VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
-        versionFileEntity.setId(FILE_ID);
-
-        when(versionFileRepository.findByVersionIdAndType(VERSION_ID, FILE_TYPE)).thenReturn(versionFileEntity);
+    public void testSaveDraft() {
 
         RefBookVersion version = createRefBookVersion(RefBookVersionStatus.DRAFT);
         strategy.save(version, FILE_TYPE, FILE_PATH);
-
-        verify(versionFileRepository).findByVersionIdAndType(VERSION_ID, FILE_TYPE);
 
         verifyNoMoreInteractions(versionFileRepository);
     }
 
     @Test
-    public void testSaveRefBookNotDraft() {
+    public void testSavePublished() {
 
         VersionFileEntity versionFileEntity = createVersionFileEntity(VERSION_ID);
 
