@@ -53,6 +53,9 @@ public class StrategyLocatorConfig {
 
     // File:
     @Autowired
+    private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
+
+    @Autowired
     private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
 
     @Autowired
@@ -94,6 +97,9 @@ public class StrategyLocatorConfig {
 
     // File:
     @Autowired
+    private UnversionedAllowStoreVersionFileStrategy unversionedAllowStoreVersionFileStrategy;
+
+    @Autowired
     private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
 
     @Bean
@@ -126,6 +132,7 @@ public class StrategyLocatorConfig {
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
         // File:
+        result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
         result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
@@ -148,6 +155,7 @@ public class StrategyLocatorConfig {
         result.put(CreateDraftEntityStrategy.class, unversionedCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
+        result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
         result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
 
         return result;
