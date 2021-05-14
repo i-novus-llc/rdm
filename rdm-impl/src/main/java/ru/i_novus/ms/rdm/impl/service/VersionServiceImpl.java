@@ -27,7 +27,7 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.*;
+import ru.i_novus.ms.rdm.impl.strategy.file.GetExportFileStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -265,19 +265,7 @@ public class VersionServiceImpl implements VersionService {
         if (fileType == null) return null;
 
         RefBookVersionEntity entity = findOrThrow(versionId);
-        RefBookVersion version = ModelGenerator.versionModel(entity);
-
-        boolean allowStore = getStrategy(entity, AllowStoreVersionFileStrategy.class).allow(entity);
-        String filePath = allowStore ? getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType) : null;
-        if (filePath == null) {
-            filePath = getStrategy(entity, CreateVersionFileStrategy.class).create(version, fileType, this);
-
-            if (allowStore) {
-                getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
-            }
-        }
-
-        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class).export(version, fileType, filePath);
+        ExportFile exportFile = getStrategy(entity, GetExportFileStrategy.class).get(entity, fileType, this);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
