@@ -38,8 +38,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
-import ru.i_novus.ms.rdm.impl.strategy.file.ExportDraftFileStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.file.SupplyPathFileContentStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -1079,13 +1078,24 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public ExportFile getDraftFile(Integer draftId, FileType fileType) {
 
+        if (fileType == null) return null;
+
         RefBookVersionEntity entity = findVersion(draftId);
         getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
         RefBookVersion version = ModelGenerator.versionModel(entity);
 
-        ExportFile exportFile = getStrategy(entity, ExportDraftFileStrategy.class)
-                .export(version, fileType, versionService);
+        boolean allowStore = getStrategy(entity, AllowStoreVersionFileStrategy.class).allow(entity);
+        String filePath = allowStore ? getStrategy(entity, FindVersionFileStrategy.class).find(draftId, fileType) : null;
+        if (filePath == null) {
+            filePath = getStrategy(entity, CreateVersionFileStrategy.class).create(version, fileType, versionService);
+
+            if (allowStore) {
+                getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
+            }
+        }
+
+        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class).export(version, fileType, filePath);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
