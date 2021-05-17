@@ -3,13 +3,11 @@ package ru.i_novus.ms.rdm.impl.service;
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,9 +28,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
-import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -78,13 +74,6 @@ public class VersionServiceTest {
 
     @Mock
     private AuditLogService auditLogService;
-
-    @Before
-    public void setUp() throws Exception {
-
-        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategiesMap());
-        FieldSetter.setField(versionService, VersionServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
-    }
 
     @Test
     public void testSearch() {

@@ -140,25 +140,4 @@ public class StrategyLocatorConfig {
 
         return result;
     }
-
-    @Bean(name = "fileNameStrategyLocator")
-    @SuppressWarnings("unused")
-    public StrategyLocator fileNameStrategyLocator() {
-        return new BaseStrategyLocator(getFileNameStrategiesMap());
-    }
-
-    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getFileNameStrategiesMap() {
-
-        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new EnumMap<>(RefBookTypeEnum.class);
-
-        Map<Class<? extends Strategy>, Strategy> defaultStrategies = new HashMap<>();
-        defaultStrategies.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
-        result.put(RefBookTypeEnum.DEFAULT, defaultStrategies);
-
-        Map<Class<? extends Strategy>, Strategy> unversionedStrategies = new HashMap<>();
-        unversionedStrategies.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
-        result.put(RefBookTypeEnum.UNVERSIONED, unversionedStrategies);
-
-        return result;
-    }
 }

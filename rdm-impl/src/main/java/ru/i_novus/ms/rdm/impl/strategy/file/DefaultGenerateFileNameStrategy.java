@@ -1,11 +1,9 @@
 package ru.i_novus.ms.rdm.impl.strategy.file;
 
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 
-@Primary // TEMPORARY
 @Component
 public class DefaultGenerateFileNameStrategy implements GenerateFileNameStrategy {
 
