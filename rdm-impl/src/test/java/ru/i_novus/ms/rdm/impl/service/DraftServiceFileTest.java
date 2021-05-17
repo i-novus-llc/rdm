@@ -22,6 +22,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.*;
@@ -31,7 +32,6 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
-import ru.i_novus.ms.rdm.impl.strategy.file.SupplyPathFileContentStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -96,6 +96,9 @@ public class DraftServiceFileTest {
     private FieldFactory fieldFactory;
 
     @Mock
+    private VersionFileService versionFileService;
+
+    @Mock
     private AuditLogService auditLogService;
 
     @Mock
@@ -111,8 +114,6 @@ public class DraftServiceFileTest {
     private CreateDraftEntityStrategy createDraftEntityStrategy;
     @Mock
     private CreateDraftStorageStrategy createDraftStorageStrategy;
-    @Mock
-    private SupplyPathFileContentStrategy supplyPathFileContentStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -271,7 +272,7 @@ public class DraftServiceFileTest {
 
         InputStream input = DraftServiceFileTest.class.getResourceAsStream(path + fullName);
 
-        when(supplyPathFileContentStrategy.supply(fileModel.generateFullPath()))
+        when(versionFileService.supply(fileModel.generateFullPath()))
                 .thenReturn(() -> input)
                 .thenReturn(() -> DraftServiceFileTest.class.getResourceAsStream(path + fullName))
                 .thenReturn(() -> DraftServiceFileTest.class.getResourceAsStream(path + fullName))
@@ -391,7 +392,6 @@ public class DraftServiceFileTest {
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
         // File:
-        result.put(SupplyPathFileContentStrategy.class, supplyPathFileContentStrategy);
 
         return result;
     }

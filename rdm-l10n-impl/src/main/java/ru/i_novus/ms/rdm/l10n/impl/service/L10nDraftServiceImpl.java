@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -34,7 +35,8 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public L10nDraftServiceImpl(L10nStorageCodeService storageCodeService,
-                                RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+                                RefBookVersionRepository versionRepository,
+                                RefBookConflictRepository conflictRepository,
                                 DraftDataService draftDataService, DropDataService dropDataService,
                                 SearchDataService searchDataService,
                                 RefBookLockService refBookLockService, VersionService versionService,
@@ -42,6 +44,7 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                                 PassportValueRepository passportValueRepository,
                                 AttributeValidationRepository attributeValidationRepository,
                                 StructureChangeValidator structureChangeValidator,
+                                VersionFileService versionFileService,
                                 AuditLogService auditLogService,
                                 StrategyLocator strategyLocator) {
 
@@ -50,6 +53,7 @@ public class L10nDraftServiceImpl extends DraftServiceImpl {
                 refBookLockService, versionService,
                 versionValidation,
                 passportValueRepository, attributeValidationRepository, structureChangeValidator,
+                versionFileService,
                 auditLogService,
                 strategyLocator);
 

@@ -25,6 +25,7 @@ import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationRequest;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
@@ -38,8 +39,6 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
-import ru.i_novus.ms.rdm.impl.strategy.file.GetExportFileStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.file.SupplyPathFileContentStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.*;
@@ -95,6 +94,8 @@ public class DraftServiceImpl implements DraftService {
     private final AttributeValidationRepository attributeValidationRepository;
     private final StructureChangeValidator structureChangeValidator;
 
+    private final VersionFileService versionFileService;
+
     private final AuditLogService auditLogService;
 
     private final StrategyLocator strategyLocator;
@@ -103,7 +104,8 @@ public class DraftServiceImpl implements DraftService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public DraftServiceImpl(RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+    public DraftServiceImpl(RefBookVersionRepository versionRepository,
+                            RefBookConflictRepository conflictRepository,
                             DraftDataService draftDataService, DropDataService dropDataService,
                             SearchDataService searchDataService,
                             RefBookLockService refBookLockService, VersionService versionService,
@@ -111,6 +113,7 @@ public class DraftServiceImpl implements DraftService {
                             PassportValueRepository passportValueRepository,
                             AttributeValidationRepository attributeValidationRepository,
                             StructureChangeValidator structureChangeValidator,
+                            VersionFileService versionFileService,
                             AuditLogService auditLogService,
                             StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
@@ -129,6 +132,8 @@ public class DraftServiceImpl implements DraftService {
         this.attributeValidationRepository = attributeValidationRepository;
         this.structureChangeValidator = structureChangeValidator;
 
+        this.versionFileService = versionFileService;
+        
         this.auditLogService = auditLogService;
 
         this.strategyLocator = strategyLocator;
@@ -180,8 +185,7 @@ public class DraftServiceImpl implements DraftService {
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
         String extension = FileUtil.getExtension(fileModel.getName());
-        Supplier<InputStream> fileSource = getStrategy(refBookEntity, SupplyPathFileContentStrategy.class)
-                .supply(fileModel.getPath());
+        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
         processFileRows(extension, rowsProcessor, new PlainRowMapper(), fileSource);
 
         RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
@@ -191,9 +195,7 @@ public class DraftServiceImpl implements DraftService {
 
     private Draft createFromXml(Integer refBookId, FileModel fileModel) {
 
-        RefBookVersionEntityKit kit = findEntityKit(refBookId);
-        Supplier<InputStream> fileSource = getStrategy(kit.getRefBook(), SupplyPathFileContentStrategy.class)
-                .supply(fileModel.getPath());
+        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
             Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
@@ -208,8 +210,7 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draftEntity.getStructure();
 
         String extension = FileUtil.getExtension(fileModel.getName());
-        Supplier<InputStream> fileSource = getStrategy(draftEntity.getRefBook(), SupplyPathFileContentStrategy.class)
-                .supply(fileModel.getPath());
+        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
 
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
                 structure, draftEntity.getStorageCode(), errorCountLimit, false,
@@ -1084,7 +1085,8 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity entity = findVersion(draftId);
         getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
 
-        ExportFile exportFile = getStrategy(entity, GetExportFileStrategy.class).get(entity, fileType, versionService);
+        RefBookVersion version = ModelGenerator.versionModel(entity);
+        ExportFile exportFile = versionFileService.getFile(version, fileType, versionService);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
