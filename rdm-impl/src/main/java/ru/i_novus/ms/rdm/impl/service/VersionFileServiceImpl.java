@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
+import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
+import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.VersionFileEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -19,11 +21,15 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.file.AllowStoreVersionFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.function.Supplier;
+
+import static java.util.Collections.singletonList;
 
 @Primary
 @Service
@@ -37,7 +43,7 @@ public class VersionFileServiceImpl implements VersionFileService {
     private final PerRowFileGeneratorFactory fileGeneratorFactory;
     private final PassportValueRepository passportValueRepository;
 
-    private final StrategyLocator fileNameStrategyLocator;
+    private final StrategyLocator strategyLocator;
 
     private String passportFileHead = "fullName";
     private boolean includePassport = false;
@@ -49,7 +55,7 @@ public class VersionFileServiceImpl implements VersionFileService {
                                   FileStorage fileStorage,
                                   PerRowFileGeneratorFactory fileGeneratorFactory,
                                   PassportValueRepository passportValueRepository,
-                                  StrategyLocator fileNameStrategyLocator) {
+                                  StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
         this.versionFileRepository = versionFileRepository;
 
@@ -58,7 +64,7 @@ public class VersionFileServiceImpl implements VersionFileService {
         this.fileGeneratorFactory = fileGeneratorFactory;
         this.passportValueRepository = passportValueRepository;
 
-        this.fileNameStrategyLocator = fileNameStrategyLocator;
+        this.strategyLocator = strategyLocator;
     }
 
     @Value("${rdm.download.passport.head}")
@@ -73,10 +79,29 @@ public class VersionFileServiceImpl implements VersionFileService {
 
     @Override
     @Transactional
+    public String create(RefBookVersion version, FileType fileType, VersionService versionService) {
+
+        try (InputStream is = generate(version, fileType, versionService)) {
+
+            return fileStorage.saveContent(is, generateZipName(version, fileType));
+
+        } catch (IOException e) {
+            throw new RdmException(e);
+        }
+    }
+
+    private InputStream generate(RefBookVersion version, FileType fileType, VersionService versionService) {
+
+        return generate(version, fileType,
+                new VersionDataIterator(versionService, singletonList(version.getId()))
+        );
+    }
+
+    @Override
+    @Transactional
     public InputStream generate(RefBookVersion version, FileType fileType, Iterator<Row> rowIterator) {
 
-        try (FileGenerator fileGenerator = fileGeneratorFactory
-                .getFileGenerator(rowIterator, version, fileType);
+        try (FileGenerator fileGenerator = fileGeneratorFactory.getFileGenerator(rowIterator, version, fileType);
              Archiver archiver = new Archiver()) {
 
             if (includePassport) {
@@ -88,11 +113,8 @@ public class VersionFileServiceImpl implements VersionFileService {
                 }
             }
 
-            String fileName = getStrategy(version, GenerateFileNameStrategy.class)
-                    .generateName(version, fileType);
-
-            return archiver
-                    .addEntry(fileGenerator, fileName)
+            String fileName = getStrategy(version, GenerateFileNameStrategy.class).generateName(version, fileType);
+            return archiver.addEntry(fileGenerator, fileName)
                     .getArchive();
 
         } catch (IOException e) {
@@ -107,23 +129,94 @@ public class VersionFileServiceImpl implements VersionFileService {
         try (InputStream inputStream = is) {
             if (inputStream == null) return;
 
-            RefBookVersionEntity versionEntity = versionRepository.getOne(version.getId());
-
-            String zipFileName = getStrategy(version, GenerateFileNameStrategy.class)
-                    .generateZipName(version, fileType);
-            VersionFileEntity versionFileEntity = new VersionFileEntity(versionEntity, fileType,
-                    fileStorage.saveContent(inputStream, zipFileName)
-            );
-
-            versionFileRepository.save(versionFileEntity);
+            String filePath = fileStorage.saveContent(inputStream, generateZipName(version, fileType));
+            insertEntity(version.getId(), fileType, filePath);
 
         } catch (IOException e) {
             throw new RdmException(e);
         }
     }
 
+    @Override
+    public Supplier<InputStream> supply(String filePath) {
+
+        return () -> fileStorage.getContent(filePath);
+    }
+
+    @Override
+    @Transactional
+    public ExportFile getFile(RefBookVersion version, FileType fileType, VersionService versionService) {
+        
+        boolean allowStore = getStrategy(version, AllowStoreVersionFileStrategy.class).allow(version);
+
+        String filePath = allowStore ? findFilePath(version.getId(), fileType) : null;
+        if (filePath == null) {
+            filePath = createOrThrow(version, fileType, versionService);
+
+            if (allowStore) {
+                saveEntity(version.getId(), fileType, filePath);
+            }
+        }
+
+        return buildExportFile(version, fileType, filePath);
+    }
+
+    private String findFilePath(Integer versionId, FileType fileType) {
+
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
+        String filePath = (fileEntity != null) ? fileEntity.getPath() : null;
+
+        return (filePath != null && fileStorage.isExistContent(filePath)) ? filePath : null;
+    }
+
+    private String createOrThrow(RefBookVersion version, FileType fileType, VersionService versionService) {
+
+        String filePath = create(version, fileType, versionService);
+
+        if (filePath == null || !fileStorage.isExistContent(filePath))
+            throw new RdmException("Cannot generate file");
+
+        return filePath;
+    }
+
+    private void saveEntity(Integer versionId, FileType fileType, String filePath) {
+
+        VersionFileEntity fileEntity = versionFileRepository.findByVersionIdAndType(versionId, fileType);
+
+        if (fileEntity == null) {
+            insertEntity(versionId, fileType, filePath);
+
+        } else {
+            updateEntity(fileEntity, filePath);
+        }
+
+    }
+
+    private void insertEntity(Integer versionId, FileType fileType, String filePath) {
+
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        VersionFileEntity createdEntity = new VersionFileEntity(versionEntity, fileType, filePath);
+        versionFileRepository.save(createdEntity);
+    }
+
+    private void updateEntity(VersionFileEntity fileEntity, String filePath) {
+
+        fileEntity.setPath(filePath);
+        versionFileRepository.save(fileEntity);
+    }
+
+    private ExportFile buildExportFile(RefBookVersion version, FileType fileType, String filePath) {
+
+        return new ExportFile(fileStorage.getContent(filePath), generateZipName(version, fileType));
+    }
+
+    private String generateZipName(RefBookVersion version, FileType fileType) {
+
+        return getStrategy(version, GenerateFileNameStrategy.class).generateZipName(version, fileType);
+    }
+
     private <T extends Strategy> T getStrategy(RefBookVersion version, Class<T> strategy) {
 
-        return fileNameStrategyLocator.getStrategy(version != null ? version.getType() : null, strategy);
+        return strategyLocator.getStrategy(version != null ? version.getType() : null, strategy);
     }
 }
