@@ -58,24 +58,6 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultGenerateFileNameStrategy defaultGenerateFileNameStrategy;
 
-    @Autowired
-    private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
-
-    @Autowired
-    private DefaultCreateVersionFileStrategy defaultCreateVersionFileStrategy;
-
-    @Autowired
-    private DefaultSaveVersionFileStrategy defaultSaveVersionFileStrategy;
-
-    @Autowired
-    private DefaultExportVersionFileStrategy defaultExportVersionFileStrategy;
-
-    @Autowired
-    private DefaultSupplyPathFileContentStrategy defaultSupplyPathFileContentStrategy;
-
-    @Autowired
-    private DefaultGetExportFileStrategy defaultGetExportFileStrategy;
-
     /* Unversioned Strategies: */
 
     // RefBook:
@@ -104,12 +86,6 @@ public class StrategyLocatorConfig {
 
     @Autowired
     private UnversionedGenerateFileNameStrategy unversionedGenerateFileNameStrategy;
-
-    @Autowired
-    private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
-
-    @Autowired
-    private UnversionedGetExportFileStrategy unversionedGetExportFileStrategy;
 
     @Bean
     @SuppressWarnings("unused")
@@ -143,12 +119,6 @@ public class StrategyLocatorConfig {
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
-        result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
-        result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
-        result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
-        result.put(ExportVersionFileStrategy.class, defaultExportVersionFileStrategy);
-        result.put(SupplyPathFileContentStrategy.class, defaultSupplyPathFileContentStrategy);
-        result.put(GetExportFileStrategy.class, defaultGetExportFileStrategy);
 
         return result;
     }
@@ -167,8 +137,6 @@ public class StrategyLocatorConfig {
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
-        result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
-        result.put(GetExportFileStrategy.class, unversionedGetExportFileStrategy);
 
         return result;
     }
