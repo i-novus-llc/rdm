@@ -88,11 +88,11 @@ public class VersionFileServiceTest {
 
         RefBookVersion version = createVersion();
 
-        // generate:
+        // .generate
         when(fileGeneratorFactory.getFileGenerator(any(), eq(version), eq(FILE_TYPE))).thenReturn(fileGenerator);
         when(generateFileNameStrategy.generateName(eq(version), eq(FILE_TYPE))).thenReturn(FILE_NAME);
 
-        // create:
+        // .create
         when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
         when(fileStorage.saveContent(any(InputStream.class), eq(ZIP_NAME))).thenReturn(FILE_PATH);
 
@@ -125,7 +125,7 @@ public class VersionFileServiceTest {
     @Test
     public void testGetFileWhenExist() {
 
-        // getFile:
+        // .getFile
         RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
@@ -134,7 +134,7 @@ public class VersionFileServiceTest {
         when(versionFileRepository.findByVersionIdAndType(version.getId(), FILE_TYPE)).thenReturn(fileEntity);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(true);
 
-        // buildExportFile:
+        // .buildExportFile
         InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
         when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
@@ -147,7 +147,7 @@ public class VersionFileServiceTest {
     @Test
     public void testGetFileWhenAbsentInsert() {
 
-        // getFile:
+        // .getFile
         RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
@@ -155,7 +155,7 @@ public class VersionFileServiceTest {
                 .thenReturn(null) // findFilePath
                 .thenReturn(null); // saveEntity
 
-        // generate:
+        // .generate
         when(fileGeneratorFactory.getFileGenerator(any(), eq(version), eq(FILE_TYPE))).thenReturn(fileGenerator);
         when(generateFileNameStrategy.generateName(eq(version), eq(FILE_TYPE))).thenReturn(FILE_NAME);
 
@@ -163,13 +163,13 @@ public class VersionFileServiceTest {
                 .thenReturn(ZIP_NAME) // for: create
                 .thenReturn(ZIP_NAME); // for: buildExportFile
 
-        // create:
+        // .create
         when(fileStorage.saveContent(any(InputStream.class), eq(ZIP_NAME))).thenReturn(FILE_PATH);
 
-        // createOrThrow:
+        // .createOrThrow
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(true);
 
-        // buildExportFile:
+        // .buildExportFile
         InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
 
@@ -177,7 +177,7 @@ public class VersionFileServiceTest {
         ExportFile actual = versionFileService.getFile(version, FILE_TYPE, versionService);
         assertEquals(expected, actual);
 
-        // saveEntity:
+        // .saveEntity
         verify(versionRepository).getOne(version.getId());
 
         VersionFileEntity insertedEntity = new VersionFileEntity();
@@ -189,7 +189,7 @@ public class VersionFileServiceTest {
     @Test
     public void testGetFileWhenAbsentUpdate() {
 
-        // getFile:
+        // .getFile
         RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
@@ -199,7 +199,7 @@ public class VersionFileServiceTest {
                 .thenReturn(null) // findFilePath
                 .thenReturn(fileEntity); // saveEntity
 
-        // generate:
+        // .generate
         when(fileGeneratorFactory.getFileGenerator(any(), eq(version), eq(FILE_TYPE))).thenReturn(fileGenerator);
         when(generateFileNameStrategy.generateName(eq(version), eq(FILE_TYPE))).thenReturn(FILE_NAME);
 
@@ -207,13 +207,13 @@ public class VersionFileServiceTest {
                 .thenReturn(ZIP_NAME) // for: create
                 .thenReturn(ZIP_NAME); // for: buildExportFile
 
-        // create:
+        // .create
         when(fileStorage.saveContent(any(InputStream.class), eq(ZIP_NAME))).thenReturn(FILE_PATH);
 
-        // createOrThrow:
+        // .createOrThrow
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(true);
 
-        // buildExportFile:
+        // .buildExportFile
         InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
 
@@ -223,7 +223,7 @@ public class VersionFileServiceTest {
 
         verifyNoMoreInteractions(versionRepository);
 
-        // saveEntity:
+        // .saveEntity
         VersionFileEntity updatedEntity = new VersionFileEntity();
         updatedEntity.setType(FILE_TYPE);
         updatedEntity.setPath(FILE_PATH);
