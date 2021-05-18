@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.file.process;
 import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
@@ -10,8 +11,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
@@ -92,7 +91,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     private void addAttribute(String columnName) {
 
         Structure.Attribute attribute = stringAttribute(columnName);
-        draftDataService.addField(draftCode, field(attribute));
+        draftDataService.addField(draftCode, ConverterUtil.field(attribute));
         structure.getAttributes().add(attribute);
     }
 
