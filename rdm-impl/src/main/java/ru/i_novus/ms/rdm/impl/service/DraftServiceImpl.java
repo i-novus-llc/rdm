@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
@@ -265,30 +266,51 @@ public class DraftServiceImpl implements DraftService {
 
         return (storageCode, structure) -> {
 
-            RefBookVersionEntityKit kit = findEntityKit(refBookId);
-            RefBookEntity refBookEntity = kit.getRefBook();
+            CreateDraftRequest request = new CreateDraftRequest(refBookId, structure);
+            request.setPassport(null);
+            request.setReferrerValidationRequired(false);
 
-            versionValidation.validateDraftStructure(refBookEntity.getCode(), structure);
-            // Валидация структуры ссылочного справочника не нужна, т.к. все атрибуты строковые.
-
-            RefBookVersionEntity draftEntity = kit.getDraftEntity();
-            if (draftEntity == null) {
-                draftEntity = createDraftEntity(refBookEntity, structure, kit.getPublishedEntity().getPassportValues());
-
-            } else if (draftEntity.hasEmptyStructure()) {
-                draftEntity.setStructure(structure);
-
-            } else {
-                removeDraft(draftEntity);
-                versionRepository.flush(); // Delete old draft before insert new draft!
-
-                draftEntity = createDraftEntity(draftEntity.getRefBook(), structure, draftEntity.getPassportValues());
-            }
-
-            draftEntity.setStorageCode(storageCode);
-
-            versionRepository.save(draftEntity);
+            create(request, storageCode);
         };
+    }
+
+    private void create(CreateDraftRequest request, String storageCode) {
+
+        final Integer refBookId = request.getRefBookId();
+        versionValidation.validateRefBook(refBookId);
+
+        RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        RefBookEntity refBookEntity = kit.getRefBook();
+
+        List<PassportValueEntity> passportValues = (request.getPassport() != null)
+                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
+                : null;
+
+        final String refBookCode = refBookEntity.getCode();
+        final Structure structure = request.getStructure();
+
+        versionValidation.validateDraftStructure(refBookCode, structure);
+        if (request.getReferrerValidationRequired())
+            versionValidation.validateReferrerStructure(structure);
+
+        RefBookVersionEntity draftEntity = kit.getDraftEntity();
+        if (draftEntity == null) {
+
+            if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
+            draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
+
+        } else if (!structure.equals(draftEntity.getStructure())) {
+
+            draftEntity = recreateDraft(draftEntity, structure, passportValues);
+
+        } else {
+            deleteDraftAllRows(draftEntity);
+        }
+
+        draftEntity.setStorageCode(storageCode);
+
+        RefBookVersionEntity savedDraftEntity = versionRepository.saveAndFlush(draftEntity);
+        addValidations(request.getValidations(), savedDraftEntity);
     }
 
     @Override
@@ -301,10 +323,9 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntityKit kit = findEntityKit(refBookId);
         RefBookEntity refBookEntity = kit.getRefBook();
 
-        List<PassportValueEntity> passportValues = null;
-        if (request.getPassport() != null) {
-            passportValues = RefBookVersionEntity.toPassportValues(request.getPassport(), true, null);
-        }
+        List<PassportValueEntity> passportValues = (request.getPassport() != null)
+                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
+                : null;
 
         final String refBookCode = refBookEntity.getCode();
         final Structure structure = request.getStructure();
@@ -315,20 +336,54 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
+
             if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
             draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
-            String draftCode = createDraftStorage(refBookEntity, structure);
-            draftEntity.setStorageCode(draftCode);
+        } else if (!structure.equals(draftEntity.getStructure())) {
+
+            draftEntity = recreateDraft(draftEntity, structure, passportValues);
 
         } else {
-            draftEntity = recreateDraft(draftEntity, structure, passportValues);
+            deleteDraftAllRows(draftEntity);
+            recreatePassportValues(draftEntity, passportValues);
         }
 
-        RefBookVersionEntity savedDraftEntity = versionRepository.save(draftEntity);
+        if (StringUtils.isEmpty(draftEntity.getStorageCode())) {
+            String storageCode = createDraftStorage(refBookEntity, draftEntity.getStructure());
+            draftEntity.setStorageCode(storageCode);
+        }
+
+        RefBookVersionEntity savedDraftEntity = versionRepository.saveAndFlush(draftEntity);
         addValidations(request.getValidations(), savedDraftEntity);
 
         return savedDraftEntity.toDraft();
+    }
+
+    /** Пересоздание черновика при его наличии. */
+    private RefBookVersionEntity recreateDraft(RefBookVersionEntity draftEntity, Structure structure,
+                                               List<PassportValueEntity> passportValues) {
+
+        RefBookEntity refBookEntity = draftEntity.getRefBook();
+        if (passportValues == null) passportValues = draftEntity.getPassportValues();
+
+        removeDraftEntity(draftEntity);
+        versionRepository.flush(); // Delete old draft before insert new draft!
+
+        return createDraftEntity(refBookEntity, structure, passportValues);
+    }
+
+    /** Пересоздание паспорта черновика при наличии. */
+    private void recreatePassportValues(RefBookVersionEntity draftEntity,
+                                        List<PassportValueEntity> passportValues) {
+
+        if (passportValues == null) return; // Не менять паспорт, если нет новых значений
+
+        if (!isEmpty(draftEntity.getPassportValues())) {
+            passportValueRepository.deleteInBatch(draftEntity.getPassportValues());
+        }
+
+        if (!isEmpty(passportValues)) draftEntity.setPassportValues(passportValues);
     }
 
     private void addValidations(Map<String, List<AttributeValidation>> validations, RefBookVersionEntity entity) {
@@ -363,34 +418,6 @@ public class DraftServiceImpl implements DraftService {
         }
 
         return draft;
-    }
-
-    /** Пересоздание черновика при его наличии. */
-    private RefBookVersionEntity recreateDraft(RefBookVersionEntity draftEntity,
-                                               Structure structure, List<PassportValueEntity> passportValues) {
-
-        if (!structure.equals(draftEntity.getStructure())) {
-
-            if (passportValues == null) passportValues = draftEntity.getPassportValues();
-
-            removeDraft(draftEntity);
-
-            RefBookEntity refBookEntity = draftEntity.getRefBook();
-            draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
-
-            String draftCode = createDraftStorage(refBookEntity, structure);
-            draftEntity.setStorageCode(draftCode);
-
-        } else {
-            if (!isEmpty(draftEntity.getPassportValues())) {
-                passportValueRepository.deleteInBatch(draftEntity.getPassportValues());
-            }
-            deleteDraftAllRows(draftEntity);
-
-            if (!isEmpty(passportValues)) draftEntity.setPassportValues(passportValues);
-        }
-
-        return draftEntity;
     }
 
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
@@ -641,10 +668,10 @@ public class DraftServiceImpl implements DraftService {
     }
 
     /** Удаление всех строк черновика. */
-    private void deleteDraftAllRows(RefBookVersionEntity draftVersion) {
+    private void deleteDraftAllRows(RefBookVersionEntity draftEntity) {
 
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftVersion.getId());
-        draftDataService.deleteAllRows(draftVersion.getStorageCode());
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());
+        draftDataService.deleteAllRows(draftEntity.getStorageCode());
     }
 
     @Override
@@ -718,13 +745,13 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
-        removeDraft(draftEntity);
+        removeDraftEntity(draftEntity);
     }
 
     /**
      * Удаление черновика.
      */
-    private void removeDraft(RefBookVersionEntity draftEntity) {
+    private void removeDraftEntity(RefBookVersionEntity draftEntity) {
 
         dropDataService.drop(singleton(draftEntity.getStorageCode()));
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());

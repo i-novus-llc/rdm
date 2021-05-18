@@ -136,16 +136,22 @@ public class DraftServiceFileTest {
         RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
 
-        RefBookVersionEntity createdEntity = createDraftEntity();
+        RefBookEntity refBookEntity = draftEntity.getRefBook();
+        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
         createdEntity.setId(draftEntity.getId());
-        createdEntity.setStructure(createStringStructure());
+        final Structure stringStructure = createStringStructure();
+        createdEntity.setStructure(stringStructure);
         createdEntity.setStorageCode(NEW_DRAFT_CODE);
 
-        when(findDraftEntityStrategy.find(draftEntity.getRefBook())).thenReturn(createdEntity);
+        when(findDraftEntityStrategy.find(refBookEntity)).thenReturn(createdEntity);
+        when(createDraftEntityStrategy.create(refBookEntity, stringStructure, draftEntity.getPassportValues()))
+                .thenReturn(createdEntity);
 
-        draftService.create(draftEntity.getRefBook().getId(), createFileModel("/", "R002", "xlsx"));
+        when(versionRepository.saveAndFlush(eq(createdEntity))).thenReturn(createdEntity);
 
-        verify(versionRepository).save(eq(createdEntity));
+        draftService.create(refBookEntity.getId(), createFileModel("/", "R002", "xlsx"));
+
+        verify(versionRepository).saveAndFlush(eq(createdEntity));
     }
 
     @Test
@@ -168,7 +174,7 @@ public class DraftServiceFileTest {
 
         draftService.create(REFBOOK_ID, createFileModel("/", "R002", "xlsx"));
 
-        verify(versionRepository).save(eq(createdEntity));
+        verify(versionRepository).saveAndFlush(eq(createdEntity));
     }
 
     private Structure createStringStructure() {
@@ -211,7 +217,7 @@ public class DraftServiceFileTest {
 
         when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
 
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(uploadedDraftEntity);
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(uploadedDraftEntity);
         when(versionRepository.getOne(uploadedDraftId)).thenReturn(uploadedDraftEntity);
         when(versionRepository.findById(uploadedDraftId)).thenReturn(Optional.of(uploadedDraftEntity));
 
@@ -220,7 +226,7 @@ public class DraftServiceFileTest {
         draftService.create(REFBOOK_ID, createFileModel("/file/", "uploadFile", "xml"));
 
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
-        verify(versionRepository).save(draftCaptor.capture());
+        verify(versionRepository).saveAndFlush(draftCaptor.capture());
 
         uploadedDraftEntity.setStructure(UploadFileTestData.createStructure());
         RefBookVersionEntity actualDraftVersion = draftCaptor.getValue();
@@ -236,6 +242,7 @@ public class DraftServiceFileTest {
         RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
         createdEntity.setId(null);
         createdEntity.setStructure(structure);
+        createdEntity.setStorageCode(null);
 
         when(createDraftEntityStrategy.create(eq(refBookEntity), eq(structure), any()))
                 .thenReturn(createdEntity);

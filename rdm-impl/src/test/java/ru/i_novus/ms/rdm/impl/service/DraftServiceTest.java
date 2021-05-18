@@ -182,7 +182,7 @@ public class DraftServiceTest {
         RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
                 .thenReturn(draftEntity);
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(draftEntity);
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(draftEntity);
 
         Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
         Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
@@ -195,8 +195,12 @@ public class DraftServiceTest {
     public void testCreateWhenDraftWithDifferentStructure() {
 
         RefBookVersionEntity draftEntity = createDraftEntity();
+        draftEntity.getStructure().add(
+                Structure.Attribute.build("temp_attr", "temp_attr", FieldType.STRING, null),
+                null);
+
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenAnswer(v -> {
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenAnswer(v -> {
             RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
             saved.setId(draftEntity.getId() + 1);
             return saved;
@@ -227,11 +231,11 @@ public class DraftServiceTest {
         RefBookVersionEntity savedDraftEntity = createDraftEntity();
         savedDraftEntity.setId(null);
         savedDraftEntity.setStorageCode(NEW_DRAFT_CODE);
-        when(versionRepository.save(eq(savedDraftEntity))).thenReturn(savedDraftEntity);
+        when(versionRepository.saveAndFlush(eq(savedDraftEntity))).thenReturn(savedDraftEntity);
 
         draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
 
-        verify(versionRepository).save(eq(savedDraftEntity));
+        verify(versionRepository).saveAndFlush(eq(savedDraftEntity));
     }
 
     @Test
@@ -252,7 +256,7 @@ public class DraftServiceTest {
         mockCreateDraftEntityStrategy(refBookEntity, versionEntity.getStructure());
 
         ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
-        when(versionRepository.save(captor.capture())).thenReturn(new RefBookVersionEntity());
+        when(versionRepository.saveAndFlush(captor.capture())).thenReturn(new RefBookVersionEntity());
 
         Draft draft = draftService.createFromVersion(versionEntity.getId());
         assertNotNull(draft);
@@ -285,6 +289,7 @@ public class DraftServiceTest {
         RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
         createdEntity.setId(null);
         createdEntity.setStructure(structure);
+        createdEntity.setStorageCode(null);
 
         when(createDraftEntityStrategy.create(eq(refBookEntity), eq(structure), any()))
                 .thenReturn(createdEntity);
