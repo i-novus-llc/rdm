@@ -32,7 +32,6 @@ services:
       JAVA_OPTS: -Xmx200m
     depends_on:
       - db
-      - security-admin-backend
     restart: on-failure
     ports:
     - "8080"
