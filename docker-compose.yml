@@ -75,55 +75,6 @@ services:
       retries: 3
       start_period: 40s
 
-  security-admin-backend:
-    environment:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
-          SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
-          SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
-          SPRING_DATASOURCE_USERNAME: rdm
-          SPRING_DATASOURCE_PASSWORD: rdm
-          JAVA_OPTS: -Xmx200m
-    depends_on:
-      - db
-    restart: on-failure
-    ports:
-    - "8080"
-    deploy:
-      restart_policy:
-        max_attempts: 3
-      resources:
-        limits:
-          memory: 500M
-      placement:
-        constraints:
-        - node.labels.type == service
-    healthcheck:
-      test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
-      interval: 1m
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  security-admin-frontend:
-    environment:
-      SPRING_CLOUD_CONSUL_HOST: ${spring_cloud_consul_host}
-      SPRING_APPLICATION_NAME: "rdm-security-admin-frontend"
-      SEC_ADMIN_REST_URL: http://security-admin-backend:8080/api
-      JAVA_OPTS: -Xmx300m
-    depends_on:
-      - security-admin-backend
-    ports:
-    - "8080"
-    deploy:
-      restart_policy:
-        max_attempts: 3
-      resources:
-        limits:
-          memory: 700M
-      placement:
-        constraints:
-        - node.labels.type == service
-
   esnsi:
     environment:
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
