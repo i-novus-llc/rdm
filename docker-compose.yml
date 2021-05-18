@@ -97,6 +97,12 @@ services:
       placement:
         constraints:
         - node.labels.type == service
+    healthcheck:
+      test: curl -f http://localhost:8080/monitoring/health | grep -io '^{"status":"UP"' || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   security-admin-frontend:
     environment:
