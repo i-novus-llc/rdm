@@ -2,7 +2,8 @@ package ru.i_novus.ms.rdm.impl.file.process;
 
 import ru.i_novus.ms.rdm.api.exception.FileContentException;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.impl.util.mappers.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;

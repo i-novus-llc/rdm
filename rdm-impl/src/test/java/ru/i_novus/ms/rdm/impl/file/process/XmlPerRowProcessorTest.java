@@ -2,17 +2,15 @@ package ru.i_novus.ms.rdm.impl.file.process;
 
 import org.junit.Before;
 import org.junit.Test;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.impl.file.export.XmlFileGenerateProcessTest;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static org.junit.Assert.*;
 

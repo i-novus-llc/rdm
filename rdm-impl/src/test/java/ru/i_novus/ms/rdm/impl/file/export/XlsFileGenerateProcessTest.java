@@ -1,17 +1,17 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.model.Result;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
+import ru.i_novus.ms.rdm.impl.file.process.XlsPerRowProcessor;
+import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.service.FieldFactoryImpl;
-import ru.i_novus.ms.rdm.api.model.Result;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.impl.file.process.RowsProcessor;
-import ru.i_novus.ms.rdm.impl.file.process.XlsPerRowProcessor;
-import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 
 import java.io.IOException;
 import java.math.BigDecimal;
