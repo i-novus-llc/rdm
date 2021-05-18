@@ -7,6 +7,16 @@
         </java>
     </list>
 
+    <unique result-mapping="#this" filters="id">
+        <java method="getTypeItem" class="ru.i_novus.ms.rdm.n2o.service.RefBookController">
+            <spring/>
+
+            <arguments>
+                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria" name="criteria"/>
+            </arguments>
+        </java>
+    </unique>
+
     <fields>
         <field id="id" domain="string">
             <select/>
