@@ -6,9 +6,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.BaseTest;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.DefaultCreateFirstVersionStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.UnversionedCreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.DefaultCreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.UnversionedCreateFirstStorageStrategy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,9 +19,9 @@ import static org.junit.Assert.*;
 public class BaseStrategyLocatorTest extends BaseTest {
 
     @Mock
-    private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
+    private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
     @Mock
-    private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
+    private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
     /**
      * Случай:
@@ -32,10 +32,10 @@ public class BaseStrategyLocatorTest extends BaseTest {
 
         BaseStrategyLocator locator = new BaseStrategyLocator(getStrategiesMap());
 
-        CreateFirstVersionStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
-        CreateFirstVersionStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstVersionStrategy.class);
+        CreateFirstStorageStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstStorageStrategy.class);
+        CreateFirstStorageStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstStorageStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -50,14 +50,14 @@ public class BaseStrategyLocatorTest extends BaseTest {
     public void testGetStrategyWhenDefaultOnly() {
 
         Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> strategiesMap = getStrategiesMap();
-        strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(CreateFirstVersionStrategy.class);
+        strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(CreateFirstStorageStrategy.class);
 
         BaseStrategyLocator locator = new BaseStrategyLocator(strategiesMap);
 
-        CreateFirstVersionStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
-        CreateFirstVersionStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstVersionStrategy.class);
+        CreateFirstStorageStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstStorageStrategy.class);
+        CreateFirstStorageStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstStorageStrategy.class);
 
         assertNotNull(defaultStrategy);
         assertNotNull(unversionedStrategy);
@@ -73,10 +73,10 @@ public class BaseStrategyLocatorTest extends BaseTest {
 
         BaseStrategyLocator locator = new BaseStrategyLocator(new HashMap<>());
 
-        CreateFirstVersionStrategy defaultStrategy =
-                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstVersionStrategy.class);
-        CreateFirstVersionStrategy unversionedStrategy =
-                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstVersionStrategy.class);
+        CreateFirstStorageStrategy defaultStrategy =
+                locator.getStrategy(RefBookTypeEnum.DEFAULT, CreateFirstStorageStrategy.class);
+        CreateFirstStorageStrategy unversionedStrategy =
+                locator.getStrategy(RefBookTypeEnum.UNVERSIONED, CreateFirstStorageStrategy.class);
 
         assertNull(defaultStrategy);
         assertNull(unversionedStrategy);
@@ -94,7 +94,7 @@ public class BaseStrategyLocatorTest extends BaseTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
+        result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
 
         return result;
     }
@@ -102,7 +102,7 @@ public class BaseStrategyLocatorTest extends BaseTest {
     private Map<Class<? extends Strategy>, Strategy> getUnversionedStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(CreateFirstVersionStrategy.class, unversionedCreateFirstVersionStrategy);
+        result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
 
         return result;
     }

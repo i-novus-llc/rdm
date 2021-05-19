@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.impl.entity.*;
@@ -23,14 +24,18 @@ public class DefaultCreateDraftEntityStrategyTest {
     private DefaultCreateDraftEntityStrategy strategy;
 
     @Test
-    public void testCreate() {
+    public void testCreateDefaultWithPassport() {
 
-        RefBookEntity refBookEntity = createRefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setCode("test_code");
+
         RefBookVersionEntity entity = strategy.create(refBookEntity, new Structure(), createPassportValues());
 
         assertEquals(refBookEntity, entity.getRefBook());
         assertTrue(entity.hasEmptyStructure());
+        assertTrue(StringUtils.isEmpty(entity.getVersion()));
         assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
+        assertNull(entity.getFromDate());
 
         List<PassportValueEntity> passportValues = entity.getPassportValues();
         assertNotNull(passportValues);
@@ -43,24 +48,20 @@ public class DefaultCreateDraftEntityStrategyTest {
     }
 
     @Test
-    public void testCreateWithoutPassport() {
+    public void testCreateUnversionedWithoutPassport() {
 
-        RefBookEntity refBookEntity = createRefBookEntity();
+        RefBookEntity refBookEntity = new UnversionedRefBookEntity();
+        refBookEntity.setCode("test_code");
+
         RefBookVersionEntity entity = strategy.create(refBookEntity, new Structure(), null);
 
         assertEquals(refBookEntity, entity.getRefBook());
         assertTrue(entity.hasEmptyStructure());
-        assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
+        assertFalse(StringUtils.isEmpty(entity.getVersion()));
+        assertEquals(RefBookVersionStatus.PUBLISHED, entity.getStatus());
+        assertNotNull(entity.getFromDate());
 
         assertNull(entity.getPassportValues());
-    }
-
-    private RefBookEntity createRefBookEntity() {
-
-        RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setCode("test_code");
-
-        return refBookEntity;
     }
 
     private List<PassportValueEntity> createPassportValues() {

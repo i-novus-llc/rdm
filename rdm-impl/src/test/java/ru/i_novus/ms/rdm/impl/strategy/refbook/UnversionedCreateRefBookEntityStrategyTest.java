@@ -7,8 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.UnversionedRefBookEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 
 import static org.junit.Assert.assertEquals;
@@ -17,10 +17,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultCreateRefBookEntityStrategyTest {
+public class UnversionedCreateRefBookEntityStrategyTest {
 
     @InjectMocks
-    private DefaultCreateRefBookEntityStrategy strategy;
+    private UnversionedCreateRefBookEntityStrategy strategy;
 
     @Mock
     private RefBookRepository refBookRepository;
@@ -28,17 +28,16 @@ public class DefaultCreateRefBookEntityStrategyTest {
     @Test
     public void testCreate() {
 
-        when(refBookRepository.save(any(DefaultRefBookEntity.class)))
+        when(refBookRepository.save(any(UnversionedRefBookEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookCreateRequest request = new RefBookCreateRequest("test_code", null, "category", null);
+        RefBookCreateRequest request = new RefBookCreateRequest("test_code", RefBookTypeEnum.UNVERSIONED, "category", null);
         RefBookEntity entity = strategy.create(request);
 
         assertNotNull(entity);
-        request.setType(RefBookTypeEnum.DEFAULT);
         assertEqualsRequestToEntity(request, entity);
 
-        verify(refBookRepository).save(any(DefaultRefBookEntity.class));
+        verify(refBookRepository).save(any(UnversionedRefBookEntity.class));
         verifyNoMoreInteractions(refBookRepository);
     }
 

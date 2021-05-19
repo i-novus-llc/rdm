@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.draft;
 
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
@@ -24,9 +23,7 @@ public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrate
     protected RefBookVersionEntity createEntity(RefBookEntity refBookEntity, Structure structure,
                                                 List<PassportValueEntity> passportValues) {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setRefBook(refBookEntity);
-        entity.setStatus(RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity entity = refBookEntity.createChangeableVersion();
         entity.setStructure(structure);
 
         if (passportValues != null) {

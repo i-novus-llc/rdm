@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.impl.strategy.refbook;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
@@ -30,9 +29,7 @@ public class DefaultCreateFirstVersionStrategy implements CreateFirstVersionStra
                                                 RefBookEntity refBookEntity,
                                                 String storageCode) {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setRefBook(refBookEntity);
-        entity.setStatus(RefBookVersionStatus.DRAFT);
+        RefBookVersionEntity entity = refBookEntity.createChangeableVersion();
 
         if (request.getPassport() != null) {
             entity.setPassportValues(toPassportValues(request.getPassport(), false, entity));
