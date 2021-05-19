@@ -14,7 +14,8 @@ import ru.i_novus.components.common.exception.CodifiedException;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.*;
+import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -30,7 +31,6 @@ import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
-import ru.i_novus.ms.rdm.api.util.row.RowMapper;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
@@ -44,7 +44,9 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
-import ru.i_novus.ms.rdm.impl.util.mappers.*;
+import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
+import ru.i_novus.ms.rdm.impl.util.mappers.PlainRowMapper;
+import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -58,7 +60,6 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -78,7 +79,6 @@ public class DraftServiceImpl implements DraftService {
 
     private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
-    public static final String FILE_CONTENT_INVALID_EXCEPTION_CODE = "file.content.invalid";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
     private final RefBookVersionRepository versionRepository;
@@ -187,9 +187,7 @@ public class DraftServiceImpl implements DraftService {
         BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
         RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
-        String extension = FileUtil.getExtension(fileModel.getName());
-        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
-        processFileRows(extension, rowsProcessor, new PlainRowMapper(), fileSource);
+        versionFileService.processRows(fileModel, rowsProcessor, new PlainRowMapper());
 
         RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
                 .find(refBookEntity);
@@ -201,8 +199,11 @@ public class DraftServiceImpl implements DraftService {
         Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
+
             Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
-            updateDataFromFile(versionRepository.getOne(draft.getId()), fileModel);
+            RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+            updateDataFromFile(createdEntity, fileModel);
+
             return draft;
         }
     }
@@ -212,36 +213,16 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draftEntity.getStructure();
 
-        String extension = FileUtil.getExtension(fileModel.getName());
-        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
-
         RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
                 structure, draftEntity.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
+                attributeValidationRepository.findAllByVersionId(draftEntity.getId())
+        );
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
-        processFileRows(extension, rowsValidator, nonStrictOnTypeRowMapper, fileSource);
+        versionFileService.processRows(fileModel, rowsValidator, nonStrictOnTypeRowMapper);
 
         RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draftEntity.getStorageCode(), structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
-        processFileRows(extension, rowsPersister, structureRowMapper, fileSource);
-    }
-
-    /** Обработка строк файла в соответствии с заданными параметрами. */
-    private void processFileRows(String extension, RowsProcessor rowsProcessor,
-                                 RowMapper rowMapper, Supplier<InputStream> fileSupplier) {
-
-        try (FilePerRowProcessor persister = FileProcessorFactory.createProcessor(extension, rowsProcessor, rowMapper)) {
-            persister.process(fileSupplier);
-
-        } catch (NoSuchElementException e) {
-            if (FILE_CONTENT_INVALID_EXCEPTION_CODE.equals(e.getMessage()))
-                throw new FileContentException(e);
-
-            throw e;
-
-        } catch (IOException e) {
-            throw new RdmException(e);
-        }
+        versionFileService.processRows(fileModel, rowsPersister, structureRowMapper);
     }
 
     /**
@@ -276,6 +257,7 @@ public class DraftServiceImpl implements DraftService {
         };
     }
 
+    /** Создание черновика по запросу при наличии уже созданного хранилища. */
     private void create(CreateDraftRequest request, String storageCode) {
 
         final Integer refBookId = request.getRefBookId();
@@ -301,12 +283,8 @@ public class DraftServiceImpl implements DraftService {
             if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
             draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
-        } else if (!structure.equals(draftEntity.getStructure())) {
-
-            draftEntity = recreateDraft(draftEntity, structure, passportValues);
-
         } else {
-            deleteDraftAllRows(draftEntity);
+            draftEntity = recreateDraft(draftEntity, structure, passportValues);
         }
 
         draftEntity.setStorageCode(storageCode);
@@ -315,6 +293,7 @@ public class DraftServiceImpl implements DraftService {
         addValidations(request.getValidations(), savedDraftEntity);
     }
 
+    /** Создание черновика по запросу при отсутствии уже созданного хранилища. */
     @Override
     @Transactional
     public Draft create(CreateDraftRequest request) {

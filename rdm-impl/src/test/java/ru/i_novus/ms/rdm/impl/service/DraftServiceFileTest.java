@@ -22,9 +22,10 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
-import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.api.util.row.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
 import ru.i_novus.ms.rdm.impl.repository.*;
@@ -96,7 +97,7 @@ public class DraftServiceFileTest {
     private FieldFactory fieldFactory;
 
     @Mock
-    private VersionFileService versionFileService;
+    private VersionFileServiceImpl versionFileService;
 
     @Mock
     private AuditLogService auditLogService;
@@ -149,7 +150,11 @@ public class DraftServiceFileTest {
 
         when(versionRepository.saveAndFlush(eq(createdEntity))).thenReturn(createdEntity);
 
-        draftService.create(refBookEntity.getId(), createFileModel("/", "R002", "xlsx"));
+        final FileModel fileModel = createFileModel("/", "R002", "xlsx");
+        doCallRealMethod()
+                .when(versionFileService).processRows(eq(fileModel), any(RowsProcessor.class), any(RowMapper.class));
+
+        draftService.create(refBookEntity.getId(), fileModel);
 
         verify(versionRepository).saveAndFlush(eq(createdEntity));
     }
@@ -172,7 +177,11 @@ public class DraftServiceFileTest {
 
         mockCreateDraftEntityStrategy(refBookEntity, createdEntity.getStructure());
 
-        draftService.create(REFBOOK_ID, createFileModel("/", "R002", "xlsx"));
+        final FileModel fileModel = createFileModel("/", "R002", "xlsx");
+        doCallRealMethod()
+                .when(versionFileService).processRows(eq(fileModel), any(RowsProcessor.class), any(RowMapper.class));
+
+        draftService.create(REFBOOK_ID, fileModel);
 
         verify(versionRepository).saveAndFlush(eq(createdEntity));
     }
@@ -198,6 +207,7 @@ public class DraftServiceFileTest {
         RefBookVersionEntity uploadedDraftEntity = createUploadedDraftEntity(firstDraftEntity.getRefBook());
         uploadedDraftEntity.setId(uploadedDraftId);
 
+        // .create
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
                 .thenReturn(createVersionCopy(firstDraftEntity))
                 .thenReturn(createVersionCopy(uploadedDraftEntity));
@@ -206,6 +216,7 @@ public class DraftServiceFileTest {
         uploadedDraftEntity.setRefBook(firstDraftEntity.getRefBook());
         uploadedDraftEntity.setStructure(UploadFileTestData.createStructure()); // NB: reference
 
+        // .updateDataFromFile
         RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(referenceEntity);
@@ -223,7 +234,11 @@ public class DraftServiceFileTest {
 
         mockCreateDraftEntityStrategy(uploadedDraftEntity.getRefBook(), uploadedDraftEntity.getStructure());
 
-        draftService.create(REFBOOK_ID, createFileModel("/file/", "uploadFile", "xml"));
+        final FileModel fileModel = createFileModel("/file/", "uploadFile", "xml");
+        doCallRealMethod()
+                .when(versionFileService).processRows(eq(fileModel), any(RowsProcessor.class), any(RowMapper.class));
+
+        draftService.create(REFBOOK_ID, fileModel);
 
         ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(versionRepository).saveAndFlush(draftCaptor.capture());
