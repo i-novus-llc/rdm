@@ -10,6 +10,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book", schema = "n2o_rdm_management")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 public class RefBookEntity implements Serializable {
 
     @Id
@@ -20,8 +22,8 @@ public class RefBookEntity implements Serializable {
     @Column(name = "code", nullable = false)
     private String code;
 
-    @Column(name = "type")
     @Enumerated(value = EnumType.STRING)
+    @Column(name = "type", insertable = false, updatable = false)
     private RefBookTypeEnum type;
 
     @Column(name = "category")
@@ -90,6 +92,10 @@ public class RefBookEntity implements Serializable {
 
     public void setVersionList(List<RefBookVersionEntity> versionList) {
         this.versionList = versionList;
+    }
+
+    public RefBookVersionEntity createChangeableVersion() {
+        return null;
     }
 
     @Override
