@@ -3,13 +3,11 @@ package ru.i_novus.ms.rdm.impl.service;
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,13 +23,12 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
+import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
-import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -73,23 +70,10 @@ public class VersionServiceTest {
     private SearchDataService searchDataService;
 
     @Mock
+    private VersionFileService versionFileService;
+
+    @Mock
     private AuditLogService auditLogService;
-
-    @Mock
-    private FindVersionFileStrategy findVersionFileStrategy;
-    @Mock
-    private CreateVersionFileStrategy createVersionFileStrategy;
-    @Mock
-    private SaveVersionFileStrategy saveVersionFileStrategy;
-    @Mock
-    private ExportVersionFileStrategy exportVersionFileStrategy;
-
-    @Before
-    public void setUp() throws Exception {
-
-        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(versionService, VersionServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
-    }
 
     @Test
     public void testSearch() {
@@ -230,9 +214,7 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(FILE_PATH);
-
-        when(exportVersionFileStrategy.export(any(), eq(FILE_TYPE), eq(FILE_PATH))).thenReturn(new ExportFile());
+        when(versionFileService.getFile(any(), eq(FILE_TYPE), any(VersionService.class))).thenReturn(new ExportFile());
 
         ExportFile exportFile = versionService.getVersionFile(entity.getId(), FILE_TYPE);
         assertNotNull(exportFile);
@@ -244,10 +226,7 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        when(findVersionFileStrategy.find(entity.getId(), FILE_TYPE)).thenReturn(null);
-        when(createVersionFileStrategy.create(any(), eq(FILE_TYPE), eq(versionService))).thenReturn(FILE_PATH);
-
-        when(exportVersionFileStrategy.export(any(), eq(FILE_TYPE), eq(FILE_PATH))).thenReturn(new ExportFile());
+        when(versionFileService.getFile(any(), eq(FILE_TYPE), any(VersionService.class))).thenReturn(new ExportFile());
 
         ExportFile exportFile = versionService.getVersionFile(entity.getId(), FILE_TYPE);
         assertNotNull(exportFile);
@@ -284,7 +263,7 @@ public class VersionServiceTest {
         return entity;
     }
 
-    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
 
         Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
@@ -295,10 +274,6 @@ public class VersionServiceTest {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-        result.put(FindVersionFileStrategy.class, findVersionFileStrategy);
-        result.put(CreateVersionFileStrategy.class, createVersionFileStrategy);
-        result.put(SaveVersionFileStrategy.class, saveVersionFileStrategy);
-        result.put(ExportVersionFileStrategy.class, exportVersionFileStrategy);
 
         return result;
     }

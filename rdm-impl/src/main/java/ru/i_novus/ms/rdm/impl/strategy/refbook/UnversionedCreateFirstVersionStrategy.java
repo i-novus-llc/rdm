@@ -5,15 +5,15 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.util.UnversionedVersionNumberStrategy;
 
 @Component
 public class UnversionedCreateFirstVersionStrategy extends DefaultCreateFirstVersionStrategy {
 
     @Autowired
-    private VersionNumberStrategy versionNumberStrategy;
+    private UnversionedVersionNumberStrategy versionNumberStrategy;
 
     @Override
     protected RefBookVersionEntity createEntity(RefBookCreateRequest request,

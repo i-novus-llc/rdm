@@ -111,4 +111,18 @@ public class RefBookEntity implements Serializable {
     public int hashCode() {
         return Objects.hash(id, code, type, category, removable, archived);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RefBookEntity{");
+        sb.append("id=").append(id);
+        sb.append(", code='").append(code).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", category='").append(category).append('\'');
+        sb.append(", removable=").append(removable);
+        sb.append(", archived=").append(archived);
+        sb.append(", versionList=").append(versionList);
+        sb.append('}');
+        return sb.toString();
+    }
 }

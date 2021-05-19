@@ -23,7 +23,6 @@ import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.ValidateIsDraftStrategy;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 @SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver
 public class CreateDraftController {
 
-    private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
+    private static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
     private static final String UPDATED_DATA_NOT_FOUND_IN_CURRENT_EXCEPTION_CODE = "updated.data.not.found.in.current";
     private static final String UPDATED_DATA_NOT_FOUND_IN_DRAFT_EXCEPTION_CODE = "updated.data.not.found.in.draft";
     private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
@@ -260,15 +259,15 @@ public class CreateDraftController {
     public UiDraft createFromFile(FileModel fileModel) {
 
         Integer versionId = refBookService.create(fileModel).getId();
-        RefBookVersion version = versionService.getById(versionId);
+        RefBookVersion version = findOrThrow(versionId);
 
         return new UiDraft(version);
     }
 
     public UiDraft uploadFromFile(Integer versionId, FileModel fileModel) {
 
-        RefBookVersion version = versionService.getById(versionId);
-        validateDraft(version);
+        RefBookVersion version = findOrThrow(versionId);
+        //validateDraft(version); // DEBUG: for NNOP-184
 
         Draft draft = draftService.create(version.getRefBookId(), fileModel);
         return new UiDraft(draft, version.getRefBookId());
@@ -276,28 +275,32 @@ public class CreateDraftController {
 
     public UiDraft uploadData(Integer versionId, Integer optLockValue, FileModel fileModel) {
 
-        RefBookVersion version = versionService.getById(versionId);
-        validateDraft(version);
+        final UiDraft uiDraft = getOrCreateDraft(versionId);
 
-        if (version.hasEmptyStructure())
-            throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, versionId));
+        if (!uiDraft.isVersionDraft(versionId)) {
+            optLockValue = uiDraft.getOptLockValue();
+        }
 
         UpdateFromFileRequest request = new UpdateFromFileRequest(optLockValue, fileModel);
-        draftService.updateFromFile(versionId, request);
+        draftService.updateFromFile(uiDraft.getId(), request);
 
-        return new UiDraft(version);
+        return uiDraft;
     }
 
     /** Получение черновика или создание на основе текущей версии. */
     private UiDraft getOrCreateDraft(Integer versionId) {
 
-        final RefBookVersion version = versionService.getById(versionId);
+        final RefBookVersion version = findOrThrow(versionId);
         return getStrategy(version, FindOrCreateDraftStrategy.class).findOrCreate(version);
     }
 
-    private void validateDraft(RefBookVersion version) {
+    private RefBookVersion findOrThrow(Integer versionId) {
 
-        getStrategy(version, ValidateIsDraftStrategy.class).validate(version);
+        RefBookVersion version = versionService.getById(versionId);
+        if (version == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
+
+        return version;
     }
 
     /** Операция-заглушка. */

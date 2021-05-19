@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.DraftServiceImpl;
@@ -30,29 +30,30 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nDraftServiceImpl extends DraftServiceImpl {
 
-    private L10nStorageCodeService storageCodeService;
+    private final L10nStorageCodeService storageCodeService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public L10nDraftServiceImpl(L10nStorageCodeService storageCodeService,
-                                RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+                                RefBookVersionRepository versionRepository,
+                                RefBookConflictRepository conflictRepository,
                                 DraftDataService draftDataService, DropDataService dropDataService,
                                 SearchDataService searchDataService,
                                 RefBookLockService refBookLockService, VersionService versionService,
-                                FileStorage fileStorage,
                                 VersionValidation versionValidation,
                                 PassportValueRepository passportValueRepository,
                                 AttributeValidationRepository attributeValidationRepository,
                                 StructureChangeValidator structureChangeValidator,
+                                VersionFileService versionFileService,
                                 AuditLogService auditLogService,
                                 StrategyLocator strategyLocator) {
 
         super(versionRepository, conflictRepository,
                 draftDataService, dropDataService, searchDataService,
                 refBookLockService, versionService,
-                fileStorage,
                 versionValidation,
                 passportValueRepository, attributeValidationRepository, structureChangeValidator,
+                versionFileService,
                 auditLogService,
                 strategyLocator);
 

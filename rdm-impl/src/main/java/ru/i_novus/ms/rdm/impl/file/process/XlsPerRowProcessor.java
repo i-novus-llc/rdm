@@ -5,7 +5,8 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.i_novus.ms.rdm.impl.util.mappers.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 
 import java.io.IOException;
 import java.io.InputStream;

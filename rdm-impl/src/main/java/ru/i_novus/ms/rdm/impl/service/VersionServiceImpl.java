@@ -19,15 +19,13 @@ import ru.i_novus.ms.rdm.api.model.refdata.RowValuePage;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.strategy.Strategy;
-import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -66,23 +64,23 @@ public class VersionServiceImpl implements VersionService {
 
     private final SearchDataService searchDataService;
 
-    private final AuditLogService auditLogService;
+    private final VersionFileService versionFileService;
 
-    private final StrategyLocator strategyLocator;
+    private final AuditLogService auditLogService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public VersionServiceImpl(RefBookVersionRepository versionRepository,
                               SearchDataService searchDataService,
-                              AuditLogService auditLogService,
-                              StrategyLocator strategyLocator) {
+                              VersionFileService versionFileService,
+                              AuditLogService auditLogService) {
         this.versionRepository = versionRepository;
 
         this.searchDataService = searchDataService;
 
-        this.auditLogService = auditLogService;
+        this.versionFileService = versionFileService;
 
-        this.strategyLocator = strategyLocator;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -262,19 +260,12 @@ public class VersionServiceImpl implements VersionService {
     @Transactional
     public ExportFile getVersionFile(Integer versionId, FileType fileType) {
 
-        if (fileType == null)
-            return null;
+        if (fileType == null) return null;
 
         RefBookVersionEntity entity = findOrThrow(versionId);
+
         RefBookVersion version = ModelGenerator.versionModel(entity);
-
-        String filePath = getStrategy(entity, FindVersionFileStrategy.class).find(versionId, fileType);
-        if (filePath == null) {
-            filePath = getStrategy(entity, CreateVersionFileStrategy.class).create(version, fileType, this);
-            getStrategy(entity, SaveVersionFileStrategy.class).save(version, fileType, filePath);
-        }
-
-        ExportFile exportFile = getStrategy(entity, ExportVersionFileStrategy.class).export(version, fileType, filePath);
+        ExportFile exportFile = versionFileService.getFile(version, fileType, this);
 
         auditLogService.addAction(AuditAction.DOWNLOAD, () -> entity);
 
@@ -288,11 +279,6 @@ public class VersionServiceImpl implements VersionService {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, id));
 
         return entity;
-    }
-
-    private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
-
-        return strategyLocator.getStrategy(entity != null ? entity.getRefBook().getType() : null, strategy);
     }
 
     /**
@@ -317,6 +303,7 @@ public class VersionServiceImpl implements VersionService {
      */
     @SuppressWarnings("UnusedParameter")
     protected String toStorageCode(RefBookVersionEntity version, SearchDataCriteria criteria) {
+
         return version.getStorageCode();
     }
 }

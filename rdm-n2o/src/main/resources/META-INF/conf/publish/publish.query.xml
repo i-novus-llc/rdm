@@ -5,6 +5,7 @@
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
               method="getDraft">
             <spring/>
+
             <arguments>
                 <argument type="primitive" name="versionId" class="java.lang.Integer"/>
                 <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
@@ -32,14 +33,7 @@
         </field>
 
         <field id="version.version" domain="string">
-            <select mapping="
-                (archived ? 'В архиве: ' : '') +
-                (status?.toString()!='DRAFT' ?
-                 version :
-                 'Новая (изм. ' +
-                    editDate?.format(T(java.time.format.DateTimeFormatter).ofPattern('dd.MM.yyyy')) +
-                    ')')
-                "/>
+            <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
         </field>
 
         <field id="version.optLockValue" domain="integer">

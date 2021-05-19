@@ -12,5 +12,16 @@
             <file-upload id="file" label="Файл с данными (xml, xlsx)" upload-url="/files" label-field-id="name"/>
         </fields>
 
+        <toolbar place="bottomRight">
+            <button id="uploadData" label="Загрузить данные" color="primary">
+                <invoke operation-id="uploadData" close-after-success="true"/>
+            </button>
+
+            <button id="close" label="Закрыть">
+                <invoke operation-id="noOperation" close-after-success="true" message-on-success="false"/>
+            </button>
+
+        </toolbar>
+
     </form>
 </simple-page>

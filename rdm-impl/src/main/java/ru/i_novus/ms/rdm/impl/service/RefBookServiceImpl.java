@@ -10,7 +10,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.enumeration.*;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -384,8 +386,13 @@ public class RefBookServiceImpl implements RefBookService {
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
         model.setStatus(entity.getStatus());
+
+        if (entity.getRefBookOperation() != null) {
+            model.setCurrentOperation(entity.getRefBookOperation().getOperation());
+        }
+
+        // to-do: Получать в refBookModelData (?).
         model.setRemovable(isRefBookRemovable(entity.getRefBook().getId()));
-        model.setCategory(entity.getRefBook().getCategory());
 
         if (draftVersion != null) {
             model.setDraftVersionId(draftVersion.getId());
@@ -413,10 +420,6 @@ public class RefBookServiceImpl implements RefBookService {
         model.setHasAlteredConflict(refBookModelData.getHasAlteredConflict());
         model.setHasStructureConflict(refBookModelData.getHasStructureConflict());
         model.setLastHasConflict(refBookModelData.getLastHasConflict());
-
-        // Use refBookModelData to get RefBookOperation instead of:
-        model.setUpdating(entity.isOperation(RefBookOperation.UPDATING));
-        model.setPublishing(entity.isOperation(RefBookOperation.PUBLISHING));
 
         return model;
     }

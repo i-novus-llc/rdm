@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.impl.entity;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -178,16 +177,6 @@ public class RefBookVersionEntity implements Serializable {
     public void setPassportValues(List<PassportValueEntity> passportValues) {
         passportValues.forEach(v -> v.setVersion(this));
         this.passportValues = passportValues;
-    }
-
-    /**
-     * Проверка на операцию, выполняемую над справочником.
-     *
-     * @param operation операция
-     * @return Результат проверки
-     */
-    public boolean isOperation(RefBookOperation operation) {
-        return refBookOperation != null && operation.equals(refBookOperation.getOperation());
     }
 
     /**

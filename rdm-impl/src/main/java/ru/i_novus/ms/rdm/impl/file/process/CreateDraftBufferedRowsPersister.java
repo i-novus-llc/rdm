@@ -3,52 +3,58 @@ package ru.i_novus.ms.rdm.impl.file.process;
 import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
 public class CreateDraftBufferedRowsPersister implements RowsProcessor {
 
-    private BufferedRowsPersister bufferedRowsPersister;
+    private final DraftDataService draftDataService;
 
-    private DraftDataService draftDataService;
+    private final Function<Structure, String> newDraftStorage;
 
-    private boolean isFirstRowAppended;
+    private final BiConsumer<String, Structure> saveDraftConsumer;
+
+    private final Set<String> allKeys = new LinkedHashSet<>();
 
     private int bufferSize = 100;
 
-    private BiConsumer<String, Structure> saveDraftConsumer;
+    private boolean isFirstRowAppended;
 
-    private String storageCode;
     private Structure structure = null;
-    private Set<String> allKeys = new LinkedHashSet<>();
+
+    private String draftCode;
+
+    private BufferedRowsPersister bufferedRowsPersister;
 
     public CreateDraftBufferedRowsPersister(DraftDataService draftDataService,
+                                            Function<Structure, String> newDraftStorage,
                                             BiConsumer<String, Structure> saveDraftConsumer) {
         this.draftDataService = draftDataService;
+        this.newDraftStorage = newDraftStorage;
         this.saveDraftConsumer = saveDraftConsumer;
     }
 
-    public CreateDraftBufferedRowsPersister(DraftDataService draftDataService, int bufferSize,
-                                            BiConsumer<String, Structure> saveDraftConsumer) {
-        this.draftDataService = draftDataService;
+    public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
-        this.saveDraftConsumer = saveDraftConsumer;
     }
 
     @Override
     public Result append(Row row) {
+
         if (!isFirstRowAppended) {
             allKeys.addAll(row.getData().keySet());
             structure = stringStructure(allKeys);
-            storageCode = draftDataService.createDraft(ConverterUtil.fields(structure));
-            this.bufferedRowsPersister = new BufferedRowsPersister(bufferSize, draftDataService, storageCode, structure);
+            draftCode = newDraftStorage.apply(structure);
+
+            this.bufferedRowsPersister = new BufferedRowsPersister(draftDataService, draftCode, structure, bufferSize);
+
             isFirstRowAppended = true;
 
         } else {
@@ -79,13 +85,14 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     }
 
     private Structure.Attribute stringAttribute(String attrCode) {
+
         return Structure.Attribute.build(attrCode, attrCode, FieldType.STRING, attrCode);
     }
 
     private void addAttribute(String columnName) {
 
         Structure.Attribute attribute = stringAttribute(columnName);
-        draftDataService.addField(storageCode, field(attribute));
+        draftDataService.addField(draftCode, ConverterUtil.field(attribute));
         structure.getAttributes().add(attribute);
     }
 
@@ -93,7 +100,7 @@ public class CreateDraftBufferedRowsPersister implements RowsProcessor {
     public Result process() {
 
         Result result = bufferedRowsPersister != null ? bufferedRowsPersister.process() : null;
-        saveDraftConsumer.accept(storageCode, structure);
+        saveDraftConsumer.accept(draftCode, structure);
 
         return result;
     }

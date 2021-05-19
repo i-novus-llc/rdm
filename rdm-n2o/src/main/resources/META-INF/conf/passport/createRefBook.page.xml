@@ -7,6 +7,7 @@
                 <input-select id="type" label="Тип"
                               query-id="refBookTypeList" label-field-id="name" search="false"/>
             </row>
+
             <input-text id="name" label="Наименование" required="true"/>
             <input-text id="shortName" label="Краткое наименование"/>
             <input-select id="category" label="Категория"

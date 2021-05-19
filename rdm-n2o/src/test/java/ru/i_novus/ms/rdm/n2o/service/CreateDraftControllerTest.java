@@ -30,7 +30,8 @@ import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 import ru.i_novus.ms.rdm.n2o.strategy.BaseUiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
-import ru.i_novus.ms.rdm.n2o.strategy.draft.*;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -83,8 +84,6 @@ public class CreateDraftControllerTest extends BaseTest {
 
     @Mock
     private DefaultFindOrCreateDraftStrategy defaultFindOrCreateDraftStrategy;
-    @Mock
-    private DefaultValidateIsDraftStrategy defaultValidateIsDraftStrategy;
 
     @Before
     @SuppressWarnings("java:S2696")
@@ -544,9 +543,12 @@ public class CreateDraftControllerTest extends BaseTest {
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
+        UiDraft uiDraft = new UiDraft(version);
+        when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
+
         FileModel fileModel = new FileModel("path", "name");
         UiDraft actual = controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
-        assertEquals(new UiDraft(version), actual);
+        assertEquals(uiDraft, actual);
 
         ArgumentCaptor<UpdateFromFileRequest> captor = ArgumentCaptor.forClass(UpdateFromFileRequest.class);
         verify(draftService, times(1))
@@ -556,25 +558,6 @@ public class CreateDraftControllerTest extends BaseTest {
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_OPT_LOCK_VALUE), request.getOptLockValue());
         assertEquals(fileModel, request.getFileModel());
-    }
-
-    @Test
-    public void testUploadDataWhenEmptyStructure() {
-
-        RefBookVersion version = createVersion();
-        version.setStructure(new Structure());
-        version.setStatus(RefBookVersionStatus.DRAFT);
-        when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
-
-        FileModel fileModel = new FileModel("path", "name");
-        try {
-            controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
-            fail("Upload data to draft with empty structure");
-
-        } catch (Exception e) {
-            assertEquals(UserException.class, e.getClass());
-            assertEquals("version.has.not.structure", e.getMessage());
-        }
     }
 
     private RefBookVersion createVersion() {
@@ -688,7 +671,6 @@ public class CreateDraftControllerTest extends BaseTest {
 
         Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
-        result.put(ValidateIsDraftStrategy.class, defaultValidateIsDraftStrategy);
 
         return result;
     }

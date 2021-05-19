@@ -175,10 +175,8 @@
                         </button>
 
                         <button id="uploadData_r" label="Загрузить данные"
-                                widget-id="version_select" model="resolve"
-                                visible="{version.status=='DRAFT'}">
-                            <show-modal page-id="uploadData" upload="defaults"
-                                        submit-operation-id="uploadData" refresh-widget-id="version_select">
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="uploadData" upload="defaults" refresh-widget-id="version_select">
                                 <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </button>

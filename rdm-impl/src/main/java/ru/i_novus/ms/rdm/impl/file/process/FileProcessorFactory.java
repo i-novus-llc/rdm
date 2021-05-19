@@ -1,7 +1,8 @@
 package ru.i_novus.ms.rdm.impl.file.process;
 
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
-import ru.i_novus.ms.rdm.impl.util.mappers.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowMapper;
+import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 
 public class FileProcessorFactory {
 

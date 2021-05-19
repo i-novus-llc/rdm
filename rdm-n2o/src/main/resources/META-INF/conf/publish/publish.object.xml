@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Публикация справочника">
+<object xmlns="http://n2oapp.net/framework/config/schema/object-4.0"
+        name="Публикация справочника">
 
     <operations>
         <operation id="publishDraft" submit-label="Опубликовать" confirm="false">
@@ -15,14 +16,14 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="version.optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="version.id" mapping="[0]" domain="integer"/>
+                <field id="version.optLockValue" mapping="[1]" domain="integer"/>
+            </in>
 
-            <out-parameters>
-                <param id="opId" mapping="toString()" default-value="123" domain="string"/>
-            </out-parameters>
+            <out>
+                <field id="opId" mapping="toString()" default-value="123" domain="string"/>
+            </out>
         </operation>
 
         <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки" confirm="false">
@@ -38,14 +39,14 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="version.optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="version.id" mapping="[0]" domain="integer"/>
+                <field id="version.optLockValue" mapping="[1]" domain="integer"/>
+            </in>
 
-            <out-parameters>
-                <param id="opId" mapping="toString()" domain="string"/>
-            </out-parameters>
+            <out>
+                <field id="opId" mapping="toString()" domain="string"/>
+            </out>
         </operation>
     </operations>
 

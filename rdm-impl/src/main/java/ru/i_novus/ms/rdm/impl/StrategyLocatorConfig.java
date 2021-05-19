@@ -7,9 +7,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.DefaultValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.UnversionedValidateDraftExistsStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
@@ -22,6 +20,9 @@ import java.util.Map;
 @Configuration
 public class StrategyLocatorConfig {
 
+    /* Default Strategies: */
+
+    // RefBook:
     @Autowired
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
@@ -34,6 +35,7 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
 
+    // Version + Draft:
     @Autowired
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
 
@@ -41,31 +43,49 @@ public class StrategyLocatorConfig {
     private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
 
     @Autowired
-    private DefaultFindVersionFileStrategy defaultFindVersionFileStrategy;
+    private DefaultFindDraftEntityStrategy defaultFindDraftEntityStrategy;
 
     @Autowired
-    private DefaultCreateVersionFileStrategy defaultCreateVersionFileStrategy;
+    private DefaultCreateDraftEntityStrategy defaultCreateDraftEntityStrategy;
 
     @Autowired
-    private DefaultSaveVersionFileStrategy defaultSaveVersionFileStrategy;
+    private DefaultCreateDraftStorageStrategy defaultCreateDraftStorageStrategy;
+
+    // File:
+    @Autowired
+    private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
 
     @Autowired
-    private DefaultExportVersionFileStrategy defaultExportVersionFileStrategy;
+    private DefaultGenerateFileNameStrategy defaultGenerateFileNameStrategy;
 
-    @Autowired
-    private DefaultExportDraftFileStrategy defaultExportDraftFileStrategy;
+    /* Unversioned Strategies: */
 
+    // RefBook:
     @Autowired
     private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
 
     @Autowired
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
+    // Version + Draft:
     @Autowired
     private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
 
     @Autowired
-    private UnversionedSaveVersionFileStrategy unversionedSaveVersionFileStrategy;
+    private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
+
+    @Autowired
+    private UnversionedCreateDraftEntityStrategy unversionedCreateDraftEntityStrategy;
+
+    @Autowired
+    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+
+    // File:
+    @Autowired
+    private UnversionedAllowStoreVersionFileStrategy unversionedAllowStoreVersionFileStrategy;
+
+    @Autowired
+    private UnversionedGenerateFileNameStrategy unversionedGenerateFileNameStrategy;
 
     @Bean
     @SuppressWarnings("unused")
@@ -93,12 +113,12 @@ public class StrategyLocatorConfig {
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
+        result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
+        result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
         // File:
-        result.put(FindVersionFileStrategy.class, defaultFindVersionFileStrategy);
-        result.put(CreateVersionFileStrategy.class, defaultCreateVersionFileStrategy);
-        result.put(SaveVersionFileStrategy.class, defaultSaveVersionFileStrategy);
-        result.put(ExportVersionFileStrategy.class, defaultExportVersionFileStrategy);
-        result.put(ExportDraftFileStrategy.class, defaultExportDraftFileStrategy);
+        result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
+        result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
 
         return result;
     }
@@ -111,8 +131,12 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
         // Version + Draft:
         result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
+        result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
+        result.put(CreateDraftEntityStrategy.class, unversionedCreateDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
-        result.put(SaveVersionFileStrategy.class, unversionedSaveVersionFileStrategy);
+        result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
+        result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
 
         return result;
     }
