@@ -9,28 +9,29 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
-import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.process.RowsValidator;
-import ru.i_novus.ms.rdm.impl.file.process.RowsValidatorImpl;
 import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.file.process.RowsValidator;
+import ru.i_novus.ms.rdm.impl.file.process.RowsValidatorImpl;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.LinkedHashMap;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.impl.file.BufferedRowsPersisterTest.createTestStructure;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -56,9 +57,12 @@ public class RowsValidatorTest {
 
     @Before
     public void setUp() {
-        rowsValidator = new RowsValidatorImpl(2, versionService, searchDataService,
+
+        rowsValidator = new RowsValidatorImpl(2,
+                versionService, searchDataService,
                 createTestStructureWithReference(), "",
-                100, false, emptyList());
+                100, false, emptyList()
+        );
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERRED_VERSION);

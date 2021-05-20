@@ -7,15 +7,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -90,6 +90,7 @@ public class ReferenceValueValidationTest {
 
     @Test
     public void testValidate() {
+
         RefBookVersionEntity referredEntity = new RefBookVersionEntity();
         referredEntity.setId(VERSION_ID);
         referredEntity.setStructure(referredStructure);
@@ -98,7 +99,9 @@ public class ReferenceValueValidationTest {
         when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE)))
                 .thenReturn(ModelGenerator.versionModel(referredEntity));
 
-        ReferenceValueValidation referenceValueValidation = new ReferenceValueValidation(versionService, structure, referenceRow, singleton(REF_ATTRIBUTE_CODE2));
+        ReferenceValueValidation referenceValueValidation = new ReferenceValueValidation(
+                versionService, structure, referenceRow, singleton(REF_ATTRIBUTE_CODE2)
+        );
         referenceValueValidation.appendRow(referenceRow);
         List<Message> messages = referenceValueValidation.validate();
         Assert.assertEquals(2, messages.size());

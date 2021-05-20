@@ -47,10 +47,11 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private final List<Structure.Reference> referenceKeys;
     private final List<String> referenceKeyCodes;
 
-    private List<Map<Structure.Reference, String>> referenceKeyMaps;
-    private Map<String, List<RefBookRowValue>> referenceSearchValuesMap;
+    private final List<Map<Structure.Reference, String>> referenceKeyMaps;
+    private final Map<String, List<RefBookRowValue>> referenceSearchValuesMap;
 
     public ReferenceValueValidation(VersionService versionService, Structure structure, List<Row> rows) {
+
         this.versionService = versionService;
 
         this.structure = structure;
@@ -177,6 +178,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
                 .collect(toSet());
     }
 
+    /** Получение последней опубликованной версии справочника, на который ссылаются. */
     private RefBookVersion getReferredVersion(Structure.Reference reference) {
         try {
             return versionService.getLastPublishedVersion(reference.getReferenceCode());

@@ -25,19 +25,19 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private Result result = new Result(0, 0, null);
 
-    private VersionService versionService;
+    private final VersionService versionService;
 
-    private SearchDataService searchDataService;
+    private final SearchDataService searchDataService;
 
-    private Structure structure;
+    private final Structure structure;
 
-    private String storageCode;
+    private final String storageCode;
 
-    private boolean skipReferenceValidation;
+    private final boolean skipReferenceValidation;
 
-    private PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
+    private final PkUniqueRowAppendValidation pkUniqueRowAppendValidation;
 
-    private AttributeCustomValidation attributeCustomValidation;
+    private final AttributeCustomValidation attributeCustomValidation;
 
     private boolean structureVerified;
     private final Set<String> structFields;
@@ -124,7 +124,9 @@ public class RowsValidatorImpl implements RowsValidator {
         }
 
         DBPrimaryKeyValidation dbPrimaryKeyValidation = new DBPrimaryKeyValidation(searchDataService, storageCode, structure, buffer);
-        ReferenceValueValidation referenceValueValidation = skipReferenceValidation ? null : new ReferenceValueValidation(versionService, structure, buffer);
+        ReferenceValueValidation referenceValueValidation = skipReferenceValidation
+                ? null
+                : new ReferenceValueValidation(versionService, structure, buffer);
 
         buffer.forEach(row -> {
             List<Message> errors = new ArrayList<>();
