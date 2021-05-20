@@ -5,8 +5,10 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @ApiModel("Справочник")
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -61,24 +63,24 @@ public class RefBook extends RefBookVersion {
     public RefBook(RefBook refBook) {
         super(refBook);
 
-        this.currentOperation = refBook.getCurrentOperation();
-        this.removable = refBook.getRemovable();
+        this.currentOperation = refBook.currentOperation;
+        this.removable = refBook.removable;
 
-        this.draftVersionId = refBook.getDraftVersionId();
-        this.lastPublishedVersionId = refBook.getLastPublishedVersionId();
-        this.lastPublishedVersion = refBook.getLastPublishedVersion();
-        this.lastPublishedVersionFromDate = refBook.getLastPublishedVersionFromDate();
+        this.draftVersionId = refBook.draftVersionId;
+        this.lastPublishedVersionId = refBook.lastPublishedVersionId;
+        this.lastPublishedVersion = refBook.lastPublishedVersion;
+        this.lastPublishedVersionFromDate = refBook.lastPublishedVersionFromDate;
 
-        this.hasPrimaryAttribute = refBook.getHasPrimaryAttribute();
-        this.hasReferrer = refBook.getHasReferrer();
+        this.hasPrimaryAttribute = refBook.hasPrimaryAttribute;
+        this.hasReferrer = refBook.hasReferrer;
 
-        this.hasDataConflict = refBook.getHasDataConflict();
+        this.hasDataConflict = refBook.hasDataConflict;
 
-        this.hasUpdatedConflict = refBook.getHasUpdatedConflict();
-        this.hasAlteredConflict = refBook.getHasAlteredConflict();
-        this.hasStructureConflict = refBook.getHasStructureConflict();
+        this.hasUpdatedConflict = refBook.hasUpdatedConflict;
+        this.hasAlteredConflict = refBook.hasAlteredConflict;
+        this.hasStructureConflict = refBook.hasStructureConflict;
 
-        this.lastHasConflict = refBook.getLastHasConflict();
+        this.lastHasConflict = refBook.lastHasConflict;
     }
 
     public RefBookOperation getCurrentOperation() {
@@ -183,5 +185,43 @@ public class RefBook extends RefBookVersion {
 
     public void setLastHasConflict(Boolean lastHasConflict) {
         this.lastHasConflict = lastHasConflict;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RefBook that = (RefBook) o;
+        return Objects.equals(currentOperation, that.currentOperation) &&
+                Objects.equals(removable, that.removable) &&
+                Objects.equals(draftVersionId, that.draftVersionId) &&
+                Objects.equals(lastPublishedVersionId, that.lastPublishedVersionId) &&
+                Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
+                Objects.equals(lastPublishedVersionFromDate, that.lastPublishedVersionFromDate) &&
+                Objects.equals(hasPrimaryAttribute, that.hasPrimaryAttribute) &&
+                Objects.equals(hasReferrer, that.hasReferrer) &&
+                Objects.equals(hasDataConflict, that.hasDataConflict) &&
+                Objects.equals(hasUpdatedConflict, that.hasUpdatedConflict) &&
+                Objects.equals(hasAlteredConflict, that.hasAlteredConflict) &&
+                Objects.equals(hasStructureConflict, that.hasStructureConflict) &&
+                Objects.equals(lastHasConflict, that.lastHasConflict);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currentOperation, removable,
+                draftVersionId, lastPublishedVersionId,
+                lastPublishedVersion, lastPublishedVersionFromDate,
+                hasPrimaryAttribute, hasReferrer,
+                hasDataConflict,
+                hasUpdatedConflict, hasAlteredConflict, hasStructureConflict,
+                lastHasConflict);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }

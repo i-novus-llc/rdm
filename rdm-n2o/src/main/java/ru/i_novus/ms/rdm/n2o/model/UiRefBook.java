@@ -1,6 +1,9 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+
+import java.util.Objects;
 
 /**
  * Информация о справочнике для UI.
@@ -51,5 +54,27 @@ public class UiRefBook extends RefBook {
 
     public void setDisplayOperation(String displayOperation) {
         this.displayOperation = displayOperation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        UiRefBook that = (UiRefBook) o;
+        return Objects.equals(displayNumber, that.displayNumber) &&
+                Objects.equals(displayStatus, that.displayStatus) &&
+                Objects.equals(displayOperation, that.displayOperation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), displayNumber, displayStatus, displayOperation);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }
