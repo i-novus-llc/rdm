@@ -277,13 +277,16 @@ public class BasePublishServiceTest {
     private RefBookVersionEntity createVersionEntity(Integer refBookId, Integer versionId, RefBookVersionStatus status,
                                                      LocalDateTime fromDate, LocalDateTime toDate) {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        RefBookEntity refBookEntity = new RefBookEntity();
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setId(refBookId);
         versionEntity.setRefBook(refBookEntity);
+
         versionEntity.setId(versionId);
         versionEntity.setStatus(status);
         versionEntity.setFromDate(fromDate);
         versionEntity.setToDate(toDate);
+
         return versionEntity;
     }
 
@@ -330,10 +333,12 @@ public class BasePublishServiceTest {
     }
 
     private RefBookEntity createTestRefBook() {
-        RefBookEntity testRefBook = new RefBookEntity();
-        testRefBook.setId(REFBOOK_ID);
-        testRefBook.setCode(TEST_REF_BOOK);
-        return testRefBook;
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setId(REFBOOK_ID);
+        refBookEntity.setCode(TEST_REF_BOOK);
+
+        return refBookEntity;
     }
 
     private void publish(Integer draftId, String versionName,

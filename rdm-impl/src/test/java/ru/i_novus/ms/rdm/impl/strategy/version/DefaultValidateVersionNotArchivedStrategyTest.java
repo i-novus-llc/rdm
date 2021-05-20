@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
@@ -48,7 +49,7 @@ public class DefaultValidateVersionNotArchivedStrategyTest {
 
     private RefBookVersionEntity createVersionEntity() {
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setRefBook(refBookEntity);

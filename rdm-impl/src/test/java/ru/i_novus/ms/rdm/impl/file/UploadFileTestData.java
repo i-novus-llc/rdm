@@ -2,18 +2,17 @@ package ru.i_novus.ms.rdm.impl.file;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
-import ru.i_novus.ms.rdm.impl.entity.PassportAttributeEntity;
-import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.api.model.Structure;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -54,7 +53,7 @@ public class UploadFileTestData {
     }
 
     public static RefBookEntity createReferenceBook() {
-        RefBookEntity referenceBook = new RefBookEntity();
+        RefBookEntity referenceBook = new DefaultRefBookEntity();
         referenceBook.setId(UploadFileTestData.REFERENCE_ENTITY_BOOK_ID);
 
         return referenceBook;

@@ -63,7 +63,7 @@ public class RowsValidatorTest {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERRED_VERSION);
         versionEntity.setStructure(createTestStructure());
-        versionEntity.setRefBook(new RefBookEntity());
+        versionEntity.setRefBook(new DefaultRefBookEntity());
         when(versionService.getLastPublishedVersion(eq(REFERRED_CODE)))
                 .thenReturn(ModelGenerator.versionModel(versionEntity));
 
@@ -107,12 +107,12 @@ public class RowsValidatorTest {
 
     /**
      * Проверка если у значения атритбута недопустимый тип, то остальные проверки игнорируются
-     * @throws Exception
+     * @ throws Exception
      */
-    @Test
-    public void testIgnoreAttributeIfIsHasInvalidType() {
-        //todo
-    }
+    //@Test
+    //public void testIgnoreAttributeIfIsHasInvalidType() {
+    //    // to-do
+    //}
 
     private Row createTestRowWithReference() {
         return new Row(new LinkedHashMap<>() {{

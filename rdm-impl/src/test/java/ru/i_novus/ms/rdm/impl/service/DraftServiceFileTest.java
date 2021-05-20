@@ -349,7 +349,7 @@ public class DraftServiceFileTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new RefBookEntity();
+        RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REF_BOOK_CODE);
 

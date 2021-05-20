@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -166,7 +167,7 @@ public class ArchiveValidationTest {
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(versionId);
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
 
         return entity;
@@ -178,7 +179,7 @@ public class ArchiveValidationTest {
         entity.setId(draftId);
         entity.setStatus(RefBookVersionStatus.DRAFT);
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
 
         return entity;

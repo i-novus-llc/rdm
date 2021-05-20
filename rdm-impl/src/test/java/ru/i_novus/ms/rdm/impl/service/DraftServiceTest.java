@@ -314,7 +314,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -416,7 +416,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -434,7 +434,7 @@ public class DraftServiceTest {
         Structure structure = versionService.getStructure(draftId);
 
         // Изменение ссылочного атрибута
-        RefBookEntity referredBook2 = new RefBookEntity();
+        RefBookEntity referredBook2 = new DefaultRefBookEntity();
         referredBook2.setCode("REF_802");
         RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
         referredEntity2.setRefBook(referredBook2);
@@ -527,7 +527,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -807,7 +807,7 @@ public class DraftServiceTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new RefBookEntity();
+        RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REF_BOOK_CODE);
 

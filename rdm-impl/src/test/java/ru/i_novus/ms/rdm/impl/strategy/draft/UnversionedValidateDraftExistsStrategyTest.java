@@ -9,6 +9,7 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.UnversionedRefBookEntity;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -57,7 +58,7 @@ public class UnversionedValidateDraftExistsStrategyTest {
 
     private RefBookVersionEntity createVersionEntity() {
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new UnversionedRefBookEntity();
         refBookEntity.setType(RefBookTypeEnum.UNVERSIONED);
 
         RefBookVersionEntity entity = new RefBookVersionEntity();

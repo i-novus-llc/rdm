@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -40,7 +41,7 @@ public class DefaultFindDraftEntityStrategyTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setId(REFBOOK_ID);
 
         return refBookEntity;

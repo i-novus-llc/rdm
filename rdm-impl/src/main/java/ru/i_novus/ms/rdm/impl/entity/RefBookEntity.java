@@ -12,7 +12,7 @@ import java.util.Objects;
 @Table(name = "ref_book", schema = "n2o_rdm_management")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-public class RefBookEntity implements Serializable {
+public abstract class RefBookEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -94,9 +94,7 @@ public class RefBookEntity implements Serializable {
         this.versionList = versionList;
     }
 
-    public RefBookVersionEntity createChangeableVersion() {
-        return null;
-    }
+    public abstract RefBookVersionEntity createChangeableVersion();
 
     @Override
     @SuppressWarnings("squid:S1067")

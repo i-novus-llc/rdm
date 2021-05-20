@@ -18,17 +18,16 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.ExistsData;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -256,25 +255,10 @@ public class VersionServiceTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new RefBookEntity();
+        RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REF_BOOK_CODE);
 
         return entity;
-    }
-
-    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
-
-        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
-        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
-
-        return result;
-    }
-
-    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
-
-        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
-
-        return result;
     }
 }
