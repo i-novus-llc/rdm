@@ -6,6 +6,4 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 public interface ValidateDraftExistsStrategy extends Strategy {
 
     void validate(RefBookVersionEntity entity, Integer id);
-
-    boolean isDraft(RefBookVersionEntity entity);
 }

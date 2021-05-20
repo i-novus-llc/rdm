@@ -382,7 +382,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
-        if (getStrategy(versionEntity, ValidateDraftExistsStrategy.class).isDraft(versionEntity))
+        if (versionEntity.isChangeable())
             return new Draft(versionEntity.getId(), versionEntity.getStorageCode(), versionEntity.getOptLockValue());
 
         Map<String, Object> passport = new HashMap<>();
@@ -418,7 +418,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity publishedEntity = versionRepository
                 .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
 
-        RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
+        RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
                 ? publishedEntity
                 : versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
 

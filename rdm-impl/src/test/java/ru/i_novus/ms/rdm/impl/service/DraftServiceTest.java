@@ -244,12 +244,10 @@ public class DraftServiceTest {
         // .createFromVersion
         RefBookVersionEntity versionEntity = createPublishedEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
-        when(validateDraftExistsStrategy.isDraft(versionEntity)).thenReturn(false);
         when(attributeValidationRepository.findAllByVersionId(versionEntity.getId())).thenReturn(emptyList());
 
         // .create
         RefBookEntity refBookEntity = versionEntity.getRefBook();
-
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookEntity.getId(), RefBookVersionStatus.PUBLISHED))
                 .thenReturn(versionEntity);
 
@@ -273,9 +271,8 @@ public class DraftServiceTest {
     @Test
     public void testCreateFromVersionWhenDraft() {
 
-        RefBookVersionEntity versionEntity = createPublishedEntity();
+        RefBookVersionEntity versionEntity = createDraftEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
-        when(validateDraftExistsStrategy.isDraft(versionEntity)).thenReturn(true);
 
         Draft draft = draftService.createFromVersion(versionEntity.getId());
         assertNotNull(draft);

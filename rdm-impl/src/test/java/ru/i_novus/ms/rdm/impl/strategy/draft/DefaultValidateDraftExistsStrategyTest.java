@@ -6,7 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.UnversionedRefBookEntity;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -31,11 +33,9 @@ public class DefaultValidateDraftExistsStrategyTest {
     }
 
     @Test
-    public void testValidateDraft() {
+    public void testValidateDraftWhenDefault() {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setStatus(RefBookVersionStatus.DRAFT);
-
+        RefBookVersionEntity entity = new DefaultRefBookEntity().createChangeableVersion();
         try {
             strategy.validate(entity, entity.getId());
 
@@ -45,9 +45,10 @@ public class DefaultValidateDraftExistsStrategyTest {
     }
 
     @Test
-    public void testValidateVersion() {
+    public void testValidateVersionWhenDefault() {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setRefBook(new DefaultRefBookEntity());
         entity.setStatus(RefBookVersionStatus.PUBLISHED);
 
         try {
@@ -57,6 +58,18 @@ public class DefaultValidateDraftExistsStrategyTest {
         } catch (Exception e) {
             assertEquals(NotFoundException.class, e.getClass());
             assertEquals("draft.not.found", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testValidateDraftWhenUnversioned() {
+
+        RefBookVersionEntity entity = new UnversionedRefBookEntity().createChangeableVersion();
+        try {
+            strategy.validate(entity, entity.getId());
+
+        } catch (Exception e) {
+            fail("Unexpected exception throws");
         }
     }
 }

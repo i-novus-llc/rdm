@@ -69,9 +69,6 @@ public class StrategyLocatorConfig {
 
     // Version + Draft:
     @Autowired
-    private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
-
-    @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
 
     @Autowired
@@ -127,7 +124,6 @@ public class StrategyLocatorConfig {
         result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
         // Version + Draft:
-        result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
