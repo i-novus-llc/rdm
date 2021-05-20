@@ -109,15 +109,6 @@ public class RowsValidatorTest {
         }
     }
 
-    /**
-     * Проверка если у значения атритбута недопустимый тип, то остальные проверки игнорируются
-     * @ throws Exception
-     */
-    //@Test
-    //public void testIgnoreAttributeIfIsHasInvalidType() {
-    //    // to-do
-    //}
-
     private Row createTestRowWithReference() {
         return new Row(new LinkedHashMap<>() {{
             put(ATTRIBUTE_NAME, new Reference(ATTRIBUTE_VALUE, "display_" + ATTRIBUTE_VALUE));
