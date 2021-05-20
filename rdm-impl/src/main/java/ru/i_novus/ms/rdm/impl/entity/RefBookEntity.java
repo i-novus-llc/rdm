@@ -101,6 +101,8 @@ public abstract class RefBookEntity implements Serializable {
 
     public abstract RefBookVersionEntity createChangeableVersion();
 
+    public abstract boolean isChangeableVersion(RefBookVersionEntity version);
+
     @Override
     @SuppressWarnings("squid:S1067")
     public boolean equals(Object o) {

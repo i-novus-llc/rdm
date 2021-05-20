@@ -23,4 +23,11 @@ public class DefaultRefBookEntity extends RefBookEntity {
 
         return result;
     }
+
+    @Override
+    public boolean isChangeableVersion(RefBookVersionEntity version) {
+
+        return version != null &&
+                RefBookVersionStatus.DRAFT.equals(version.getStatus());
+    }
 }
