@@ -216,14 +216,26 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draftEntity.getStructure();
 
-        RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
-                structure, draftEntity.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftEntity.getId())
+        validateRows(fileModel, structure, draftEntity.getStorageCode(),
+                attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
+
+        persistRows(fileModel, structure, draftEntity.getStorageCode());
+    }
+
+    private void validateRows(FileModel fileModel, Structure structure, String storageCode,
+                              List<AttributeValidationEntity> attributeValidations) {
+
+        RowsProcessor rowsValidator = new RowsValidatorImpl(
+                versionService, searchDataService, structure, storageCode,
+                errorCountLimit, false, attributeValidations
         );
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         versionFileService.processRows(fileModel, rowsValidator, nonStrictOnTypeRowMapper);
+    }
 
-        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draftEntity.getStorageCode(), structure);
+    private void persistRows(FileModel fileModel, Structure structure, String storageCode) {
+
+        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, storageCode, structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
         versionFileService.processRows(fileModel, rowsPersister, structureRowMapper);
     }
@@ -624,9 +636,11 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmpty(rows)) return;
 
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+        RowsValidator validator = new RowsValidatorImpl(
+                versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftVersion.getId()));
+                attributeValidationRepository.findAllByVersionId(draftVersion.getId())
+        );
         rows.forEach(validator::append);
         validator.process();
     }
@@ -1061,7 +1075,8 @@ public class DraftServiceImpl implements DraftService {
                                      List<AttributeValidationEntity> validationEntities) {
 
         VersionDataIterator iterator = new VersionDataIterator(versionService, singletonList(versionEntity.getId()));
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+        RowsValidator validator = new RowsValidatorImpl(
+                versionService, searchDataService,
                 versionEntity.getStructure(), versionEntity.getStorageCode(),
                 errorCountLimit, skipReferenceValidation, validationEntities
         );
