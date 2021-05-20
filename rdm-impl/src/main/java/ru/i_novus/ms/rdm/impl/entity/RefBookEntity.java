@@ -58,7 +58,7 @@ public abstract class RefBookEntity implements Serializable {
         return type;
     }
 
-    public void setType(RefBookTypeEnum type) {
+    protected void setType(RefBookTypeEnum type) {
         this.type = type;
     }
 
