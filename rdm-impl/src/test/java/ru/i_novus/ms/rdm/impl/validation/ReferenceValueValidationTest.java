@@ -93,8 +93,8 @@ public class ReferenceValueValidationTest {
 
         RefBookVersionEntity referredEntity = new RefBookVersionEntity();
         referredEntity.setId(VERSION_ID);
-        referredEntity.setStructure(referredStructure);
         referredEntity.setRefBook(new DefaultRefBookEntity());
+        referredEntity.setStructure(referredStructure);
 
         when(versionService.getLastPublishedVersion(eq(REF_BOOK_CODE)))
                 .thenReturn(ModelGenerator.versionModel(referredEntity));

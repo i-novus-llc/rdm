@@ -44,15 +44,15 @@ public class ReferenceServiceImpl implements ReferenceService {
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
-    private RefBookConflictQueryProvider conflictQueryProvider;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
+    private final RefBookConflictQueryProvider conflictQueryProvider;
 
-    private DraftDataService draftDataService;
+    private final DraftDataService draftDataService;
 
-    private DraftService draftService;
+    private final DraftService draftService;
 
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
     @Autowired
     @SuppressWarnings("squid:S00107")

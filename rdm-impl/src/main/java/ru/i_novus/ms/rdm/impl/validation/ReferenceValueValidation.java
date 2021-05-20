@@ -34,6 +34,7 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 /**
  * Проверка конкретного строкового значения на ссылочную целостность.
  */
+@SuppressWarnings("java:S3740")
 public class ReferenceValueValidation extends AppendRowValidation {
 
     public static final String REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE = "validation.reference.value.not.found";

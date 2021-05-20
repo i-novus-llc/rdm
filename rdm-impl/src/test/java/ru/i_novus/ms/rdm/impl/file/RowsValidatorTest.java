@@ -66,8 +66,8 @@ public class RowsValidatorTest {
 
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(REFERRED_VERSION);
-        versionEntity.setStructure(createTestStructure());
         versionEntity.setRefBook(new DefaultRefBookEntity());
+        versionEntity.setStructure(createTestStructure());
         when(versionService.getLastPublishedVersion(eq(REFERRED_CODE)))
                 .thenReturn(ModelGenerator.versionModel(versionEntity));
 
