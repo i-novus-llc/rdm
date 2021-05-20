@@ -11,8 +11,7 @@ import javax.persistence.Entity;
 public class DefaultRefBookEntity extends RefBookEntity {
 
     public DefaultRefBookEntity() {
-
-        this.setType(RefBookTypeEnum.DEFAULT);
+        super(RefBookTypeEnum.DEFAULT);
     }
 
     @Override

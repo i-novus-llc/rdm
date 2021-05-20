@@ -38,6 +38,15 @@ public abstract class RefBookEntity implements Serializable {
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
     private List<RefBookVersionEntity> versionList = new ArrayList<>();
 
+    // Hibernate only.
+    protected RefBookEntity() {
+        // Nothing to do.
+    }
+
+    public RefBookEntity(RefBookTypeEnum type) {
+        this.type = type;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -56,10 +65,6 @@ public abstract class RefBookEntity implements Serializable {
 
     public RefBookTypeEnum getType() {
         return type;
-    }
-
-    protected void setType(RefBookTypeEnum type) {
-        this.type = type;
     }
 
     public String getCategory() {

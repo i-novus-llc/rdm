@@ -14,8 +14,7 @@ public class UnversionedRefBookEntity extends RefBookEntity {
     private static final String USED_VERSION = "-1.0";
 
     public UnversionedRefBookEntity() {
-
-        this.setType(RefBookTypeEnum.UNVERSIONED);
+        super(RefBookTypeEnum.UNVERSIONED);
     }
 
     @Override
