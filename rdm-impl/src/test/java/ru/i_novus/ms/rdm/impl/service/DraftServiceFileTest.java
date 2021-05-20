@@ -32,7 +32,9 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.*;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -107,8 +109,6 @@ public class DraftServiceFileTest {
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
-    @Mock
-    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
     @Mock
     private FindDraftEntityStrategy findDraftEntityStrategy;
     @Mock
@@ -409,7 +409,6 @@ public class DraftServiceFileTest {
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);

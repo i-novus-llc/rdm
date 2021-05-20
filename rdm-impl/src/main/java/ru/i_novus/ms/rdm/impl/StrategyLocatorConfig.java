@@ -40,9 +40,6 @@ public class StrategyLocatorConfig {
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
 
     @Autowired
-    private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
-
-    @Autowired
     private DefaultFindDraftEntityStrategy defaultFindDraftEntityStrategy;
 
     @Autowired
@@ -106,7 +103,6 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);

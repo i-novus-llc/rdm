@@ -34,7 +34,6 @@ import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -95,9 +94,6 @@ public class ArchiveValidationTest {
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
-
-    @Mock
-    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -201,7 +197,6 @@ public class ArchiveValidationTest {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
 
         return result;
     }
