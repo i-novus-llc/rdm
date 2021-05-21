@@ -15,6 +15,8 @@ import static org.junit.Assert.fail;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultValidateVersionNotArchivedStrategyTest {
 
+    private static final String ERROR_WAITING = "Ожидается ошибка: ";
+
     @InjectMocks
     private DefaultValidateVersionNotArchivedStrategy strategy;
 
@@ -37,13 +39,14 @@ public class DefaultValidateVersionNotArchivedStrategyTest {
         RefBookVersionEntity entity = createVersionEntity();
         entity.getRefBook().setArchived(Boolean.TRUE);
 
+        final String expectedMessage = "refbook.with.code.is.archived";
         try {
             strategy.validate(entity);
-            fail(String.format("Exception expected with message: %s", "refbook.with.code.is.archived"));
+            fail(ERROR_WAITING + expectedMessage);
 
         } catch (Exception e) {
             assertEquals(UserException.class, e.getClass());
-            assertEquals("refbook.with.code.is.archived", e.getMessage());
+            assertEquals(expectedMessage, e.getMessage());
         }
     }
 
