@@ -22,6 +22,7 @@ import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -52,13 +53,13 @@ public class RefBookControllerTest {
     @Test
     public void testGetList() {
 
-        List<RefBook> refBooks = new ArrayList<>(1);
-
         RefBook refBook = createRefBook();
-        refBooks.add(refBook);
+
+        List<RefBook> refBooks = singletonList(refBook);
 
         RefBookCriteria criteria = new RefBookCriteria();
-        when(refBookService.search(eq(criteria))).thenReturn(new PageImpl<>(refBooks, criteria, 1));
+        when(refBookService.search(eq(criteria)))
+                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
@@ -111,17 +112,16 @@ public class RefBookControllerTest {
     @Test
     public void testGetLastVersion() {
 
-        List<RefBook> refBooks = new ArrayList<>(2);
-
         RefBook refBook = createRefBook();
-        refBooks.add(refBook);
 
         RefBook oldBook = createRefBook();
         oldBook.setId(VERSION_ID + 1);
-        refBooks.add(oldBook);
+
+        List<RefBook> refBooks = List.of(refBook, oldBook);
 
         RefBookCriteria criteria = new RefBookCriteria();
-        when(refBookService.searchVersions(eq(criteria))).thenReturn(new PageImpl<>(refBooks, criteria, 2));
+        when(refBookService.searchVersions(eq(criteria)))
+                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
