@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -255,7 +257,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateOptLockValue(versionEntity.getId(), versionEntity.getOptLockValue(), request.getOptLockValue());
 
         final String newCode = request.getCode();
-        if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
+        if (!StringUtils.isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
             versionValidation.validateRefBookCode(newCode);
             versionValidation.validateRefBookCodeNotExists(newCode);
 
@@ -531,9 +533,12 @@ public class RefBookServiceImpl implements RefBookService {
     /** Получение последней (по идентификатору) версии из списка версий. */
     private RefBookVersionEntity getLastVersion(List<RefBookVersionEntity> versions) {
 
+        if (CollectionUtils.isEmpty(versions))
+            return null;
+
         RefBookVersionEntity result = null;
         for (RefBookVersionEntity version : versions) {
-            if (result == null || result.getId() < version.getId())
+            if (result == null || result.getCreationDate().isBefore(version.getCreationDate()))
                 result = version;
         }
 
