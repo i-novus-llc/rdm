@@ -279,30 +279,6 @@ public class DraftServiceFileTest {
         }
     }
 
-    /*
-     * Example:
-     * path = '/file/'
-     * fileName = 'uploadFile'
-     * extension = 'xml'
-     **/
-    private FileModel createFileModel(String path, String fileName, String extension) {
-
-        String fullName = fileName + "." + extension;
-
-        FileModel fileModel = new FileModel(fileName, fullName); // NB: fileName as path!
-        fileModel.setPath(fileModel.generateFullPath());
-
-        InputStream input = DraftServiceFileTest.class.getResourceAsStream(path + fullName);
-
-        when(versionFileService.supply(fileModel.generateFullPath()))
-                .thenReturn(() -> input)
-                .thenReturn(() -> DraftServiceFileTest.class.getResourceAsStream(path + fullName))
-                .thenReturn(() -> DraftServiceFileTest.class.getResourceAsStream(path + fullName))
-                .thenReturn(() -> DraftServiceFileTest.class.getResourceAsStream(path + fullName));
-
-        return fileModel;
-    }
-
     private RefBookVersionEntity createVersionCopy(RefBookVersionEntity origin) {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
@@ -378,6 +354,30 @@ public class DraftServiceFileTest {
         entity.setPassportValues(UploadFileTestData.createPassportValues(entity));
 
         return entity;
+    }
+
+    /*
+     * Example:
+     * path = '/file/'
+     * fileName = 'uploadFile'
+     * extension = 'xml'
+     **/
+    private FileModel createFileModel(String path, String fileName, String extension) {
+
+        String fullName = fileName + "." + extension;
+
+        FileModel fileModel = new FileModel(fileName, fullName); // fileName as path...
+        fileModel.setPath(fileModel.generateFullPath()); // ...to generate right path
+
+        InputStream input = this.getClass().getResourceAsStream(path + fullName);
+
+        when(versionFileService.supply(fileModel.getPath()))
+                .thenReturn(() -> input)
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName))
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName))
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName));
+
+        return fileModel;
     }
 
     /** Получение кода сообщения об ошибке из исключения. */
