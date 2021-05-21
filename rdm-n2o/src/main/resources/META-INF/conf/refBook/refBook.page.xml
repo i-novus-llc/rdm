@@ -192,7 +192,7 @@
                         <set field-label-location="left">
                             <output-text id="id">
                                 <dependencies>
-                                    <visibility>return ${rdm.l10n.support}</visibility>
+                                    <visibility>return false</visibility>
                                     <set-value on="localeCode">localeCode.versionId</set-value>
                                 </dependencies>
                             </output-text>
