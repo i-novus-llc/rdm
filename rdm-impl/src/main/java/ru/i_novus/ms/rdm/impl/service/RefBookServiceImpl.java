@@ -465,9 +465,10 @@ public class RefBookServiceImpl implements RefBookService {
         List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
                 versionEntity.getPassportValues() : new ArrayList<>();
 
-        Map<String, String> correctUpdatePassport = new HashMap<>(newPassport);
+        Map<String, String> toInsert = new HashMap<>(newPassport);
 
-        Set<String> attributeCodesToRemove = correctUpdatePassport.entrySet().stream()
+        // Удаление существующих атрибутов со значением null.
+        Set<String> attributeCodesToRemove = toInsert.entrySet().stream()
                 .filter(e -> e.getValue() == null)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
@@ -476,18 +477,24 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(toList());
         versionEntity.getPassportValues().removeAll(toRemove);
         passportValueRepository.deleteAll(toRemove);
-        correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
+        toInsert.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
 
-        Set<Map.Entry<String, String>> toUpdate = correctUpdatePassport.entrySet().stream()
+        // Обновление существующих атрибутов со значением.
+        Set<Map.Entry<String, String>> toUpdate = new HashSet<>(toInsert.size());
+
+        toInsert.entrySet().stream()
                 .filter(e -> newPassportValues.stream()
                         .anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
-                .peek(e -> newPassportValues.stream()
-                        .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
-                        .findAny().get().setValue(e.getValue()))
-                .collect(Collectors.toSet());
-        correctUpdatePassport.entrySet().removeAll(toUpdate);
+                .forEach(e -> {
+                    newPassportValues.stream()
+                            .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
+                            .forEach(v -> v.setValue(e.getValue()));
+                    toUpdate.add(e);
+                });
+        toInsert.entrySet().removeAll(toUpdate);
 
-        newPassportValues.addAll(RefBookVersionEntity.toPassportValues(correctUpdatePassport, true, versionEntity));
+        // Добавление оставшихся несуществующих атрибутов.
+        newPassportValues.addAll(RefBookVersionEntity.toPassportValues(toInsert, true, versionEntity));
 
         versionEntity.setPassportValues(newPassportValues);
     }
