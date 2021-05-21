@@ -1,37 +1,54 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
+import net.n2oapp.platform.i18n.UserException;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.*;
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
+import java.io.InputStream;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookServiceTest {
+
+    private static final String ERROR_WAITING = "Ожидается ошибка: ";
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private RefBookServiceImpl refBookService;
@@ -58,15 +75,35 @@ public class RefBookServiceTest {
     private VersionValidation versionValidation;
 
     @Mock
-    private FileStorage fileStorage;
-
-    @Mock
     private DraftService draftService;
     @Mock
     private PublishService publishService;
 
     @Mock
+    private VersionFileServiceImpl versionFileService;
+
+    @Mock
     private AuditLogService auditLogService;
+
+    @Mock
+    private RefBookCreateValidationStrategy refBookCreateValidationStrategy;
+    @Mock
+    private CreateRefBookEntityStrategy createRefBookEntityStrategy;
+    @Mock
+    private CreateFirstStorageStrategy createFirstStorageStrategy;
+    @Mock
+    private CreateFirstVersionStrategy createFirstVersionStrategy;
+    @Mock
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+
+    @Before
+    public void setUp() throws NoSuchFieldException {
+
+        JsonUtil.jsonMapper = objectMapper;
+
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+    }
 
     @Test
     public void testSearch() {
@@ -138,29 +175,24 @@ public class RefBookServiceTest {
         RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
 
         // .findVersionOrThrow
-        when(versionRepository.findById(10)).thenReturn(Optional.of(versionEntity));
+        when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
 
         // .hasReferrerVersions
         when(versionRepository.existsReferrerVersions(eq(refBookEntity.getCode()), any(String.class), any(String.class)))
                 .thenReturn(Boolean.FALSE);
 
-        // .getSourceTypeVersion
-        when(versionRepository.findAll(Mockito.<Predicate>any(), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(emptyList(), Pageable.unpaged(), 0));
-
-        // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class), any(Boolean.class), any(Integer.class)))
-                .thenReturn(new RefBookModelData());
+        mockSourceTypeVersion();
+        mockRefBookModel();
 
         RefBook actual = refBookService.getByVersionId(versionEntity.getId());
         assertNotNull(actual);
+        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
     }
 
     @Test
     public void testGetCode() {
 
         RefBookEntity refBookEntity = createRefBookEntity(1);
-
         when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
 
         String refBookCode = refBookService.getCode(refBookEntity.getId());
@@ -171,11 +203,134 @@ public class RefBookServiceTest {
     public void testGetId() {
 
         RefBookEntity refBookEntity = createRefBookEntity(1);
-
         when(refBookRepository.findByCode(refBookEntity.getCode())).thenReturn(refBookEntity);
 
         Integer refBookId = refBookService.getId(refBookEntity.getCode());
         assertEquals(refBookEntity.getId(), refBookId);
+    }
+
+    @Test
+    public void testCreate() {
+
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
+        versionEntity.setStorageCode("storage_code_" + versionEntity.getId());
+
+        RefBookCreateRequest request = new RefBookCreateRequest();
+        request.setType(RefBookTypeEnum.DEFAULT);
+
+        // .create
+        when(createRefBookEntityStrategy.create(request)).thenReturn(refBookEntity);
+        when(createFirstStorageStrategy.create()).thenReturn(versionEntity.getStorageCode());
+        when(createFirstVersionStrategy.create(request, refBookEntity, versionEntity.getStorageCode()))
+                .thenReturn(versionEntity);
+
+        mockSourceTypeVersion();
+        mockRefBookModel();
+
+        RefBook actual = refBookService.create(request);
+        assertNotNull(actual);
+        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
+    }
+
+    @Test
+    public void testCreateFromXls() {
+
+        FileModel fileModel = new FileModel("filePath", "fileName.xlsx");
+        try {
+            refBookService.create(fileModel);
+            fail(ERROR_WAITING + UserException.class.getSimpleName());
+
+        } catch (Exception e) {
+            assertEquals(UserException.class, e.getClass());
+            assertEquals("refbook.is.not.created.from.xlsx", getExceptionMessage(e));
+        }
+    }
+
+    @Test
+    public void testCreateFromXml() {
+
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
+
+        // .create
+        when(createFirstVersionStrategy.create(any(RefBookCreateRequest.class), any(), any()))
+                .thenReturn(versionEntity);
+
+        mockSourceTypeVersion();
+        mockRefBookModel();
+
+        // .createByXml
+        FileModel fileModel = createFileModel("/file/", "uploadFile", "xml");
+        when(draftService.create(refBookEntity.getId(), fileModel)).thenReturn(new Draft());
+
+        Draft draft = refBookService.create(fileModel);
+        assertNotNull(draft);
+    }
+
+    @Test
+    public void testUpdate() {
+
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
+
+        // .findVersionOrThrow
+        when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
+
+        final String updatedCode = "update_" + refBookEntity.getCode();
+        final String updatedComment = "comment_" + versionEntity.getId();
+
+        RefBookUpdateRequest request = new RefBookUpdateRequest();
+        request.setVersionId(versionEntity.getId());
+        request.setCode(updatedCode);
+        request.setPassport(emptyMap());
+        request.setComment(updatedComment);
+
+        mockSourceTypeVersion();
+        mockRefBookModel();
+
+        RefBook actual = refBookService.update(request);
+        assertNotNull(actual);
+        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
+        assertEquals(updatedCode, actual.getCode());
+        assertEquals(updatedComment, actual.getComment());
+
+        assertEquals(updatedCode, refBookEntity.getCode());
+        assertEquals(updatedComment, versionEntity.getComment());
+    }
+
+    @Test
+    public void testDelete() {
+        
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
+        versionEntity.setStorageCode("storage_code_" + versionEntity.getId());
+        versionEntity.setPassportValues(emptyList());
+        refBookEntity.setVersionList(singletonList(versionEntity));
+
+        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+
+        refBookService.delete(refBookEntity.getId());
+
+        Set<String> droppedStorageCodes = new HashSet<>(1);
+        droppedStorageCodes.add(versionEntity.getStorageCode());
+
+        verify(dropDataService).drop(droppedStorageCodes);
+        verify(refBookRepository).deleteById(refBookEntity.getId());
+    }
+
+    private void mockSourceTypeVersion() {
+
+        // .getSourceTypeVersion
+        when(versionRepository.findAll(Mockito.<Predicate>any(), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(emptyList(), Pageable.unpaged(), 0));
+    }
+
+    private void mockRefBookModel() {
+
+        // .refBookModel
+        when(refBookModelDataRepository.findData(any(Integer.class), any(Boolean.class), any(Integer.class)))
+                .thenReturn(new RefBookModelData());
     }
 
     private RefBookEntity createRefBookEntity(Integer id) {
@@ -199,5 +354,67 @@ public class RefBookServiceTest {
         entity.setRefBook(refBookEntity);
 
         return entity;
+    }
+
+    /*
+     * Example:
+     * path = '/file/'
+     * fileName = 'uploadFile'
+     * extension = 'xml'
+     **/
+    private FileModel createFileModel(String path, String fileName, String extension) {
+
+        String fullName = fileName + "." + extension;
+
+        FileModel fileModel = new FileModel(fileName, fullName); // fileName as path...
+        fileModel.setPath(fileModel.generateFullPath()); // ...to generate right path
+
+        InputStream input = this.getClass().getResourceAsStream(path + fullName);
+
+        when(versionFileService.supply(fileModel.getPath()))
+                .thenReturn(() -> input)
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName))
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName))
+                .thenReturn(() -> this.getClass().getResourceAsStream(path + fullName));
+
+        return fileModel;
+    }
+
+    /** Получение кода сообщения об ошибке из исключения. */
+    private static String getExceptionMessage(Exception e) {
+
+        if (e instanceof UserException) {
+            UserException ue = (UserException) e;
+
+            if (!isEmpty(ue.getMessages()))
+                return ue.getMessages().get(0).getCode();
+        }
+
+        if (!StringUtils.isEmpty(e.getMessage()))
+            return e.getMessage();
+
+        return null;
+    }
+
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        // RefBook:
+        result.put(RefBookCreateValidationStrategy.class, refBookCreateValidationStrategy);
+        result.put(CreateRefBookEntityStrategy.class, createRefBookEntityStrategy);
+        result.put(CreateFirstStorageStrategy.class, createFirstStorageStrategy);
+        result.put(CreateFirstVersionStrategy.class, createFirstVersionStrategy);
+        // Version + Draft:
+        result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+
+        return result;
     }
 }
