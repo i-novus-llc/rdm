@@ -153,16 +153,16 @@ public class RefBookServiceTest {
         assertEquals(refBookEntities.size(), refBooks.getTotalElements());
         assertNotNull(refBooks.getContent());
 
-        refBooks.getContent().forEach(actual -> {
+        refBooks.getContent().forEach(refBook -> {
 
             RefBookVersionEntity expected = versionEntities.stream()
-                    .filter(entity -> Objects.equals(actual.getId(), entity.getId()))
+                    .filter(entity -> Objects.equals(refBook.getId(), entity.getId()))
                     .findFirst().orElse(null);
             assertNotNull(expected);
-            assertEquals(expected.getRefBook().getId(), actual.getRefBookId());
+            assertEquals(expected.getRefBook().getId(), refBook.getRefBookId());
 
             RefBookVersionEntity lastPublishedVersion = lastPublishedEntities.stream()
-                    .filter(entity -> Objects.equals(actual.getLastPublishedVersionId(), entity.getId()))
+                    .filter(entity -> Objects.equals(refBook.getLastPublishedVersionId(), entity.getId()))
                     .findFirst().orElse(null);
             assertNotNull(lastPublishedVersion);
         });
@@ -184,9 +184,9 @@ public class RefBookServiceTest {
         mockSourceTypeVersion();
         mockRefBookModel();
 
-        RefBook actual = refBookService.getByVersionId(versionEntity.getId());
-        assertNotNull(actual);
-        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
+        RefBook refBook = refBookService.getByVersionId(versionEntity.getId());
+        assertNotNull(refBook);
+        assertEquals(versionEntity.getRefBook().getId(), refBook.getRefBookId());
     }
 
     @Test
@@ -228,22 +228,24 @@ public class RefBookServiceTest {
         mockSourceTypeVersion();
         mockRefBookModel();
 
-        RefBook actual = refBookService.create(request);
-        assertNotNull(actual);
-        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
+        RefBook refBook = refBookService.create(request);
+        assertNotNull(refBook);
+        assertEquals(versionEntity.getRefBook().getId(), refBook.getRefBookId());
     }
 
     @Test
     public void testCreateFromXls() {
 
         FileModel fileModel = new FileModel("filePath", "fileName.xlsx");
+
+        final String expectedMessage = "refbook.is.not.created.from.xlsx";
         try {
             refBookService.create(fileModel);
-            fail(ERROR_WAITING + UserException.class.getSimpleName());
+            fail(ERROR_WAITING + expectedMessage);
 
         } catch (Exception e) {
             assertEquals(UserException.class, e.getClass());
-            assertEquals("refbook.is.not.created.from.xlsx", getExceptionMessage(e));
+            assertEquals(expectedMessage, getExceptionMessage(e));
         }
     }
 
@@ -289,11 +291,11 @@ public class RefBookServiceTest {
         mockSourceTypeVersion();
         mockRefBookModel();
 
-        RefBook actual = refBookService.update(request);
-        assertNotNull(actual);
-        assertEquals(versionEntity.getRefBook().getId(), actual.getRefBookId());
-        assertEquals(updatedCode, actual.getCode());
-        assertEquals(updatedComment, actual.getComment());
+        RefBook refBook = refBookService.update(request);
+        assertNotNull(refBook);
+        assertEquals(versionEntity.getRefBook().getId(), refBook.getRefBookId());
+        assertEquals(updatedCode, refBook.getCode());
+        assertEquals(updatedComment, refBook.getComment());
 
         assertEquals(updatedCode, refBookEntity.getCode());
         assertEquals(updatedComment, versionEntity.getComment());
