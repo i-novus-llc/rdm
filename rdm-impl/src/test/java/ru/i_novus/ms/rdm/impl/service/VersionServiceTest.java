@@ -39,8 +39,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -49,12 +48,15 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 @RunWith(MockitoJUnitRunner.class)
 public class VersionServiceTest {
 
+    private static final String ERROR_WAITING = "Ожидается ошибка: ";
+
     private static final int REFBOOK_ID = 1;
-    private static final String REF_BOOK_CODE = "test_refbook";
+    private static final String REFBOOK_CODE = "test";
 
     private static final int VERSION_ID = 2;
-    private static final String STORAGE_CODE = "test_storage_code";
+    private static final String STORAGE_CODE = "storage_code";
     private static final String ROW_HASH = "hash";
+    private static final String VERSION_NUMBER = "1.0";
 
     private static final FileType FILE_TYPE = FileType.XML;
     private static final String FILE_PATH = "/refBook_1.0.XML.zip";
@@ -85,6 +87,7 @@ public class VersionServiceTest {
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilters(new HashSet<>());
         searchDataCriteria.setCommonFilter("commonFilter");
+
         Page<RefBookRowValue> rowValues = versionService.search(VERSION_ID, searchDataCriteria);
         assertNotNull(rowValues);
 
@@ -147,14 +150,84 @@ public class VersionServiceTest {
 
         when(versionRepository.findById(VERSION_ID)).thenReturn(Optional.empty());
 
+        final String expectedMessage = "version.not.found";
         try {
             versionService.getById(VERSION_ID);
+            fail(ERROR_WAITING + expectedMessage);
 
         } catch (RuntimeException e) {
 
             assertEquals(NotFoundException.class, e.getClass());
-            assertEquals("version.not.found", e.getMessage());
+            assertEquals(expectedMessage, e.getMessage());
         }
+    }
+
+    @Test
+    public void testGetVersion() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        entity.setVersion(VERSION_NUMBER);
+
+        String refBookCode = entity.getRefBook().getCode();
+        when(versionRepository.findByVersionAndRefBookCode(VERSION_NUMBER, refBookCode))
+                .thenReturn(entity);
+
+        RefBookVersion version = versionService.getVersion(VERSION_NUMBER, refBookCode);
+        assertNotNull(version);
+        assertEquals(VERSION_NUMBER, version.getVersion());
+        assertEquals(refBookCode, version.getCode());
+    }
+
+    @Test
+    public void testGetVersionWhenNull() {
+
+        when(versionRepository.findByVersionAndRefBookCode(VERSION_NUMBER, REFBOOK_CODE))
+                .thenReturn(null);
+
+        final String expectedMessage = "version.with.number.and.code.not.found";
+        try {
+            versionService.getVersion(VERSION_NUMBER, REFBOOK_CODE);
+            fail(ERROR_WAITING + expectedMessage);
+
+        } catch (RuntimeException e) {
+
+            assertEquals(NotFoundException.class, e.getClass());
+            assertEquals(expectedMessage, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetLastPublishedVersion() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+
+        String refBookCode = entity.getRefBook().getCode();
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED))
+                .thenReturn(entity);
+
+        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
+        assertNotNull(version);
+        assertEquals(refBookCode, version.getCode());
+    }
+
+    @Test
+    public void testGetStructure() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
+        Structure structure = versionService.getStructure(entity.getId());
+        assertEquals(entity.getStructure(), structure);
+    }
+
+    @Test
+    public void testGetStorageCode() {
+
+        RefBookVersionEntity entity = createVersionEntity();
+        when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
+
+        String storageCode = versionService.getStorageCode(entity.getId());
+        assertEquals(entity.getStorageCode(), storageCode);
     }
 
     @Test
@@ -257,7 +330,7 @@ public class VersionServiceTest {
 
         RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
-        entity.setCode(REF_BOOK_CODE);
+        entity.setCode(REFBOOK_CODE);
 
         return entity;
     }
