@@ -170,9 +170,7 @@ public class RefBookServiceImpl implements RefBookService {
     public String getCode(Integer refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
-
-        final RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        return refBookEntity.getCode();
+        return refBookRepository.getOne(refBookId).getCode();
     }
 
     @Override
@@ -212,11 +210,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX": return createByXlsx(fileModel);
-            case "XML": return createByXml(fileModel);
-            default: throw new FileExtensionException();
-        }
+        return switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX" -> createByXlsx(fileModel);
+            case "XML" -> createByXml(fileModel);
+            default -> throw new FileExtensionException();
+        };
     }
 
     @SuppressWarnings("unused")
