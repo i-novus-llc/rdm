@@ -23,9 +23,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
-import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.PublishService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.*;
@@ -49,7 +47,6 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -75,10 +72,10 @@ public class RefBookServiceImpl implements RefBookService {
 
     private final VersionValidation versionValidation;
 
-    private final FileStorage fileStorage;
-
     private final DraftService draftService;
     private final PublishService publishService;
+
+    private final VersionFileService versionFileService;
 
     private final AuditLogService auditLogService;
 
@@ -93,6 +90,7 @@ public class RefBookServiceImpl implements RefBookService {
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, FileStorage fileStorage,
                               DraftService draftService, PublishService publishService,
+                              VersionFileService versionFileService,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator) {
         this.refBookRepository = refBookRepository;
@@ -108,11 +106,12 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
-        this.fileStorage = fileStorage;
 
         this.draftService = draftService;
         this.publishService = publishService;
 
+        this.versionFileService = versionFileService;
+        
         this.auditLogService = auditLogService;
 
         this.strategyLocator = strategyLocator;
@@ -225,9 +224,10 @@ public class RefBookServiceImpl implements RefBookService {
     private Draft createByXml(FileModel fileModel) {
 
         RefBook refBook;
+        // Передавать не сервис, а Consumer, как в DraftServiceImpl.createFromXlsx
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
-            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-            refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+            Supplier<InputStream> fileSupplier = versionFileService.supply(fileModel.getPath());
+            refBook = createRefBookFileProcessor.process(fileSupplier);
         }
 
         if (refBook == null)
