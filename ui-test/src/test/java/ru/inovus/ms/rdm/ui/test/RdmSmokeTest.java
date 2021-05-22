@@ -354,7 +354,6 @@ public class RdmSmokeTest {
         formFields.field("Код").control(N2oInputText.class).val(refBook.getCode());
         formFields.field("Наименование").control(N2oInputText.class).val(refBook.getName());
         formFields.field("Краткое наименование").control(N2oInputText.class).val(refBook.getShortName());
-        formFields.field("Категория").control(N2oInputSelect.class).select(0);
         formFields.field("Описание").control(N2oTextArea.class).val(refBook.getDescription());
     }
 
