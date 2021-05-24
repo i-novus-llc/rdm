@@ -31,7 +31,9 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.*;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -117,8 +119,6 @@ public class DraftServiceTest {
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
-    @Mock
-    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
     @Mock
     private FindDraftEntityStrategy findDraftEntityStrategy;
     @Mock
@@ -244,12 +244,10 @@ public class DraftServiceTest {
         // .createFromVersion
         RefBookVersionEntity versionEntity = createPublishedEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
-        when(validateDraftExistsStrategy.isDraft(versionEntity)).thenReturn(false);
         when(attributeValidationRepository.findAllByVersionId(versionEntity.getId())).thenReturn(emptyList());
 
         // .create
         RefBookEntity refBookEntity = versionEntity.getRefBook();
-
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookEntity.getId(), RefBookVersionStatus.PUBLISHED))
                 .thenReturn(versionEntity);
 
@@ -273,9 +271,8 @@ public class DraftServiceTest {
     @Test
     public void testCreateFromVersionWhenDraft() {
 
-        RefBookVersionEntity versionEntity = createPublishedEntity();
+        RefBookVersionEntity versionEntity = createDraftEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
-        when(validateDraftExistsStrategy.isDraft(versionEntity)).thenReturn(true);
 
         Draft draft = draftService.createFromVersion(versionEntity.getId());
         assertNotNull(draft);
@@ -314,7 +311,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -416,7 +413,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -434,7 +431,7 @@ public class DraftServiceTest {
         Structure structure = versionService.getStructure(draftId);
 
         // Изменение ссылочного атрибута
-        RefBookEntity referredBook2 = new RefBookEntity();
+        RefBookEntity referredBook2 = new DefaultRefBookEntity();
         referredBook2.setCode("REF_802");
         RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
         referredEntity2.setRefBook(referredBook2);
@@ -527,7 +524,7 @@ public class DraftServiceTest {
         final Integer draftId = draftEntity.getId();
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
@@ -807,7 +804,7 @@ public class DraftServiceTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new RefBookEntity();
+        RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REF_BOOK_CODE);
 
@@ -862,7 +859,6 @@ public class DraftServiceTest {
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);

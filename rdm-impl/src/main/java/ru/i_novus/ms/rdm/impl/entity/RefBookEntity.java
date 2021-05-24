@@ -10,7 +10,9 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book", schema = "n2o_rdm_management")
-public class RefBookEntity implements Serializable {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+public abstract class RefBookEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -20,8 +22,8 @@ public class RefBookEntity implements Serializable {
     @Column(name = "code", nullable = false)
     private String code;
 
-    @Column(name = "type")
     @Enumerated(value = EnumType.STRING)
+    @Column(name = "type", insertable = false, updatable = false)
     private RefBookTypeEnum type;
 
     @Column(name = "category")
@@ -35,6 +37,15 @@ public class RefBookEntity implements Serializable {
 
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
     private List<RefBookVersionEntity> versionList = new ArrayList<>();
+
+    // Hibernate only.
+    protected RefBookEntity() {
+        // Nothing to do.
+    }
+
+    public RefBookEntity(RefBookTypeEnum type) {
+        this.type = type;
+    }
 
     public Integer getId() {
         return id;
@@ -54,10 +65,6 @@ public class RefBookEntity implements Serializable {
 
     public RefBookTypeEnum getType() {
         return type;
-    }
-
-    public void setType(RefBookTypeEnum type) {
-        this.type = type;
     }
 
     public String getCategory() {
@@ -91,6 +98,10 @@ public class RefBookEntity implements Serializable {
     public void setVersionList(List<RefBookVersionEntity> versionList) {
         this.versionList = versionList;
     }
+
+    public abstract RefBookVersionEntity createChangeableVersion();
+
+    public abstract boolean isChangeableVersion(RefBookVersionEntity version);
 
     @Override
     @SuppressWarnings("squid:S1067")

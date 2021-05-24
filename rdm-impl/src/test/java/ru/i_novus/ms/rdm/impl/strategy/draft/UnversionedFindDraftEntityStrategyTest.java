@@ -8,6 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.UnversionedRefBookEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import static org.junit.Assert.assertEquals;
@@ -40,7 +41,7 @@ public class UnversionedFindDraftEntityStrategyTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new UnversionedRefBookEntity();
         refBookEntity.setId(REFBOOK_ID);
 
         return refBookEntity;

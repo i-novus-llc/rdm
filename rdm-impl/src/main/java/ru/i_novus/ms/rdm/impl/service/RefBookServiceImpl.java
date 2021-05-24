@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -23,9 +25,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
-import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.PublishService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.*;
@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -75,10 +74,10 @@ public class RefBookServiceImpl implements RefBookService {
 
     private final VersionValidation versionValidation;
 
-    private final FileStorage fileStorage;
-
     private final DraftService draftService;
     private final PublishService publishService;
+
+    private final VersionFileService versionFileService;
 
     private final AuditLogService auditLogService;
 
@@ -93,6 +92,7 @@ public class RefBookServiceImpl implements RefBookService {
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
                               VersionValidation versionValidation, FileStorage fileStorage,
                               DraftService draftService, PublishService publishService,
+                              VersionFileService versionFileService,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator) {
         this.refBookRepository = refBookRepository;
@@ -108,11 +108,12 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookVersionQueryProvider = refBookVersionQueryProvider;
 
         this.versionValidation = versionValidation;
-        this.fileStorage = fileStorage;
 
         this.draftService = draftService;
         this.publishService = publishService;
 
+        this.versionFileService = versionFileService;
+        
         this.auditLogService = auditLogService;
 
         this.strategyLocator = strategyLocator;
@@ -170,9 +171,7 @@ public class RefBookServiceImpl implements RefBookService {
     public String getCode(Integer refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
-
-        final RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
-        return refBookEntity.getCode();
+        return refBookRepository.getOne(refBookId).getCode();
     }
 
     @Override
@@ -212,11 +211,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX": return createByXlsx(fileModel);
-            case "XML": return createByXml(fileModel);
-            default: throw new FileExtensionException();
-        }
+        return switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX" -> createByXlsx(fileModel);
+            case "XML" -> createByXml(fileModel);
+            default -> throw new FileExtensionException();
+        };
     }
 
     @SuppressWarnings("unused")
@@ -227,9 +226,10 @@ public class RefBookServiceImpl implements RefBookService {
     private Draft createByXml(FileModel fileModel) {
 
         RefBook refBook;
+        // Передавать не сервис, а Consumer, как в DraftServiceImpl.createFromXlsx
         try (XmlCreateRefBookFileProcessor createRefBookFileProcessor = new XmlCreateRefBookFileProcessor(this)) {
-            Supplier<InputStream> inputStreamSupplier = () -> fileStorage.getContent(fileModel.getPath());
-            refBook = createRefBookFileProcessor.process(inputStreamSupplier);
+            Supplier<InputStream> fileSupplier = versionFileService.supply(fileModel.getPath());
+            refBook = createRefBookFileProcessor.process(fileSupplier);
         }
 
         if (refBook == null)
@@ -257,7 +257,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateOptLockValue(versionEntity.getId(), versionEntity.getOptLockValue(), request.getOptLockValue());
 
         final String newCode = request.getCode();
-        if (!isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
+        if (!StringUtils.isEmpty(newCode) && !refBookEntity.getCode().equals(newCode)) {
             versionValidation.validateRefBookCode(newCode);
             versionValidation.validateRefBookCodeNotExists(newCode);
 
@@ -467,9 +467,10 @@ public class RefBookServiceImpl implements RefBookService {
         List<PassportValueEntity> newPassportValues = versionEntity.getPassportValues() != null ?
                 versionEntity.getPassportValues() : new ArrayList<>();
 
-        Map<String, String> correctUpdatePassport = new HashMap<>(newPassport);
+        Map<String, String> toInsert = new HashMap<>(newPassport);
 
-        Set<String> attributeCodesToRemove = correctUpdatePassport.entrySet().stream()
+        // Удаление существующих атрибутов со значением null.
+        Set<String> attributeCodesToRemove = toInsert.entrySet().stream()
                 .filter(e -> e.getValue() == null)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
@@ -478,18 +479,24 @@ public class RefBookServiceImpl implements RefBookService {
                 .collect(toList());
         versionEntity.getPassportValues().removeAll(toRemove);
         passportValueRepository.deleteAll(toRemove);
-        correctUpdatePassport.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
+        toInsert.entrySet().removeIf(e -> attributeCodesToRemove.contains(e.getKey()));
 
-        Set<Map.Entry<String, String>> toUpdate = correctUpdatePassport.entrySet().stream()
+        // Обновление существующих атрибутов со значением.
+        Set<Map.Entry<String, String>> toUpdate = new HashSet<>(toInsert.size());
+
+        toInsert.entrySet().stream()
                 .filter(e -> newPassportValues.stream()
                         .anyMatch(v -> e.getKey().equals(v.getAttribute().getCode())))
-                .peek(e -> newPassportValues.stream()
-                        .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
-                        .findAny().get().setValue(e.getValue()))
-                .collect(Collectors.toSet());
-        correctUpdatePassport.entrySet().removeAll(toUpdate);
+                .forEach(e -> {
+                    newPassportValues.stream()
+                            .filter(v -> e.getKey().equals(v.getAttribute().getCode()))
+                            .forEach(v -> v.setValue(e.getValue()));
+                    toUpdate.add(e);
+                });
+        toInsert.entrySet().removeAll(toUpdate);
 
-        newPassportValues.addAll(RefBookVersionEntity.toPassportValues(correctUpdatePassport, true, versionEntity));
+        // Добавление оставшихся несуществующих атрибутов.
+        newPassportValues.addAll(RefBookVersionEntity.toPassportValues(toInsert, true, versionEntity));
 
         versionEntity.setPassportValues(newPassportValues);
     }
@@ -526,9 +533,12 @@ public class RefBookServiceImpl implements RefBookService {
     /** Получение последней (по идентификатору) версии из списка версий. */
     private RefBookVersionEntity getLastVersion(List<RefBookVersionEntity> versions) {
 
+        if (CollectionUtils.isEmpty(versions))
+            return null;
+
         RefBookVersionEntity result = null;
         for (RefBookVersionEntity version : versions) {
-            if (result == null || result.getId() < version.getId())
+            if (result == null || result.getCreationDate().isBefore(version.getCreationDate()))
                 result = version;
         }
 

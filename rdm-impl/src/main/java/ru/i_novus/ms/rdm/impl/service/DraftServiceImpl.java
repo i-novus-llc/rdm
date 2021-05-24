@@ -41,7 +41,9 @@ import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.*;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.*;
 import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
@@ -78,6 +80,7 @@ import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NO
 public class DraftServiceImpl implements DraftService {
 
     private static final String VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE = "version.has.not.structure";
+    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
@@ -213,14 +216,26 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draftEntity.getStructure();
 
-        RowsProcessor rowsValidator = new RowsValidatorImpl(versionService, searchDataService,
-                structure, draftEntity.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftEntity.getId())
+        validateRows(fileModel, structure, draftEntity.getStorageCode(),
+                attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
+
+        persistRows(fileModel, structure, draftEntity.getStorageCode());
+    }
+
+    private void validateRows(FileModel fileModel, Structure structure, String storageCode,
+                              List<AttributeValidationEntity> attributeValidations) {
+
+        RowsProcessor rowsValidator = new RowsValidatorImpl(
+                versionService, searchDataService, structure, storageCode,
+                errorCountLimit, false, attributeValidations
         );
         StructureRowMapper nonStrictOnTypeRowMapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
         versionFileService.processRows(fileModel, rowsValidator, nonStrictOnTypeRowMapper);
+    }
 
-        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, draftEntity.getStorageCode(), structure);
+    private void persistRows(FileModel fileModel, Structure structure, String storageCode) {
+
+        RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, storageCode, structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
         versionFileService.processRows(fileModel, rowsPersister, structureRowMapper);
     }
@@ -382,7 +397,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
         getStrategy(versionEntity, ValidateVersionNotArchivedStrategy.class).validate(versionEntity);
 
-        if (getStrategy(versionEntity, ValidateDraftExistsStrategy.class).isDraft(versionEntity))
+        if (versionEntity.isChangeable())
             return new Draft(versionEntity.getId(), versionEntity.getStorageCode(), versionEntity.getOptLockValue());
 
         Map<String, Object> passport = new HashMap<>();
@@ -418,7 +433,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity publishedEntity = versionRepository
                 .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
 
-        RefBookVersionEntity draftEntity = getStrategy(publishedEntity, ValidateDraftExistsStrategy.class).isDraft(publishedEntity)
+        RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
                 ? publishedEntity
                 : versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
 
@@ -621,9 +636,11 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmpty(rows)) return;
 
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+        RowsValidator validator = new RowsValidatorImpl(
+                versionService, searchDataService,
                 draftVersion.getStructure(), draftVersion.getStorageCode(), errorCountLimit, false,
-                attributeValidationRepository.findAllByVersionId(draftVersion.getId()));
+                attributeValidationRepository.findAllByVersionId(draftVersion.getId())
+        );
         rows.forEach(validator::append);
         validator.process();
     }
@@ -683,7 +700,7 @@ public class DraftServiceImpl implements DraftService {
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
         RefBookVersionEntity entity = findVersion(draftId);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
+        validateDraftExists(entity, draftId);
 
         return getRowValuesOfDraft(entity, criteria);
     }
@@ -714,7 +731,7 @@ public class DraftServiceImpl implements DraftService {
     public Boolean hasData(Integer draftId) {
 
         RefBookVersionEntity entity = findVersion(draftId);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
+        validateDraftExists(entity, draftId);
 
         return searchDataService.hasData(entity.getStorageCode());
     }
@@ -744,7 +761,7 @@ public class DraftServiceImpl implements DraftService {
     public Draft getDraft(Integer draftId) {
 
         RefBookVersionEntity entity = findVersion(draftId);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
+        validateDraftExists(entity, draftId);
 
         return entity.toDraft();
     }
@@ -1058,7 +1075,8 @@ public class DraftServiceImpl implements DraftService {
                                      List<AttributeValidationEntity> validationEntities) {
 
         VersionDataIterator iterator = new VersionDataIterator(versionService, singletonList(versionEntity.getId()));
-        RowsValidator validator = new RowsValidatorImpl(versionService, searchDataService,
+        RowsValidator validator = new RowsValidatorImpl(
+                versionService, searchDataService,
                 versionEntity.getStructure(), versionEntity.getStorageCode(),
                 errorCountLimit, skipReferenceValidation, validationEntities
         );
@@ -1091,7 +1109,7 @@ public class DraftServiceImpl implements DraftService {
         if (fileType == null) return null;
 
         RefBookVersionEntity entity = findVersion(draftId);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, draftId);
+        validateDraftExists(entity, draftId);
 
         RefBookVersion version = ModelGenerator.versionModel(entity);
         ExportFile exportFile = versionFileService.getFile(version, fileType, versionService);
@@ -1102,16 +1120,23 @@ public class DraftServiceImpl implements DraftService {
     }
 
     private void validateOptLockValue(RefBookVersionEntity entity, DraftChangeRequest request) {
+
         versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
     }
 
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
         RefBookVersionEntity entity = findVersion(id);
-        getStrategy(entity, ValidateDraftExistsStrategy.class).validate(entity, id);
+        validateDraftExists(entity, id);
         getStrategy(entity, ValidateVersionNotArchivedStrategy.class).validate(entity);
 
         return entity;
+    }
+
+    private void validateDraftExists(RefBookVersionEntity entity, Integer id) {
+
+        if (entity == null || !entity.isChangeable())
+            throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, id));
     }
 
     private RefBookVersionEntity findVersionOrThrow(Integer id) {

@@ -7,10 +7,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -29,6 +25,10 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,15 +44,15 @@ public class ReferenceServiceImpl implements ReferenceService {
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
-    private RefBookConflictQueryProvider conflictQueryProvider;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
+    private final RefBookConflictQueryProvider conflictQueryProvider;
 
-    private DraftDataService draftDataService;
+    private final DraftDataService draftDataService;
 
-    private DraftService draftService;
+    private final DraftService draftService;
 
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -124,10 +124,10 @@ public class ReferenceServiceImpl implements ReferenceService {
     }
 
     /**
-     * Получение или создание entity версии-черновика справочника.
+     * Получение или создание сущности-черновика справочника.
      *
      * @param versionId версия справочника
-     * @return Сущность версии-черновика справочника
+     * @return Сущность-черновик справочника
      */
     private RefBookVersionEntity getOrCreateDraftEntity(Integer versionId) {
 

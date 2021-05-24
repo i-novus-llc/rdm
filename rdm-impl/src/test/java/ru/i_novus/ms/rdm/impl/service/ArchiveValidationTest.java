@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
@@ -33,7 +34,6 @@ import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.draft.ValidateDraftExistsStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
@@ -94,9 +94,6 @@ public class ArchiveValidationTest {
 
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
-
-    @Mock
-    private ValidateDraftExistsStrategy validateDraftExistsStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -166,7 +163,7 @@ public class ArchiveValidationTest {
         RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(versionId);
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
 
         return entity;
@@ -178,7 +175,7 @@ public class ArchiveValidationTest {
         entity.setId(draftId);
         entity.setStatus(RefBookVersionStatus.DRAFT);
 
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
 
         return entity;
@@ -200,7 +197,6 @@ public class ArchiveValidationTest {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, validateDraftExistsStrategy);
 
         return result;
     }

@@ -5,9 +5,11 @@ import io.swagger.annotations.ApiModelProperty;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 
 @ApiModel("Версия справочника")
 public class RefBookVersion {
@@ -62,25 +64,25 @@ public class RefBookVersion {
 
     public RefBookVersion(RefBookVersion refBookVersion) {
 
-        this.id = refBookVersion.getId();
-        this.optLockValue = refBookVersion.getOptLockValue();
-        this.refBookId = refBookVersion.getRefBookId();
+        this.id = refBookVersion.id;
+        this.optLockValue = refBookVersion.optLockValue;
+        this.refBookId = refBookVersion.refBookId;
 
-        this.code = refBookVersion.getCode();
-        this.type = refBookVersion.getType();
-        this.category = refBookVersion.getCategory();
-        this.version = refBookVersion.getVersion();
-        this.comment = refBookVersion.getComment();
+        this.code = refBookVersion.code;
+        this.type = refBookVersion.type;
+        this.category = refBookVersion.category;
+        this.version = refBookVersion.version;
+        this.comment = refBookVersion.comment;
 
-        this.fromDate = refBookVersion.getFromDate();
-        this.toDate = refBookVersion.getToDate();
-        this.status = refBookVersion.getStatus();
-        this.archived = refBookVersion.getArchived();
+        this.fromDate = refBookVersion.fromDate;
+        this.toDate = refBookVersion.toDate;
+        this.status = refBookVersion.status;
+        this.archived = refBookVersion.archived;
 
-        this.passport = refBookVersion.getPassport();
-        this.structure = refBookVersion.getStructure();
+        this.passport = refBookVersion.passport;
+        this.structure = refBookVersion.structure;
 
-        this.editDate = refBookVersion.getEditDate();
+        this.editDate = refBookVersion.editDate;
     }
 
     public Integer getId() {
@@ -219,5 +221,41 @@ public class RefBookVersion {
      */
     public boolean hasEmptyStructure() {
         return structure == null || structure.isEmpty();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RefBookVersion that = (RefBookVersion) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(optLockValue, that.optLockValue) &&
+                Objects.equals(refBookId, that.refBookId) &&
+                Objects.equals(code, that.code) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(category, that.category) &&
+                Objects.equals(version, that.version) &&
+                Objects.equals(comment, that.comment) &&
+                Objects.equals(fromDate, that.fromDate) &&
+                Objects.equals(toDate, that.toDate) &&
+                Objects.equals(status, that.status) &&
+                Objects.equals(archived, that.archived) &&
+                Objects.equals(passport, that.passport) &&
+                Objects.equals(structure, that.structure) &&
+                Objects.equals(editDate, that.editDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, optLockValue, refBookId,
+                code, type, category, version, comment,
+                fromDate, toDate, status, archived,
+                passport, structure, editDate);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }

@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.impl.strategy.refbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 
@@ -16,20 +16,21 @@ public class DefaultCreateRefBookEntityStrategy implements CreateRefBookEntitySt
     @Override
     public RefBookEntity create(RefBookCreateRequest request) {
 
-        RefBookEntity entity = toEntity(request);
+        RefBookEntity entity = newEntity();
+        fillEntity(entity, request);
         return saveEntity(entity);
     }
 
-    protected RefBookEntity toEntity(RefBookCreateRequest request) {
+    protected void fillEntity(RefBookEntity entity, RefBookCreateRequest request) {
 
-        RefBookEntity entity = new RefBookEntity();
         entity.setCode(request.getCode());
-        entity.setType(request.getType() != null ? request.getType() : RefBookTypeEnum.DEFAULT);
         entity.setArchived(Boolean.FALSE);
         entity.setRemovable(Boolean.TRUE);
         entity.setCategory(request.getCategory());
+    }
 
-        return entity;
+    protected RefBookEntity newEntity() {
+        return new DefaultRefBookEntity();
     }
 
     protected RefBookEntity saveEntity(RefBookEntity entity) {

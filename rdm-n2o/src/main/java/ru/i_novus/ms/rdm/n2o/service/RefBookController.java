@@ -125,7 +125,7 @@ public class RefBookController {
         criteria.setExcludeDraft(true);
         criteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
 
-        return refBookService.search(permitCriteria(criteria));
+        return refBookService.search(criteria);
     }
 
     /**

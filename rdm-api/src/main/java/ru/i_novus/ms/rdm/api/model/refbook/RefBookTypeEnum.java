@@ -8,8 +8,8 @@ import java.util.Map;
  */
 public enum RefBookTypeEnum {
 
-    DEFAULT,        // По умолчанию
-    UNVERSIONED     // Неверсионный
+    DEFAULT(VALUES.DEFAULT),            // По умолчанию
+    UNVERSIONED(VALUES.UNVERSIONED)     // Неверсионный
     ;
 
     private static final Map<String, RefBookTypeEnum> TYPE_MAP = new HashMap<>();
@@ -17,6 +17,12 @@ public enum RefBookTypeEnum {
         for (RefBookTypeEnum type : RefBookTypeEnum.values()) {
            TYPE_MAP.put(type.name(), type);
         }
+    }
+
+    RefBookTypeEnum(String value) {
+
+        if (!this.name().equals(value))
+            throw new IllegalArgumentException(String.format("Invalid value %s for RefBookTypeEnum", value));
     }
 
     /**
@@ -32,5 +38,15 @@ public enum RefBookTypeEnum {
     public static RefBookTypeEnum fromValue(String value) {
 
         return value != null ? TYPE_MAP.get(value) : RefBookTypeEnum.DEFAULT;
+    }
+
+    public static class VALUES {
+
+        public static final String DEFAULT = "DEFAULT";
+        public static final String UNVERSIONED = "UNVERSIONED";
+
+        private VALUES() {
+
+        }
     }
 }

@@ -9,9 +9,7 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
 import java.util.HashMap;
@@ -35,22 +33,26 @@ public class DefaultCreateFirstVersionStrategyTest {
     private RefBookVersionRepository versionRepository;
 
     @Test
-    public void testCreate() {
+    public void testCreateDefaultWithPassport() {
 
         when(versionRepository.save(any(RefBookVersionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookEntity refBookEntity = createRefBookEntity();
-        Map<String, String> passport = createRefBookPassport();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setCode("test_code");
+
+        Map<String, String> passport = new HashMap<>(1);
+        passport.put(REFBOOK_NAME_KEY, REFBOOK_NAME_VALUE);
 
         RefBookCreateRequest request = new RefBookCreateRequest(refBookEntity.getCode(),
                 RefBookTypeEnum.DEFAULT, "category", passport);
         RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
 
         assertEquals(refBookEntity, entity.getRefBook());
-        assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
-        assertTrue(StringUtils.isEmpty(entity.getVersion()));
         assertTrue(entity.hasEmptyStructure());
+        assertTrue(StringUtils.isEmpty(entity.getVersion()));
+        assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
+        assertNull(entity.getFromDate());
 
         List<PassportValueEntity> passportValues = entity.getPassportValues();
         assertNotNull(passportValues);
@@ -66,12 +68,13 @@ public class DefaultCreateFirstVersionStrategyTest {
     }
 
     @Test
-    public void testCreateWithoutPassport() {
+    public void testCreateUnversionedWithoutPassport() {
 
         when(versionRepository.save(any(RefBookVersionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookEntity refBookEntity = createRefBookEntity();
+        RefBookEntity refBookEntity = new UnversionedRefBookEntity();
+        refBookEntity.setCode("test_code");
 
         RefBookCreateRequest request = new RefBookCreateRequest(refBookEntity.getCode(),
                 RefBookTypeEnum.DEFAULT, "category", null);
@@ -79,24 +82,10 @@ public class DefaultCreateFirstVersionStrategyTest {
 
         assertEquals(refBookEntity, entity.getRefBook());
         assertTrue(entity.hasEmptyStructure());
-        assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
+        assertFalse(StringUtils.isEmpty(entity.getVersion()));
+        assertEquals(RefBookVersionStatus.PUBLISHED, entity.getStatus());
+        assertNotNull(entity.getFromDate());
 
         assertNull(entity.getPassportValues());
-    }
-
-    private RefBookEntity createRefBookEntity() {
-
-        RefBookEntity refBookEntity = new RefBookEntity();
-        refBookEntity.setCode("test_code");
-
-        return refBookEntity;
-    }
-
-    private Map<String, String> createRefBookPassport() {
-
-        Map<String, String> passport = new HashMap<>(1);
-        passport.put(REFBOOK_NAME_KEY, REFBOOK_NAME_VALUE);
-
-        return passport;
     }
 }

@@ -189,6 +189,15 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
+     * Проверка версии на изменяемость.
+     *
+     * @return Результат проверки
+     */
+    public boolean isChangeable() {
+        return refBook != null && refBook.isChangeableVersion(this);
+    }
+
+    /**
      * Проверка отсутствия структуры.
      *
      * @return Результат проверки

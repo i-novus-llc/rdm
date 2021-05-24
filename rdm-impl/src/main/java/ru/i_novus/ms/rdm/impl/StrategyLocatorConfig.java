@@ -40,9 +40,6 @@ public class StrategyLocatorConfig {
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
 
     @Autowired
-    private DefaultValidateDraftExistsStrategy defaultValidateDraftExistsStrategy;
-
-    @Autowired
     private DefaultFindDraftEntityStrategy defaultFindDraftEntityStrategy;
 
     @Autowired
@@ -62,20 +59,14 @@ public class StrategyLocatorConfig {
 
     // RefBook:
     @Autowired
-    private UnversionedCreateFirstVersionStrategy unversionedCreateFirstVersionStrategy;
+    private UnversionedCreateRefBookEntityStrategy unversionedCreateRefBookEntityStrategy;
 
     @Autowired
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
     // Version + Draft:
     @Autowired
-    private UnversionedValidateDraftExistsStrategy unversionedValidateDraftExistsStrategy;
-
-    @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
-
-    @Autowired
-    private UnversionedCreateDraftEntityStrategy unversionedCreateDraftEntityStrategy;
 
     @Autowired
     private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
@@ -112,7 +103,6 @@ public class StrategyLocatorConfig {
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
-        result.put(ValidateDraftExistsStrategy.class, defaultValidateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
@@ -127,12 +117,10 @@ public class StrategyLocatorConfig {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         // RefBook:
-        result.put(CreateFirstVersionStrategy.class, unversionedCreateFirstVersionStrategy);
+        result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
         // Version + Draft:
-        result.put(ValidateDraftExistsStrategy.class, unversionedValidateDraftExistsStrategy);
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
-        result.put(CreateDraftEntityStrategy.class, unversionedCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
