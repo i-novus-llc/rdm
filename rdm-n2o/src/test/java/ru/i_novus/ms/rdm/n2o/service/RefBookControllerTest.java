@@ -16,14 +16,17 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
+import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.*;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +37,9 @@ public class RefBookControllerTest {
     private static final String REF_BOOK_CODE = "test_refbook";
     private static final int DRAFT_ID = 2;
     private static final int VERSION_ID = 3;
+
+    private static final RefBookTypeEnum REFBOOK_TYPE_ID = RefBookTypeEnum.DEFAULT;
+    private static final String REFBOOK_TYPE_NAME = "refbook.type.default";
 
     @InjectMocks
     private RefBookController controller;
@@ -162,11 +168,63 @@ public class RefBookControllerTest {
     }
 
     @Test
+    public void testGetTypeItem() {
+
+        when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+
+        RefBookTypeCriteria criteria = new RefBookTypeCriteria();
+        criteria.setId(REFBOOK_TYPE_ID);
+
+        UiRefBookType item = controller.getTypeItem(criteria);
+        assertNotNull(item);
+        assertEquals(criteria.getId(), item.getId());
+        assertEquals(REFBOOK_TYPE_NAME, item.getName());
+    }
+
+    @Test
+    public void testGetTypeItemByName() {
+
+        when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+
+        RefBookTypeCriteria criteria = new RefBookTypeCriteria();
+        criteria.setName(REFBOOK_TYPE_NAME);
+
+        UiRefBookType item = controller.getTypeItem(criteria);
+        assertNotNull(item);
+        assertEquals(REFBOOK_TYPE_ID, item.getId());
+        assertEquals(criteria.getName(), item.getName());
+    }
+
+    @Test
     public void testGetStatusList() {
 
         Page<UiRefBookStatus> page = controller.getStatusList(new RefBookStatusCriteria());
         assertNotNull(page.getContent());
         assertEquals(RefBookStatus.values().length, page.getTotalElements());
+    }
+
+    @Test
+    public void testGetStatusListWithoutDraft() {
+
+        RefBookStatusCriteria criteria = new RefBookStatusCriteria();
+        criteria.setExcludeDraft(true);
+
+        Page<UiRefBookStatus> page = controller.getStatusList(criteria);
+        assertNotNull(page.getContent());
+        assertEquals(RefBookStatus.values().length - 1, page.getTotalElements());
+        assertTrue(page.getContent().stream().noneMatch(status -> Objects.equals(RefBookStatus.HAS_DRAFT, status.getId())));
+    }
+
+    @Test
+    public void testGetStatusListWithoutArchived() {
+
+        RefBookStatusCriteria criteria = new RefBookStatusCriteria();
+        criteria.setNonArchived(true);
+
+        Page<UiRefBookStatus> page = controller.getStatusList(criteria);
+        assertNotNull(page.getContent());
+        assertEquals(RefBookStatus.values().length - 1, page.getTotalElements());
+        assertTrue(page.getContent().stream().noneMatch(status -> Objects.equals(RefBookStatus.ARCHIVED, status.getId())));
     }
 
     private RefBook createRefBook() {
