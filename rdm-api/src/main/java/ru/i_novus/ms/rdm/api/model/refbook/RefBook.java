@@ -211,7 +211,8 @@ public class RefBook extends RefBookVersion {
 
     @Override
     public int hashCode() {
-        return Objects.hash(currentOperation, removable,
+        return Objects.hash(super.hashCode(),
+                currentOperation, removable,
                 draftVersionId, lastPublishedVersionId,
                 lastPublishedVersion, lastPublishedVersionFromDate,
                 hasPrimaryAttribute, hasReferrer,
