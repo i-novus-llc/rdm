@@ -792,7 +792,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о вычисленных конфликтах версии.
+     * Создание конфликтов, связанных с изменением записей.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -818,7 +818,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о перевычисленных конфликтах.
+     * Перевычисление конфликтов.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -834,7 +834,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о конфликтах структуры.
+     * Перевычисление конфликтов структуры.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -892,7 +892,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о перевычисленных конфликтах данных.
+     * Перевычисление конфликтов данных.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
