@@ -1407,6 +1407,11 @@
     unique-filename "^1.1.1"
     which "^1.3.1"
 
+"@fontsource/exo-2@^4.3.0":
+  version "4.3.0"
+  resolved "https://npm.i-novus.ru/@fontsource%2fexo-2/-/exo-2-4.3.0.tgz#528b4a44dffc1c6aa01712b096a6a65c851fb9b4"
+  integrity sha512-MQPr14voUzOPV45bFpSaBFatLkpwgBDCF8Gm+HasrbmA8Wpk2sRz6P4nQa7X1f/jwzgMxc4PzHZwsw1PtWEteA==
+
 "@icons/material@^0.2.4":
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/@icons/material/-/material-0.2.4.tgz#e90c9f71768b3736e76d7dd6783fc6c2afa88bc8"
@@ -8689,6 +8694,11 @@ immer@^1.12.0:
   resolved "https://registry.yarnpkg.com/immer/-/immer-1.12.1.tgz#40c6e5b292c00560836c2993bda3a24379d466f5"
   integrity sha512-3fmKM6ovaqDt0CdC9daXpNi5x/YCYS3i4cwLdTVkhJdk5jrDXoPs7lCm3IqM3yhfSnz4tjjxbRG2CziQ7m8ztg==
 
+immer@^8.0.1:
+  version "8.0.4"
+  resolved "https://npm.i-novus.ru/immer/-/immer-8.0.4.tgz#3a21605a4e2dded852fb2afd208ad50969737b7a"
+  integrity sha512-jMfL18P+/6P6epANRvRk6q8t+3gGhqsJ9EuJ25AXE+9bNTYtssvzeYbEd0mXRYWCmmXSIbnlpz6vd6iJlmGGGQ==
+
 immutable@^3.8.1:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
@@ -11226,17 +11236,24 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-auth@7.15.0:
-  version "7.15.0"
-  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.15.0.tgz#5b7ebed9b653d5a927ef0c83e094a572a71d7590"
-  integrity sha512-nPQrzPcBFX90Z33QxdMnGx7UjVKnsYMmv+MsXCAiVh/6QRfSdYbG4RimYPpE88LutcYWKUrD5ytc6vwEZDHRsw==
+n2o-auth@7.15.4:
+  version "7.15.4"
+  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.15.4.tgz#6d16bf47aa8d176802a120f07adeea9e2309abe1"
+  integrity sha512-e+GkFqrvRB+nrVEmyV14oIBX0khvFx50NBRxuxjX3HW9UW40hEWBE1dHF1x1HUxLZ/JPZFL+LWYqLDt5lQxlSg==
   dependencies:
-    n2o-framework "7.15.0"
+    n2o-framework "^7.15.4"
 
-n2o-framework@7.15.0:
-  version "7.15.0"
-  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.15.0.tgz#9af196ecfd2ccaf18ecd674a4bab2f843ef6b60c"
-  integrity sha512-Nqqf2JRSZKAiAnLTQpMdl/pBYf/KfLUlugQ9KFUbDeb/0Z05b1mxI39IIADMVXx5zw3sOkylb6arHkd07migGQ==
+n2o-auth@^7.16.0:
+  version "7.16.0"
+  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.16.0.tgz#c4d1a2b674a82fc5373daf9d66686fecf7ff94ab"
+  integrity sha512-f9ovfcZeDJrHLlRzpbLAE0dLkJ2+xPWLE1FOJIG9ffyjwlnfucuWY2byqR09AEfmevplUALFCt5DnFS2pblkEA==
+  dependencies:
+    n2o-framework "^7.16.0"
+
+n2o-framework@7.15.4:
+  version "7.15.4"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.15.4.tgz#d8b94e8919e6a55ffa4960054642e84c5e0e5f33"
+  integrity sha512-oqWtVmUFI+RG3Fm78BxnEI6QXHwG7ilbCZy7jC1S4e/Ew/28/1mVlVSasAtGIk1g3a+mToSlwnKEaaBAo/4L4w==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11271,6 +11288,100 @@ n2o-framework@7.15.0:
     invariant "^2.2.4"
     lodash "^4.17.15"
     moment "2.20.1"
+    numeral "2.0.6"
+    path-to-regexp "2.2.1"
+    print-js "1.5.0"
+    prop-types "15.6.1"
+    query-string "5.1.1"
+    rc-collapse "~1.10.0"
+    rc-drawer "^3.0.2"
+    rc-slider "^8.6.11"
+    rc-switch "~1.8.0"
+    rc-table "6.4.3"
+    rc-tree-select "2.3.1"
+    react "16.14.0"
+    react-ace "5.9.0"
+    react-big-calendar "0.24.6"
+    react-copy-to-clipboard "^5.0.1"
+    react-dom "16.14.0"
+    react-draft-wysiwyg "1.13.1"
+    react-dropzone "7.0.1"
+    react-helmet "5.2.0"
+    react-hotkeys "1.0.3"
+    react-i18next "11.7.3"
+    react-onclickoutside "6.7.1"
+    react-popper "^2.2.4"
+    react-popper-tooltip "3.1.1"
+    react-redux "5.0.6"
+    react-resizable "1.7.5"
+    react-resize-detector "^5.2.0"
+    react-router-dom "4.3.1"
+    react-rte "0.16.0"
+    react-syntax-highlighter "^11.0.2"
+    react-text-mask "5.4.3"
+    react-textarea-autosize "7.0.4"
+    react-virtualized "^9.21.0"
+    reactstrap "^8.0.0"
+    recharts "^1.6.2"
+    recompose "0.30.0"
+    redux "3.6.0"
+    redux-actions "2.3.2"
+    redux-batched-actions "0.3.0"
+    redux-devtools-extension "2.13.2"
+    redux-form "7.4.2"
+    redux-logger "3.0.6"
+    redux-mock-store "1.5.1"
+    redux-saga "^1.0.5"
+    redux-thunk "2.2.0"
+    reselect "3.0.1"
+    scroll-into-view-if-needed "^2.2.26"
+    text-mask-addons "3.7.1"
+    url-parse "^1.4.7"
+    whatwg-fetch "2.0.3"
+    why-did-you-update "0.1.1"
+    xhr-mock "2.4.1"
+
+n2o-framework@^7.15.4, n2o-framework@^7.16.0:
+  version "7.16.0"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.16.0.tgz#9697e8d6d0d7e244c1420c1eec8236ae73f2beaf"
+  integrity sha512-rUIrUZyymx30nnpwNS1jEsu9OnaT8PSI5PA4VyXUpT9rDwgGzyBzfLI9NKHuasoGYE+AyKdK4+VDyQLN/JZS9g==
+  dependencies:
+    "@babel/polyfill" "^7.0.0"
+    "@babel/runtime-corejs2" "^7.0.0"
+    "@fontsource/exo-2" "^4.3.0"
+    "@popperjs/core" "^2.2.1"
+    "@sambego/storybook-state" "^1.3.6"
+    "@storybook/addon-actions" "5.0.6"
+    "@storybook/addon-info" "5.0.6"
+    "@storybook/addon-knobs" "5.0.6"
+    "@storybook/addon-links" "5.0.6"
+    "@storybook/addon-storyshots" "5.0.6"
+    "@storybook/addons" "5.0.6"
+    "@storybook/react" "5.0.6"
+    assets-webpack-plugin "3.5.1"
+    axios "^0.19.0"
+    bootstrap "~4.3.1"
+    brace "0.11.0"
+    classnames "2.2.5"
+    connect-history-api-fallback "1.3.0"
+    connected-react-router "5.0.1"
+    copy-to-clipboard "^3.2.0"
+    cpy-cli "1.0.1"
+    deepmerge "1.5.2"
+    draft-js "0.11.7"
+    draftjs-to-html "0.8.4"
+    flat "4.1.0"
+    font-awesome "4.7.0"
+    global "4.3.2"
+    history "4.6.1"
+    html-to-draftjs "1.4.0"
+    i18next "19.7.0"
+    i18next-intervalplural-postprocessor "2.0.2"
+    immer "^8.0.1"
+    invariant "^2.2.4"
+    lodash "^4.17.15"
+    moment "2.20.1"
+    n2o-auth "^7.16.0"
     numeral "2.0.6"
     path-to-regexp "2.2.1"
     print-js "1.5.0"
