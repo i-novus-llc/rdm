@@ -699,9 +699,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Page<RefBookRowValue> search(Integer draftId, SearchDataCriteria criteria) {
 
-        RefBookVersionEntity entity = findVersion(draftId);
-        validateDraftExists(entity, draftId);
-
+        RefBookVersionEntity entity = findChangeableOrThrow(draftId);
         return getRowValuesOfDraft(entity, criteria);
     }
 
@@ -730,9 +728,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Boolean hasData(Integer draftId) {
 
-        RefBookVersionEntity entity = findVersion(draftId);
-        validateDraftExists(entity, draftId);
-
+        RefBookVersionEntity entity = findChangeableOrThrow(draftId);
         return searchDataService.hasData(entity.getStorageCode());
     }
 
@@ -760,10 +756,7 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public Draft getDraft(Integer draftId) {
 
-        RefBookVersionEntity entity = findVersion(draftId);
-        validateDraftExists(entity, draftId);
-
-        return entity.toDraft();
+        return findChangeableOrThrow(draftId).toDraft();
     }
 
     // RDM-827: Задать стратегию для неверсионного справочника.
@@ -1108,8 +1101,7 @@ public class DraftServiceImpl implements DraftService {
 
         if (fileType == null) return null;
 
-        RefBookVersionEntity entity = findVersion(draftId);
-        validateDraftExists(entity, draftId);
+        RefBookVersionEntity entity = findChangeableOrThrow(draftId);
 
         RefBookVersion version = ModelGenerator.versionModel(entity);
         ExportFile exportFile = versionFileService.getFile(version, fileType, versionService);
@@ -1126,17 +1118,19 @@ public class DraftServiceImpl implements DraftService {
 
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
-        RefBookVersionEntity entity = findVersion(id);
-        validateDraftExists(entity, id);
+        RefBookVersionEntity entity = findChangeableOrThrow(id);
         getStrategy(entity, ValidateVersionNotArchivedStrategy.class).validate(entity);
 
         return entity;
     }
 
-    private void validateDraftExists(RefBookVersionEntity entity, Integer id) {
+    private RefBookVersionEntity findChangeableOrThrow(Integer id) {
 
+        RefBookVersionEntity entity = findVersion(id);
         if (entity == null || !entity.isChangeable())
             throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, id));
+
+        return entity;
     }
 
     private RefBookVersionEntity findVersionOrThrow(Integer id) {
