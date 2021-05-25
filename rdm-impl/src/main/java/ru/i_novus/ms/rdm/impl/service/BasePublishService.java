@@ -49,27 +49,27 @@ class BasePublishService {
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
-    private RefBookVersionRepository versionRepository;
+    private final RefBookVersionRepository versionRepository;
 
-    private DraftDataService draftDataService;
-    private SearchDataService searchDataService;
-    private DropDataService dropDataService;
+    private final DraftDataService draftDataService;
+    private final SearchDataService searchDataService;
+    private final DropDataService dropDataService;
 
-    private RefBookLockService refBookLockService;
-    private VersionService versionService;
-    private ConflictService conflictService;
+    private final RefBookLockService refBookLockService;
+    private final VersionService versionService;
+    private final ConflictService conflictService;
 
-    private VersionFileService versionFileService;
-    private VersionNumberStrategy versionNumberStrategy;
+    private final VersionFileService versionFileService;
+    private final VersionNumberStrategy versionNumberStrategy;
 
-    private VersionValidation versionValidation;
-    private VersionPeriodPublishValidation versionPeriodPublishValidation;
+    private final VersionValidation versionValidation;
+    private final VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private AuditLogService auditLogService;
+    private final AuditLogService auditLogService;
 
-    private AsyncOperationQueue asyncQueue;
+    private final AsyncOperationQueue asyncQueue;
 
-    private JmsTemplate jmsTemplate;
+    private final JmsTemplate jmsTemplate;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
