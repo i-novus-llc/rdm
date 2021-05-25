@@ -137,7 +137,7 @@
 
         <field id="hasStructureConflictMsg" domain="string">
             <select mapping="
-                (hasStructureConflict?:false ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
+                ((hasStructureConflict?:false) ? 'Выражение для вычисления отображаемого значения содержит ошибочные поля для подстановки' : '')
                 "/>
         </field>
 

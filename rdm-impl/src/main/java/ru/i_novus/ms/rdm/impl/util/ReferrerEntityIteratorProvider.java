@@ -24,8 +24,8 @@ public class ReferrerEntityIteratorProvider {
             new Sort.Order(Sort.Direction.ASC, VERSION_ID_SORT_PROPERTY)
     );
 
-    private RefBookVersionRepository versionRepository;
-    private ReferrerVersionCriteria criteria;
+    private final RefBookVersionRepository versionRepository;
+    private final ReferrerVersionCriteria criteria;
 
     public ReferrerEntityIteratorProvider(RefBookVersionRepository versionRepository,
                                           String refBookCode, RefBookSourceType sourceType) {

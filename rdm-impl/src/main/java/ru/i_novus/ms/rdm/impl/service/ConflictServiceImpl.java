@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.*;
@@ -56,6 +58,7 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.containsAnyPlaceholder;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary
 @Service
@@ -170,11 +173,8 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional(readOnly = true)
     public Boolean checkConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId, ConflictType conflictType) {
 
-        versionValidation.validateVersionExists(refFromId);
-        validateVersionPairExists(oldRefToId, newRefToId);
-
-        RefBookVersionEntity refFromEntity = versionRepository.getOne(refFromId);
-        RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldRefToId);
+        RefBookVersionEntity refFromEntity = findVersionOrThrow(refFromId);
+        RefBookVersionEntity oldRefToEntity = findVersionOrThrow(oldRefToId);
 
         if (ConflictType.ALTERED.equals(conflictType) || ConflictType.DISPLAY_DAMAGED.equals(conflictType)) {
             StructureDiff structureDiff = compareService.compareStructures(oldRefToId, newRefToId);
@@ -456,10 +456,8 @@ public class ConflictServiceImpl implements ConflictService {
     @Transactional
     public void discoverConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        validateVersionPairExists(oldVersionId, newVersionId);
-
-        RefBookVersionEntity oldRefToEntity = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newRefToEntity = versionRepository.getOne(newVersionId);
+        RefBookVersionEntity oldRefToEntity = findVersionOrThrow(oldVersionId);
+        RefBookVersionEntity newRefToEntity = findVersionOrThrow(newVersionId);
         StructureDiff structureDiff = compareService.compareStructures(oldVersionId, newVersionId);
 
         new ReferrerEntityIteratorProvider(versionRepository, oldRefToEntity.getRefBook().getCode(), RefBookSourceType.ALL)
@@ -481,10 +479,13 @@ public class ConflictServiceImpl implements ConflictService {
     // NB: for ApplicationTest only.
     public void copyConflicts(Integer oldVersionId, Integer newVersionId) {
 
-        validateVersionPairExists(oldVersionId, newVersionId);
+        if (newVersionId.equals(oldVersionId))
+            return;
 
-        if (!newVersionId.equals(oldVersionId))
-            conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
+        versionValidation.validateVersionExists(oldVersionId);
+        versionValidation.validateVersionExists(newVersionId);
+
+        conflictRepository.copyByReferrerVersion(oldVersionId, newVersionId);
     }
 
     private RefBookConflict refBookConflictModel(RefBookConflictEntity entity) {
@@ -792,7 +793,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о вычисленных конфликтах версии.
+     * Создание конфликтов, связанных с изменением записей.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -818,7 +819,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о перевычисленных конфликтах.
+     * Перевычисление конфликтов.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -834,7 +835,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о конфликтах структуры.
+     * Перевычисление конфликтов структуры.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -892,7 +893,7 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Сохранение информации о перевычисленных конфликтах данных.
+     * Перевычисление конфликтов данных.
      *
      * @param refFromEntity  версия, которая ссылается
      * @param oldRefToEntity старая версия, на которую ссылались
@@ -944,15 +945,12 @@ public class ConflictServiceImpl implements ConflictService {
                 .collect(toList());
     }
 
-    /**
-     * Проверка существования пары версий справочника.
-     *
-     * @param oldVersionId идентификатор старой версии
-     * @param newVersionId идентификатор новой версии
-     */
-    private void validateVersionPairExists(Integer oldVersionId, Integer newVersionId) {
+    private RefBookVersionEntity findVersionOrThrow(Integer id) {
 
-        versionValidation.validateVersionExists(oldVersionId);
-        versionValidation.validateVersionExists(newVersionId);
+        RefBookVersionEntity entity = (id != null) ? versionRepository.findById(id).orElse(null) : null;
+        if (entity == null)
+            throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, id));
+
+        return entity;
     }
 }
