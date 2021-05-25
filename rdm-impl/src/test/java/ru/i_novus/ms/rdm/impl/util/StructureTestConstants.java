@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.utils;
+package ru.i_novus.ms.rdm.impl.util;
 
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
