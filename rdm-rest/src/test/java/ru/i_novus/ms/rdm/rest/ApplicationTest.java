@@ -1219,13 +1219,14 @@ public class ApplicationTest {
 
     @Test
     public void testExportImportDraftFile() throws IOException {
-        //создание справочника из файла
+
+        // Создание справочника из файла
         RefBook refBook = refBookService.create(createRefBookCreateRequest("Z002"));
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
         Draft draft1 = draftService.create(refBook.getRefBookId(), fileModel);
         Page<RefBookRowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
 
-        //выгрузка файла
+        // Выгрузка файла
         ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
         ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
@@ -1234,12 +1235,12 @@ public class ApplicationTest {
         }
         fileModel = fileStorageService.save(zis, zipEntry.getName());
 
-        //создание нового черновика из выгруженного
+        // Создание нового черновика из выгруженного
         Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
         assertNotEquals(draft1, draft2);
         Page<RefBookRowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
 
-        //сравнение двух черновиков
+        // Сравнение двух черновиков
         assertEquals(expectedPage, actualPage);
     }
 
@@ -1508,7 +1509,7 @@ public class ApplicationTest {
         Integer draftId = draft.getId();
 
         Draft actualDraft = draftService.getDraft(draftId);
-        assertEquals(Integer.valueOf(0), actualDraft.getOptLockValue());
+        assertEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Создание атрибута.
         draft = actualDraft;
