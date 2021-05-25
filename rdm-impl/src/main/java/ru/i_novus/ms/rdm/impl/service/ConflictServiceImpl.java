@@ -71,15 +71,15 @@ public class ConflictServiceImpl implements ConflictService {
     private static final List<DiffStatusEnum> CALCULATING_DIFF_STATUSES = asList(DiffStatusEnum.DELETED, DiffStatusEnum.UPDATED);
     private static final List<ConflictType> ALTERED_RECALCULATING_CONFLICT_TYPES = singletonList(ConflictType.DELETED);
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
-    private RefBookConflictQueryProvider conflictQueryProvider;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
+    private final RefBookConflictQueryProvider conflictQueryProvider;
 
-    private CompareService compareService;
-    private SearchDataService searchDataService;
+    private final CompareService compareService;
+    private final SearchDataService searchDataService;
 
-    private VersionService versionService;
-    private VersionValidation versionValidation;
+    private final VersionService versionService;
+    private final VersionValidation versionValidation;
 
     @Autowired
     @SuppressWarnings("squid:S00107")

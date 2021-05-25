@@ -236,22 +236,25 @@ public class RefBookDataController {
 
     private static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
 
-        switch (attribute.getType()) {
-            case INTEGER:
-                return new BigInteger((String) value);
+        return switch (attribute.getType()) {
+            case INTEGER -> parseInteger((String) value);
+            case FLOAT -> parseFloat((String) value);
+            case DATE -> parseDate((String) value);
+            case BOOLEAN -> parseBoolean((String) value);
+            default -> value;
+        };
+    }
 
-            case FLOAT:
-                return new BigDecimal(((String) value).replace(",", ".").trim());
+    private static BigInteger parseInteger(String value) {
+        return new BigInteger(value);
+    }
 
-            case DATE:
-                return LocalDate.parse((String) value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
+    private static BigDecimal parseFloat(String value) {
+        return new BigDecimal(value.replace(",", ".").trim());
+    }
 
-            case BOOLEAN:
-                return parseBoolean((String)value);
-
-            default:
-                return value;
-        }
+    private static LocalDate parseDate(String value) {
+        return LocalDate.parse(value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
     }
 
     private static Serializable parseBoolean(String value) {
