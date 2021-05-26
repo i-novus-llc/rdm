@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -15,8 +16,6 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
-import static ru.i_novus.ms.rdm.api.util.RowUtils.toSystemIds;
 
 public class DefaultUpdateRowValuesStrategyTest extends BaseRowValuesStrategyTest {
 
@@ -48,9 +47,9 @@ public class DefaultUpdateRowValuesStrategyTest extends BaseRowValuesStrategyTes
 
         verify(draftDataService).updateRows(eq(DRAFT_CODE), eq(newRowValues));
 
-        List<Object> systemIds = toSystemIds(newRowValues);
+        List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
         verify(conflictRepository)
-                .deleteByReferrerVersionIdAndRefRecordIdIn(eq(entity.getId()), eq(toLongSystemIds(systemIds)));
+                .deleteByReferrerVersionIdAndRefRecordIdIn(eq(entity.getId()), eq(systemIds));
 
         verifyNoMoreInteractions(conflictRepository, draftDataService);
     }

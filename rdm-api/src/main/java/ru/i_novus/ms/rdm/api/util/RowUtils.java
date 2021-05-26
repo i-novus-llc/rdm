@@ -110,8 +110,10 @@ public class RowUtils {
         return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
     }
 
-    public static List<Object> toSystemIds(List<RowValue> rowValues) {
-        return rowValues.stream().map(RowValue::getSystemId).collect(toList());
+    /** Получение списка systemIds из списка записей. */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toSystemIds(List<RowValue> rowValues) {
+        return rowValues.stream().map(rowValue -> (T) rowValue.getSystemId()).collect(toList());
     }
 
     /** Преобразование списка systemIds из vds в список для rdm. */
