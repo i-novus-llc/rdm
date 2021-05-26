@@ -23,6 +23,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 /**
  * Проверка на уникальность строк по первичным ключам в таблице БД.
  */
+@SuppressWarnings({"rawtypes","java:S3740"})
 public class DBPrimaryKeyValidation extends AppendRowValidation {
 
     private static final String DB_CONTAINS_PK_ERROR_CODE = "validation.db.contains.pk.err";
@@ -36,11 +37,13 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
     private final List<Map<Structure.Attribute, Serializable>> primaryKeyMaps;
     private final List<RowValue> primarySearchValues;
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, Row row) {
+    public DBPrimaryKeyValidation(SearchDataService searchDataService,
+                                  String storageCode, Structure structure, Row row) {
         this(searchDataService, storageCode, structure, singletonList(row));
     }
 
-    public DBPrimaryKeyValidation(SearchDataService searchDataService, String storageCode, Structure structure, List<Row> rows) {
+    public DBPrimaryKeyValidation(SearchDataService searchDataService,
+                                  String storageCode, Structure structure, List<Row> rows) {
 
         this.searchDataService = searchDataService;
         this.storageCode = storageCode;
@@ -103,7 +106,9 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                         .collect(toList())
                 ).collect(toSet());
 
-        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null, fields, fieldFilters, null);
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode,
+                null, null, // Черновик
+                fields, fieldFilters, null);
         criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
         return criteria;

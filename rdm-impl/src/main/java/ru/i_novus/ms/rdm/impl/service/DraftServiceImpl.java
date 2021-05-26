@@ -216,10 +216,10 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draftEntity.getStructure();
 
-        validateRows(fileModel, structure, draftEntity.getStorageCode(),
+        validateRows(fileModel, structure, draftEntity.getStorageCode(), // Без учёта локализации
                 attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
 
-        persistRows(fileModel, structure, draftEntity.getStorageCode());
+        persistRows(fileModel, structure, draftEntity.getStorageCode()); // Без учёта локализации
     }
 
     private void validateRows(FileModel fileModel, Structure structure, String storageCode,
@@ -691,7 +691,8 @@ public class DraftServiceImpl implements DraftService {
 
         String storageCode = toStorageCode(draft, criteria);
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode,
+                null, null, // Черновик
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
 
         dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);

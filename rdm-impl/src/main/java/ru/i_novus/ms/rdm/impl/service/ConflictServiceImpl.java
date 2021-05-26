@@ -509,7 +509,8 @@ public class ConflictServiceImpl implements ConflictService {
     private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity, List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
         Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
-        StorageDataCriteria criteria = new StorageDataCriteria(refFromEntity.getStorageCode(),
+        StorageDataCriteria criteria = new StorageDataCriteria(
+                refFromEntity.getStorageCode(), // Без учёта локализации
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
                 ConverterUtil.fields(refFromEntity.getStructure()), filters, null);
         criteria.makeUnpaged(); // NB: Get all required rows since filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.

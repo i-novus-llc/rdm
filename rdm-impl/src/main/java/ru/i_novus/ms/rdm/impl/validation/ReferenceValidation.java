@@ -96,7 +96,9 @@ public class ReferenceValidation implements RdmValidation {
         Structure.Attribute draftAttribute = draftEntity.getStructure().getAttribute(reference.getAttribute());
         Field draftField = ConverterUtil.field(draftAttribute);
 
-        StorageDataCriteria draftDataCriteria = new StorageDataCriteria(draftEntity.getStorageCode(), null, null,
+        StorageDataCriteria draftDataCriteria = new StorageDataCriteria(
+                draftEntity.getStorageCode(), // Без учёта локализации
+                null, null, // Черновик
                 singletonList(draftField), emptySet(), null);
         draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
         draftDataCriteria.setSize(bufferSize);
@@ -133,7 +135,8 @@ public class ReferenceValidation implements RdmValidation {
 
         if (!isEmpty(castedValues)) {
             FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
-            StorageDataCriteria referredDataCriteria = new StorageDataCriteria(referredEntity.getStorageCode(),
+            StorageDataCriteria referredDataCriteria = new StorageDataCriteria(
+                    referredEntity.getStorageCode(), // Без учёта локализации
                     referredEntity.getFromDate(), referredEntity.getToDate(),
                     singletonList(referredField), singletonList(refFieldSearchCriteria), null);
             CollectionPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
