@@ -53,15 +53,15 @@ public class CompareServiceImpl implements CompareService {
     private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
     private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
 
-    private CompareDataService compareDataService;
-    private VersionService versionService;
-    private CachedDataDiffService cachedDataDiffService;
+    private final CompareDataService compareDataService;
+    private final VersionService versionService;
+    private final CachedDataDiffService cachedDataDiffService;
 
-    private RefBookVersionRepository versionRepository;
-    private PassportAttributeRepository passportAttributeRepository;
+    private final RefBookVersionRepository versionRepository;
+    private final PassportAttributeRepository passportAttributeRepository;
 
-    private FieldFactory fieldFactory;
-    private VersionValidation versionValidation;
+    private final FieldFactory fieldFactory;
+    private final VersionValidation versionValidation;
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
@@ -341,7 +341,7 @@ public class CompareServiceImpl implements CompareService {
 
             int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
             long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
-            long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+            long skipDeletedRowsCount = (long) criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
 
             long pageSize = skipDeletedRowsCount + criteria.getPageSize();
             if (pageSize <= 0)
