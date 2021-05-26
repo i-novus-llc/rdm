@@ -116,9 +116,11 @@ public class ReferenceServiceImpl implements ReferenceService {
     @Override
     @Transactional
     public void refreshLastReferrers(String refBookCode) {
+
         new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
-                .iterate().forEachRemaining(
-                referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId(), null)
+                .iterate().forEachRemaining(referrers ->
+                referrers.forEach(referrer ->
+                        refreshReferrer(referrer.getId(), null)
                 )
         );
     }

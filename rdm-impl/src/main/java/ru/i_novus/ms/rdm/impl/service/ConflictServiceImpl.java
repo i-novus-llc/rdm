@@ -819,8 +819,9 @@ public class ConflictServiceImpl implements ConflictService {
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = calculateDataDiffConflicts(refFromEntity,
                     oldRefToEntity, newRefToEntity, getDataDiffContent(page, isAltered));
-            if (!isEmpty(entities))
+            if (!isEmpty(entities)) {
                 conflictRepository.saveAll(entities);
+            }
         });
     }
 
