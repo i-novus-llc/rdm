@@ -7,10 +7,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class PageIteratorTest {
 
@@ -18,15 +15,18 @@ public class PageIteratorTest {
 
     @Test
     public void testIteration() {
+
         TestCriteria criteria = new TestCriteria();
         criteria.setPageSize(3);
         criteria.setOrders(Collections.singletonList(new Sort.Order(Sort.Direction.ASC, "id")));
+
         PageIterator<String, TestCriteria> pageIterator = new PageIterator<>(c -> {
             int total = allContent.size();
             int offset = c.getPageNumber() * c.getPageSize();
             List<String> content = allContent.subList(Math.min(offset, total), Math.min(offset + c.getPageSize(), total));
             return new PageImpl<>(content, c, total);
         }, criteria);
+
         List<List<String>> expectedPages = new ArrayList<>();
         expectedPages.add(Arrays.asList("1", "2", "3"));
         expectedPages.add(Arrays.asList("4", "5", "6"));
@@ -40,7 +40,7 @@ public class PageIteratorTest {
         }
     }
 
-    private class TestCriteria extends AbstractCriteria {
+    private static class TestCriteria extends AbstractCriteria {
 
     }
 }
