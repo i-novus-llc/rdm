@@ -31,6 +31,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -56,8 +57,6 @@ import static ru.i_novus.ms.rdm.api.util.ConflictUtils.diffStatusToConflictType;
 import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.*;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.containsAnyPlaceholder;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary
@@ -119,7 +118,8 @@ public class ConflictServiceImpl implements ConflictService {
         compareCriteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
-                pageCriteria -> compareService.compareData(pageCriteria).getRows(), compareCriteria, true);
+                pageCriteria -> compareService.compareData(pageCriteria).getRows(),
+                compareCriteria, true);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = calculateDataDiffConflicts(refFromEntity,
                     oldRefToEntity, newRefToEntity, getDataDiffContent(page, criteria.getStructureAltered()));
@@ -193,7 +193,8 @@ public class ConflictServiceImpl implements ConflictService {
         compareCriteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
-                pageCriteria -> compareService.compareData(pageCriteria).getRows(), compareCriteria, true);
+                pageCriteria -> compareService.compareData(pageCriteria).getRows(),
+                compareCriteria, true);
         while (pageIterator.hasNext()) {
             Page<? extends DiffRowValue> page = pageIterator.next();
 
@@ -510,9 +511,8 @@ public class ConflictServiceImpl implements ConflictService {
         Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
         StorageDataCriteria criteria = new StorageDataCriteria(refFromEntity.getStorageCode(),
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
-                fields(refFromEntity.getStructure()), filters, null);
-        // NB: Get all required rows because filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
-        criteria.makeUnpaged();
+                ConverterUtil.fields(refFromEntity.getStructure()), filters, null);
+        criteria.makeUnpaged(); // NB: Get all required rows since filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
 
         CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
@@ -624,10 +624,13 @@ public class ConflictServiceImpl implements ConflictService {
                     Serializable value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
                     return refFromAttributes.stream()
-                            .map(attribute ->
-                                    singletonList(new FieldSearchCriteria(field(attribute), SearchTypeEnum.EXACT, singletonList(value)))
-                            );
+                            .map(attribute -> singletonList(toFieldSearchCriteria(attribute, value)));
                 }).collect(toSet());
+    }
+
+    private FieldSearchCriteria toFieldSearchCriteria(Structure.Attribute attribute, Serializable value) {
+
+        return new FieldSearchCriteria(ConverterUtil.field(attribute), SearchTypeEnum.EXACT, singletonList(value));
     }
 
     /**
@@ -690,7 +693,8 @@ public class ConflictServiceImpl implements ConflictService {
         searchCriteria.setPageSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         PageIterator<RefBookRowValue, SearchDataCriteria> pageIterator = new PageIterator<>(
-                pageCriteria -> versionService.search(refFromEntity.getId(), searchCriteria), searchCriteria, true);
+                pageCriteria -> versionService.search(refFromEntity.getId(), searchCriteria),
+                searchCriteria, true);
         pageIterator.forEachRemaining(page ->
                 refFromReferences.forEach(refFromReference -> {
                     List<RefBookConflictEntity> entities = calculateAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReference, page.getContent());
@@ -809,7 +813,8 @@ public class ConflictServiceImpl implements ConflictService {
         compareCriteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
 
         PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
-                pageCriteria -> compareService.compareData(pageCriteria).getRows(), compareCriteria, true);
+                pageCriteria -> compareService.compareData(pageCriteria).getRows(),
+                compareCriteria, true);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = calculateDataDiffConflicts(refFromEntity,
                     oldRefToEntity, newRefToEntity, getDataDiffContent(page, isAltered));

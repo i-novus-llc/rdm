@@ -59,7 +59,12 @@ public class ConverterUtil {
         boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
         return isSearchable
                 ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
-                : fieldFactory.createField(attribute.getCode(), attribute.getType());
+                : field(attribute.getCode(), attribute.getType());
+    }
+
+    /** Получение поля по наименованию и типу. */
+    public static Field field(String code, FieldType type) {
+        return fieldFactory.createField(code, type);
     }
 
     /** Получение записи из plain-записи на основе структуры. */
@@ -135,8 +140,18 @@ public class ConverterUtil {
 
     private static FieldSearchCriteria toFieldSearchCriteria(AttributeFilter filter) {
 
-        Field field = fieldFactory.createField(filter.getAttributeName(), filter.getFieldType());
-        return new FieldSearchCriteria(field, filter.getSearchType(), singletonList(filter.getValue()));
+        return toFieldSearchCriteria(
+                filter.getAttributeName(), filter.getFieldType(),
+                filter.getSearchType(), singletonList(filter.getValue())
+        );
+    }
+
+    /** Преобразование поиска значений по полю в критерий поиска. */
+    public static FieldSearchCriteria toFieldSearchCriteria(String fieldName, FieldType fieldType,
+                                                            SearchTypeEnum searchType,
+                                                            List<? extends Serializable> values) {
+
+        return new FieldSearchCriteria(field(fieldName, fieldType), searchType, values);
     }
 
     public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Map<String, String> filters, Structure structure) {

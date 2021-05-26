@@ -29,7 +29,6 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.castReferenceValue;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
 /**
  * Проверка конкретного строкового значения на ссылочную целостность.
@@ -168,7 +167,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
                 .filter(Objects::nonNull)
                 .distinct().collect(toList());
 
-        Field referredField = field(referredAttribute);
+        Field referredField = ConverterUtil.field(referredAttribute);
         List<Serializable> referredValues = referenceValues.stream()
                 .map(referenceValue -> castReferenceValue(referredField, referenceValue))
                 .filter(Objects::nonNull)
