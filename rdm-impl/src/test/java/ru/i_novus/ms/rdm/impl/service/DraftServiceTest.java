@@ -31,6 +31,8 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.data.DeleteAllRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.UpdateRowValuesStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
@@ -125,6 +127,10 @@ public class DraftServiceTest {
     private CreateDraftEntityStrategy createDraftEntityStrategy;
     @Mock
     private CreateDraftStorageStrategy createDraftStorageStrategy;
+    @Mock
+    private UpdateRowValuesStrategy updateRowValuesStrategy;
+    @Mock
+    private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -187,7 +193,7 @@ public class DraftServiceTest {
         Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
         Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
 
-        verify(draftDataService).deleteAllRows(eq(DRAFT_CODE));
+        verify(deleteAllRowValuesStrategy).delete(eq(draftEntity));
         assertEquals(expected, actual);
     }
 
@@ -705,7 +711,7 @@ public class DraftServiceTest {
 
         for (int i = 0; i < primaryAllowedType.length; i++) {
             testUpdateByPrimaryKey(primaryAllowedType[i], primaryValues[i]);
-            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, draftDataService);
+            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, updateRowValuesStrategy);
         }
     }
 
@@ -768,7 +774,7 @@ public class DraftServiceTest {
         map.put(notPrimaryCode, notPrimaryUpdatedValue);
         draftService.updateData(draft.getId(), new UpdateDataRequest(null, new Row(null, map)));
 
-        verify(draftDataService, times(1)).updateRows(anyString(), any());
+        verify(updateRowValuesStrategy).update(any(RefBookVersionEntity.class), any(), any());
     }
 
     private RefBookVersionEntity createDraftEntity() {
@@ -862,6 +868,9 @@ public class DraftServiceTest {
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
+        // Data:
+        result.put(UpdateRowValuesStrategy.class, updateRowValuesStrategy);
+        result.put(DeleteAllRowValuesStrategy.class, deleteAllRowValuesStrategy);
 
         return result;
     }
