@@ -5,5 +5,5 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
 public interface DeleteAllRowValuesStrategy extends Strategy {
 
-    void delete(RefBookVersionEntity entity);
+    void deleteAll(RefBookVersionEntity entity);
 }

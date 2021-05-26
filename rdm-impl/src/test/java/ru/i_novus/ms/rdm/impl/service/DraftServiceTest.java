@@ -193,7 +193,7 @@ public class DraftServiceTest {
         Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
         Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
 
-        verify(deleteAllRowValuesStrategy).delete(eq(draftEntity));
+        verify(deleteAllRowValuesStrategy).deleteAll(eq(draftEntity));
         assertEquals(expected, actual);
     }
 

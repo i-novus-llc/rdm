@@ -16,7 +16,7 @@ public class DefaultDeleteAllRowValuesStrategy implements DeleteAllRowValuesStra
     private DraftDataService draftDataService;
 
     @Override
-    public void delete(RefBookVersionEntity entity) {
+    public void deleteAll(RefBookVersionEntity entity) {
 
         before(entity);
 

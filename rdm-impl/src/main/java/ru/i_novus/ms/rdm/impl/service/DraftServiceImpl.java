@@ -647,7 +647,7 @@ public class DraftServiceImpl implements DraftService {
     /** Удаление всех строк черновика. */
     private void deleteDraftAllRows(RefBookVersionEntity draftEntity) {
 
-        getStrategy(draftEntity, DeleteAllRowValuesStrategy.class).delete(draftEntity);
+        getStrategy(draftEntity, DeleteAllRowValuesStrategy.class).deleteAll(draftEntity);
     }
 
     @Override

@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.util.ErrorUtil;
@@ -12,6 +11,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import java.util.List;
 
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
+import static ru.i_novus.ms.rdm.api.util.RowUtils.toSystemIds;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740","java:S1172"})
@@ -40,7 +40,7 @@ public class DefaultUpdateRowValuesStrategy implements UpdateRowValuesStrategy {
 
     protected void before(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
 
-        List<Object> systemIds = RowUtils.toSystemIds(newRowValues);
+        List<Object> systemIds = toSystemIds(newRowValues);
         conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
     }
 
