@@ -95,6 +95,17 @@ public interface RefBookVersionRepository extends
 
     List<RefBookVersionEntity> findByIdInAndStatusOrderByFromDateDesc(List<Integer> ids, RefBookVersionStatus status);
 
+    /**
+     * Поиск версий связанных справочников:
+     * - ссылающихся на справочник с заданным кодом,
+     * - имеющих указанный статус и тип версии справочника.
+     *
+     * @param refBookCode   код справочника, на который ссылаются
+     * @param refBookStatus статус справочника (см. RefBookStatusType)
+     * @param refBookSource тип версии справочника (см. RefBookSourceType)
+     * @param pageable      информация для постраничного поиска
+     * @return Страница со списком ссылающихся справочников
+     */
     @Query(nativeQuery = true,
             value = FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
     Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
@@ -102,6 +113,14 @@ public interface RefBookVersionRepository extends
                                                     @Param("refBookSource") String refBookSource,
                                                     Pageable pageable);
 
+    /**
+     * Проверка наличия связанного справочника.
+     *
+     * @param refBookCode   код справочника, на который ссылаются
+     * @param refBookStatus статус справочника (см. RefBookStatusType)
+     * @param refBookSource тип версии справочника (см. RefBookSourceType)
+     * @return Результат проверки
+     */
     @Query(nativeQuery = true,
             value = "select exists( \n" +
                     FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE +
