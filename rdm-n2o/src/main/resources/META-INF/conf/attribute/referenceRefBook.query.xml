@@ -62,7 +62,7 @@
         <field id="displayCode" domain="string">
             <select mapping="
                     code +
-                    (lastPublishedVersion != null ? ' (' + lastPublishedVersion + ')' : '') +
+                    ' (' + displayNumber + ')' +
                     (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
                 "/>
             <filters>

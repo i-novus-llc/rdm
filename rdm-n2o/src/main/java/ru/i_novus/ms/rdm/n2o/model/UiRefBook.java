@@ -27,9 +27,9 @@ public class UiRefBook extends RefBook {
 
         this((RefBook) uiRefBook);
 
-        this.displayNumber = uiRefBook.getDisplayNumber();
-        this.displayStatus = uiRefBook.getDisplayStatus();
-        this.displayOperation = uiRefBook.getDisplayOperation();
+        this.displayNumber = uiRefBook.displayNumber;
+        this.displayStatus = uiRefBook.displayStatus;
+        this.displayOperation = uiRefBook.displayOperation;
     }
 
     public String getDisplayNumber() {
