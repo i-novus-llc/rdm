@@ -112,7 +112,7 @@ public class RowUtils {
 
     /** Получение списка systemIds из списка записей. */
     @SuppressWarnings("unchecked")
-    public static <T> List<T> toSystemIds(List<RowValue> rowValues) {
+    public static <T> List<T> toSystemIds(Collection<? extends RowValue> rowValues) {
         return rowValues.stream().map(rowValue -> (T) rowValue.getSystemId()).collect(toList());
     }
 
