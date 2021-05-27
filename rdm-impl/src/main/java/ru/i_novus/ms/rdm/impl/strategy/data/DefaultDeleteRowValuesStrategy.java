@@ -38,4 +38,12 @@ public class DefaultDeleteRowValuesStrategy implements DeleteRowValuesStrategy {
 
         // Nothing to do.
     }
+
+    public RefBookConflictRepository getConflictRepository() {
+        return conflictRepository;
+    }
+
+    public DraftDataService getDraftDataService() {
+        return draftDataService;
+    }
 }
