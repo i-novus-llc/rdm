@@ -161,7 +161,7 @@
                 <checkbox id="required" label="Обязательный атрибут" no-label-block="true">
                     <dependencies>
                         <visibility on="attrType,isPrimary">
-                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN'
+                            (attrType != null &amp;&amp; attrType.id != 'BOOLEAN' &amp;&amp; attrType.id != 'REFERENCE'
                                 &amp;&amp; (typeof isPrimary === 'undefined' || !isPrimary))
                         </visibility>
                         <set-value on="attrType,isPrimary">
