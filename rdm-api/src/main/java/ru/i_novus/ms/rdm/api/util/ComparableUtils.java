@@ -76,12 +76,13 @@ public class ComparableUtils {
      *                     (для получения данных из записи rowValue)
      * @param diffRowValue diff-запись об изменениях в версии, на которую ссылаемся
      * @param rowValue     запись, которая ссылается
-     * @return true, если #diffRowValue соответсвует #rowValue; иначе false
+     * @return true, если #diffRowValue соответствует #rowValue; иначе false
      */
     private static boolean isRefBookRowValue(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,
                                              DiffRowValue diffRowValue, RefBookRowValue rowValue) {
 
-        // На данный момент первичным ключом может быть только одно поле (ссылка на составной ключ невозможна).
+        // На данный момент первичным ключом может быть только одно поле.
+        // Ссылка на значение составного ключа невозможна.
         DiffFieldValue diffFieldValue = diffRowValue.getDiffFieldValue(primaries.get(0).getCode());
         return Objects.equals(FieldValueUtils.getDiffFieldValue(diffFieldValue, diffRowValue.getStatus()),
                 FieldValueUtils.castFieldValue(rowValue.getFieldValue(refAttribute.getCode()), primaries.get(0).getType())
@@ -109,14 +110,14 @@ public class ComparableUtils {
 
     /**
      * В списке записей #rowValues ищутся записи,
-     * которые соответствует строке об изменениях #diffRowValue
+     * которые соответствуют строке об изменениях #diffRowValue
      * на основании набора первичных ключей #primaries.
      *
      * @param primaries    список первичных атрибутов для идентификации записи
      * @param refAttribute ссылочный атрибут версии, которая ссылается
      *                     (для получения данных из записи rowValue)
-     * @param diffRowValue diff-запись, для которой ведется поиск в полученном списке записей
-     * @param rowValues    список записей, среди которых ведется поиск
+     * @param diffRowValue diff-запись, для которой ведётся поиск в полученном списке записей
+     * @param rowValues    список записей, среди которых ведётся поиск
      * @return Список найденных записей
      */
     public static List<RefBookRowValue> findRefBookRowValues(List<Structure.Attribute> primaries, Structure.Attribute refAttribute,

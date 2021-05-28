@@ -619,6 +619,8 @@ public class ConflictServiceImpl implements ConflictService {
                                                                       List<Structure.Attribute> refFromAttributes) {
         return diffRowValues.stream()
                 .flatMap(diff -> {
+                    // На данный момент первичным ключом может быть только одно поле.
+                    // Ссылка на значение составного ключа невозможна.
                     DiffFieldValue diffFieldValue = diff.getDiffFieldValue(refToPrimaries.get(0).getCode());
                     Serializable value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
