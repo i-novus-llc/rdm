@@ -147,18 +147,16 @@ public class ConflictServiceImpl implements ConflictService {
         List<Structure.Attribute> refFromAttributes = refFromEntity.getStructure().getRefCodeAttributes(oldRefToEntity.getRefBook().getCode());
         List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues, refToPrimaries, refFromAttributes);
 
-        return refFromAttributes.stream()
-                .flatMap(refFromAttribute ->
-                        diffRowValues.stream()
-                                .flatMap(diffRowValue -> {
-                                    List<RefBookRowValue> rowValues =
-                                            findRefBookRowValues(refToPrimaries, refFromAttribute, diffRowValue, refFromRowValues);
-                                    return rowValues.stream()
-                                            .map(rowValue ->
-                                                    new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                                            rowValue.getSystemId(), refFromAttribute.getCode(), diffStatusToConflictType(diffRowValue.getStatus())));
-                                })
-                ).collect(toList());
+        return refFromAttributes.stream().flatMap(refFromAttribute ->
+                diffRowValues.stream().flatMap(diffRowValue -> {
+                    List<RefBookRowValue> rowValues =
+                            findRefBookRowValues(refToPrimaries, refFromAttribute, diffRowValue, refFromRowValues);
+                    return rowValues.stream()
+                            .map(rowValue ->
+                                    new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                                            rowValue.getSystemId(), refFromAttribute.getCode(), diffStatusToConflictType(diffRowValue.getStatus())));
+                })
+        ).collect(toList());
     }
 
     /**
