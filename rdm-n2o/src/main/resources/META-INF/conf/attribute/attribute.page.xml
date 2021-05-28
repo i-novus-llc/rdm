@@ -153,7 +153,7 @@
                 </input-text>
             </row>
 
-            <text-area id="description" label="Описание" rows="2"/>
+            <text-area id="description" label="Описание" min-rows="2"/>
 
             <!-- Пользовательские проверки -->
             
