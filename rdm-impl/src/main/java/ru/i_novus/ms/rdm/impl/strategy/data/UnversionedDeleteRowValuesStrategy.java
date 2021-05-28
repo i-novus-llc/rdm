@@ -85,9 +85,10 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page -> {
 
+            // Удалить существующие конфликты для найденных записей:
             deleteReferrerConflicts(referrer, page.getCollection());
 
-            // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.
+            // Если есть значение ссылки на один из systemIds, создать конфликт DELETED:
             List<RefBookConflictEntity> entities = recalculateDataConflicts(referrer, entity,
                     referenceCodes, referenceValues, page.getCollection());
             if (!isEmpty(entities)) {
