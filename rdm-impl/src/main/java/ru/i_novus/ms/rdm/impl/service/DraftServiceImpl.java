@@ -593,7 +593,7 @@ public class DraftServiceImpl implements DraftService {
 
         Set<List<AttributeFilter>> filterSet = rows.stream()
                 .filter(row -> row.getSystemId() == null)
-                .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
+                .map(row -> RowUtils.toPrimaryKeyValueFilters(row, primaries))
                 .filter(list -> !isEmpty(list))
                 .collect(toSet());
         criteria.setAttributeFilters(filterSet);

@@ -140,26 +140,30 @@ public class RowUtils {
     }
 
     /**
-     * Создание фильтров по точному совпадению значений первичных ключей.
+     * Получение фильтров по точному совпадению значений первичных ключей из записи.
      *
      * @param row       запись со значениями
      * @param primaries первичные ключи
      * @return Список фильтров
      */
-    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
+    public static List<AttributeFilter> toPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
+
         return primaries.stream()
-                .map(key -> {
-                    Serializable value = (Serializable) row.getData().get(key.getCode());
-                    if (value == null)
-                        return null;
-
-                    if (value instanceof Reference) {
-                        value = ((Reference) value).getValue();
-                    }
-
-                    return new AttributeFilter(key.getCode(), value, key.getType(), SearchTypeEnum.EXACT);
-                })
+                .map(primary -> toPrimaryKeyFilter(row, primary))
                 .filter(Objects::nonNull)
                 .collect(toList());
+    }
+
+    private static AttributeFilter toPrimaryKeyFilter(Row row, Structure.Attribute primary) {
+
+        Serializable value = (Serializable) row.getData().get(primary.getCode());
+        if (value == null)
+            return null;
+
+        if (value instanceof Reference) {
+            value = ((Reference) value).getValue();
+        }
+
+        return new AttributeFilter(primary.getCode(), value, primary.getType(), SearchTypeEnum.EXACT);
     }
 }
