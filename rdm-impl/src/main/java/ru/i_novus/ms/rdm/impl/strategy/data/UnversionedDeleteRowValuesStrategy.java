@@ -52,10 +52,8 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
 
     private void processReferrers(RefBookVersionEntity entity, List<Object> systemIds) {
 
-        // Значение ссылки не systemId, а значение первичного ключа.
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
-        Collection<RowValue> rowValues = getEntityRowValues(entity, primaries, systemIds);
-        List<String> primaryValues = toPrimaryValues(primaries, rowValues);
+        // Для поиска записей-ссылок нужны не systemId, а строковые значения первичных ключей.
+        List<String> primaryValues = findPrimaryValues(entity, systemIds);
 
         new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
                 .iterate().forEachRemaining(referrers ->
@@ -65,8 +63,17 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         );
     }
 
-    private Collection<RowValue> getEntityRowValues(RefBookVersionEntity entity,
-                                                    List<Structure.Attribute> primaries, List<Object> systemIds) {
+    private List<String> findPrimaryValues(RefBookVersionEntity entity, List<Object> systemIds) {
+
+        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
+        StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, systemIds, primaries);
+
+        Collection<RowValue> rowValues = searchDataService.getPagedData(dataCriteria).getCollection();
+        return toReferenceValues(primaries, rowValues);
+    }
+
+    private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity, List<Object> systemIds,
+                                                     List<Structure.Attribute> primaries) {
         List<Field> primaryFields = primaries.stream()
                 .map(primary -> ConverterUtil.field(primary.getCode(), primary.getType()))
                 .collect(toList());
@@ -74,22 +81,21 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
                 entity.getStorageCode(), // Без учёта локализации
                 entity.getFromDate(), entity.getToDate(),
-                //null, null, // Неверсионный справочник
                 primaryFields);
         dataCriteria.setSystemIds(RowUtils.toLongSystemIds(systemIds));
 
         dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
         dataCriteria.setSize(systemIds.size());
 
-        return searchDataService.getPagedData(dataCriteria).getCollection();
+        return dataCriteria;
     }
 
-    private List<String> toPrimaryValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
+    private List<String> toReferenceValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
 
-        return rowValues.stream().map(rowValue -> toPrimaryValue(primaries, rowValue)).collect(toList());
+        return rowValues.stream().map(rowValue -> toReferenceValue(primaries, rowValue)).collect(toList());
     }
 
-    private String toPrimaryValue(List<Structure.Attribute> primaries, RowValue rowValue) {
+    private String toReferenceValue(List<Structure.Attribute> primaries, RowValue rowValue) {
 
         // На данный момент первичным ключом может быть только одно поле.
         // Ссылка на значение составного ключа невозможна.
@@ -110,10 +116,9 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
                                  RefBookVersionEntity entity, List<String> primaryValues) {
 
         List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(entity.getRefBook().getCode());
-        StorageDataCriteria dataCriteria = toReferrerDataCriteria(referrer, references, primaryValues);
-
         List<String> referenceCodes = references.stream().map(Structure.Reference::getAttribute).collect(toList());
 
+        StorageDataCriteria dataCriteria = toReferrerDataCriteria(referrer, references, primaryValues);
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page -> {
@@ -133,11 +138,10 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
     private StorageDataCriteria toReferrerDataCriteria(RefBookVersionEntity referrer,
                                                        List<Structure.Reference> references,
                                                        List<String> primaryValues) {
-
-        Set<List<FieldSearchCriteria>> fieldSearchCriterias = toReferenceSearchCriterias(references, primaryValues);
         List<Field> referenceFields = references.stream()
                 .map(reference -> ConverterUtil.field(reference.getAttribute(), FieldType.REFERENCE))
                 .collect(toList());
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = toReferenceSearchCriterias(references, primaryValues);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
                 referrer.getStorageCode(), // Без учёта локализации
