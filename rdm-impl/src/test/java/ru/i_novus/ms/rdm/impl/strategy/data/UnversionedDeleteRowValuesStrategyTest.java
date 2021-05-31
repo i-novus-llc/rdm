@@ -22,11 +22,13 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -34,18 +36,22 @@ import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
+import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.NAME_ATTRIBUTE_CODE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UnversionedDeleteRowValuesStrategyTest extends BaseRowValuesStrategyTest {
 
+    private static final Long DRAFT_SYSTEM_ID = 22L;
+    private static final BigInteger DRAFT_PRIMARY_ID = BigInteger.valueOf(2222L);
+
     private static final int REFERRER_ID = 10;
     private static final String REFERRER_CODE = "refer";
 
-    private static final int REFERRER_VERSION_ID = 22;
+    private static final int REFERRER_VERSION_ID = 33;
     protected static final String REFERRER_VERSION_CODE = "refer_code";
     private static final String REFERRER_ATTRIBUTE_CODE = "ref";
-    private static final Long REFERRER_SYSTEM_ID = 11L;
+    private static final Long REFERRER_SYSTEM_ID = 333L;
 
     @InjectMocks
     private UnversionedDeleteRowValuesStrategy strategy;
@@ -69,7 +75,12 @@ public class UnversionedDeleteRowValuesStrategyTest extends BaseRowValuesStrateg
 
         List<Object> systemIds = List.of(1L, 2L);
 
-        // .after
+        RefBookRowValue entityRowValue = createEntityRowValue();
+
+        CollectionPage<RowValue> entityPagedData = new CollectionPage<>();
+        entityPagedData.init(1, List.of(entityRowValue));
+
+        // .before
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
 
@@ -82,11 +93,14 @@ public class UnversionedDeleteRowValuesStrategyTest extends BaseRowValuesStrateg
         ).thenReturn(new PageImpl<>(referrers, referrerCriteria, 1)) // referrers
                 .thenReturn(new PageImpl<>(emptyList(), referrerCriteria, 1)); // stop
 
-        RefBookRowValue row = createReferrerRowValue();
+        RefBookRowValue referrerRowValue = createReferrerRowValue();
 
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, List.of(row));
-        when(searchDataService.getPagedData(any())).thenReturn(pagedData) // data
+        CollectionPage<RowValue> referrerPagedData = new CollectionPage<>();
+        referrerPagedData.init(1, List.of(referrerRowValue));
+
+        when(searchDataService.getPagedData(any()))
+                .thenReturn(entityPagedData) // page with entity data
+                .thenReturn(referrerPagedData) // page with referrer data
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
         strategy.delete(entity, systemIds);
@@ -94,18 +108,18 @@ public class UnversionedDeleteRowValuesStrategyTest extends BaseRowValuesStrateg
         // .delete
         verify(draftDataService).deleteRows(eq(DRAFT_CODE), eq(systemIds));
 
-        // .before
+        // .super.before
         verify(conflictRepository)
                 .deleteByReferrerVersionIdAndRefRecordIdIn(eq(entity.getId()), eq(toLongSystemIds(systemIds)));
 
-        // .after
+        // .before
         verify(versionRepository, times(2)).findReferrerVersions(eq(REFBOOK_CODE),
                         eq(referrerStatus.name()), eq(referrerSource.name()), any(Pageable.class));
 
         verify(conflictRepository)
                 .deleteByReferrerVersionIdAndRefRecordIdIn(eq(referrer.getId()), eq(singletonList(REFERRER_SYSTEM_ID)));
 
-        verify(searchDataService, times(2)).getPagedData(any());
+        verify(searchDataService, times(3)).getPagedData(any());
 
         verify(conflictRepository).saveAll(anyList());
 
@@ -144,12 +158,24 @@ public class UnversionedDeleteRowValuesStrategyTest extends BaseRowValuesStrateg
         return structure;
     }
 
+    private RefBookRowValue createEntityRowValue() {
+
+        RefBookRowValue rowValue = new RefBookRowValue();
+        rowValue.setSystemId(DRAFT_SYSTEM_ID);
+
+        rowValue.setFieldValues(singletonList(
+                new IntegerFieldValue(ID_ATTRIBUTE_CODE, DRAFT_PRIMARY_ID)
+        ));
+
+        return rowValue;
+    }
+
     private RefBookRowValue createReferrerRowValue() {
 
         RefBookRowValue rowValue = new RefBookRowValue();
         rowValue.setSystemId(REFERRER_SYSTEM_ID);
 
-        Reference reference = new Reference("1", "one");
+        Reference reference = new Reference(DRAFT_PRIMARY_ID.toString(), "one");
 
         rowValue.setFieldValues(singletonList(
                 new ReferenceFieldValue(REFERRER_ATTRIBUTE_CODE, reference)
