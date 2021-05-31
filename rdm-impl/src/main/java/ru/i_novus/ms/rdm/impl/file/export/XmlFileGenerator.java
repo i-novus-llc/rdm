@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +43,12 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
     /**
      *
-     * @param rowIterator
-     * @param version
-     * @param attributeToReferenceMap - key - код  ссылочного атрибута ссылки, value - код справочника на который ссылаются
-     * @param attributeValidations
+     * @param rowIterator             Итератор по записям версии справочника
+     * @param version                 Версия справочника
+     * @param attributeToReferenceMap Набор атрибутов-ссылок в формате:
+     *                                key - код атрибута-ссылки,
+     *                                value - атрибут-ссылка
+     * @param attributeValidations    Список валидаций атрибутов
      */
     public XmlFileGenerator(Iterator<Row> rowIterator,
                             RefBookVersion version,
@@ -86,7 +89,8 @@ public class XmlFileGenerator extends PerRowFileGenerator {
             writer.writeStartElement(ROW_TAG_NAME);
             for (String fieldCode : getStructure().getAttributeCodes()) {
                 if (row.getData().get(fieldCode) != null) {
-                    String stringValue = ConverterUtil.toString(row.getData().get(fieldCode));
+                    Object value = row.getData().get(fieldCode);
+                    String stringValue = ConverterUtil.toStringValue((Serializable) value);
                     if (stringValue == null) {
                         writer.writeEmptyElement(fieldCode);
 
@@ -182,7 +186,7 @@ public class XmlFileGenerator extends PerRowFileGenerator {
 
     private void addReference(Structure.Attribute attribute) {
 
-        if(!attribute.isReferenceType())
+        if (!attribute.isReferenceType())
             return;
 
         Structure.Reference reference = attributeToReferenceMap.get(attribute.getCode());

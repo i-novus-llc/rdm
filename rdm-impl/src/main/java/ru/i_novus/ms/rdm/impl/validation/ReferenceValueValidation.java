@@ -205,7 +205,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private RefBookRowValue toReferredRowValue(String attribute, RefBookRowValue rowValue) {
 
         FieldValue fieldValue = rowValue.getFieldValue(attribute);
-        String value = ConverterUtil.toString(fieldValue.getValue());
+        String value = ConverterUtil.toStringValue(fieldValue.getValue());
         List<FieldValue> fieldValues = singletonList(new StringFieldValue(attribute, value));
         rowValue.setFieldValues(fieldValues);
 

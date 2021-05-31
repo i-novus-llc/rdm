@@ -188,7 +188,10 @@ public class ConverterUtil {
                 : null, data);
     }
 
-    public static String toString(Object value) {
+    public static String toStringValue(Serializable value) {
+
+        if (value == null)
+            return null;
 
         if (value instanceof LocalDate) {
             return TimeUtils.format((LocalDate) value);
@@ -221,6 +224,13 @@ public class ConverterUtil {
         return fieldValue.getValue();
     }
 
+    /**
+     * Приведение значения ссылки к значению в соответствии с указанным полем.
+     *
+     * @param field поле, на которое указывает ссылка
+     * @param value строковое значение ссылки
+     * @return Значение поля
+     */
     public static Serializable castReferenceValue(Field field, String value) {
 
         if (field instanceof BooleanField) {
@@ -287,10 +297,12 @@ public class ConverterUtil {
     }
 
     public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
+
         Criteria criteria = new Criteria();
         criteria.setPage(restCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         criteria.setSize(restCriteria.getPageSize());
         criteria.setCount(count);
+
         return criteria;
     }
 }
