@@ -54,16 +54,40 @@ public class ConverterUtil {
         return fields;
     }
 
-    /** Получение поля на основе атрибута структуры справочника. */
+    /**
+     * Получение поля на основе атрибута структуры справочника.
+     *
+     * @param attribute атрибут
+     * @return Поле
+     */
     public static Field field(Structure.Attribute attribute) {
+
         boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
         return isSearchable
                 ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
                 : field(attribute.getCode(), attribute.getType());
     }
 
-    /** Получение поля по наименованию и типу. */
+    /**
+     * Получение поля на основе атрибута-ссылки структуры справочника.
+     *
+     * @param reference атрибут-ссылка
+     * @return Поле
+     */
+    public static Field field(Structure.Reference reference) {
+
+        return field(reference.getAttribute(), FieldType.REFERENCE);
+    }
+
+    /**
+     * Получение поля по коду и типу атрибута.
+     *
+     * @param code код атрибута = наименование поля
+     * @param type тип атрибута
+     * @return Поле
+     */
     public static Field field(String code, FieldType type) {
+
         return fieldFactory.createField(code, type);
     }
 
@@ -97,25 +121,41 @@ public class ConverterUtil {
         return sortings;
     }
 
-    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Set<List<AttributeFilter>> attributeFilters) {
+    /**
+     * Преобразование набора фильтров по атрибуту в набор критериев поиска по полю.
+     *
+     * @param filters набор фильтров по атрибуту
+     * @return Набор критериев поиска по полю
+     */
+    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Set<List<AttributeFilter>> filters) {
 
-        if (isEmpty(attributeFilters))
-            return emptySet();
-
-        return attributeFilters.stream()
+        return isEmpty(filters)
+                ? emptySet()
+                : filters.stream()
                 .map(ConverterUtil::toFieldSearchCriterias)
                 .filter(list -> !isEmpty(list))
                 .collect(toSet());
     }
 
-    public static List<FieldSearchCriteria> toFieldSearchCriterias(List<AttributeFilter> attributeFilterList) {
+    /**
+     * Преобразование списка фильтров по атрибуту в список критериев поиска по полю.
+     *
+     * @param filters фильтры по атрибуту
+     * @return Критерии поиска по полю
+     */
+    public static List<FieldSearchCriteria> toFieldSearchCriterias(List<AttributeFilter> filters) {
 
-        if (isEmpty(attributeFilterList))
-            return emptyList();
-
-        return attributeFilterList.stream().map(ConverterUtil::toFieldSearchCriteria).collect(toList());
+        return isEmpty(filters)
+                ? emptyList()
+                : filters.stream().map(ConverterUtil::toFieldSearchCriteria).collect(toList());
     }
 
+    /**
+     * Преобразование фильтра по атрибуту в критерий поиска по полю.
+     *
+     * @param filter фильтр по атрибуту
+     * @return Критерий поиска по полю
+     */
     private static FieldSearchCriteria toFieldSearchCriteria(AttributeFilter filter) {
 
         return toFieldSearchCriteria(
@@ -124,14 +164,13 @@ public class ConverterUtil {
         );
     }
 
-    /** Преобразование поиска значений по полю в критерий поиска. */
-    public static FieldSearchCriteria toFieldSearchCriteria(String fieldName, FieldType fieldType,
-                                                            SearchTypeEnum searchType,
-                                                            List<? extends Serializable> values) {
-
-        return new FieldSearchCriteria(field(fieldName, fieldType), searchType, values);
-    }
-
+    /**
+     * Преобразование набора фильтров в набор критериев поиска по полю в соответствии со структурой.
+     *
+     * @param filters   набор фильтров
+     * @param structure структура справочника
+     * @return Набор критериев поиска по полю
+     */
     public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Map<String, String> filters, Structure structure) {
 
         if (isEmpty(filters))
@@ -143,6 +182,13 @@ public class ConverterUtil {
                 .collect(toList()));
     }
 
+    /**
+     * Преобразование фильтра в критерий поиска по полю в соответствии со структурой.
+     *
+     * @param filter    фильтр
+     * @param structure структура справочника
+     * @return Критерий поиска по полю
+     */
     private static FieldSearchCriteria toFieldSearchCriteria(Map.Entry<String, String> filter, Structure structure) {
 
         Structure.Attribute attribute = structure.getAttribute(filter.getKey());
@@ -152,6 +198,43 @@ public class ConverterUtil {
         return new FieldSearchCriteria(field, SearchTypeEnum.LIKE,
                 singletonList(toSearchValue(field, filter.getValue()))
         );
+    }
+
+    /**
+     * Преобразование ссылок на значения первичных ключей в набор критериев поиска по полям-ссылкам.
+     *
+     * @param references    ссылки
+     * @param primaryValues значения первичных ключей
+     * @return Набор критериев поиска по полям-ссылкам
+     */
+    public static Set<List<FieldSearchCriteria>> toReferenceSearchCriterias(List<Structure.Reference> references,
+                                                                            List<String> primaryValues) {
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        references.forEach(reference -> {
+
+            FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
+                    FieldType.REFERENCE, SearchTypeEnum.EXACT, primaryValues);
+            fieldSearchCriterias.add(singletonList(criteria));
+        });
+
+        return fieldSearchCriterias;
+    }
+
+    /**
+     * Преобразование поиска значений для поля в критерий поиска по полю.
+     *
+     * @param fieldName  наименование поля
+     * @param fieldType  тип поля
+     * @param searchType тип поиска
+     * @param values     значения
+     * @return Критерий поиска по полю
+     */
+    public static FieldSearchCriteria toFieldSearchCriteria(String fieldName, FieldType fieldType,
+                                                            SearchTypeEnum searchType,
+                                                            List<? extends Serializable> values) {
+
+        return new FieldSearchCriteria(field(fieldName, fieldType), searchType, values);
     }
 
     public static Row toRow(RowValue rowValue) {

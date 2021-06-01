@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -191,17 +190,18 @@ public class FieldValueUtils {
     }
 
     /**
-     * Получение множества фильтров атрибута по ссылочным значениям.
+     * Получение набора фильтров по атрибуту по ссылочным значениям.
      *
      * @param filterValues ссылочные значения
-     * @return Множество фильтров
+     * @return Набор фильтров по атрибуту
      */
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
 
         return filterValues.stream()
                 .map(value -> {
-                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
-                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, value.getAttribute().getType(), SearchTypeEnum.EXACT);
+                    FieldType attributeType = value.getAttribute().getType();
+                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), attributeType);
+                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
                 })
                 .map(Collections::singletonList)
                 .collect(toSet());
@@ -230,7 +230,6 @@ public class FieldValueUtils {
             case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
             case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
             case TREE -> new TreeFieldValue(fieldCode, (String) value);
-            default -> throw new RdmException("Unexpected field type: " + fieldType);
         };
     }
 

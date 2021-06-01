@@ -11,22 +11,25 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toReferenceSearchCriterias;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
@@ -93,12 +96,13 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
      *
      * @param referrer      сущность-версия, ссылающаяся на текущий справочник
      * @param entity        сущность-версия, на которую есть ссылки
-     * @param primaryValues список значений первичных ключей записей
+     * @param primaryValues значения первичных ключей записей
      */
     private void processReferrer(RefBookVersionEntity referrer,
                                  RefBookVersionEntity entity, List<String> primaryValues) {
 
-        List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(entity.getRefBook().getCode());
+        String refBookCode = entity.getRefBook().getCode();
+        List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
         List<String> referenceCodes = references.stream().map(Structure.Reference::getAttribute).collect(toList());
 
         StorageDataCriteria dataCriteria = toReferrerDataCriteria(referrer, references, primaryValues);
@@ -121,9 +125,8 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
     private StorageDataCriteria toReferrerDataCriteria(RefBookVersionEntity referrer,
                                                        List<Structure.Reference> references,
                                                        List<String> primaryValues) {
-        List<Field> referenceFields = references.stream()
-                .map(reference -> ConverterUtil.field(reference.getAttribute(), FieldType.REFERENCE))
-                .collect(toList());
+
+        List<Field> referenceFields = references.stream().map(ConverterUtil::field).collect(toList());
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = toReferenceSearchCriterias(references, primaryValues);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
@@ -134,20 +137,6 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         dataCriteria.setSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
 
         return dataCriteria;
-    }
-
-    private Set<List<FieldSearchCriteria>> toReferenceSearchCriterias(List<Structure.Reference> references,
-                                                                      List<String> primaryValues) {
-
-        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
-        references.forEach(reference -> {
-
-            FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
-                    FieldType.REFERENCE, SearchTypeEnum.EXACT, primaryValues);
-            fieldSearchCriterias.add(singletonList(criteria));
-        });
-
-        return fieldSearchCriterias;
     }
 
     private void deleteReferrerConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {
