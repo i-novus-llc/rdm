@@ -50,6 +50,13 @@ public class FieldValueUtils {
 
     /**
      * Получение отображаемого значения.
+     * <p/>
+     * Подставляет в выражение отображаемого значения в соответствии с подстановками в нём
+     * значения полей из списка или значения по умолчанию из подстановок.
+     * <p/>
+     * При наличии кодов первичных ключей позволяет добавить к полученной строке
+     * префикс из значений этих ключей, если выражение не содержит хотя бы один первичный ключ,
+     * для обеспечения уникальности получаемого результата при обработке списка таких строк.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param fieldValues       список значений подставляемых полей
@@ -64,7 +71,7 @@ public class FieldValueUtils {
 
         Map<String, Object> map = new HashMap<>();
         fieldValues.forEach(fieldValue ->
-                map.put(fieldValue.getField(), toDisplayValue(fieldValue, placeholders))
+                map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
         );
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
@@ -74,7 +81,8 @@ public class FieldValueUtils {
 
         String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
 
-        if (!CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
+        if (!CollectionUtils.isEmpty(primaryKeyCodes) &&
+                !CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
 
             String primaryKeysValue = primaryKeyCodes.stream()
                     .map(code -> String.valueOf(map.get(code)))
@@ -94,7 +102,7 @@ public class FieldValueUtils {
      * @param placeholders список подстановок со значениями по умолчанию
      * @return Значение для подстановки в отображаемое значение
      */
-    private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
+    private static String toPlaceholderValue(FieldValue fieldValue, Map<String, String> placeholders) {
 
         if (fieldValue.getValue() != null)
             return String.valueOf(fieldValue.getValue());
