@@ -34,6 +34,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ConverterUtil {
@@ -70,33 +71,11 @@ public class ConverterUtil {
     /** Получение записи из plain-записи на основе структуры. */
     public static RowValue rowValue(Row row, Structure structure) {
 
-        final Map<String, Object> data = row.getData();
-
+        Map<String, Object> data = row.getData();
         List<Field> fields = fields(structure);
         List<FieldValue> fieldValues = fields.stream().map(field -> toFieldValue(data, field)).collect(toList());
 
         return new LongRowValue(row.getSystemId(), fieldValues);
-    }
-
-    /** Формирование структуры из имеющейся структуры по данным plain-записи. */
-    public static Structure toDataStructure(Structure structure, Map<String, Object> data) {
-
-        List<Structure.Attribute> attributes = structure.getAttributes().stream()
-                    .filter(attribute -> data.containsKey(attribute.getCode()))
-                    .collect(toList());
-        if (attributes.size() == structure.getAttributes().size())
-            return structure;
-
-        List<Structure.Reference> references = structure.getReferences();
-        if (references.isEmpty())
-            return new Structure(attributes, null);
-
-        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
-        references = structure.getReferences().stream()
-                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
-                .collect(toList());
-
-        return new Structure(attributes, references);
     }
 
     /** Получение значения поля на основе данных plain-записи справочника и самого поля. */
@@ -190,8 +169,7 @@ public class ConverterUtil {
 
     public static String toStringValue(Serializable value) {
 
-        if (value == null)
-            return null;
+        if (value == null) return null;
 
         if (value instanceof LocalDate) {
             return TimeUtils.format((LocalDate) value);
@@ -226,6 +204,8 @@ public class ConverterUtil {
 
     /**
      * Приведение значения ссылки к значению в соответствии с указанным полем.
+     * <p/>
+     * См. также {@link ru.i_novus.ms.rdm.api.util.FieldValueUtils#castReferenceValue(String, FieldType)}.
      *
      * @param field поле, на которое указывает ссылка
      * @param value строковое значение ссылки
@@ -246,7 +226,7 @@ public class ConverterUtil {
         }
 
         if (field instanceof IntegerField) {
-            return BigInteger.valueOf(Long.parseLong(value));
+            return new BigInteger(value);
         }
 
         if (field instanceof StringField) {
