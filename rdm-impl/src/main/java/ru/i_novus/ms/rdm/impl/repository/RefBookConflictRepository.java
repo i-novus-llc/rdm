@@ -5,10 +5,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
-import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
+import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +49,13 @@ public interface RefBookConflictRepository extends
     boolean existsByReferrerVersionIdAndPublishedVersionId(
             @Param("referrerVersionId") Integer referrerVersionId,
             @Param("publishedVersionId") Integer publishedVersionId
+    );
+
+    List<RefBookConflictEntity> findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
+            Integer referrerVersionId,
+            List<Long> refRecordIds,
+            String refFieldCode,
+            ConflictType conflictType
     );
 
     /**

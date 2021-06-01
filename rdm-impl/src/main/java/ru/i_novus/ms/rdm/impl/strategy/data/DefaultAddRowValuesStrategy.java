@@ -31,12 +31,12 @@ public class DefaultAddRowValuesStrategy implements AddRowValuesStrategy {
         after(entity, rowValues);
     }
 
-    private void before(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    protected void before(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
         // Nothing to do.
     }
 
-    private void after(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    protected void after(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
         // Nothing to do.
     }
