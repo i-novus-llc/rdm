@@ -27,7 +27,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -240,6 +239,12 @@ public class ConverterUtil {
         throw new RdmException("invalid field type");
     }
 
+    /**
+     * Преобразование значения поля в значение для поиска с учётом специальных значений.
+     *
+     * @param value значение
+     * @return Значение для поиска
+     */
     public static Serializable toSearchValue(Serializable value) {
 
         if (value instanceof Reference) {
@@ -249,6 +254,13 @@ public class ConverterUtil {
         return value;
     }
 
+    /**
+     * Преобразование строкового значения поля в значение для поиска в соответствии с полем.
+     *
+     * @param field поле
+     * @param value строковое значение
+     * @return Значение для поиска
+     */
     public static Serializable toSearchValue(Field field, String value) {
         try {
             if (field instanceof BooleanField) {
@@ -256,8 +268,7 @@ public class ConverterUtil {
             }
 
             if (field instanceof DateField) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
+                return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
             }
 
             if (field instanceof FloatField) {
@@ -265,7 +276,7 @@ public class ConverterUtil {
             }
 
             if (field instanceof IntegerField) {
-                return BigInteger.valueOf(Long.parseLong(value));
+                return new BigInteger(value);
             }
 
             return value;
@@ -275,6 +286,13 @@ public class ConverterUtil {
         }
     }
 
+    /**
+     * Преобразование критерия rdm в критерий vds.
+     *
+     * @param restCriteria критерий rdm
+     * @param count        количество
+     * @return Критерий vds
+     */
     public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
 
         Criteria criteria = new Criteria();
