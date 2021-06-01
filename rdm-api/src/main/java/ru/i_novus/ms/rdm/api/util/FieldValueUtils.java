@@ -87,7 +87,14 @@ public class FieldValueUtils {
         return displayValue;
     }
 
-    /** Получение отображаемого значения из поля. */
+    /**
+     * Получение значения для подстановки в отображаемое значение
+     * из значения поля при его наличии или из значения по умолчанию из подстановки.
+     *
+     * @param fieldValue   значение из поля
+     * @param placeholders список подстановок со значениями по умолчанию
+     * @return Значение для подстановки в отображаемое значение
+     */
     private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
 
         if (fieldValue.getValue() != null)
