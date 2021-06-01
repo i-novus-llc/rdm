@@ -114,10 +114,11 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
             deleteReferrerConflicts(referrer, page.getCollection());
 
             // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.
-            List<RefBookConflictEntity> entities = recalculateDataConflicts(referrer, entity,
-                    referenceCodes, primaryValues, page.getCollection());
-            if (!isEmpty(entities)) {
-                getConflictRepository().saveAll(entities);
+            List<RefBookConflictEntity> conflicts = recalculateDataConflicts(
+                    referrer, referenceCodes, entity, primaryValues, page.getCollection()
+            );
+            if (!isEmpty(conflicts)) {
+                getConflictRepository().saveAll(conflicts);
             }
         });
     }
@@ -146,33 +147,33 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
     }
 
     private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                 RefBookVersionEntity entity,
                                                                  List<String> referenceCodes,
+                                                                 RefBookVersionEntity entity,
                                                                  List<String> primaryValues,
-                                                                 Collection<? extends RowValue> rowValues) {
-        if (isEmpty(rowValues))
+                                                                 Collection<? extends RowValue> refRowValues) {
+        if (isEmpty(refRowValues))
             return emptyList();
 
-        return rowValues.stream()
+        return refRowValues.stream()
                 .flatMap(rowValue ->
-                        recalculateDataConflicts(referrer, entity, referenceCodes, primaryValues, rowValue)
+                        recalculateDataConflicts(referrer, referenceCodes, entity, primaryValues, rowValue)
                 )
                 .collect(toList());
     }
 
     private Stream<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                   RefBookVersionEntity entity,
                                                                    List<String> referenceCodes,
+                                                                   RefBookVersionEntity entity,
                                                                    List<String> primaryValues,
-                                                                   RowValue rowValue) {
+                                                                   RowValue refRowValue) {
         return referenceCodes.stream()
                 .filter(code -> {
-                    String value = getReferenceValue(rowValue, code);
+                    String value = getReferenceValue(refRowValue, code);
                     return value != null && primaryValues.contains(value);
                 })
                 .map(code ->
                         new RefBookConflictEntity(referrer, entity,
-                                (Long) rowValue.getSystemId(), code, ConflictType.DELETED)
+                                (Long) refRowValue.getSystemId(), code, ConflictType.DELETED)
                 );
     }
 
