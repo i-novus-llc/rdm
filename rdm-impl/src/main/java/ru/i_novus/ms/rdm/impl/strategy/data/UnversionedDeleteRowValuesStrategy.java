@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -14,7 +13,6 @@ import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -69,7 +67,7 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, systemIds, primaries);
 
         Collection<RowValue> rowValues = searchDataService.getPagedData(dataCriteria).getCollection();
-        return toReferenceValues(primaries, rowValues);
+        return RowUtils.toReferenceValues(primaries, rowValues);
     }
 
     private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity, List<Object> systemIds,
@@ -88,21 +86,6 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         dataCriteria.setSize(systemIds.size());
 
         return dataCriteria;
-    }
-
-    private List<String> toReferenceValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
-
-        return rowValues.stream().map(rowValue -> toReferenceValue(primaries, rowValue)).collect(toList());
-    }
-
-    private String toReferenceValue(List<Structure.Attribute> primaries, RowValue rowValue) {
-
-        // На данный момент первичным ключом может быть только одно поле.
-        // Ссылка на значение составного ключа невозможна.
-        FieldValue fieldValue = rowValue.getFieldValue(primaries.get(0).getCode());
-        Serializable value = FieldValueUtils.castFieldValue(fieldValue, FieldType.STRING);
-
-        return value != null ? value.toString() : null;
     }
 
     /**

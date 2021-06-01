@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -137,6 +138,48 @@ public class RowUtils {
     public static boolean isSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
         return !isEmpty(rowValues)
                 && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
+    }
+
+    /**
+     * Преобразование значения первичного ключа записи в значение для поиска.
+     *
+     * @param primary  первичный ключ
+     * @param rowValue запись справочника
+     * @return Значение для поиска
+     */
+    public static Serializable toSearchValue(Structure.Attribute primary, RowValue rowValue) {
+
+        FieldValue fieldValue = rowValue.getFieldValue(primary.getCode());
+        return FieldValueUtils.castFieldValue(fieldValue, primary.getType());
+    }
+
+    /**
+     * Преобразование значения первичных ключей записей в строковые значения ссылки на эти записи.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValues записи справочника
+     * @return Строковые значения ссылки
+     */
+    public static List<String> toReferenceValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
+
+        return rowValues.stream().map(rowValue -> RowUtils.toReferenceValue(primaries, rowValue)).collect(toList());
+    }
+
+    /**
+     * Преобразование значения первичных ключей записи в строковое значение ссылки на эту запись.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValue  запись справочника
+     * @return Строковое значение ссылки
+     */
+    public static String toReferenceValue(List<Structure.Attribute> primaries, RowValue rowValue) {
+
+        // На данный момент первичным ключом может быть только одно поле.
+        // Ссылка на значение составного ключа невозможна.
+        FieldValue fieldValue = rowValue.getFieldValue(primaries.get(0).getCode());
+        Serializable value = FieldValueUtils.castFieldValue(fieldValue, FieldType.STRING);
+
+        return value != null ? value.toString() : null;
     }
 
     /**
