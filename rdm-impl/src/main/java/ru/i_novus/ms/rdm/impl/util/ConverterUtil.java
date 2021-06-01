@@ -238,8 +238,7 @@ public class ConverterUtil {
         }
 
         if (field instanceof DateField) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            return LocalDate.parse(value, formatter);
+            return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
         }
 
         if (field instanceof FloatField) {
