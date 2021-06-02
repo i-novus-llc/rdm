@@ -4,7 +4,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -55,19 +54,17 @@ public abstract class DefaultBaseRowValuesStrategyTest {
         return new Structure(DEFAULT_STRUCTURE);
     }
 
-    protected RefBookRowValue createRowValue(Long systemId, Integer id) {
+    protected LongRowValue createRowValue(Long systemId, Integer id) {
 
         return createRowValue(systemId, BigInteger.valueOf(id), NAME_FIELD_VALUE_PREFIX + id, TEXT_FIELD_VALUE_PREFIX + id);
     }
 
-    protected RefBookRowValue createRowValue(Long systemId, BigInteger id, String name, String text) {
+    protected LongRowValue createRowValue(Long systemId, BigInteger id, String name, String text) {
 
-        LongRowValue longRowValue = new LongRowValue(systemId, asList(
+        return new LongRowValue(systemId, asList(
                 new IntegerFieldValue(ID_ATTRIBUTE_CODE, id),
                 new StringFieldValue(NAME_ATTRIBUTE_CODE, name),
                 new StringFieldValue(STRING_ATTRIBUTE_CODE, text)
         ));
-
-        return new RefBookRowValue(longRowValue, DRAFT_ID);
     }
 }
