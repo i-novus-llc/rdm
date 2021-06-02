@@ -55,12 +55,15 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
 
     private void processReferrers(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
+        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
+        if (primaries.isEmpty())
+            return; // Нет первичных ключей, нет и ссылок
+
         // Для поиска существующих конфликтов нужны сохранённые значения добавленных записей.
-        Collection<RowValue> addedRowValues = findAddedRowValues(entity, rowValues);
+        Collection<RowValue> addedRowValues = findAddedRowValues(entity, rowValues, primaries);
         if (isEmpty(addedRowValues))
             return;
 
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         List<String> primaryValues = RowUtils.toReferenceValues(primaries, addedRowValues);
 
         new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
@@ -71,12 +74,9 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
         );
     }
 
-    private Collection<RowValue> findAddedRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    private Collection<RowValue> findAddedRowValues(RefBookVersionEntity entity, List<RowValue> rowValues,
+                                                    List<Structure.Attribute> primaries) {
         
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
-        if (primaries.isEmpty())
-            return Collections.emptyList(); // Нет первичных ключей, нет и ссылок
-
         StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, rowValues, primaries);
         return searchDataService.getPagedData(dataCriteria).getCollection();
     }
@@ -172,13 +172,15 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
                                           Structure.Reference reference,
                                           Collection<? extends RowValue> refRowValues) {
 
-        // Найти существующие конфликты DELETED для ссылки.
+        // Найти существующие конфликты DELETED для текущей ссылки.
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
                 conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
                 referrer.getId(), refRecordIds, referenceCode, ConflictType.DELETED
         );
+        if (isEmpty(conflicts))
+            return;
 
         // Определить действия над конфликтами по ссылке и записям.
         List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
