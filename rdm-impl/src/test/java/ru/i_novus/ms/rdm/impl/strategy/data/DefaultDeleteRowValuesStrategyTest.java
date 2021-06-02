@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 
-public class DefaultDeleteRowValuesStrategyTest extends BaseRowValuesStrategyTest {
+public class DefaultDeleteRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
 
     @InjectMocks
     private DefaultDeleteRowValuesStrategy strategy;

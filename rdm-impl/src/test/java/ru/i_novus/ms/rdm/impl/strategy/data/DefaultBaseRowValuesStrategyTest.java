@@ -18,13 +18,16 @@ import static java.util.Arrays.asList;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public abstract class BaseRowValuesStrategyTest {
+public abstract class DefaultBaseRowValuesStrategyTest {
 
     protected static final int REFBOOK_ID = 1;
     protected static final String REFBOOK_CODE = "test";
 
     protected static final int DRAFT_ID = 2;
     protected static final String DRAFT_CODE = "draft_code";
+
+    protected static final String NAME_FIELD_VALUE_PREFIX = "name_";
+    protected static final String TEXT_FIELD_VALUE_PREFIX = "text with id = ";
 
     protected RefBookVersionEntity createDraftEntity() {
 
@@ -54,7 +57,7 @@ public abstract class BaseRowValuesStrategyTest {
 
     protected RefBookRowValue createRowValue(Long systemId, Integer id) {
 
-        return createRowValue(systemId, BigInteger.valueOf(id), "name_" + id, "text with id = " + id);
+        return createRowValue(systemId, BigInteger.valueOf(id), NAME_FIELD_VALUE_PREFIX + id, TEXT_FIELD_VALUE_PREFIX + id);
     }
 
     protected RefBookRowValue createRowValue(Long systemId, BigInteger id, String name, String text) {

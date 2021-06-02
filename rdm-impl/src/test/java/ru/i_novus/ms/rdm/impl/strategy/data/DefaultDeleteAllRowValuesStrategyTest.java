@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class DefaultDeleteAllRowValuesStrategyTest extends BaseRowValuesStrategyTest {
+public class DefaultDeleteAllRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
 
     @InjectMocks
     private DefaultDeleteAllRowValuesStrategy strategy;

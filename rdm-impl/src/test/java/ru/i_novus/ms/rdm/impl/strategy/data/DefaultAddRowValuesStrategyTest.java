@@ -13,7 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class DefaultAddRowValuesStrategyTest extends BaseRowValuesStrategyTest {
+public class DefaultAddRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
 
     @InjectMocks
     private DefaultAddRowValuesStrategy strategy;
