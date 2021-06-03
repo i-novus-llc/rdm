@@ -8,13 +8,13 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -23,19 +23,15 @@ import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toReferenceSearchCriterias;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesStrategy {
-
-    private static final int REF_BOOK_VERSION_DATA_PAGE_SIZE = 100;
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -105,7 +101,8 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
         List<String> referenceCodes = references.stream().map(Structure.Reference::getAttribute).collect(toList());
 
-        StorageDataCriteria dataCriteria = toReferrerDataCriteria(referrer, references, primaryValues);
+        // storageCode - Без учёта локализации
+        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), primaryValues);
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page -> {
@@ -121,23 +118,6 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
                 getConflictRepository().saveAll(conflicts);
             }
         });
-    }
-
-    private StorageDataCriteria toReferrerDataCriteria(RefBookVersionEntity referrer,
-                                                       List<Structure.Reference> references,
-                                                       List<String> primaryValues) {
-
-        List<Field> referenceFields = references.stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> fieldSearchCriterias = toReferenceSearchCriterias(references, primaryValues);
-
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                referrer.getStorageCode(), // Без учёта локализации
-                referrer.getFromDate(), referrer.getToDate(),
-                referenceFields, fieldSearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        dataCriteria.setSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
-
-        return dataCriteria;
     }
 
     private void deleteReferrerConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {

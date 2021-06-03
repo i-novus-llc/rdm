@@ -9,11 +9,11 @@ import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
@@ -28,13 +28,10 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toReferenceSearchCriterias;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy {
-
-    private static final int REF_BOOK_VERSION_DATA_PAGE_SIZE = 100;
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -124,10 +121,10 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
                                  List<String> primaryValues, Collection<RowValue> rowValues) {
 
         String refBookCode = entity.getRefBook().getCode();
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
 
-        StorageDataCriteria dataCriteria = toReferrerDataCriteria(referrer, references, primaryValues);
+        // storageCode - Без учёта локализации
+        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), primaryValues);
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
@@ -137,23 +134,6 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
             // иначе - заменить тип конфликта на UPDATED.
             recalculateDataConflicts(referrer, primaries, rowValues, references, page.getCollection())
         );
-    }
-
-    private StorageDataCriteria toReferrerDataCriteria(RefBookVersionEntity referrer,
-                                                       List<Structure.Reference> references,
-                                                       List<String> primaryValues) {
-
-        List<Field> referenceFields = references.stream().map(ConverterUtil::field).collect(toList());
-        Set<List<FieldSearchCriteria>> fieldSearchCriterias = toReferenceSearchCriterias(references, primaryValues);
-
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                referrer.getStorageCode(), // Без учёта локализации
-                referrer.getFromDate(), referrer.getToDate(),
-                referenceFields, fieldSearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        dataCriteria.setSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
-
-        return dataCriteria;
     }
 
     private void recalculateDataConflicts(RefBookVersionEntity referrer,
