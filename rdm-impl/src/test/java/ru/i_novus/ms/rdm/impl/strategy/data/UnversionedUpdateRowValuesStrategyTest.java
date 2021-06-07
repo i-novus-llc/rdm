@@ -110,7 +110,6 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
         refPagedData.init(1, refRowValues);
 
         when(searchDataService.getPagedData(any()))
-                //.thenReturn(pagedData) // page with entity data
                 .thenReturn(refPagedData) // page with referrer data
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
