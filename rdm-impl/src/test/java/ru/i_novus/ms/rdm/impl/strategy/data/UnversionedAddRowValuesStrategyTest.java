@@ -33,6 +33,8 @@ import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CO
 
 public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
 
+    private static final String NAME_FIELD_DELETED_VALUE_SUFFIX = "_deleted";
+
     @InjectMocks
     private UnversionedAddRowValuesStrategy strategy;
 
@@ -89,7 +91,7 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
                 .filter(rowValue -> Objects.equals(rowValue.getSystemId(), 3 * REFERRER_SYSTEM_ID_MULTIPLIER))
                 .forEach(rowValue -> {
                     Reference reference = (Reference) rowValue.getFieldValue(REFERRER_ATTRIBUTE_CODE).getValue();
-                    reference.setDisplayValue(reference.getDisplayValue() + "_deleted");
+                    reference.setDisplayValue(reference.getDisplayValue() + NAME_FIELD_DELETED_VALUE_SUFFIX);
                 });
 
         CollectionPage<RowValue> refPagedData = new CollectionPage<>();
@@ -100,6 +102,7 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
                 .thenReturn(refPagedData) // page with referrer data
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
+        // .recalculateDataConflicts
         List<RefBookConflictEntity> conflicts = List.of(
                 new RefBookConflictEntity(referrer, entity,
                         2 * REFERRER_SYSTEM_ID_MULTIPLIER, REFERRER_ATTRIBUTE_CODE, ConflictType.DELETED),
@@ -123,21 +126,22 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
 
         verify(searchDataService, times(3)).getPagedData(any());
 
+        // .recalculateDataConflicts
         verify(conflictRepository).findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
                 eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED)
         );
-
-        ArgumentCaptor<List<RefBookConflictEntity>> toDeleteCaptor = ArgumentCaptor.forClass(List.class);
-        verify(conflictRepository).deleteAll(toDeleteCaptor.capture());
-        List<RefBookConflictEntity> toDelete = toDeleteCaptor.getValue();
-        assertNotNull(toDelete);
-        assertEquals(1, toDelete.size());
 
         ArgumentCaptor<List<RefBookConflictEntity>> toUpdateCaptor = ArgumentCaptor.forClass(List.class);
         verify(conflictRepository).saveAll(toUpdateCaptor.capture());
         List<RefBookConflictEntity> toUpdate = toUpdateCaptor.getValue();
         assertNotNull(toUpdate);
         assertEquals(1, toUpdate.size());
+
+        ArgumentCaptor<List<RefBookConflictEntity>> toDeleteCaptor = ArgumentCaptor.forClass(List.class);
+        verify(conflictRepository).deleteAll(toDeleteCaptor.capture());
+        List<RefBookConflictEntity> toDelete = toDeleteCaptor.getValue();
+        assertNotNull(toDelete);
+        assertEquals(1, toDelete.size());
 
         verifyNoMoreInteractions(versionRepository, conflictRepository, draftDataService, searchDataService);
     }
