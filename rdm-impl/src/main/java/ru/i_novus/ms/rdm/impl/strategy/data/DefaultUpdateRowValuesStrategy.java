@@ -46,4 +46,12 @@ public class DefaultUpdateRowValuesStrategy implements UpdateRowValuesStrategy {
 
         // Nothing to do.
     }
+
+    public RefBookConflictRepository getConflictRepository() {
+        return conflictRepository;
+    }
+
+    public DraftDataService getDraftDataService() {
+        return draftDataService;
+    }
 }

@@ -3,10 +3,10 @@ package ru.i_novus.ms.rdm.impl.strategy.data;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class DefaultUpdateRowValuesStrategyTest extends BaseRowValuesStrategyTest {
+public class DefaultUpdateRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
 
     @InjectMocks
     private DefaultUpdateRowValuesStrategy strategy;
@@ -54,7 +54,7 @@ public class DefaultUpdateRowValuesStrategyTest extends BaseRowValuesStrategyTes
         verifyNoMoreInteractions(conflictRepository, draftDataService);
     }
 
-    private RefBookRowValue createRowValue(Long systemId, Integer id, String prefix) {
+    private LongRowValue createRowValue(Long systemId, Integer id, String prefix) {
 
         return createRowValue(systemId, BigInteger.valueOf(id), prefix + "_" + id, prefix + "_text_" + id);
     }
