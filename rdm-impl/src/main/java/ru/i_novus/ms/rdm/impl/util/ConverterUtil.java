@@ -209,7 +209,6 @@ public class ConverterUtil {
      */
     public static Set<List<FieldSearchCriteria>> toReferenceSearchCriterias(List<Structure.Reference> references,
                                                                             List<String> primaryValues) {
-
         Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
         references.forEach(reference -> {
 
@@ -233,8 +232,8 @@ public class ConverterUtil {
     public static FieldSearchCriteria toFieldSearchCriteria(String fieldName, FieldType fieldType,
                                                             SearchTypeEnum searchType,
                                                             List<? extends Serializable> values) {
-
-        return new FieldSearchCriteria(field(fieldName, fieldType), searchType, values);
+        final Field field = field(fieldName, fieldType);
+        return new FieldSearchCriteria(field, searchType, values);
     }
 
     public static Row toRow(RowValue rowValue) {
