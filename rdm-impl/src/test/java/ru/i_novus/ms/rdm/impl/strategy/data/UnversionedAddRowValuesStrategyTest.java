@@ -2,11 +2,9 @@ package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
@@ -33,7 +31,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
 
     @InjectMocks

@@ -2,10 +2,8 @@ package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -22,7 +20,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 
-@RunWith(MockitoJUnitRunner.class)
 public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
 
     @InjectMocks
