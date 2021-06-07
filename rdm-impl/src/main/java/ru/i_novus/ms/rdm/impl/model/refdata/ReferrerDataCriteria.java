@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriter
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toReferenceSearchCriterias;
 
 /**
@@ -40,7 +41,9 @@ public class ReferrerDataCriteria extends StorageDataCriteria {
         super(storageCode, referrer.getFromDate(), referrer.getToDate(),
                 references.stream().map(ConverterUtil::field).collect(toList()));
 
-        setFieldFilters(toReferenceSearchCriterias(references, primaryValues));
+        if (!isEmpty(primaryValues)) {
+            setFieldFilters(toReferenceSearchCriterias(references, primaryValues));
+        }
 
         setPage(BaseDataCriteria.MIN_PAGE);
         setSize(REFERRER_DATA_PAGE_SIZE);
