@@ -2,8 +2,10 @@ package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -16,6 +18,8 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
@@ -38,6 +42,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
     private SearchDataService searchDataService;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testDelete() {
 
         RefBookVersionEntity entity = createDraftEntity();
@@ -82,7 +87,11 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
 
         verify(searchDataService, times(3)).getPagedData(any());
 
-        verify(conflictRepository).saveAll(anyList());
+        ArgumentCaptor<List<RefBookConflictEntity>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
+        verify(conflictRepository).saveAll(toSaveCaptor.capture());
+        List<RefBookConflictEntity> toSave = toSaveCaptor.getValue();
+        assertNotNull(toSave);
+        assertEquals(1, toSave.size());
 
         verifyNoMoreInteractions(versionRepository, conflictRepository, draftDataService, searchDataService);
     }

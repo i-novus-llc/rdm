@@ -121,7 +121,7 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         pageIterator.forEachRemaining(page -> {
 
             // Удалить существующие конфликты для найденных записей.
-            deleteReferrerConflicts(referrer, page.getCollection());
+            deleteDataConflicts(referrer, page.getCollection());
 
             // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.
             List<RefBookConflictEntity> conflicts = recalculateDataConflicts(
@@ -133,7 +133,7 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         });
     }
 
-    private void deleteReferrerConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {
+    private void deleteDataConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {
 
         List<Long> refRecordIds = RowUtils.toSystemIds(rowValues);
         getConflictRepository().deleteByReferrerVersionIdAndRefRecordIdIn(referrer.getId(), refRecordIds);
