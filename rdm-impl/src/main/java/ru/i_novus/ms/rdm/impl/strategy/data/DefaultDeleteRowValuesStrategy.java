@@ -42,8 +42,4 @@ public class DefaultDeleteRowValuesStrategy implements DeleteRowValuesStrategy {
     public RefBookConflictRepository getConflictRepository() {
         return conflictRepository;
     }
-
-    public DraftDataService getDraftDataService() {
-        return draftDataService;
-    }
 }
