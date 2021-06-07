@@ -83,6 +83,8 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
     @Autowired
+    private UnversionedUpdateRowValuesStrategy unversionedUpdateRowValuesStrategy;
+    @Autowired
     private UnversionedDeleteRowValuesStrategy unversionedDeleteRowValuesStrategy;
 
     @Autowired
@@ -146,6 +148,7 @@ public class StrategyLocatorConfig {
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
         // Data:
         result.put(AddRowValuesStrategy.class, unversionedAddRowValuesStrategy);
+        result.put(UpdateRowValuesStrategy.class, unversionedUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
