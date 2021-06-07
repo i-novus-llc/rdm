@@ -62,15 +62,6 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
 
         RefBookVersionEntity entity = createDraftEntity();
 
-        // Записи
-        // - без изменения -> processReferrers
-        // - с изменением непервичных атрибутов -> processReferrers
-            // - восстановление записи без конфликта обновления -> конфликт не д/б создан
-            // - восстановление записи с конфликтом обновления -> конфликт д/б удалён
-            // - изменение записи без конфликта обновления -> конфликт д/б создан
-            // - изменение записи с конфликтом обновления -> конфликт не д/б изменён
-        // - с изменением первичных ключей -> unversionedAddRowValuesStrategy + unversionedDeleteRowValuesStrategy
-
         List<RowValue> oldRowValues = List.of(
                 // Без изменения:
                 createRowValue(1L, 1), // Запись без изменения
