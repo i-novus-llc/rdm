@@ -43,14 +43,22 @@ public interface RefBookConflictRepository extends
     );
 
     /**
-     * Проверка на конфликт у указанного ссылочного справочника
+     * Проверка на конфликт у указанной версии ссылочного справочника
      * с указанной версией справочника для проверки возможности публикации.
      */
-    boolean existsByReferrerVersionIdAndPublishedVersionId(
-            @Param("referrerVersionId") Integer referrerVersionId,
-            @Param("publishedVersionId") Integer publishedVersionId
-    );
+    boolean existsByReferrerVersionIdAndPublishedVersionId(Integer referrerVersionId,
+                                                           Integer publishedVersionId);
 
+    /**
+     * Поиск конфликтов заданного типа для указанной версии ссылочного справочника
+     * с последними опубликованными версиями справочников.
+     *
+     * @param referrerVersionId версия ссылочного справочника
+     * @param refRecordIds      идентификаторы конфликтных записей
+     * @param refFieldCode      наименование поля-ссылки = код атрибута-ссылки
+     * @param conflictType      тип конфликта
+     * @return Список конфликтов
+     */
     List<RefBookConflictEntity> findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
             Integer referrerVersionId,
             List<Long> refRecordIds,
@@ -59,7 +67,7 @@ public interface RefBookConflictRepository extends
     );
 
     /**
-     * Поиск записей данных с конфликтами указанного справочника
+     * Поиск идентификаторов конфликтов указанной версии ссылочного справочника
      * с последними опубликованными версиями справочников.
      */
     @Query("select distinct c.refRecordId \n" +
@@ -102,22 +110,23 @@ public interface RefBookConflictRepository extends
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
 
     /**
-     * Удаление конфликтов по заданной записи данных.
-     */
-    void deleteByReferrerVersionIdAndRefRecordId(Integer referrerVersionId, Long refRecordId);
-
-    /**
      * Удаление конфликтов по заданным записям данных.
      */
     void deleteByReferrerVersionIdAndRefRecordIdIn(Integer referrerVersionId, Collection<Long> refRecordIds);
 
     /**
-     * Удаление конфликтов данных.
+     * Удаление конфликтов данных для указанной версии ссылочного справочника.
      */
     void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);
 
     /**
-     * Удаление конфликтов структуры для заданной ссылки.
+     * Удаление конфликтов данных между указанными версиями справочников.
+     */
+    void deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId,
+                                                                               Integer publishedVersionId);
+
+    /**
+     * Удаление конфликтов структуры для заданного поля-ссылки.
      */
     void deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(Integer referrerVersionId, String refFieldCode);
 }

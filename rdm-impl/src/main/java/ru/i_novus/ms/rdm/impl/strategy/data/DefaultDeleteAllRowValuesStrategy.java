@@ -34,4 +34,8 @@ public class DefaultDeleteAllRowValuesStrategy implements DeleteAllRowValuesStra
 
         // Nothing to do.
     }
+
+    public RefBookConflictRepository getConflictRepository() {
+        return conflictRepository;
+    }
 }
