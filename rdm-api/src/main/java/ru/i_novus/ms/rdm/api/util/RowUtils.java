@@ -13,9 +13,11 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 
@@ -128,14 +130,14 @@ public class RowUtils {
     }
 
     /** Получение значения RowValue с совпадающим значением systemId. */
-    public static RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+    public static RowValue getSystemIdRowValue(Object systemId, Collection<RowValue> rowValues) {
         return rowValues.stream()
                 .filter(rowValue -> isSystemIdRowValue(systemId, rowValue))
                 .findFirst().orElse(null);
     }
 
     /** Проверка на наличие значения RowValue с совпадающим значением systemId. */
-    public static boolean isSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+    public static boolean isSystemIdRowValue(Object systemId, Collection<RowValue> rowValues) {
         return !isEmpty(rowValues)
                 && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
     }
@@ -162,7 +164,7 @@ public class RowUtils {
      */
     public static List<String> toReferenceValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
 
-        return rowValues.stream().map(rowValue -> RowUtils.toReferenceValue(primaries, rowValue)).collect(toList());
+        return rowValues.stream().map(rowValue -> toReferenceValue(primaries, rowValue)).collect(toList());
     }
 
     /**
@@ -180,6 +182,19 @@ public class RowUtils {
         Serializable value = FieldValueUtils.castFieldValue(fieldValue, FieldType.STRING);
 
         return value != null ? value.toString() : null;
+    }
+
+    /**
+     * Преобразование записей в набор с привязкой к строковым значениям ссылки.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValues записи справочника
+     * @return Набор записей
+     */
+    public static Map<String, RowValue> toReferredRowValues(List<Structure.Attribute> primaries,
+                                                            Collection<RowValue> rowValues) {
+        return rowValues.stream()
+                .collect(toMap(rowValue -> toReferenceValue(primaries, rowValue), Function.identity()));
     }
 
     /**

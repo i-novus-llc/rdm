@@ -49,8 +49,23 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
 
     private void processReferrers(RefBookVersionEntity entity, List<Object> systemIds) {
 
+        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
+        if (primaries.isEmpty())
+            return;
+
         // Для поиска записей-ссылок нужны не systemId, а строковые значения первичных ключей.
-        List<String> primaryValues = findPrimaryValues(entity, systemIds);
+        Collection<RowValue> deletedRowValues = findDeletedRowValues(entity, systemIds, primaries);
+        processReferrers(entity, primaries, deletedRowValues);
+    }
+
+    protected void processReferrers(RefBookVersionEntity entity, List<Structure.Attribute> primaries,
+                                    Collection<RowValue> deletedRowValues) {
+        if (isEmpty(deletedRowValues))
+            return;
+
+        List<String> primaryValues = RowUtils.toReferenceValues(primaries, deletedRowValues);
+        if (isEmpty(primaryValues))
+            return;
 
         new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
                 .iterate().forEachRemaining(referrers ->
@@ -60,13 +75,11 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         );
     }
 
-    private List<String> findPrimaryValues(RefBookVersionEntity entity, List<Object> systemIds) {
+    private Collection<RowValue> findDeletedRowValues(RefBookVersionEntity entity, List<Object> systemIds,
+                                                      List<Structure.Attribute> primaries) {
 
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, systemIds, primaries);
-
-        Collection<RowValue> rowValues = searchDataService.getPagedData(dataCriteria).getCollection();
-        return RowUtils.toReferenceValues(primaries, rowValues);
+        return searchDataService.getPagedData(dataCriteria).getCollection();
     }
 
     private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity, List<Object> systemIds,

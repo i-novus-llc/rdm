@@ -54,19 +54,26 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
 
         List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         if (primaries.isEmpty())
-            return; // Нет первичных ключей, нет и ссылок
+            return;
 
         // Для поиска существующих конфликтов нужны сохранённые значения добавленных записей.
         Collection<RowValue> addedRowValues = findAddedRowValues(entity, rowValues, primaries);
+        processReferrers(entity, primaries, addedRowValues);
+    }
+
+    protected void processReferrers(RefBookVersionEntity entity, List<Structure.Attribute> primaries,
+                                    Collection<RowValue> addedRowValues) {
         if (isEmpty(addedRowValues))
             return;
 
-        List<String> primaryValues = RowUtils.toReferenceValues(primaries, addedRowValues);
+        Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, addedRowValues);
+        if (isEmpty(referredRowValues))
+            return;
 
         new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
                 .iterate().forEachRemaining(referrers ->
                 referrers.getContent().forEach(referrer ->
-                        processReferrer(referrer, entity, primaryValues, addedRowValues)
+                        processReferrer(referrer, entity, referredRowValues)
                 )
         );
     }
@@ -112,19 +119,19 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
     /**
      * Обработка ссылочного справочника.
      *
-     * @param referrer      сущность-версия, ссылающаяся на текущий справочник
-     * @param entity        сущность-версия, на которую есть ссылки
-     * @param primaryValues значения первичных ключей записей
-     * @param rowValues     добавляемые записи в entity
+     * @param referrer  сущность-версия, ссылающаяся на текущий справочник
+     * @param entity    сущность-версия, на которую есть ссылки
+     * @param rowValues набор добавляемых записей в entity
      */
     private void processReferrer(RefBookVersionEntity referrer, RefBookVersionEntity entity,
-                                 List<String> primaryValues, Collection<RowValue> rowValues) {
+                                 Map<String, RowValue> rowValues) {
 
         String refBookCode = entity.getRefBook().getCode();
         List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
 
         // storageCode - Без учёта локализации
-        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), primaryValues);
+        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references,
+                referrer.getStorageCode(), new ArrayList<>(rowValues.keySet()));
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
@@ -132,23 +139,21 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
             // При наличии конфликта DELETED:
             // если запись восстановлена - удалить конфликт,
             // иначе - заменить тип конфликта на UPDATED.
-            recalculateDataConflicts(referrer, primaries, rowValues, references, page.getCollection())
+            recalculateDataConflicts(referrer, rowValues, references, page.getCollection())
         );
     }
 
     private void recalculateDataConflicts(RefBookVersionEntity referrer,
-                                          List<Structure.Attribute> primaries,
-                                          Collection<RowValue> addedRowValues,
+                                          Map<String, RowValue> addedRowValues,
                                           List<Structure.Reference> references,
                                           Collection<? extends RowValue> refRowValues) {
         references.forEach(reference ->
-                recalculateDataConflicts(referrer, primaries, addedRowValues, reference, refRowValues)
+                recalculateDataConflicts(referrer, addedRowValues, reference, refRowValues)
         );
     }
 
     private void recalculateDataConflicts(RefBookVersionEntity referrer,
-                                          List<Structure.Attribute> primaries,
-                                          Collection<RowValue> addedRowValues,
+                                          Map<String, RowValue> addedRowValues,
                                           Structure.Reference reference,
                                           Collection<? extends RowValue> refRowValues) {
 
@@ -162,37 +167,51 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
         if (isEmpty(conflicts))
             return;
 
-        // Определить действия над конфликтами по ссылке и записям.
-        List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
+        // Определить действия над конфликтами по результату сравнения отображаемых значений.
         List<RefBookConflictEntity> toUpdate = new ArrayList<>(conflicts.size());
+        List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
 
         for (RefBookConflictEntity conflict : conflicts) {
+
             Reference fieldReference = getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
-            if (fieldReference == null) continue;
+            RowValue addedRowValue = (fieldReference != null) ? addedRowValues.get(fieldReference.getValue()) : null;
+            if (addedRowValue == null) continue;
 
-            String addedDisplayValue = buildDisplayValue(
-                    primaries, addedRowValues, reference, fieldReference.getValue()
-            );
+            String newDisplayValue = FieldValueUtils.toDisplayValue(
+                    reference.getDisplayExpression(), addedRowValue, null);
 
-            if (Objects.equals(fieldReference.getDisplayValue(), addedDisplayValue))
-                toDelete.add(conflict);
-            else
-                toUpdate.add(conflict);
+            if (Objects.equals(fieldReference.getDisplayValue(), newDisplayValue)) {
+
+                // Восстановление записи для ссылки:
+                toDelete.add(conflict); // удалить конфликт
+
+            } else {
+                // Добавление изменённой записи:
+                conflict.setConflictType(ConflictType.UPDATED);
+                toUpdate.add(conflict); // сохранить UPDATED-конфликт
+            }
         }
 
         // Выполнить действия над конфликтами.
+        if (!isEmpty(toUpdate)) {
+            conflictRepository.saveAll(toUpdate);
+        }
+
         if (!isEmpty(toDelete)) {
             conflictRepository.deleteAll(toDelete);
         }
-
-        if (!isEmpty(toUpdate)) {
-            toUpdate.forEach(conflict -> conflict.setConflictType(ConflictType.UPDATED));
-            conflictRepository.saveAll(toUpdate);
-        }
     }
 
+    /**
+     * Получение ссылки из поля с заданным кодом атрибута в записи с заданным системным идентификатором.
+     *
+     * @param rowValues     список записей
+     * @param systemId      системный идентификатор
+     * @param attributeCode код атрибута
+     * @return Ссылка или null
+     */
     private Reference getFieldReference(Collection<? extends RowValue> rowValues,
-                                        Long systemId, String referenceCode) {
+                                        Long systemId, String attributeCode) {
 
         RowValue conflictedRowValue = rowValues.stream()
                 .filter(rowValue -> Objects.equals(rowValue.getSystemId(), systemId))
@@ -200,21 +219,9 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
         if (conflictedRowValue == null)
             return null;
 
-        FieldValue fieldValue = conflictedRowValue.getFieldValue(referenceCode);
+        FieldValue fieldValue = conflictedRowValue.getFieldValue(attributeCode);
         return (fieldValue instanceof ReferenceFieldValue)
                 ? ((ReferenceFieldValue) fieldValue).getValue()
                 : null;
-    }
-
-    private String buildDisplayValue(List<Structure.Attribute> primaries, Collection<RowValue> addedRowValues,
-                                     Structure.Reference reference, String referenceValue) {
-
-        RowValue referredRowValue = addedRowValues.stream()
-                .filter(rowValue -> Objects.equals(RowUtils.toReferenceValue(primaries, rowValue), referenceValue))
-                .findFirst().orElse(null);
-        if (referredRowValue == null)
-            return null;
-
-        return FieldValueUtils.toDisplayValue(reference.getDisplayExpression(), referredRowValue, null);
     }
 }
