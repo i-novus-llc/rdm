@@ -602,11 +602,11 @@ public class DraftServiceImpl implements DraftService {
         if (rowValues == null || isEmpty(rowValues.getContent()))
             return;
 
-        rowValues.getContent().forEach(refBookRowValue ->
+        rowValues.getContent().forEach(rowValue ->
                 rows.stream()
                         .filter(row -> row.getSystemId() == null)
-                        .filter(row -> RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaries))
-                        .forEach(row -> row.setSystemId(refBookRowValue.getSystemId()))
+                        .filter(row -> RowUtils.equalsValuesByAttributes(row, rowValue, primaries))
+                        .forEach(row -> row.setSystemId(rowValue.getSystemId()))
         );
     }
 
@@ -1158,6 +1158,7 @@ public class DraftServiceImpl implements DraftService {
      */
     @SuppressWarnings("UnusedParameter")
     protected String toStorageCode(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+
         return draft.getStorageCode();
     }
 
