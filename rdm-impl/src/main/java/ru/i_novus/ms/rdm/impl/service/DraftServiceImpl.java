@@ -471,8 +471,8 @@ public class DraftServiceImpl implements DraftService {
             List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
                 List<RowValue> currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
-                getStrategy(draftEntity, UpdateRowValuesStrategy.class)
-                        .update(draftEntity, currentRowValues, updatedRowValues);
+                getStrategy(draftEntity, UpdateRowValuesStrategy
+                        .class).update(draftEntity, currentRowValues, updatedRowValues);
                 updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
             }
 
