@@ -19,25 +19,11 @@ public class DefaultAddRowValuesStrategy implements AddRowValuesStrategy {
     @Override
     public void add(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
-        before(entity, rowValues);
-
         try {
             draftDataService.addRows(entity.getStorageCode(), rowValues);
 
         } catch (RuntimeException e) {
             ErrorUtil.rethrowError(e);
         }
-
-        after(entity, rowValues);
-    }
-
-    protected void before(RefBookVersionEntity entity, List<RowValue> rowValues) {
-
-        // Nothing to do.
-    }
-
-    protected void after(RefBookVersionEntity entity, List<RowValue> rowValues) {
-
-        // Nothing to do.
     }
 }

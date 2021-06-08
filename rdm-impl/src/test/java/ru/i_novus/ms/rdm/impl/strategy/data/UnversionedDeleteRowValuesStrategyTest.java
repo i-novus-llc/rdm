@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 
 public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
 
@@ -41,6 +40,9 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private DeleteRowValuesStrategy deleteRowValuesStrategy;
+
     @Test
     @SuppressWarnings("unchecked")
     public void testDelete() {
@@ -55,7 +57,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
         pagedData.init(1, List.of(rowValue));
 
-        // .before
+        // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
         mockFindReferrers(versionRepository, referrers);
@@ -66,20 +68,14 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
         refPagedData.init(1, List.of(refRowValue));
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(pagedData) // page with entity data
-                .thenReturn(refPagedData) // page with referrer data
+                .thenReturn(pagedData) // page with entity data // .findDeletedRowValues
+                .thenReturn(refPagedData) // page with referrer data // .processReferrer
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
-        strategy.delete(entity, systemIds);
-
         // .delete
-        verify(draftDataService).deleteRows(eq(DRAFT_CODE), eq(systemIds));
+        strategy.delete(entity, systemIds);
+        verify(deleteRowValuesStrategy).delete(eq(entity), eq(systemIds));
 
-        // .super.before
-        verify(conflictRepository)
-                .deleteByReferrerVersionIdAndRefRecordIdIn(eq(entity.getId()), eq(toLongSystemIds(systemIds)));
-
-        // .before
         verifyFindReferrers(versionRepository);
 
         verify(conflictRepository)
@@ -87,6 +83,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
 
         verify(searchDataService, times(3)).getPagedData(any());
 
+        // .processReferrer
         ArgumentCaptor<List<RefBookConflictEntity>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
         verify(conflictRepository).saveAll(toSaveCaptor.capture());
         List<RefBookConflictEntity> toSave = toSaveCaptor.getValue();

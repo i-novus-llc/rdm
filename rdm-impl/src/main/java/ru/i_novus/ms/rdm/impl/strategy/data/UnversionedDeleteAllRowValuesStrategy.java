@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
@@ -8,6 +9,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
@@ -31,7 +33,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedDeleteAllRowValuesStrategy extends DefaultDeleteAllRowValuesStrategy {
+public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValuesStrategy {
 
     private static final List<? extends Serializable> NOT_NULL_VALUES = List.of(0L);
 
@@ -39,14 +41,21 @@ public class UnversionedDeleteAllRowValuesStrategy extends DefaultDeleteAllRowVa
     private RefBookVersionRepository versionRepository;
 
     @Autowired
+    private RefBookConflictRepository conflictRepository;
+
+    @Autowired
     private SearchDataService searchDataService;
 
-    @Override
-    protected void before(RefBookVersionEntity entity) {
+    @Autowired
+    @Qualifier("defaultDeleteAllRowValuesStrategy")
+    private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
-        super.before(entity);
+    @Override
+    public void deleteAll(RefBookVersionEntity entity) {
 
         processReferrers(entity);
+
+        deleteAllRowValuesStrategy.deleteAll(entity);
     }
 
     private void processReferrers(RefBookVersionEntity entity) {
@@ -87,14 +96,14 @@ public class UnversionedDeleteAllRowValuesStrategy extends DefaultDeleteAllRowVa
                     referrer, referenceCodes, entity, page.getCollection()
             );
             if (!isEmpty(conflicts)) {
-                getConflictRepository().saveAll(conflicts);
+                conflictRepository.saveAll(conflicts);
             }
         });
     }
 
     private void deleteAllDataConflicts(RefBookVersionEntity referrer, RefBookVersionEntity entity) {
 
-        getConflictRepository().deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIsNotNull(
+        conflictRepository.deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIsNotNull(
                 referrer.getId(), entity.getId()
         );
     }

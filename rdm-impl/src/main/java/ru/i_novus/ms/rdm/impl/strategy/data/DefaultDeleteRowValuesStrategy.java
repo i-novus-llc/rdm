@@ -22,24 +22,8 @@ public class DefaultDeleteRowValuesStrategy implements DeleteRowValuesStrategy {
     @Override
     public void delete(RefBookVersionEntity entity, List<Object> systemIds) {
 
-        before(entity, systemIds);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
 
         draftDataService.deleteRows(entity.getStorageCode(), systemIds);
-
-        after(entity, systemIds);
-    }
-
-    protected void before(RefBookVersionEntity entity, List<Object> systemIds) {
-
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
-    }
-
-    protected void after(RefBookVersionEntity entity, List<Object> systemIds) {
-
-        // Nothing to do.
-    }
-
-    public RefBookConflictRepository getConflictRepository() {
-        return conflictRepository;
     }
 }

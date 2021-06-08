@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
@@ -10,6 +11,7 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -28,13 +30,20 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedUpdateRowValuesStrategy extends DefaultUpdateRowValuesStrategy {
+public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;
 
     @Autowired
+    private RefBookConflictRepository conflictRepository;
+
+    @Autowired
     private SearchDataService searchDataService;
+
+    @Autowired
+    @Qualifier("defaultUpdateRowValuesStrategy")
+    private UpdateRowValuesStrategy updateRowValuesStrategy;
 
     @Autowired
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
@@ -43,9 +52,9 @@ public class UnversionedUpdateRowValuesStrategy extends DefaultUpdateRowValuesSt
     private UnversionedDeleteRowValuesStrategy unversionedDeleteRowValuesStrategy;
 
     @Override
-    protected void after(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
+    public void update(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
 
-        super.after(entity, oldRowValues, newRowValues);
+        updateRowValuesStrategy.update(entity, oldRowValues, newRowValues);
 
         processReferrers(entity, oldRowValues, newRowValues);
     }
@@ -154,7 +163,7 @@ public class UnversionedUpdateRowValuesStrategy extends DefaultUpdateRowValuesSt
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
-                getConflictRepository().findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
+                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
                 referrer.getId(), refRecordIds, referenceCode, ConflictType.UPDATED
         );
 
@@ -198,11 +207,11 @@ public class UnversionedUpdateRowValuesStrategy extends DefaultUpdateRowValuesSt
 
         // Выполнить действия над конфликтами.
         if (!isEmpty(toAdd)) {
-            getConflictRepository().saveAll(toAdd);
+            conflictRepository.saveAll(toAdd);
         }
 
         if (!isEmpty(toDelete)) {
-            getConflictRepository().deleteAll(toDelete);
+            conflictRepository.deleteAll(toDelete);
         }
     }
 }

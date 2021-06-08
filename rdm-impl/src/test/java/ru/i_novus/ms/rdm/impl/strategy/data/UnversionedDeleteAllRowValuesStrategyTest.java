@@ -42,13 +42,16 @@ public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseRo
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
+
     @Test
     @SuppressWarnings("unchecked")
     public void testDeleteAll() {
 
         RefBookVersionEntity entity = createDraftEntity();
 
-        // .before
+        // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
         mockFindReferrers(versionRepository, referrers);
@@ -62,29 +65,24 @@ public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseRo
         refPagedData.init(1, refRowValues);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(refPagedData) // page with referrer data
+                .thenReturn(refPagedData) // page with referrer data // .processReferrer
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
-        strategy.deleteAll(entity);
-
         // .deleteAll
-        verify(draftDataService).deleteAllRows(DRAFT_CODE);
+        strategy.deleteAll(entity);
+        verify(deleteAllRowValuesStrategy).deleteAll(eq(entity));
 
-        // .before
-        verify(conflictRepository).deleteByReferrerVersionIdAndRefRecordIdIsNotNull(entity.getId());
-
-        // .before
         verifyFindReferrers(versionRepository);
 
         verify(searchDataService, times(2)).getPagedData(any());
 
+        // .processReferrer
         ArgumentCaptor<List<RefBookConflictEntity>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
         verify(conflictRepository).saveAll(toSaveCaptor.capture());
         List<RefBookConflictEntity> toSave = toSaveCaptor.getValue();
         assertNotNull(toSave);
         assertEquals(2, toSave.size());
 
-        // .processReferrer
         verify(conflictRepository).deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIsNotNull(
                 referrer.getId(), entity.getId()
         );

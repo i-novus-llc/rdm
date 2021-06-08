@@ -18,24 +18,8 @@ public class DefaultDeleteAllRowValuesStrategy implements DeleteAllRowValuesStra
     @Override
     public void deleteAll(RefBookVersionEntity entity) {
 
-        before(entity);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(entity.getId());
 
         draftDataService.deleteAllRows(entity.getStorageCode());
-
-        after(entity);
-    }
-
-    protected void before(RefBookVersionEntity entity) {
-
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(entity.getId());
-    }
-
-    protected void after(RefBookVersionEntity entity) {
-
-        // Nothing to do.
-    }
-
-    public RefBookConflictRepository getConflictRepository() {
-        return conflictRepository;
     }
 }

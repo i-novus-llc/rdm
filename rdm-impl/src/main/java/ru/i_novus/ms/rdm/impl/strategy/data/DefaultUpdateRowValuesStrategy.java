@@ -24,7 +24,8 @@ public class DefaultUpdateRowValuesStrategy implements UpdateRowValuesStrategy {
     @Override
     public void update(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
 
-        before(entity, oldRowValues, newRowValues);
+        List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), systemIds);
 
         try {
             draftDataService.updateRows(entity.getStorageCode(), newRowValues);
@@ -32,22 +33,5 @@ public class DefaultUpdateRowValuesStrategy implements UpdateRowValuesStrategy {
         } catch (RuntimeException e) {
             ErrorUtil.rethrowError(e);
         }
-
-        after(entity, oldRowValues, newRowValues);
-    }
-
-    protected void before(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
-
-        List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), systemIds);
-    }
-
-    protected void after(RefBookVersionEntity entity, List<RowValue> oldRowValues, List<RowValue> newRowValues) {
-
-        // Nothing to do.
-    }
-
-    public RefBookConflictRepository getConflictRepository() {
-        return conflictRepository;
     }
 }

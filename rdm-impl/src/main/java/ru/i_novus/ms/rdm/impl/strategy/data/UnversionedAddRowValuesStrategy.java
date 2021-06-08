@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
@@ -31,7 +32,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy {
+public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -42,10 +43,14 @@ public class UnversionedAddRowValuesStrategy extends DefaultAddRowValuesStrategy
     @Autowired
     private SearchDataService searchDataService;
 
-    @Override
-    protected void after(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    @Autowired
+    @Qualifier("defaultAddRowValuesStrategy")
+    private AddRowValuesStrategy addRowValuesStrategy;
 
-        super.after(entity, rowValues);
+    @Override
+    public void add(RefBookVersionEntity entity, List<RowValue> rowValues) {
+
+        addRowValuesStrategy.add(entity, rowValues);
 
         processReferrers(entity, rowValues);
     }

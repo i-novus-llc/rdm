@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
@@ -9,6 +10,7 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
@@ -31,20 +33,27 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesStrategy {
+public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;
 
     @Autowired
+    private RefBookConflictRepository conflictRepository;
+
+    @Autowired
     private SearchDataService searchDataService;
 
-    @Override
-    protected void before(RefBookVersionEntity entity, List<Object> systemIds) {
+    @Autowired
+    @Qualifier("defaultDeleteRowValuesStrategy")
+    private DeleteRowValuesStrategy deleteRowValuesStrategy;
 
-        super.before(entity, systemIds);
+    @Override
+    public void delete(RefBookVersionEntity entity, List<Object> systemIds) {
 
         processReferrers(entity, systemIds);
+
+        deleteRowValuesStrategy.delete(entity, systemIds);
     }
 
     private void processReferrers(RefBookVersionEntity entity, List<Object> systemIds) {
@@ -56,23 +65,6 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         // Для поиска записей-ссылок нужны не systemId, а строковые значения первичных ключей.
         Collection<RowValue> deletedRowValues = findDeletedRowValues(entity, systemIds, primaries);
         processReferrers(entity, primaries, deletedRowValues);
-    }
-
-    protected void processReferrers(RefBookVersionEntity entity, List<Structure.Attribute> primaries,
-                                    Collection<RowValue> deletedRowValues) {
-        if (isEmpty(deletedRowValues))
-            return;
-
-        List<String> primaryValues = RowUtils.toReferenceValues(primaries, deletedRowValues);
-        if (isEmpty(primaryValues))
-            return;
-
-        new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
-                .iterate().forEachRemaining(referrers ->
-                referrers.getContent().forEach(referrer ->
-                        processReferrer(referrer, entity, primaryValues)
-                )
-        );
     }
 
     private Collection<RowValue> findDeletedRowValues(RefBookVersionEntity entity, List<Object> systemIds,
@@ -98,6 +90,23 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
         dataCriteria.setSize(systemIds.size());
 
         return dataCriteria;
+    }
+
+    protected void processReferrers(RefBookVersionEntity entity, List<Structure.Attribute> primaries,
+                                    Collection<RowValue> deletedRowValues) {
+        if (isEmpty(deletedRowValues))
+            return;
+
+        List<String> primaryValues = RowUtils.toReferenceValues(primaries, deletedRowValues);
+        if (isEmpty(primaryValues))
+            return;
+
+        new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
+                .iterate().forEachRemaining(referrers ->
+                referrers.getContent().forEach(referrer ->
+                        processReferrer(referrer, entity, primaryValues)
+                )
+        );
     }
 
     /**
@@ -128,7 +137,7 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
                     referrer, referenceCodes, entity, primaryValues, page.getCollection()
             );
             if (!isEmpty(conflicts)) {
-                getConflictRepository().saveAll(conflicts);
+                conflictRepository.saveAll(conflicts);
             }
         });
     }
@@ -136,7 +145,7 @@ public class UnversionedDeleteRowValuesStrategy extends DefaultDeleteRowValuesSt
     private void deleteDataConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {
 
         List<Long> refRecordIds = RowUtils.toSystemIds(rowValues);
-        getConflictRepository().deleteByReferrerVersionIdAndRefRecordIdIn(referrer.getId(), refRecordIds);
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(referrer.getId(), refRecordIds);
     }
 
     private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,

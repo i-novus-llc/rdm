@@ -51,6 +51,9 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
     private SearchDataService searchDataService;
 
     @Mock
+    private UpdateRowValuesStrategy updateRowValuesStrategy;
+
+    @Mock
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
 
     @Mock
@@ -81,7 +84,7 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
                 })
                 .collect(toList());
 
-        // .after
+        // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
         mockFindReferrers(versionRepository, referrers);
@@ -110,7 +113,7 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
         refPagedData.init(1, refRowValues);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(refPagedData) // page with referrer data
+                .thenReturn(refPagedData) // page with referrer data // .processReferrers
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
         // .recalculateDataConflicts
@@ -127,17 +130,13 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
         ))
                 .thenReturn(conflicts);
 
-        strategy.update(entity, oldRowValues, newRowValues);
-
         // .update
-        verify(draftDataService).updateRows(eq(DRAFT_CODE), eq(newRowValues.subList(0, newRowValues.size())));
+        strategy.update(entity, oldRowValues, newRowValues);
+        verify(updateRowValuesStrategy).update(eq(entity),
+                eq(oldRowValues.subList(0, oldRowValues.size())),
+                eq(newRowValues.subList(0, newRowValues.size()))
+        );
 
-        // .before
-        List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
-        verify(conflictRepository)
-                .deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), systemIds);
-
-        // .after
         verifyFindReferrers(versionRepository);
 
         verify(searchDataService, times(2)).getPagedData(any());

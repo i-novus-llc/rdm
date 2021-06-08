@@ -50,6 +50,9 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private AddRowValuesStrategy addRowValuesStrategy;
+
     @Test
     @SuppressWarnings("unchecked")
     public void testAdd() {
@@ -74,7 +77,7 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
         pagedData.init(1, addedRowValues);
 
-        // .after
+        // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
         mockFindReferrers(versionRepository, referrers);
@@ -98,8 +101,8 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
         refPagedData.init(1, refRowValues);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(pagedData) // page with entity data
-                .thenReturn(refPagedData) // page with referrer data
+                .thenReturn(pagedData) // page with entity data // .findAddedRowValues
+                .thenReturn(refPagedData) // page with referrer data // .processReferrers
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
         // .recalculateDataConflicts
@@ -116,12 +119,10 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
         ))
                 .thenReturn(conflicts);
 
-        strategy.add(entity, rowValues);
-
         // .add
-        verify(draftDataService).addRows(eq(DRAFT_CODE), eq(rowValues));
+        strategy.add(entity, rowValues);
+        verify(addRowValuesStrategy).add(eq(entity), eq(rowValues));
 
-        // .after
         verifyFindReferrers(versionRepository);
 
         verify(searchDataService, times(3)).getPagedData(any());
