@@ -58,6 +58,8 @@ public class StrategyLocatorConfig {
     private DefaultDeleteRowValuesStrategy defaultDeleteRowValuesStrategy;
     @Autowired
     private DefaultDeleteAllRowValuesStrategy defaultDeleteAllRowValuesStrategy;
+    @Autowired
+    private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
 
     // File:
     @Autowired
@@ -132,6 +134,7 @@ public class StrategyLocatorConfig {
         result.put(UpdateRowValuesStrategy.class, defaultUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, defaultDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
+        result.put(AfterUploadDataStrategy.class, defaultAfterUploadDataStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
