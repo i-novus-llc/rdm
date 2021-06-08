@@ -113,33 +113,54 @@ public class RowUtils {
         return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
     }
 
-    /** Получение списка systemIds из списка записей. */
+    /** Получение списка systemIds из коллекции записей. */
     @SuppressWarnings("unchecked")
     public static <T> List<T> toSystemIds(Collection<? extends RowValue> rowValues) {
         return rowValues.stream().map(rowValue -> (T) rowValue.getSystemId()).collect(toList());
     }
 
     /** Преобразование списка systemIds из vds в список для rdm. */
-    public static List<Long> toLongSystemIds(List<Object> systemIds) {
+    public static List<Long> toLongSystemIds(Collection<Object> systemIds) {
         return systemIds.stream().map(systemId -> (Long) systemId).collect(toList());
     }
 
-    /** Проверка на совпадение systemId со значением из RowValue. */
-    public static boolean isSystemIdRowValue(Object systemId, RowValue<?> rowValue) {
+    /**
+     * Проверка на системного идентификатора записи с указанным системным идентификатором.
+     *
+     * @param rowValue запись справочника
+     * @param systemId системный идентификатор
+     * @return Результат проверки
+     */
+    public static boolean hasSystemId(RowValue<?> rowValue, Object systemId) {
+
         return systemId.equals(rowValue.getSystemId());
     }
 
-    /** Получение значения RowValue с совпадающим значением systemId. */
-    public static RowValue getSystemIdRowValue(Object systemId, Collection<RowValue> rowValues) {
+    /**
+     * Получение записи из коллекции по указанному системному идентификатору.
+     *
+     * @param rowValues коллекция записей справочника
+     * @param systemId  системный идентификатор
+     * @return Запись справочника
+     */
+    public static RowValue getBySystemId(Collection<RowValue> rowValues, Object systemId) {
+
         return rowValues.stream()
-                .filter(rowValue -> isSystemIdRowValue(systemId, rowValue))
+                .filter(rowValue -> hasSystemId(rowValue, systemId))
                 .findFirst().orElse(null);
     }
 
-    /** Проверка на наличие значения RowValue с совпадающим значением systemId. */
-    public static boolean isSystemIdRowValue(Object systemId, Collection<RowValue> rowValues) {
+    /**
+     * Проверка на наличие записи с указанным системным идентификатором в коллекции.
+     *
+     * @param rowValues коллекция записей справочника
+     * @param systemId  системный идентификатор
+     * @return Результат проверки
+     */
+    public static boolean containsSystemId(Collection<RowValue> rowValues, Object systemId) {
+
         return !isEmpty(rowValues)
-                && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
+                && rowValues.stream().anyMatch(rowValue -> hasSystemId(rowValue, systemId));
     }
 
     /**

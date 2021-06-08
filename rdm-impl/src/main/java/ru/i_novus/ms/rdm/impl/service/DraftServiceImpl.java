@@ -501,7 +501,7 @@ public class DraftServiceImpl implements DraftService {
         List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
 
         List<Message> messages = systemIds.stream()
-                .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
+                .filter(systemId -> !RowUtils.containsSystemId(oldRowValues, systemId))
                 .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
                 .collect(toList());
         if (!isEmpty(messages)) throw new UserException(messages);
@@ -513,7 +513,7 @@ public class DraftServiceImpl implements DraftService {
 
         return currentRowValues.stream()
                 .map(oldRowValue -> {
-                    RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
+                    RowValue newRowValue = RowUtils.getBySystemId(updatedRowValues, oldRowValue.getSystemId());
                     return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
                 })
                 .collect(toList());
@@ -551,15 +551,13 @@ public class DraftServiceImpl implements DraftService {
 
         if (isEmpty(rows)) return emptyList();
 
-        Set<String> attributeCodes = new HashSet<>(draftVersion.getStructure().getAttributeCodes());
-
         // Исключение полей, не соответствующих атрибутам структуры
+        Set<String> attributeCodes = new HashSet<>(draftVersion.getStructure().getAttributeCodes());
         rows.forEach(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
 
         if (excludeEmptyRows) {
             rows = rows.stream().filter(row -> !RowUtils.isEmptyRow(row)).collect(toList());
         }
-
         if (isEmpty(rows)) return emptyList();
 
         validateDataByType(draftVersion.getStructure(), rows);
@@ -568,7 +566,7 @@ public class DraftServiceImpl implements DraftService {
         return rows;
     }
 
-    /** Валидация добавляемых/обновляемых строк данных по типу. */
+    /** Валидация добавляемых/обновляемых/удаляемых строк данных по типу. */
     private void validateDataByType(Structure structure, List<Row> rows) {
 
         NonStrictOnTypeRowMapper mapper = new NonStrictOnTypeRowMapper(structure, versionRepository);

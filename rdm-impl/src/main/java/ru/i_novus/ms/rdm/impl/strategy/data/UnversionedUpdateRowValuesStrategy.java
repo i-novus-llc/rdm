@@ -176,7 +176,7 @@ public class UnversionedUpdateRowValuesStrategy extends DefaultUpdateRowValuesSt
             if (fieldReference == null) continue;
 
             RowValue oldRowValue = oldRowValues.get(fieldReference.getValue());
-            RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), newRowValues.values());
+            RowValue newRowValue = RowUtils.getBySystemId(newRowValues.values(), oldRowValue.getSystemId());
 
             String newDisplayValue = FieldValueUtils.toDisplayValue(
                     reference.getDisplayExpression(), newRowValue, null);
