@@ -102,7 +102,7 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(pagedData) // page with entity data // .findAddedRowValues
-                .thenReturn(refPagedData) // page with referrer data // .processReferrers
+                .thenReturn(refPagedData) // page with referrer data // .processReferrer
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
         // .recalculateDataConflicts
