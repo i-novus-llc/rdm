@@ -15,10 +15,8 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
@@ -178,7 +176,7 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
 
         for (RefBookConflictEntity conflict : conflicts) {
 
-            Reference fieldReference = getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
+            Reference fieldReference = RowUtils.getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
             RowValue addedRowValue = (fieldReference != null) ? addedRowValues.get(fieldReference.getValue()) : null;
             if (addedRowValue == null) continue;
 
@@ -205,28 +203,5 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         if (!isEmpty(toDelete)) {
             conflictRepository.deleteAll(toDelete);
         }
-    }
-
-    /**
-     * Получение ссылки из поля с заданным кодом атрибута в записи с заданным системным идентификатором.
-     *
-     * @param rowValues     список записей
-     * @param systemId      системный идентификатор
-     * @param attributeCode код атрибута
-     * @return Ссылка или null
-     */
-    private Reference getFieldReference(Collection<? extends RowValue> rowValues,
-                                        Long systemId, String attributeCode) {
-
-        RowValue conflictedRowValue = rowValues.stream()
-                .filter(rowValue -> Objects.equals(rowValue.getSystemId(), systemId))
-                .findFirst().orElse(null);
-        if (conflictedRowValue == null)
-            return null;
-
-        FieldValue fieldValue = conflictedRowValue.getFieldValue(attributeCode);
-        return (fieldValue instanceof ReferenceFieldValue)
-                ? ((ReferenceFieldValue) fieldValue).getValue()
-                : null;
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
@@ -13,29 +14,22 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValuesStrategy {
-
-    private static final List<? extends Serializable> NOT_NULL_VALUES = List.of(0L);
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -85,7 +79,7 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
 
         // storageCode - Без учёта локализации
         ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), null);
-        dataCriteria.setFieldFilters(toReferenceSearchCriterias(references));
+        dataCriteria.setFieldFilters(ConverterUtil.toNotNullSearchCriterias(references));
 
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
@@ -108,25 +102,6 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
         );
     }
 
-    /**
-     * Преобразование ссылок на ненулевые значения первичных ключей в набор критериев поиска по полям-ссылкам.
-     *
-     * @param references ссылки
-     * @return Набор критериев поиска по полям-ссылкам
-     */
-    private Set<List<FieldSearchCriteria>> toReferenceSearchCriterias(List<Structure.Reference> references) {
-
-        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
-        references.forEach(reference -> {
-
-            FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
-                    FieldType.REFERENCE, SearchTypeEnum.IS_NOT_NULL, NOT_NULL_VALUES);
-            fieldSearchCriterias.add(singletonList(criteria));
-        });
-
-        return fieldSearchCriterias;
-    }
-
     private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
                                                                  List<String> referenceCodes,
                                                                  RefBookVersionEntity entity,
@@ -146,16 +121,10 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
                                                                    RefBookVersionEntity entity,
                                                                    RowValue refRowValue) {
         return referenceCodes.stream()
-                .filter(code -> getReferenceValue(refRowValue, code) != null)
+                .filter(code -> RowUtils.getFieldReferenceValue(refRowValue, code) != null)
                 .map(code ->
                         new RefBookConflictEntity(referrer, entity,
                                 (Long) refRowValue.getSystemId(), code, ConflictType.DELETED)
                 );
-    }
-
-    private String getReferenceValue(RowValue rowValue, String code) {
-
-        Serializable value = rowValue.getFieldValue(code).getValue();
-        return value != null ? ((Reference) value).getValue() : null;
     }
 }

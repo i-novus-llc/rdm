@@ -93,7 +93,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Message validate(Structure.Reference reference, Map<String, Object> rowData) {
 
-        String referenceValue = toReferenceValue(reference.getAttribute(), rowData);
+        String referenceValue = getReferenceValue(reference.getAttribute(), rowData);
         if (StringUtils.isEmpty(referenceValue))
             return null;
 
@@ -114,7 +114,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         Map<Structure.Reference, String> map = new HashMap<>();
         referenceKeys.stream()
                 .filter(reference -> row.getData().get(reference.getAttribute()) != null)
-                .forEach(ref -> map.put(ref, toReferenceValue(ref.getAttribute(), row.getData())));
+                .forEach(ref -> map.put(ref, getReferenceValue(ref.getAttribute(), row.getData())));
         return map;
     }
 
@@ -163,7 +163,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private Set<List<AttributeFilter>> createSearchFilters(Structure.Reference reference, List<Row> rows, Structure.Attribute referredAttribute) {
 
         List<String> referenceValues = rows.stream()
-                .map(row -> toReferenceValue(reference.getAttribute(), row.getData()))
+                .map(row -> getReferenceValue(reference.getAttribute(), row.getData()))
                 .filter(Objects::nonNull)
                 .distinct().collect(toList());
 
@@ -214,7 +214,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Message createMessage(String attributeCode, Map<String, Object> rowData) {
         return new Message(REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE,
-                structure.getAttribute(attributeCode).getName(), toReferenceValue(attributeCode, rowData));
+                structure.getAttribute(attributeCode).getName(), getReferenceValue(attributeCode, rowData));
     }
 
     /**
@@ -234,7 +234,8 @@ public class ReferenceValueValidation extends AppendRowValidation {
         });
     }
 
-    private String toReferenceValue(String attributeCode, Map<String, Object> rowData) {
+    private String getReferenceValue(String attributeCode, Map<String, Object> rowData) {
+
         Object value = rowData.get(attributeCode);
         return (value != null) ? ((Reference) value).getValue() : null;
     }

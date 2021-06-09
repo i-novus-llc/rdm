@@ -38,6 +38,8 @@ import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ConverterUtil {
 
+    private static final List<? extends Serializable> NOT_NULL_VALUES = List.of(0L);
+
     private static final FieldFactory fieldFactory = new FieldFactoryImpl();
 
     private ConverterUtil() {
@@ -214,6 +216,25 @@ public class ConverterUtil {
 
             FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
                     FieldType.REFERENCE, SearchTypeEnum.EXACT, primaryValues);
+            fieldSearchCriterias.add(singletonList(criteria));
+        });
+
+        return fieldSearchCriterias;
+    }
+
+    /**
+     * Преобразование ссылок на ненулевые значения первичных ключей в набор критериев поиска по полям-ссылкам.
+     *
+     * @param references ссылки
+     * @return Набор критериев поиска по полям-ссылкам
+     */
+    public static Set<List<FieldSearchCriteria>> toNotNullSearchCriterias(List<Structure.Reference> references) {
+
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        references.forEach(reference -> {
+
+            FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
+                    FieldType.REFERENCE, SearchTypeEnum.IS_NOT_NULL, NOT_NULL_VALUES);
             fieldSearchCriterias.add(singletonList(criteria));
         });
 
