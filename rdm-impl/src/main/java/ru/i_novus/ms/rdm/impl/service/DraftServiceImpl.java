@@ -943,19 +943,19 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
-        List<AttributeValidationEntity> validations;
         if (attribute == null) {
-            validations = attributeValidationRepository.findAllByVersionId(draftId);
+            attributeValidationRepository.deleteByVersionId(draftId);
 
-        } else {
-            versionValidation.validateDraftAttributeExists(draftId, draftEntity.getStructure(), attribute);
-            validations = (type == null)
-                    ? attributeValidationRepository.findAllByVersionIdAndAttribute(draftId, attribute)
-                    : attributeValidationRepository.findAllByVersionIdAndAttributeAndType(draftId, attribute, type);
+            return;
         }
 
-        if (!validations.isEmpty())
-            attributeValidationRepository.deleteAll(validations);
+        versionValidation.validateDraftAttributeExists(draftId, draftEntity.getStructure(), attribute);
+        if (type == null) {
+            attributeValidationRepository.deleteByVersionIdAndAttribute(draftId, attribute);
+
+        } else {
+            attributeValidationRepository.deleteByVersionIdAndAttributeAndType(draftId, attribute, type);
+        }
     }
 
     @Override
