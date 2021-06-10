@@ -1,5 +1,6 @@
-package ru.inovus.ms.rdm.ui.test.custom.component.page;
+package ru.inovus.ms.rdm.ui.test.page;
 
+import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.impl.component.page.N2oPage;
 
 import static com.codeborne.selenide.Selectors.byId;
@@ -7,10 +8,11 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class LoginPage extends N2oPage {
 
-    public void login(String username, String password) {
+    public RefBookListPage login(String username, String password) {
         fillInput("username", username);
         fillInput("password", password);
         login();
+        return N2oSelenide.page(RefBookListPage.class);
     }
 
     private void login() {
