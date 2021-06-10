@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -30,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     protected static final String NAME_FIELD_RESTORED_VALUE_SUFFIX = "_restored";
     protected static final String NAME_FIELD_CHANGED_VALUE_SUFFIX = "_changed";

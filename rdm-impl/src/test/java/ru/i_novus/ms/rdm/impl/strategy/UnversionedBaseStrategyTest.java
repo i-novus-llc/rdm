@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.data;
+package ru.i_novus.ms.rdm.impl.strategy;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.NAME_ATTRIBUTE_CODE;
 
-public abstract class UnversionedBaseRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
+public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTest {
 
     protected static final int REFERRER_ID = 10;
     protected static final String REFERRER_CODE = "refer";

@@ -5,13 +5,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.ms.rdm.impl.strategy.DefaultBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class DefaultDeleteAllRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
+public class DefaultDeleteAllRowValuesStrategyTest extends DefaultBaseStrategyTest {
 
     @InjectMocks
     private DefaultDeleteAllRowValuesStrategy strategy;

@@ -11,6 +11,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -25,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     @InjectMocks
     private UnversionedDeleteAllRowValuesStrategy strategy;

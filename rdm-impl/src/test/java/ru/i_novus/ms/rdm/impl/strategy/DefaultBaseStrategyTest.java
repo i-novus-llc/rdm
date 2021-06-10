@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.data;
+package ru.i_novus.ms.rdm.impl.strategy;
 
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -17,7 +17,7 @@ import static java.util.Arrays.asList;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public abstract class DefaultBaseRowValuesStrategyTest {
+public abstract class DefaultBaseStrategyTest {
 
     protected static final int REFBOOK_ID = 1;
     protected static final String REFBOOK_CODE = "test";

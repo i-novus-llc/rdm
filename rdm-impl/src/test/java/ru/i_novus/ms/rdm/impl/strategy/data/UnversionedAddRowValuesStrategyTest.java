@@ -11,6 +11,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -31,7 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     private static final String NAME_FIELD_DELETED_VALUE_SUFFIX = "_deleted";
 

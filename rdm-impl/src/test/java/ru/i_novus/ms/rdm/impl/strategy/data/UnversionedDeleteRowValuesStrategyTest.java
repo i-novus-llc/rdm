@@ -9,6 +9,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     @InjectMocks
     private UnversionedDeleteRowValuesStrategy strategy;
