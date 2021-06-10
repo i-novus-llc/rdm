@@ -9,3 +9,6 @@ services:
 
   esnsi:
     image: ${DOCKER_REGISTRY}/rdm/esnsi:${TAG}
+
+  db:
+    image: ${DOCKER_REGISTRY}/rdm/db:${TAG}
