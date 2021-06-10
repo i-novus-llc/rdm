@@ -766,15 +766,17 @@ public class DraftServiceImpl implements DraftService {
 
         structureChangeValidator.validateCreateAttribute(request, structure);
 
+        String refBookCode = draftEntity.getRefBook().getCode();
+
         Structure.Attribute attribute = request.getAttribute();
-        validateNewAttribute(attribute, structure, draftEntity.getRefBook().getCode());
+        versionValidation.validateNewAttribute(attribute, structure, refBookCode);
 
         Structure.Reference reference = request.getReference();
         if (reference != null && reference.isNull())
             reference = null;
 
         if (reference != null) {
-            validateNewReference(attribute, reference, structure, draftEntity.getRefBook().getCode());
+            versionValidation.validateNewReference(attribute, reference, structure, refBookCode);
         }
 
         structureChangeValidator.validateCreateAttributeStorage(attribute, structure, draftEntity.getStorageCode());
@@ -811,16 +813,18 @@ public class DraftServiceImpl implements DraftService {
         Structure.Attribute oldAttribute = structure.getAttribute(request.getCode());
         structureChangeValidator.validateUpdateAttribute(draftId, request, oldAttribute);
 
+        String refBookCode = draftEntity.getRefBook().getCode();
+
         Structure.Attribute newAttribute = Structure.Attribute.build(oldAttribute);
         request.fillAttribute(newAttribute);
-        validateNewAttribute(newAttribute, structure, draftEntity.getRefBook().getCode());
+        versionValidation.validateNewAttribute(newAttribute, structure, refBookCode);
 
         Structure.Reference oldReference = structure.getReference(oldAttribute.getCode());
         Structure.Reference newReference = null;
         if (newAttribute.isReferenceType()) {
             newReference = Structure.Reference.build(oldReference);
             request.fillReference(newReference);
-            validateNewReference(newAttribute, newReference, structure, draftEntity.getRefBook().getCode());
+            versionValidation.validateNewReference(newAttribute, newReference, structure, refBookCode);
         }
 
         structureChangeValidator.validateUpdateAttributeStorage(draftId, request, oldAttribute, draftEntity.getStorageCode());
@@ -852,32 +856,6 @@ public class DraftServiceImpl implements DraftService {
         forceUpdateOptLockValue(draftEntity);
 
         auditStructureEdit(draftEntity, "update_attribute", newAttribute);
-    }
-
-    private void validateNewAttribute(Structure.Attribute newAttribute,
-                                      Structure oldStructure, String refBookCode) {
-
-        if (!newAttribute.hasIsPrimary() && !newAttribute.isReferenceType()
-                && !isEmpty(oldStructure.getReferences()) && !oldStructure.hasPrimary())
-            throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
-
-        versionValidation.validateAttribute(newAttribute);
-    }
-
-    private void validateNewReference(Structure.Attribute newAttribute,
-                                      Structure.Reference newReference,
-                                      Structure oldStructure, String refBookCode) {
-
-        if (newAttribute.hasIsPrimary())
-            throw new UserException(new Message(VersionValidationImpl.REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, newAttribute.getName()));
-
-        if (!oldStructure.hasPrimary())
-            throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
-
-        Structure.Reference oldReference = oldStructure.getReference(newReference.getAttribute());
-        if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {
-            versionValidation.validateReferenceAbility(newReference);
-        }
     }
 
     /**
@@ -922,8 +900,10 @@ public class DraftServiceImpl implements DraftService {
         Structure structure = draftEntity.getStructure();
         final String attributeCode = request.getAttributeCode();
 
+        String refBookCode = draftEntity.getRefBook().getCode();
+
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
-        validateOldAttribute(attribute, structure, draftEntity.getRefBook().getCode());
+        versionValidation.validateOldAttribute(attribute, structure, refBookCode);
 
         try {
             draftDataService.deleteField(draftEntity.getStorageCode(), attributeCode);
@@ -939,13 +919,6 @@ public class DraftServiceImpl implements DraftService {
         forceUpdateOptLockValue(draftEntity);
 
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
-    }
-
-    private void validateOldAttribute(Structure.Attribute oldAttribute,
-                                      Structure oldStructure, String refBookCode) {
-
-        if (oldAttribute.hasIsPrimary() && !isEmpty(oldStructure.getReferences()) && oldStructure.getPrimaries().size() == 1)
-            throw new UserException(new Message(VersionValidationImpl.REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 
     @Override

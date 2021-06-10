@@ -39,6 +39,16 @@ public interface VersionValidation {
 
     void validateReferrerStructure(Structure structure);
 
+    void validateNewAttribute(Structure.Attribute newAttribute,
+                              Structure oldStructure, String refBookCode);
+
+    void validateNewReference(Structure.Attribute newAttribute,
+                              Structure.Reference newReference,
+                              Structure oldStructure, String refBookCode);
+
+    void validateOldAttribute(Structure.Attribute oldAttribute,
+                              Structure oldStructure, String refBookCode);
+
     boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                             List<Structure.Attribute> primaries2);
 }

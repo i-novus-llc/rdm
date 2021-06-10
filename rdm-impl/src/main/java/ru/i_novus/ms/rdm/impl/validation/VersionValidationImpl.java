@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 // Выделить RefBookValidation с refbookRepository.
@@ -423,7 +424,12 @@ public class VersionValidationImpl implements VersionValidation {
             throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
     }
 
-    /** Получение версии справочника, на который указывает ссылка. */
+    /**
+     * Получение версии справочника, на который ссылаются.
+     *
+     * @param referredCode код этого справочника
+     * @return Версия справочника
+     */
     private RefBookVersionEntity getReferredEntity(String referredCode) {
 
         validateRefBookCode(referredCode);
@@ -453,6 +459,66 @@ public class VersionValidationImpl implements VersionValidation {
         else
         if (primaryCount > 1)
             throw new UserException(new Message(REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE, referredCode));
+    }
+
+    /**
+     * Проверка атрибута перед добавлением в структуру.
+     *
+     * @param newAttribute добавляемый атрибут
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateNewAttribute(Structure.Attribute newAttribute,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (!newAttribute.hasIsPrimary() && !newAttribute.isReferenceType()
+                && !isEmpty(oldStructure.getReferences()) && !oldStructure.hasPrimary())
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
+
+        validateAttribute(newAttribute);
+    }
+
+    /**
+     * Проверка атрибута-ссылки перед добавлением в структуру.
+     *
+     * @param newAttribute добавляемый атрибут
+     * @param newReference добавляемый атрибут-ссылка
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateNewReference(Structure.Attribute newAttribute,
+                                     Structure.Reference newReference,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (newAttribute.hasIsPrimary())
+            throw new UserException(new Message(REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, newAttribute.getName()));
+
+        if (!oldStructure.hasPrimary())
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
+
+        Structure.Reference oldReference = oldStructure.getReference(newReference.getAttribute());
+        if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {
+            validateReferenceAbility(newReference);
+        }
+    }
+
+    /**
+     * Проверка атрибута перед удалением из структуры.
+     *
+     * @param oldAttribute удаляемый атрибут
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateOldAttribute(Structure.Attribute oldAttribute,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (oldAttribute.hasIsPrimary() &&
+                !isEmpty(oldStructure.getReferences()) &&
+                oldStructure.getPrimaries().size() == 1)
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 
     /**
