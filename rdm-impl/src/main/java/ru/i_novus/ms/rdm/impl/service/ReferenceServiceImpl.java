@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -96,7 +95,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             return;
 
         references.stream()
-                .filter(reference -> BooleanUtils.isNotTrue(
+                .filter(reference -> !Boolean.TRUE.equals(
                         conflictRepository.hasReferrerConflict(referrerVersionId, reference.getAttribute(),
                                 ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
                 ))
@@ -208,6 +207,7 @@ public class ReferenceServiceImpl implements ReferenceService {
                     .map(RefBookConflictEntity::getRefRecordId)
                     .collect(toList());
 
+            // RDM-884: Для обязательных атрибутов: если новое значение null, кидать ошибку required value
             draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
         });
     }
