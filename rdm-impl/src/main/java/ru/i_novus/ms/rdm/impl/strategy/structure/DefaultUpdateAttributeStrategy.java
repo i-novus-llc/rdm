@@ -11,7 +11,6 @@ import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.repository.AttributeValidationRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
@@ -20,8 +19,6 @@ import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-
-import java.util.Objects;
 
 @Component
 public class DefaultUpdateAttributeStrategy implements UpdateAttributeStrategy {
@@ -40,9 +37,6 @@ public class DefaultUpdateAttributeStrategy implements UpdateAttributeStrategy {
 
     @Autowired
     private StructureChangeValidator structureChangeValidator;
-
-    @Autowired
-    private AttributeValidationRepository attributeValidationRepository;
 
     @Override
     public Structure.Attribute update(RefBookVersionEntity entity, UpdateAttributeRequest request) {
@@ -77,11 +71,6 @@ public class DefaultUpdateAttributeStrategy implements UpdateAttributeStrategy {
         // Обновление значений ссылки только по необходимости:
         if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {
             refreshReferenceDisplayValues(entity, newReference);
-        }
-
-        // Валидации для старого типа удаляются отдельным вызовом updateAttributeValidations.
-        if (Objects.equals(oldAttribute.getType(), request.getType())) {
-            attributeValidationRepository.deleteByVersionIdAndAttribute(entity.getId(), request.getCode());
         }
 
         return newAttribute;
