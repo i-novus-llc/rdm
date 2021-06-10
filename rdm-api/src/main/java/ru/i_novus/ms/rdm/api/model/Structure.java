@@ -425,12 +425,12 @@ public class Structure implements Serializable {
         }
 
         public boolean hasIsPrimary() {
-            return Boolean.TRUE.equals(getIsPrimary());
+            return getIsPrimary();
         }
 
         @JsonIgnore
         public boolean isLocalizable() {
-            return Boolean.TRUE.equals(getLocalizable());
+            return getLocalizable();
         }
 
         @JsonIgnore
