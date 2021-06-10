@@ -17,6 +17,8 @@ public interface VersionValidation {
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
     void validateRefBookCodeNotExists(String refBookCode);
 
+    boolean hasReferrerVersions(String refBookCode);
+
     void validateVersionExists(Integer versionId);
 
     void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);

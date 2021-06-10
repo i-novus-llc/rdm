@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -158,7 +157,7 @@ public class RefBookServiceImpl implements RefBookService {
     public RefBook getByVersionId(Integer versionId) {
 
         RefBookVersionEntity versionEntity = findVersionOrThrow(versionId);
-        boolean hasReferrerVersions = hasReferrerVersions(versionEntity.getRefBook().getCode());
+        boolean hasReferrerVersions = versionValidation.hasReferrerVersions(versionEntity.getRefBook().getCode());
 
         return refBookModel(versionEntity, hasReferrerVersions,
                 getSourceTypeVersion(versionEntity.getRefBook().getId(), RefBookSourceType.DRAFT),
@@ -422,14 +421,6 @@ public class RefBookServiceImpl implements RefBookService {
         model.setLastHasConflict(refBookModelData.getLastHasConflict());
 
         return model;
-    }
-
-    /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
-    private boolean hasReferrerVersions(String refBookCode) {
-
-        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
-        return Boolean.TRUE.equals(exists);
     }
 
     private boolean isRefBookRemovable(Integer refBookId) {

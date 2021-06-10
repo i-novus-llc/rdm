@@ -107,6 +107,19 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка наличия справочника не в архиве.
+     *
+     * @param refBookId идентификатор справочника
+     */
+    private void validateRefBookNotArchived(Integer refBookId) {
+
+        if (refBookId != null
+                && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
+            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
+        }
+    }
+
+    /**
      * Проверка наличия справочника с указанным кодом.
      *
      * @param refBookCode код справочника
@@ -135,6 +148,20 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка на наличие справочников, ссылающихся на указанный справочник.
+     *
+     * @param refBookCode код справочника
+     * @return Результат проверки
+     */
+    @Override
+    public boolean hasReferrerVersions(String refBookCode) {
+
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
+    }
+
+    /**
      * Проверка существования версии справочника.
      *
      * @param versionId идентификатор версии
@@ -160,19 +187,6 @@ public class VersionValidationImpl implements VersionValidation {
         if (draftId != null && optLockValue != null
                 && !optLockValue.equals(draftLockValue)) {
             throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
-        }
-    }
-
-    /**
-     * Проверка наличия справочника не в архиве.
-     *
-     * @param refBookId идентификатор справочника
-     */
-    private void validateRefBookNotArchived(Integer refBookId) {
-
-        if (refBookId != null
-                && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
 
@@ -377,9 +391,9 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка структуры ссылочного справочника.
+     * Проверка структуры версии ссылочного справочника.
      *
-     * @param structure структура справочника, который ссылается
+     * @param structure структура версии справочника, который ссылается
      */
     @Override
     public void validateReferrerStructure(Structure structure) {
@@ -441,13 +455,6 @@ public class VersionValidationImpl implements VersionValidation {
             throw new UserException(new Message(REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE, referredCode));
     }
 
-    /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
-    private boolean hasReferrerVersions(String refBookCode) {
-        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
-        return Boolean.TRUE.equals(exists);
-    }
-
     /**
      * Проверка первичных ключей на совпадение.
      *
@@ -465,6 +472,7 @@ public class VersionValidationImpl implements VersionValidation {
 
     /** Проверка на наличие первичного ключа в списке первичных ключей. */
     private static boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
+
         return primaries.stream().anyMatch(p -> p.storageEquals(primary));
     }
 
