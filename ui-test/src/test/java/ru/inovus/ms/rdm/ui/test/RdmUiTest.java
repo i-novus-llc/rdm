@@ -187,6 +187,7 @@ public class RdmUiTest {
                 case DATE -> fillInputText(dataForm.dateInput(key.getName()), (value.toString()));
                 case BOOLEAN -> {
                     N2oCheckbox checkbox = dataForm.booleanInput(key.getName());
+                    checkbox.shouldExists();
                     checkbox.setChecked(true);
                     checkbox.shouldBeChecked();
                 }
