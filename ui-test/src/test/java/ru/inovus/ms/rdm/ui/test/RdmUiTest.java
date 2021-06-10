@@ -71,8 +71,8 @@ public class RdmUiTest {
      */
     @Test
     public void testCreateRefBookAndRefBookWithReference() {
-        RefBook simpleRefBook = generateRefBook(REF_BOOK_DATA_ROWS_CREATE_COUNT, null, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.DATE, FieldType.BOOLEAN);
-        RefBook refBookWithReference = generateRefBook(REF_BOOK_DATA_ROWS_CREATE_COUNT, simpleRefBook, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.DATE, FieldType.BOOLEAN, FieldType.REFERENCE);
+        RefBook simpleRefBook = generateRefBook(REF_BOOK_DATA_ROWS_CREATE_COUNT, null, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE);
+        RefBook refBookWithReference = generateRefBook(REF_BOOK_DATA_ROWS_CREATE_COUNT, simpleRefBook, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.REFERENCE, FieldType.DATE);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
