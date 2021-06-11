@@ -877,6 +877,7 @@ public class DraftServiceImpl implements DraftService {
 
         attributeValidationRepository.saveAll(validationEntities);
 
+        // RDM-887: Вынести после RDM-889 в стратегии добавления и изменения атрибута!
         conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(versionEntity.getId(), attributeCode);
     }
 
@@ -887,17 +888,17 @@ public class DraftServiceImpl implements DraftService {
     private boolean isReferenceValidationSkipped(Integer versionId,
                                                  RefBookVersionAttribute oldAttribute,
                                                  RefBookVersionAttribute newAttribute) {
-        if (newAttribute.hasReference() && oldAttribute != null && oldAttribute.hasReference()) {
-            if (newAttribute.equalsReferenceDisplayExpression(oldAttribute))
-                return false;
+        if (!newAttribute.hasReference() ||
+                oldAttribute == null || !oldAttribute.hasReference())
+            return false;
 
-            return Boolean.TRUE.equals(
-                    conflictRepository.hasReferrerConflict(versionId, newAttribute.getAttribute().getCode(),
-                            ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
-            );
-        }
+        if (newAttribute.equalsReferenceDisplayExpression(oldAttribute))
+            return false;
 
-        return false;
+        return Boolean.TRUE.equals(
+                conflictRepository.hasReferrerConflict(versionId, newAttribute.getAttribute().getCode(),
+                        ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
+        );
     }
 
     private void validateVersionData(RefBookVersionEntity versionEntity,
