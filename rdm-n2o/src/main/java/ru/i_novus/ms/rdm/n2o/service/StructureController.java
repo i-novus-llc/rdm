@@ -394,25 +394,25 @@ public class StructureController {
     private UpdateAttributeRequest getUpdateAttributeRequest(Integer optLockValue,
                                                              FormAttribute formAttribute) {
 
-        UpdateAttributeRequest attribute = new UpdateAttributeRequest();
-        attribute.setLastActionDate(TimeUtils.nowZoned());
+        UpdateAttributeRequest request = new UpdateAttributeRequest();
+        request.setLastActionDate(TimeUtils.nowZoned());
 
-        attribute.setOptLockValue(optLockValue);
+        request.setOptLockValue(optLockValue);
 
         // attribute fields:
-        attribute.setCode(formAttribute.getCode());
-        attribute.setType(formAttribute.getType());
-        attribute.setDescription(formAttribute.getDescription());
+        request.setCode(formAttribute.getCode());
+        request.setType(formAttribute.getType());
+        request.setDescription(formAttribute.getDescription());
 
-        setUpdateValueIfExists(formAttribute::getName, attribute::setName);
-        setUpdateValueIfExists(formAttribute::getIsPrimary, attribute::setIsPrimary);
-        setUpdateValueIfExists(formAttribute::getLocalizable, attribute::setLocalizable);
+        setUpdateValueIfExists(formAttribute::getName, request::setName);
+        setUpdateValueIfExists(formAttribute::getIsPrimary, request::setIsPrimary);
+        setUpdateValueIfExists(formAttribute::getLocalizable, request::setLocalizable);
 
         // reference fields:
-        setUpdateValueIfExists(formAttribute::getCode, attribute::setAttribute);
-        setUpdateValueIfExists(formAttribute::getReferenceCode, attribute::setReferenceCode);
-        setUpdateValueIfExists(formAttribute::getDisplayExpression, attribute::setDisplayExpression);
+        setUpdateValueIfExists(formAttribute::getCode, request::setAttribute);
+        setUpdateValueIfExists(formAttribute::getReferenceCode, request::setReferenceCode);
+        setUpdateValueIfExists(formAttribute::getDisplayExpression, request::setDisplayExpression);
 
-        return attribute;
+        return request;
     }
 }
