@@ -31,12 +31,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseRowValuesStrategyTest {
 
     private static final String NAME_FIELD_DELETED_VALUE_SUFFIX = "_deleted";
 
     @InjectMocks
-    private UnversionedAddRowValuesStrategy strategy;
+    private UnversionedAfterUploadDataStrategy strategy;
 
     @Mock
     private DraftDataService draftDataService;
@@ -51,11 +51,11 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
     private SearchDataService searchDataService;
 
     @Mock
-    private AddRowValuesStrategy addRowValuesStrategy;
+    private AfterUploadDataStrategy afterUploadDataStrategy;
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAdd() {
+    public void testApply() {
 
         RefBookVersionEntity entity = createDraftEntity();
 
@@ -101,8 +101,8 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
         refPagedData.init(1, refRowValues);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(pagedData) // page with entity data // .findAddedRowValues
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer
+                .thenReturn(pagedData) // page with entity data // .findReferredRowValues
                 .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
 
         // .recalculateDataConflicts
@@ -120,8 +120,8 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseRowValue
                 .thenReturn(conflicts);
 
         // .add
-        strategy.add(entity, rowValues);
-        verify(addRowValuesStrategy).add(eq(entity), eq(rowValues));
+        strategy.apply(entity);
+        verify(afterUploadDataStrategy).apply(eq(entity));
 
         verifyFindReferrers(versionRepository);
 

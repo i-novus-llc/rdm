@@ -15,14 +15,12 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -170,18 +168,12 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
                                                                    RowValue refRowValue) {
         return referenceCodes.stream()
                 .filter(code -> {
-                    String value = getReferenceValue(refRowValue, code);
+                    String value = RowUtils.getFieldReferenceValue(refRowValue, code);
                     return value != null && primaryValues.contains(value);
                 })
                 .map(code ->
                         new RefBookConflictEntity(referrer, entity,
                                 (Long) refRowValue.getSystemId(), code, ConflictType.DELETED)
                 );
-    }
-
-    private String getReferenceValue(RowValue rowValue, String code) {
-
-        Serializable value = rowValue.getFieldValue(code).getValue();
-        return value != null ? ((Reference) value).getValue() : null;
     }
 }

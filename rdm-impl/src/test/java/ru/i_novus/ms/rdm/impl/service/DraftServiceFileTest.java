@@ -32,6 +32,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.data.AfterUploadDataStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
@@ -115,6 +116,8 @@ public class DraftServiceFileTest {
     private CreateDraftEntityStrategy createDraftEntityStrategy;
     @Mock
     private CreateDraftStorageStrategy createDraftStorageStrategy;
+    @Mock
+    private AfterUploadDataStrategy afterUploadDataStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -412,6 +415,8 @@ public class DraftServiceFileTest {
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
+        // Data:
+        result.put(AfterUploadDataStrategy.class, afterUploadDataStrategy);
         // File:
 
         return result;

@@ -194,6 +194,8 @@ public class DraftServiceImpl implements DraftService {
 
         RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
                 .find(refBookEntity);
+        getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
+
         return createdEntity.toDraft();
     }
 
@@ -205,14 +207,15 @@ public class DraftServiceImpl implements DraftService {
 
             Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
             RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
-            updateDataFromFile(createdEntity, fileModel);
+            uploadDataFromFile(createdEntity, fileModel);
+            getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
 
             return draft;
         }
     }
 
     /** Обновление данных черновика из файла. */
-    private void updateDataFromFile(RefBookVersionEntity draftEntity, FileModel fileModel) {
+    private void uploadDataFromFile(RefBookVersionEntity draftEntity, FileModel fileModel) {
 
         Structure structure = draftEntity.getStructure();
 
@@ -222,6 +225,7 @@ public class DraftServiceImpl implements DraftService {
         persistRows(fileModel, structure, draftEntity.getStorageCode()); // Без учёта локализации
     }
 
+    /** Валидация записей из файла перед загрузкой в БД. */
     private void validateRows(FileModel fileModel, Structure structure, String storageCode,
                               List<AttributeValidationEntity> attributeValidations) {
 
@@ -233,6 +237,7 @@ public class DraftServiceImpl implements DraftService {
         versionFileService.processRows(fileModel, rowsValidator, nonStrictOnTypeRowMapper);
     }
 
+    /** Загрузка записи из файла в БД. */
     private void persistRows(FileModel fileModel, Structure structure, String storageCode) {
 
         RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, storageCode, structure);
@@ -659,8 +664,10 @@ public class DraftServiceImpl implements DraftService {
         Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
-            updateDataFromFile(draftEntity, request.getFileModel());
+            uploadDataFromFile(draftEntity, request.getFileModel());
             forceUpdateOptLockValue(versionRepository.findById(draftId).orElse(null));
+
+            getStrategy(draftEntity, AfterUploadDataStrategy.class).apply(draftEntity);
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);

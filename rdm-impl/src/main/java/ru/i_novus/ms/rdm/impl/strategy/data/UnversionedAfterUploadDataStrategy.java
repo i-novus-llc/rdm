@@ -30,7 +30,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
+public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -42,99 +42,47 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
     private SearchDataService searchDataService;
 
     @Autowired
-    @Qualifier("defaultAddRowValuesStrategy")
-    private AddRowValuesStrategy addRowValuesStrategy;
+    @Qualifier("defaultAfterUploadDataStrategy")
+    private AfterUploadDataStrategy afterUploadDataStrategy;
 
     @Override
-    public void add(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    public void apply(RefBookVersionEntity entity) {
 
-        addRowValuesStrategy.add(entity, rowValues);
+        afterUploadDataStrategy.apply(entity);
 
-        processReferrers(entity, rowValues);
+        processReferrers(entity);
     }
 
-    private void processReferrers(RefBookVersionEntity entity, List<RowValue> rowValues) {
+    private void processReferrers(RefBookVersionEntity entity) {
 
         List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         if (primaries.isEmpty())
             return;
 
-        // Для поиска существующих конфликтов нужны сохранённые значения добавленных записей.
-        Collection<RowValue> addedRowValues = findAddedRowValues(entity, rowValues, primaries);
-        processReferrers(entity, primaries, addedRowValues);
-    }
-
-    protected void processReferrers(RefBookVersionEntity entity, List<Structure.Attribute> primaries,
-                                    Collection<RowValue> addedRowValues) {
-        if (isEmpty(addedRowValues))
-            return;
-
-        Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, addedRowValues);
-        if (isEmpty(referredRowValues))
-            return;
-
         new ReferrerEntityIteratorProvider(versionRepository, entity.getRefBook().getCode(), RefBookSourceType.ALL)
                 .iterate().forEachRemaining(referrers ->
                 referrers.getContent().forEach(referrer ->
-                        processReferrer(referrer, entity, referredRowValues)
+                        processReferrer(referrer, entity, primaries)
                 )
         );
-    }
-
-    private Collection<RowValue> findAddedRowValues(RefBookVersionEntity entity, List<RowValue> rowValues,
-                                                    List<Structure.Attribute> primaries) {
-        
-        StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, rowValues, primaries);
-        return searchDataService.getPagedData(dataCriteria).getCollection();
-    }
-
-    private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity, List<RowValue> rowValues,
-                                                     List<Structure.Attribute> primaries) {
-
-        Set<List<FieldSearchCriteria>> primarySearchCriterias = toPrimarySearchCriterias(rowValues, primaries);
-
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                entity.getStorageCode(), // Без учёта локализации
-                entity.getFromDate(), entity.getToDate(),
-                ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        dataCriteria.setSize(rowValues.size());
-
-        return dataCriteria;
-    }
-
-    private Set<List<FieldSearchCriteria>> toPrimarySearchCriterias(List<RowValue> rowValues,
-                                                                    List<Structure.Attribute> primaries) {
-        return rowValues.stream()
-                .map(rowValue -> toPrimarySearchCriterias(rowValue, primaries))
-                .collect(toSet());
-    }
-
-    private List<FieldSearchCriteria> toPrimarySearchCriterias(RowValue rowValue,
-                                                               List<Structure.Attribute> primaries) {
-        return primaries.stream()
-                .map(primary ->
-                        ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
-                                SearchTypeEnum.EXACT, singletonList(RowUtils.toSearchValue(primary, rowValue)))
-                ).collect(toList());
     }
 
     /**
      * Обработка ссылочного справочника.
      *
-     * @param referrer  сущность-версия, ссылающаяся на текущий справочник
-     * @param entity    сущность-версия, на которую есть ссылки
-     * @param rowValues набор добавляемых записей в entity
+     * @param referrer сущность-версия, ссылающаяся на текущий справочник
+     * @param entity   сущность-версия, на которую есть ссылки
      */
     private void processReferrer(RefBookVersionEntity referrer, RefBookVersionEntity entity,
-                                 Map<String, RowValue> rowValues) {
+                                 List<Structure.Attribute> primaries) {
 
         String refBookCode = entity.getRefBook().getCode();
         List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
 
         // storageCode - Без учёта локализации
-        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references,
-                referrer.getStorageCode(), new ArrayList<>(rowValues.keySet()));
+        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), null);
+        dataCriteria.setFieldFilters(ConverterUtil.toNotNullSearchCriterias(references));
+
         CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
@@ -142,21 +90,23 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
             // При наличии конфликта DELETED:
             // если запись восстановлена - удалить конфликт,
             // иначе - заменить тип конфликта на UPDATED.
-            recalculateDataConflicts(referrer, rowValues, references, page.getCollection())
+            recalculateDataConflicts(referrer, entity, primaries, references, page.getCollection())
         );
     }
 
     private void recalculateDataConflicts(RefBookVersionEntity referrer,
-                                          Map<String, RowValue> addedRowValues,
+                                          RefBookVersionEntity entity,
+                                          List<Structure.Attribute> primaries,
                                           List<Structure.Reference> references,
                                           Collection<? extends RowValue> refRowValues) {
         references.forEach(reference ->
-                recalculateDataConflicts(referrer, addedRowValues, reference, refRowValues)
+                recalculateDataConflicts(referrer, entity, primaries, reference, refRowValues)
         );
     }
 
     private void recalculateDataConflicts(RefBookVersionEntity referrer,
-                                          Map<String, RowValue> addedRowValues,
+                                          RefBookVersionEntity entity,
+                                          List<Structure.Attribute> primaries,
                                           Structure.Reference reference,
                                           Collection<? extends RowValue> refRowValues) {
 
@@ -170,6 +120,9 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         if (isEmpty(conflicts))
             return;
 
+        Collection<RowValue> rowValues = findReferredRowValues(entity, primaries, referenceCode, refRowValues);
+        Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, rowValues);
+
         // Определить действия над конфликтами по результату сравнения отображаемых значений.
         List<RefBookConflictEntity> toUpdate = new ArrayList<>(conflicts.size());
         List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
@@ -177,11 +130,11 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         for (RefBookConflictEntity conflict : conflicts) {
 
             Reference fieldReference = RowUtils.getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
-            RowValue addedRowValue = (fieldReference != null) ? addedRowValues.get(fieldReference.getValue()) : null;
-            if (addedRowValue == null) continue;
+            RowValue referredRowValue = (fieldReference != null) ? referredRowValues.get(fieldReference.getValue()) : null;
+            if (referredRowValue == null) continue;
 
             String newDisplayValue = FieldValueUtils.toDisplayValue(
-                    reference.getDisplayExpression(), addedRowValue, null);
+                    reference.getDisplayExpression(), referredRowValue, null);
 
             if (Objects.equals(fieldReference.getDisplayValue(), newDisplayValue)) {
 
@@ -203,5 +156,55 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         if (!isEmpty(toDelete)) {
             conflictRepository.deleteAll(toDelete);
         }
+    }
+
+    private Collection<RowValue> findReferredRowValues(RefBookVersionEntity entity,
+                                                       List<Structure.Attribute> primaries,
+                                                       String referenceCode,
+                                                       Collection<? extends RowValue> refRowValues) {
+
+        List<String> referenceValues = refRowValues.stream()
+                .map(rowValue -> RowUtils.getFieldReferenceValue(rowValue, referenceCode))
+                .filter(Objects::nonNull)
+                .distinct().collect(toList());
+
+        StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, primaries, referenceValues);
+        return searchDataService.getPagedData(dataCriteria).getCollection();
+    }
+
+    private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity,
+                                                     List<Structure.Attribute> primaries,
+                                                     List<String> referenceValues) {
+
+        Set<List<FieldSearchCriteria>> primarySearchCriterias = toPrimarySearchCriterias(primaries, referenceValues);
+
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(
+                entity.getStorageCode(), // Без учёта локализации
+                entity.getFromDate(), entity.getToDate(),
+                ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
+        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
+        dataCriteria.setSize(referenceValues.size());
+
+        return dataCriteria;
+    }
+
+    private Set<List<FieldSearchCriteria>> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
+                                                                    List<String> referenceValues) {
+        return referenceValues.stream()
+                .map(refValue -> toPrimarySearchCriterias(primaries, refValue))
+                .collect(toSet());
+    }
+
+    private List<FieldSearchCriteria> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
+                                                               String referenceValue) {
+        // На данный момент первичным ключом может быть только одно поле.
+        // Ссылка на значение составного ключа невозможна.
+        Structure.Attribute primary = primaries.get(0);
+
+        return singletonList(
+                ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
+                        SearchTypeEnum.EXACT, singletonList(referenceValue)
+                )
+        );
     }
 }

@@ -58,6 +58,8 @@ public class StrategyLocatorConfig {
     private DefaultDeleteRowValuesStrategy defaultDeleteRowValuesStrategy;
     @Autowired
     private DefaultDeleteAllRowValuesStrategy defaultDeleteAllRowValuesStrategy;
+    @Autowired
+    private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
 
     // File:
     @Autowired
@@ -88,6 +90,8 @@ public class StrategyLocatorConfig {
     private UnversionedDeleteRowValuesStrategy unversionedDeleteRowValuesStrategy;
     @Autowired
     private UnversionedDeleteAllRowValuesStrategy unversionedDeleteAllRowValuesStrategy;
+    @Autowired
+    private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
 
     @Autowired
     private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
@@ -132,6 +136,7 @@ public class StrategyLocatorConfig {
         result.put(UpdateRowValuesStrategy.class, defaultUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, defaultDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
+        result.put(AfterUploadDataStrategy.class, defaultAfterUploadDataStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
@@ -153,6 +158,7 @@ public class StrategyLocatorConfig {
         result.put(UpdateRowValuesStrategy.class, unversionedUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, unversionedDeleteAllRowValuesStrategy);
+        result.put(AfterUploadDataStrategy.class, unversionedAfterUploadDataStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);

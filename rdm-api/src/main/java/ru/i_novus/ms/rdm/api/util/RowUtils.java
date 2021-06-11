@@ -9,6 +9,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
@@ -216,6 +217,40 @@ public class RowUtils {
                                                             Collection<RowValue> rowValues) {
         return rowValues.stream()
                 .collect(toMap(rowValue -> toReferenceValue(primaries, rowValue), Function.identity()));
+    }
+
+    /**
+     * Получение ссылки из указанного поля в записи с заданным системным идентификатором.
+     *
+     * @param rowValues список записей
+     * @param systemId  системный идентификатор
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Ссылка или null
+     */
+    public static Reference getFieldReference(Collection<? extends RowValue> rowValues,
+                                              Long systemId, String fieldCode) {
+
+        RowValue foundRowValue = rowValues.stream()
+                .filter(rowValue -> Objects.equals(rowValue.getSystemId(), systemId))
+                .findFirst().orElse(null);
+        if (foundRowValue == null)
+            return null;
+
+        FieldValue fieldValue = foundRowValue.getFieldValue(fieldCode);
+        return (fieldValue instanceof ReferenceFieldValue) ? ((ReferenceFieldValue) fieldValue).getValue() : null;
+    }
+
+    /**
+     * Получение значения ссылки из указанного поля-ссылки в записи.
+     *
+     * @param rowValue  запись ссылочного справочника
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Значение поля-ссылки или null
+     */
+    public static String getFieldReferenceValue(RowValue rowValue, String fieldCode) {
+
+        Serializable value = rowValue.getFieldValue(fieldCode).getValue();
+        return value != null ? ((Reference) value).getValue() : null;
     }
 
     /**
