@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -12,9 +13,11 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 
@@ -110,54 +113,136 @@ public class RowUtils {
         return attribute.getName() + "\" - \"" + rowData.get(attribute.getCode());
     }
 
-    public static List<Object> toSystemIds(List<RowValue> rowValues) {
-        return rowValues.stream().map(RowValue::getSystemId).collect(toList());
+    /** Получение списка systemIds из коллекции записей. */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toSystemIds(Collection<? extends RowValue> rowValues) {
+        return rowValues.stream().map(rowValue -> (T) rowValue.getSystemId()).collect(toList());
     }
 
     /** Преобразование списка systemIds из vds в список для rdm. */
-    public static List<Long> toLongSystemIds(List<Object> systemIds) {
+    public static List<Long> toLongSystemIds(Collection<Object> systemIds) {
         return systemIds.stream().map(systemId -> (Long) systemId).collect(toList());
     }
 
-    /** Проверка на совпадение systemId со значением из RowValue. */
-    public static boolean isSystemIdRowValue(Object systemId, RowValue<?> rowValue) {
+    /**
+     * Проверка на системного идентификатора записи с указанным системным идентификатором.
+     *
+     * @param rowValue запись справочника
+     * @param systemId системный идентификатор
+     * @return Результат проверки
+     */
+    public static boolean hasSystemId(RowValue<?> rowValue, Object systemId) {
+
         return systemId.equals(rowValue.getSystemId());
     }
 
-    /** Получение значения RowValue с совпадающим значением systemId. */
-    public static RowValue getSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+    /**
+     * Получение записи из коллекции по указанному системному идентификатору.
+     *
+     * @param rowValues коллекция записей справочника
+     * @param systemId  системный идентификатор
+     * @return Запись справочника
+     */
+    public static RowValue getBySystemId(Collection<RowValue> rowValues, Object systemId) {
+
         return rowValues.stream()
-                .filter(rowValue -> isSystemIdRowValue(systemId, rowValue))
+                .filter(rowValue -> hasSystemId(rowValue, systemId))
                 .findFirst().orElse(null);
     }
 
-    /** Проверка на наличие значения RowValue с совпадающим значением systemId. */
-    public static boolean isSystemIdRowValue(Object systemId, List<RowValue> rowValues) {
+    /**
+     * Проверка на наличие записи с указанным системным идентификатором в коллекции.
+     *
+     * @param rowValues коллекция записей справочника
+     * @param systemId  системный идентификатор
+     * @return Результат проверки
+     */
+    public static boolean containsSystemId(Collection<RowValue> rowValues, Object systemId) {
+
         return !isEmpty(rowValues)
-                && rowValues.stream().anyMatch(rowValue -> isSystemIdRowValue(systemId, rowValue));
+                && rowValues.stream().anyMatch(rowValue -> hasSystemId(rowValue, systemId));
     }
 
     /**
-     * Создание фильтров по точному совпадению значений первичных ключей.
+     * Преобразование значения первичного ключа записи в значение для поиска.
+     *
+     * @param primary  первичный ключ
+     * @param rowValue запись справочника
+     * @return Значение для поиска
+     */
+    public static Serializable toSearchValue(Structure.Attribute primary, RowValue rowValue) {
+
+        FieldValue fieldValue = rowValue.getFieldValue(primary.getCode());
+        return FieldValueUtils.castFieldValue(fieldValue, primary.getType());
+    }
+
+    /**
+     * Преобразование значения первичных ключей записей в строковые значения ссылки на эти записи.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValues записи справочника
+     * @return Строковые значения ссылки
+     */
+    public static List<String> toReferenceValues(List<Structure.Attribute> primaries, Collection<RowValue> rowValues) {
+
+        return rowValues.stream().map(rowValue -> toReferenceValue(primaries, rowValue)).collect(toList());
+    }
+
+    /**
+     * Преобразование значения первичных ключей записи в строковое значение ссылки на эту запись.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValue  запись справочника
+     * @return Строковое значение ссылки
+     */
+    public static String toReferenceValue(List<Structure.Attribute> primaries, RowValue rowValue) {
+
+        // На данный момент первичным ключом может быть только одно поле.
+        // Ссылка на значение составного ключа невозможна.
+        FieldValue fieldValue = rowValue.getFieldValue(primaries.get(0).getCode());
+        Serializable value = FieldValueUtils.castFieldValue(fieldValue, FieldType.STRING);
+
+        return value != null ? value.toString() : null;
+    }
+
+    /**
+     * Преобразование записей в набор с привязкой к строковым значениям ссылки.
+     *
+     * @param primaries список первичных ключей
+     * @param rowValues записи справочника
+     * @return Набор записей
+     */
+    public static Map<String, RowValue> toReferredRowValues(List<Structure.Attribute> primaries,
+                                                            Collection<RowValue> rowValues) {
+        return rowValues.stream()
+                .collect(toMap(rowValue -> toReferenceValue(primaries, rowValue), Function.identity()));
+    }
+
+    /**
+     * Получение фильтров по точному совпадению значений первичных ключей из записи.
      *
      * @param row       запись со значениями
      * @param primaries первичные ключи
      * @return Список фильтров
      */
-    public static List<AttributeFilter> getPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
+    public static List<AttributeFilter> toPrimaryKeyValueFilters(Row row, List<Structure.Attribute> primaries) {
+
         return primaries.stream()
-                .map(key -> {
-                    Serializable value = (Serializable) row.getData().get(key.getCode());
-                    if (value == null)
-                        return null;
-
-                    if (value instanceof Reference) {
-                        value = ((Reference) value).getValue();
-                    }
-
-                    return new AttributeFilter(key.getCode(), value, key.getType(), SearchTypeEnum.EXACT);
-                })
+                .map(primary -> toPrimaryKeyFilter(row, primary))
                 .filter(Objects::nonNull)
                 .collect(toList());
+    }
+
+    private static AttributeFilter toPrimaryKeyFilter(Row row, Structure.Attribute primary) {
+
+        Serializable value = (Serializable) row.getData().get(primary.getCode());
+        if (value == null)
+            return null;
+
+        if (value instanceof Reference) {
+            value = ((Reference) value).getValue();
+        }
+
+        return new AttributeFilter(primary.getCode(), value, primary.getType(), SearchTypeEnum.EXACT);
     }
 }

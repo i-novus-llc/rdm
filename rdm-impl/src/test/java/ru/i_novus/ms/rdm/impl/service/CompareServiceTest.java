@@ -38,7 +38,6 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -71,9 +70,6 @@ public class CompareServiceTest {
 
     @Mock
     private CachedDataDiffService cachedDataDiffService;
-
-    @Mock
-    private FieldFactory fieldFactory;
 
     @Mock
     private VersionService versionService;
@@ -134,7 +130,6 @@ public class CompareServiceTest {
         initAttributes();
         initFields();
 
-        prepareFieldFactory();
         prepareVersions();
         prepareOldVersionData();
         prepareNewVersionData();
@@ -188,12 +183,6 @@ public class CompareServiceTest {
         nameFieldComp = new ComparableField(name.getCode(), name.getName(), DiffStatusEnum.INSERTED);
         upd2FieldComp = new ComparableField(upd2.getCode(), upd2.getName(), DiffStatusEnum.UPDATED);
         typeFieldComp = new ComparableField(typeS.getCode(), typeS.getName(), DiffStatusEnum.UPDATED);
-    }
-
-    private void prepareFieldFactory() {
-        when(fieldFactory.createField(eq(id.getCode()), eq(id.getType()))).thenReturn(idField);
-        when(fieldFactory.createField(eq(code.getCode()), eq(code.getType()))).thenReturn(codeField);
-        when(fieldFactory.createField(eq(common.getCode()), eq(common.getType()))).thenReturn(commonField);
     }
 
     private void prepareVersions() {

@@ -240,9 +240,8 @@ public class VersionServiceImpl implements VersionService {
         RefBookVersionEntity entity = findOrThrow(versionId);
 
         StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                entity.getStorageCode(),
-                entity.getFromDate(),
-                entity.getToDate(),
+                entity.getStorageCode(),  // Без учёта локализации
+                entity.getFromDate(), entity.getToDate(),
                 ConverterUtil.fields(entity.getStructure()));
         dataCriteria.setHashList(singletonList(split[0]));
 

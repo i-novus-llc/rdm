@@ -57,7 +57,7 @@ public class DraftServiceFileTest {
     private static final String ERROR_WAITING = "Ожидается ошибка: ";
 
     private static final int REFBOOK_ID = 1;
-    private static final String REF_BOOK_CODE = "test_refbook";
+    private static final String REFBOOK_CODE = "test";
 
     private static final int DRAFT_ID = 2;
     private static final String DRAFT_CODE = "draft_code";
@@ -327,7 +327,7 @@ public class DraftServiceFileTest {
 
         RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
-        entity.setCode(REF_BOOK_CODE);
+        entity.setCode(REFBOOK_CODE);
 
         return entity;
     }

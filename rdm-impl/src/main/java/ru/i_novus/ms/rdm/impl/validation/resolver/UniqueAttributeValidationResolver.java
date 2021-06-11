@@ -19,22 +19,31 @@ import static java.util.Optional.ofNullable;
 /**
  * Проверка на уникальность (включая проверку базы данных)
  */
+@SuppressWarnings("java:S3740")
 public class UniqueAttributeValidationResolver implements AttributeValidationResolver<UniqueAttributeValue> {
 
     public static final String DB_CONTAINS_VALUE_EXCEPTION_CODE = "validation.db.contains.err";
     public static final String VALUE_NOT_UNIQUE_EXCEPTION_CODE = "validation.not.unique.err";
+
     private final Structure.Attribute attribute;
+
     private final SearchDataService searchDataService;
+
     private final String storageCode;
 
-    private Set<Object> uniqueValues;
+    private final Set<Object> uniqueValues;
 
 
-    public UniqueAttributeValidationResolver(Structure.Attribute attribute, SearchDataService searchDataService, String storageCode) {
+    public UniqueAttributeValidationResolver(Structure.Attribute attribute,
+                                             SearchDataService searchDataService,
+                                             String storageCode) {
+
         this.attribute = attribute;
+
         this.searchDataService = searchDataService;
+
         this.storageCode = storageCode;
-        uniqueValues = new HashSet<>();
+        this.uniqueValues = new HashSet<>();
     }
 
     @Override
@@ -63,7 +72,8 @@ public class UniqueAttributeValidationResolver implements AttributeValidationRes
         FieldSearchCriteria fieldSearchCriteria = new FieldSearchCriteria(field, SearchTypeEnum.EXACT,
                 singletonList(ConverterUtil.toSearchValue(value.getValue())));
 
-        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, null, null,
+        StorageDataCriteria criteria = new StorageDataCriteria(storageCode,
+                null, null, // Черновик
                 singletonList(field), singletonList(fieldSearchCriteria), null);
         criteria.setPage(BaseDataCriteria.MIN_PAGE);
         criteria.setSize(value.getSystemId() != null ? 2 : 1);

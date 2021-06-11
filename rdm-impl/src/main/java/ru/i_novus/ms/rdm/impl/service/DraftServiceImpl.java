@@ -41,6 +41,7 @@ import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
@@ -71,7 +72,6 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.RowUtils.toLongSystemIds;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -216,10 +216,10 @@ public class DraftServiceImpl implements DraftService {
 
         Structure structure = draftEntity.getStructure();
 
-        validateRows(fileModel, structure, draftEntity.getStorageCode(),
+        validateRows(fileModel, structure, draftEntity.getStorageCode(), // Без учёта локализации
                 attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
 
-        persistRows(fileModel, structure, draftEntity.getStorageCode());
+        persistRows(fileModel, structure, draftEntity.getStorageCode()); // Без учёта локализации
     }
 
     private void validateRows(FileModel fileModel, Structure structure, String storageCode,
@@ -464,14 +464,16 @@ public class DraftServiceImpl implements DraftService {
 
             List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                addRowValues(draftEntity, addedRowValues);
+                getStrategy(draftEntity, AddRowValuesStrategy.class).add(draftEntity, addedRowValues);
                 addedData = getAddedData(rowValues);
             }
 
             List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                updatedDiffData = getUpdatedDiffData(draftEntity, updatedRowValues);
-                updateRowValues(draftEntity, updatedRowValues);
+                List<RowValue> currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
+                getStrategy(draftEntity, UpdateRowValuesStrategy
+                        .class).update(draftEntity, currentRowValues, updatedRowValues);
+                updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
             }
 
             if (!isEmpty(addedRowValues) || !isEmpty(updatedRowValues)) {
@@ -492,46 +494,29 @@ public class DraftServiceImpl implements DraftService {
         return rowValues.stream().map(RowValue::getFieldValues).collect(toList());
     }
 
-    private void addRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
-        try {
-            draftDataService.addRows(entity.getStorageCode(), rowValues);
-
-        } catch (RuntimeException e) {
-            ErrorUtil.rethrowError(e);
-        }
-    }
-
-    private List<RowDiff> getUpdatedDiffData(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
+    private List<RowValue> getCurrentRowValues(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
 
         List<String> fields = entity.getStructure().getAttributeCodes();
         List<Object> systemIds = RowUtils.toSystemIds(updatedRowValues);
         List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
 
         List<Message> messages = systemIds.stream()
-                .filter(systemId -> !RowUtils.isSystemIdRowValue(systemId, oldRowValues))
+                .filter(systemId -> !RowUtils.containsSystemId(oldRowValues, systemId))
                 .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
                 .collect(toList());
         if (!isEmpty(messages)) throw new UserException(messages);
 
-        return oldRowValues.stream()
+        return oldRowValues;
+    }
+
+    private List<RowDiff> getUpdatedDiffData(List<RowValue> currentRowValues, List<RowValue> updatedRowValues) {
+
+        return currentRowValues.stream()
                 .map(oldRowValue -> {
-                    RowValue newRowValue = RowUtils.getSystemIdRowValue(oldRowValue.getSystemId(), updatedRowValues);
+                    RowValue newRowValue = RowUtils.getBySystemId(updatedRowValues, oldRowValue.getSystemId());
                     return RowDiffUtils.getRowDiff(oldRowValue, newRowValue);
                 })
                 .collect(toList());
-    }
-
-    private void updateRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
-
-        List<Object> systemIds = RowUtils.toSystemIds(rowValues);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
-
-        try {
-            draftDataService.updateRows(entity.getStorageCode(), rowValues);
-
-        } catch (RuntimeException e) {
-            ErrorUtil.rethrowError(e);
-        }
     }
 
     @Override
@@ -550,7 +535,7 @@ public class DraftServiceImpl implements DraftService {
 
             systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
             if (!systemIds.isEmpty()) {
-                deleteRows(draftEntity, systemIds);
+                getStrategy(draftEntity, DeleteRowValuesStrategy.class).delete(draftEntity, systemIds);
 
                 forceUpdateOptLockValue(draftEntity);
             }
@@ -561,26 +546,18 @@ public class DraftServiceImpl implements DraftService {
         auditEditData(draftEntity, "delete_rows", systemIds);
     }
 
-    private void deleteRows(RefBookVersionEntity entity, List<Object> systemIds) {
-
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(entity.getId(), toLongSystemIds(systemIds));
-        draftDataService.deleteRows(entity.getStorageCode(), systemIds);
-    }
-
     /** Подготовка записей к добавлению/обновлению/удалению. */
     private List<Row> prepareRows(List<Row> rows, RefBookVersionEntity draftVersion, boolean excludeEmptyRows) {
 
         if (isEmpty(rows)) return emptyList();
 
-        Set<String> attributeCodes = new HashSet<>(draftVersion.getStructure().getAttributeCodes());
-
         // Исключение полей, не соответствующих атрибутам структуры
+        Set<String> attributeCodes = new HashSet<>(draftVersion.getStructure().getAttributeCodes());
         rows.forEach(row -> row.getData().entrySet().removeIf(entry -> !attributeCodes.contains(entry.getKey())));
 
         if (excludeEmptyRows) {
             rows = rows.stream().filter(row -> !RowUtils.isEmptyRow(row)).collect(toList());
         }
-
         if (isEmpty(rows)) return emptyList();
 
         validateDataByType(draftVersion.getStructure(), rows);
@@ -589,7 +566,7 @@ public class DraftServiceImpl implements DraftService {
         return rows;
     }
 
-    /** Валидация добавляемых/обновляемых строк данных по типу. */
+    /** Валидация добавляемых/обновляемых/удаляемых строк данных по типу. */
     private void validateDataByType(Structure structure, List<Row> rows) {
 
         NonStrictOnTypeRowMapper mapper = new NonStrictOnTypeRowMapper(structure, versionRepository);
@@ -614,7 +591,7 @@ public class DraftServiceImpl implements DraftService {
 
         Set<List<AttributeFilter>> filterSet = rows.stream()
                 .filter(row -> row.getSystemId() == null)
-                .map(row -> RowUtils.getPrimaryKeyValueFilters(row, primaries))
+                .map(row -> RowUtils.toPrimaryKeyValueFilters(row, primaries))
                 .filter(list -> !isEmpty(list))
                 .collect(toSet());
         criteria.setAttributeFilters(filterSet);
@@ -623,11 +600,11 @@ public class DraftServiceImpl implements DraftService {
         if (rowValues == null || isEmpty(rowValues.getContent()))
             return;
 
-        rowValues.getContent().forEach(refBookRowValue ->
+        rowValues.getContent().forEach(rowValue ->
                 rows.stream()
                         .filter(row -> row.getSystemId() == null)
-                        .filter(row -> RowUtils.equalsValuesByAttributes(row, refBookRowValue, primaries))
-                        .forEach(row -> row.setSystemId(refBookRowValue.getSystemId()))
+                        .filter(row -> RowUtils.equalsValuesByAttributes(row, rowValue, primaries))
+                        .forEach(row -> row.setSystemId(rowValue.getSystemId()))
         );
     }
 
@@ -668,8 +645,7 @@ public class DraftServiceImpl implements DraftService {
     /** Удаление всех строк черновика. */
     private void deleteDraftAllRows(RefBookVersionEntity draftEntity) {
 
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());
-        draftDataService.deleteAllRows(draftEntity.getStorageCode());
+        getStrategy(draftEntity, DeleteAllRowValuesStrategy.class).deleteAll(draftEntity);
     }
 
     @Override
@@ -713,7 +689,8 @@ public class DraftServiceImpl implements DraftService {
 
         String storageCode = toStorageCode(draft, criteria);
 
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode, null, null,
+        StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode,
+                null, null, // Черновик
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
 
         dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
@@ -1179,6 +1156,7 @@ public class DraftServiceImpl implements DraftService {
      */
     @SuppressWarnings("UnusedParameter")
     protected String toStorageCode(RefBookVersionEntity draft, SearchDataCriteria criteria) {
+
         return draft.getStorageCode();
     }
 

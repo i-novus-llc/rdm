@@ -67,12 +67,7 @@ public class RefBookController {
     @SuppressWarnings("unused") // used in: refBook.query.xml
     public Page<UiRefBook> getList(RefBookCriteria criteria) {
 
-        Page<RefBook> refBooks = refBookService.search(permitCriteria(criteria));
-        if (CollectionUtils.isEmpty(refBooks.getContent()))
-            return new RestPage<>();
-
-        List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
-        return new RestPage<>(list, criteria, refBooks.getTotalElements());
+        return search(permitCriteria(criteria));
     }
 
     /**
@@ -119,13 +114,24 @@ public class RefBookController {
      * @return Список справочников
      */
     @SuppressWarnings("unused") // used in: referenceRefBook.query.xml
-    public Page<RefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
+    public Page<UiRefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
 
         criteria.setHasPublished(true);
         criteria.setExcludeDraft(true);
         criteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
 
-        return refBookService.search(criteria);
+        return search(criteria);
+    }
+
+    /** Поиск справочников без учёта permission. */
+    private Page<UiRefBook> search(RefBookCriteria criteria) {
+
+        Page<RefBook> refBooks = refBookService.search(criteria);
+        if (CollectionUtils.isEmpty(refBooks.getContent()))
+            return new RestPage<>();
+
+        List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
+        return new RestPage<>(list, criteria, refBooks.getTotalElements());
     }
 
     /**
@@ -136,7 +142,10 @@ public class RefBookController {
      */
     private RefBookCriteria permitCriteria(RefBookCriteria criteria) {
 
-        criteria.setExcludeDraft(rdmPermission.excludeDraft());
+        if (!criteria.getExcludeDraft()) {
+            boolean excludeDraft = rdmPermission.excludeDraft();
+            if (excludeDraft) criteria.setExcludeDraft(excludeDraft);
+        }
 
         return criteria;
     }

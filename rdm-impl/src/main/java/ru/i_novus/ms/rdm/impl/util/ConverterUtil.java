@@ -27,13 +27,13 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ConverterUtil {
@@ -54,44 +54,51 @@ public class ConverterUtil {
         return fields;
     }
 
-    /** Получение поля на основе атрибута структуры справочника. */
+    /**
+     * Получение поля на основе атрибута структуры справочника.
+     *
+     * @param attribute атрибут
+     * @return Поле
+     */
     public static Field field(Structure.Attribute attribute) {
+
         boolean isSearchable = attribute.hasIsPrimary() && FieldType.STRING.equals(attribute.getType());
         return isSearchable
                 ? fieldFactory.createSearchField(attribute.getCode(), attribute.getType())
-                : fieldFactory.createField(attribute.getCode(), attribute.getType());
+                : field(attribute.getCode(), attribute.getType());
+    }
+
+    /**
+     * Получение поля на основе атрибута-ссылки структуры справочника.
+     *
+     * @param reference атрибут-ссылка
+     * @return Поле
+     */
+    public static Field field(Structure.Reference reference) {
+
+        return field(reference.getAttribute(), FieldType.REFERENCE);
+    }
+
+    /**
+     * Получение поля по коду и типу атрибута.
+     *
+     * @param code код атрибута = наименование поля
+     * @param type тип атрибута
+     * @return Поле
+     */
+    public static Field field(String code, FieldType type) {
+
+        return fieldFactory.createField(code, type);
     }
 
     /** Получение записи из plain-записи на основе структуры. */
     public static RowValue rowValue(Row row, Structure structure) {
 
-        final Map<String, Object> data = row.getData();
-
+        Map<String, Object> data = row.getData();
         List<Field> fields = fields(structure);
         List<FieldValue> fieldValues = fields.stream().map(field -> toFieldValue(data, field)).collect(toList());
 
         return new LongRowValue(row.getSystemId(), fieldValues);
-    }
-
-    /** Формирование структуры из имеющейся структуры по данным plain-записи. */
-    public static Structure toDataStructure(Structure structure, Map<String, Object> data) {
-
-        List<Structure.Attribute> attributes = structure.getAttributes().stream()
-                    .filter(attribute -> data.containsKey(attribute.getCode()))
-                    .collect(toList());
-        if (attributes.size() == structure.getAttributes().size())
-            return structure;
-
-        List<Structure.Reference> references = structure.getReferences();
-        if (references.isEmpty())
-            return new Structure(attributes, null);
-
-        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
-        references = structure.getReferences().stream()
-                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
-                .collect(toList());
-
-        return new Structure(attributes, references);
     }
 
     /** Получение значения поля на основе данных plain-записи справочника и самого поля. */
@@ -114,31 +121,56 @@ public class ConverterUtil {
         return sortings;
     }
 
-    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Set<List<AttributeFilter>> attributeFilters) {
+    /**
+     * Преобразование набора фильтров по атрибуту в набор критериев поиска по полю.
+     *
+     * @param filters набор фильтров по атрибуту
+     * @return Набор критериев поиска по полю
+     */
+    public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Set<List<AttributeFilter>> filters) {
 
-        if (isEmpty(attributeFilters))
-            return emptySet();
-
-        return attributeFilters.stream()
+        return isEmpty(filters)
+                ? emptySet()
+                : filters.stream()
                 .map(ConverterUtil::toFieldSearchCriterias)
                 .filter(list -> !isEmpty(list))
                 .collect(toSet());
     }
 
-    public static List<FieldSearchCriteria> toFieldSearchCriterias(List<AttributeFilter> attributeFilterList) {
+    /**
+     * Преобразование списка фильтров по атрибуту в список критериев поиска по полю.
+     *
+     * @param filters фильтры по атрибуту
+     * @return Критерии поиска по полю
+     */
+    public static List<FieldSearchCriteria> toFieldSearchCriterias(List<AttributeFilter> filters) {
 
-        if (isEmpty(attributeFilterList))
-            return emptyList();
-
-        return attributeFilterList.stream().map(ConverterUtil::toFieldSearchCriteria).collect(toList());
+        return isEmpty(filters)
+                ? emptyList()
+                : filters.stream().map(ConverterUtil::toFieldSearchCriteria).collect(toList());
     }
 
+    /**
+     * Преобразование фильтра по атрибуту в критерий поиска по полю.
+     *
+     * @param filter фильтр по атрибуту
+     * @return Критерий поиска по полю
+     */
     private static FieldSearchCriteria toFieldSearchCriteria(AttributeFilter filter) {
 
-        Field field = fieldFactory.createField(filter.getAttributeName(), filter.getFieldType());
-        return new FieldSearchCriteria(field, filter.getSearchType(), singletonList(filter.getValue()));
+        return toFieldSearchCriteria(
+                filter.getAttributeName(), filter.getFieldType(),
+                filter.getSearchType(), singletonList(filter.getValue())
+        );
     }
 
+    /**
+     * Преобразование набора фильтров в набор критериев поиска по полю в соответствии со структурой.
+     *
+     * @param filters   набор фильтров
+     * @param structure структура справочника
+     * @return Набор критериев поиска по полю
+     */
     public static Set<List<FieldSearchCriteria>> toFieldSearchCriterias(Map<String, String> filters, Structure structure) {
 
         if (isEmpty(filters))
@@ -150,6 +182,13 @@ public class ConverterUtil {
                 .collect(toList()));
     }
 
+    /**
+     * Преобразование фильтра в критерий поиска по полю в соответствии со структурой.
+     *
+     * @param filter    фильтр
+     * @param structure структура справочника
+     * @return Критерий поиска по полю
+     */
     private static FieldSearchCriteria toFieldSearchCriteria(Map.Entry<String, String> filter, Structure structure) {
 
         Structure.Attribute attribute = structure.getAttribute(filter.getKey());
@@ -159,6 +198,42 @@ public class ConverterUtil {
         return new FieldSearchCriteria(field, SearchTypeEnum.LIKE,
                 singletonList(toSearchValue(field, filter.getValue()))
         );
+    }
+
+    /**
+     * Преобразование ссылок на значения первичных ключей в набор критериев поиска по полям-ссылкам.
+     *
+     * @param references    ссылки
+     * @param primaryValues значения первичных ключей
+     * @return Набор критериев поиска по полям-ссылкам
+     */
+    public static Set<List<FieldSearchCriteria>> toReferenceSearchCriterias(List<Structure.Reference> references,
+                                                                            List<String> primaryValues) {
+        Set<List<FieldSearchCriteria>> fieldSearchCriterias = new HashSet<>();
+        references.forEach(reference -> {
+
+            FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
+                    FieldType.REFERENCE, SearchTypeEnum.EXACT, primaryValues);
+            fieldSearchCriterias.add(singletonList(criteria));
+        });
+
+        return fieldSearchCriterias;
+    }
+
+    /**
+     * Преобразование поиска значений для поля в критерий поиска по полю.
+     *
+     * @param fieldName  наименование поля
+     * @param fieldType  тип поля
+     * @param searchType тип поиска
+     * @param values     значения
+     * @return Критерий поиска по полю
+     */
+    public static FieldSearchCriteria toFieldSearchCriteria(String fieldName, FieldType fieldType,
+                                                            SearchTypeEnum searchType,
+                                                            List<? extends Serializable> values) {
+        final Field field = field(fieldName, fieldType);
+        return new FieldSearchCriteria(field, searchType, values);
     }
 
     public static Row toRow(RowValue rowValue) {
@@ -173,7 +248,9 @@ public class ConverterUtil {
                 : null, data);
     }
 
-    public static String toString(Object value) {
+    public static String toStringValue(Serializable value) {
+
+        if (value == null) return null;
 
         if (value instanceof LocalDate) {
             return TimeUtils.format((LocalDate) value);
@@ -206,6 +283,15 @@ public class ConverterUtil {
         return fieldValue.getValue();
     }
 
+    /**
+     * Приведение значения ссылки к значению в соответствии с указанным полем.
+     * <p/>
+     * См. также {@link ru.i_novus.ms.rdm.api.util.FieldValueUtils#castReferenceValue(String, FieldType)}.
+     *
+     * @param field поле, на которое указывает ссылка
+     * @param value строковое значение ссылки
+     * @return Значение поля
+     */
     public static Serializable castReferenceValue(Field field, String value) {
 
         if (field instanceof BooleanField) {
@@ -213,8 +299,7 @@ public class ConverterUtil {
         }
 
         if (field instanceof DateField) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            return LocalDate.parse(value, formatter);
+            return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
         }
 
         if (field instanceof FloatField) {
@@ -222,7 +307,7 @@ public class ConverterUtil {
         }
 
         if (field instanceof IntegerField) {
-            return BigInteger.valueOf(Long.parseLong(value));
+            return new BigInteger(value);
         }
 
         if (field instanceof StringField) {
@@ -236,6 +321,12 @@ public class ConverterUtil {
         throw new RdmException("invalid field type");
     }
 
+    /**
+     * Преобразование значения поля в значение для поиска с учётом специальных значений.
+     *
+     * @param value значение
+     * @return Значение для поиска
+     */
     public static Serializable toSearchValue(Serializable value) {
 
         if (value instanceof Reference) {
@@ -245,6 +336,13 @@ public class ConverterUtil {
         return value;
     }
 
+    /**
+     * Преобразование строкового значения поля в значение для поиска в соответствии с полем.
+     *
+     * @param field поле
+     * @param value строковое значение
+     * @return Значение для поиска
+     */
     public static Serializable toSearchValue(Field field, String value) {
         try {
             if (field instanceof BooleanField) {
@@ -252,8 +350,7 @@ public class ConverterUtil {
             }
 
             if (field instanceof DateField) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                return LocalDate.parse(value, formatter);
+                return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
             }
 
             if (field instanceof FloatField) {
@@ -261,7 +358,7 @@ public class ConverterUtil {
             }
 
             if (field instanceof IntegerField) {
-                return BigInteger.valueOf(Long.parseLong(value));
+                return new BigInteger(value);
             }
 
             return value;
@@ -271,11 +368,20 @@ public class ConverterUtil {
         }
     }
 
+    /**
+     * Преобразование критерия rdm в критерий vds.
+     *
+     * @param restCriteria критерий rdm
+     * @param count        количество
+     * @return Критерий vds
+     */
     public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
+
         Criteria criteria = new Criteria();
         criteria.setPage(restCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
         criteria.setSize(restCriteria.getPageSize());
         criteria.setCount(count);
+
         return criteria;
     }
 }

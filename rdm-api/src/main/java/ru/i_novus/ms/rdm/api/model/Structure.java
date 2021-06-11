@@ -549,6 +549,8 @@ public class Structure implements Serializable {
             if (CollectionUtils.isEmpty(primaries))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
 
+            // На данный момент первичным ключом может быть только одно поле.
+            // Ссылка на значение составного ключа невозможна.
             if (primaries.size() > 1)
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_IS_MULTIPLE_EXCEPTION_CODE));
 

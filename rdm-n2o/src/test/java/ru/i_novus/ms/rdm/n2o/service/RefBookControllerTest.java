@@ -149,7 +149,7 @@ public class RefBookControllerTest {
         );
 
         RefBookCriteria criteria = new RefBookCriteria();
-        Page<RefBook> page = controller.searchReferenceRefBooks(criteria);
+        Page<UiRefBook> page = controller.searchReferenceRefBooks(criteria);
         assertNotNull(page.getContent());
         assertEquals(refBooks.size(), page.getTotalElements());
 

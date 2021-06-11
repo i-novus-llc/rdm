@@ -189,7 +189,7 @@ public class CreateDraftController {
         if (primaries.isEmpty())
             return;
 
-        List<AttributeFilter> primaryFilters = RowUtils.getPrimaryKeyValueFilters(row, primaries);
+        List<AttributeFilter> primaryFilters = RowUtils.toPrimaryKeyValueFilters(row, primaries);
         if (primaryFilters.isEmpty())
             return;
 

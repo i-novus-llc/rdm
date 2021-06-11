@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -24,6 +23,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class FieldValueUtils {
@@ -50,6 +50,13 @@ public class FieldValueUtils {
 
     /**
      * Получение отображаемого значения.
+     * <p/>
+     * Подставляет в выражение отображаемого значения в соответствии с подстановками в нём
+     * значения полей из списка или значения по умолчанию из подстановок.
+     * <p/>
+     * При наличии кодов первичных ключей позволяет добавить к полученной строке
+     * префикс из значений этих ключей, если выражение не содержит хотя бы один первичный ключ,
+     * для обеспечения уникальности получаемого результата при обработке списка таких строк.
      *
      * @param displayExpression выражение для вычисления отображаемого значения
      * @param fieldValues       список значений подставляемых полей
@@ -64,7 +71,7 @@ public class FieldValueUtils {
 
         Map<String, Object> map = new HashMap<>();
         fieldValues.forEach(fieldValue ->
-                map.put(fieldValue.getField(), toDisplayValue(fieldValue, placeholders))
+                map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
         );
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
@@ -74,7 +81,8 @@ public class FieldValueUtils {
 
         String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
 
-        if (!CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
+        if (!CollectionUtils.isEmpty(primaryKeyCodes) &&
+                !CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
 
             String primaryKeysValue = primaryKeyCodes.stream()
                     .map(code -> String.valueOf(map.get(code)))
@@ -86,8 +94,15 @@ public class FieldValueUtils {
         return displayValue;
     }
 
-    /** Получение отображаемого значения из поля. */
-    private static String toDisplayValue(FieldValue fieldValue, Map<String, String> placeholders) {
+    /**
+     * Получение значения для подстановки в отображаемое значение
+     * из значения поля при его наличии или из значения по умолчанию из подстановки.
+     *
+     * @param fieldValue   значение из поля
+     * @param placeholders список подстановок со значениями по умолчанию
+     * @return Значение для подстановки в отображаемое значение
+     */
+    private static String toPlaceholderValue(FieldValue fieldValue, Map<String, String> placeholders) {
 
         if (fieldValue.getValue() != null)
             return String.valueOf(fieldValue.getValue());
@@ -97,33 +112,56 @@ public class FieldValueUtils {
     }
 
     /**
-     * Получение типизированного значения атрибута.
+     * Приведение значения поля ссылки к значению указанного типа.
      *
-     * @param fieldValue   значение атрибута
-     * @param refFieldType тип атрибута, к которому приводится значение
+     * @param fieldValue  значение поля
+     * @param toFieldType тип атрибута, к которому приводится значение
      * @return Типизированное значение атрибута
      */
-    public static Serializable castFieldValue(FieldValue fieldValue, FieldType refFieldType) {
+    public static Serializable castFieldValue(FieldValue fieldValue, FieldType toFieldType) {
+
         if (fieldValue instanceof ReferenceFieldValue) {
-            return castRefValue((Reference) (fieldValue.getValue()), refFieldType);
+            return castReferenceFieldValue((Reference) (fieldValue.getValue()), toFieldType);
         }
+
         return fieldValue.getValue();
     }
 
     /**
-     * Получение типизированного значения ссылки.
+     * Приведение значения из ссылки к значению указанного типа.
      *
-     * <p>При приведении типа используется тип атрибута, НА который ссылаемся.</p>
+     * <p>При приведении значения ссылки к значению первичного ключа
+     * используется тип атрибута, НА который ссылаемся.</p>
      *
-     * @param value        ссылка
-     * @param refFieldType тип атрибута, на который ссылаемся
-     * @return Типизированное значение ссылочного атрибута
+     * @param value       ссылка
+     * @param toFieldType тип, к которому приводится значение
+     * @return Типизированное значение ссылки
      */
-    private static Serializable castRefValue(Reference value, FieldType refFieldType) {
-        if (refFieldType == FieldType.INTEGER) {
-            return value.getValue() != null ? new BigInteger(value.getValue()) : null;
-        }
-        return value.getValue();
+    private static Serializable castReferenceFieldValue(Reference value, FieldType toFieldType) {
+
+        return (value.getValue() == null || toFieldType == null)
+                ? null
+                : castReferenceValue(value.getValue(), toFieldType);
+    }
+
+    /**
+     * Приведение строкового значения ссылки к значению указанного типа.
+     * <p/>
+     * См. также {@link ru.i_novus.ms.rdm.impl.util.ConverterUtil#castReferenceValue(Field, String)}.
+     *
+     * @param value       строковое значение ссылки
+     * @param toFieldType тип, к которому приводится значение
+     * @return Типизированное значение ссылки
+     */
+    private static Serializable castReferenceValue(String value, FieldType toFieldType) {
+
+        return switch (toFieldType) {
+            case INTEGER -> new BigInteger(value);
+            case FLOAT -> Float.parseFloat(value);
+            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
+            case BOOLEAN -> Boolean.valueOf(value);
+            default -> value;
+        };
     }
 
     /**
@@ -135,6 +173,7 @@ public class FieldValueUtils {
      * @return Список значений полей для первичных ключей
      */
     public static List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
+
         if (rowValue == null || structure == null)
             return emptyList();
 
@@ -153,27 +192,31 @@ public class FieldValueUtils {
      * @return Наличие строки
      */
     public static boolean isFieldValueRow(String field, Object value, List<RefBookRowValue> rowValues) {
+
         return rowValues.stream()
                 .anyMatch(rowValue -> Objects.equals(rowValue.getFieldValue(field).getValue(), value));
     }
 
     /**
-     * Получение множества фильтров атрибута по ссылочным значениям.
+     * Получение набора фильтров по атрибуту по ссылочным значениям.
      *
      * @param filterValues ссылочные значения
-     * @return Множество фильтров
+     * @return Набор фильтров по атрибуту
      */
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
+
         return filterValues.stream()
                 .map(value -> {
-                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), value.getAttribute().getType());
-                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, value.getAttribute().getType(), SearchTypeEnum.EXACT);
+                    FieldType attributeType = value.getAttribute().getType();
+                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), attributeType);
+                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
                 })
                 .map(Collections::singletonList)
                 .collect(toSet());
     }
 
     public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
+
         return DiffStatusEnum.DELETED.equals(status)
                 ? (Serializable) fieldValue.getOldValue()
                 : (Serializable) fieldValue.getNewValue();
@@ -181,28 +224,21 @@ public class FieldValueUtils {
 
     @SuppressWarnings("WeakerAccess")
     public static Object getCompareFieldValue(ComparableFieldValue fieldValue, DiffStatusEnum status) {
+
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
     public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
-        switch (fieldType) {
-            case STRING:
-                return new StringFieldValue(fieldCode, (String) value);
-            case INTEGER:
-                return new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE:
-                return new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT:
-                return new FloatFieldValue(fieldCode, (BigDecimal) value);
-            case BOOLEAN:
-                return new BooleanFieldValue(fieldCode, (Boolean) value);
-            case DATE:
-                return new DateFieldValue(fieldCode, (LocalDate) value);
-            case TREE:
-                return new TreeFieldValue(fieldCode, (String) value);
-            default:
-                throw new RdmException("Unexpected field type: " + fieldType);
-        }
+
+        return switch (fieldType) {
+            case STRING -> new StringFieldValue(fieldCode, (String) value);
+            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE -> new TreeFieldValue(fieldCode, (String) value);
+        };
     }
 
     /**
@@ -213,7 +249,8 @@ public class FieldValueUtils {
      * @param diffStatus        статус отличия значения
      * @return Отображаемое значение
      */
-    public static String diffValuesToDisplayValue(String displayExpression, List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
+    public static String diffValuesToDisplayValue(String displayExpression,
+                                                  List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
 
         Map<String, Object> map = new HashMap<>(diffFieldValues.size());
         diffFieldValues.forEach(fieldValue ->
@@ -228,6 +265,7 @@ public class FieldValueUtils {
         StringSubstitutor substitutor = new StringSubstitutor(map,
                 DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END);
         substitutor.setValueDelimiter(DisplayExpression.PLACEHOLDER_DEFAULT_DELIMITER);
+
         return substitutor;
     }
 }

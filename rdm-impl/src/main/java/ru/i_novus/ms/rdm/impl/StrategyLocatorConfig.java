@@ -7,6 +7,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
@@ -48,6 +49,16 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultCreateDraftStorageStrategy defaultCreateDraftStorageStrategy;
 
+    // Data:
+    @Autowired
+    private DefaultAddRowValuesStrategy defaultAddRowValuesStrategy;
+    @Autowired
+    private DefaultUpdateRowValuesStrategy defaultUpdateRowValuesStrategy;
+    @Autowired
+    private DefaultDeleteRowValuesStrategy defaultDeleteRowValuesStrategy;
+    @Autowired
+    private DefaultDeleteAllRowValuesStrategy defaultDeleteAllRowValuesStrategy;
+
     // File:
     @Autowired
     private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
@@ -67,6 +78,16 @@ public class StrategyLocatorConfig {
     // Version + Draft:
     @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
+
+    // Data:
+    @Autowired
+    private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
+    @Autowired
+    private UnversionedUpdateRowValuesStrategy unversionedUpdateRowValuesStrategy;
+    @Autowired
+    private UnversionedDeleteRowValuesStrategy unversionedDeleteRowValuesStrategy;
+    @Autowired
+    private UnversionedDeleteAllRowValuesStrategy unversionedDeleteAllRowValuesStrategy;
 
     @Autowired
     private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
@@ -106,6 +127,11 @@ public class StrategyLocatorConfig {
         result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
+        // Data:
+        result.put(AddRowValuesStrategy.class, defaultAddRowValuesStrategy);
+        result.put(UpdateRowValuesStrategy.class, defaultUpdateRowValuesStrategy);
+        result.put(DeleteRowValuesStrategy.class, defaultDeleteRowValuesStrategy);
+        result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
@@ -122,6 +148,11 @@ public class StrategyLocatorConfig {
         // Version + Draft:
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
+        // Data:
+        result.put(AddRowValuesStrategy.class, unversionedAddRowValuesStrategy);
+        result.put(UpdateRowValuesStrategy.class, unversionedUpdateRowValuesStrategy);
+        result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
+        result.put(DeleteAllRowValuesStrategy.class, unversionedDeleteAllRowValuesStrategy);
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
