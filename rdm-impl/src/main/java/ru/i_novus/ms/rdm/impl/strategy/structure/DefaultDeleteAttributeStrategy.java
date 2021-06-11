@@ -6,7 +6,6 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.repository.AttributeValidationRepository;
 import ru.i_novus.ms.rdm.impl.util.ErrorUtil;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
@@ -18,9 +17,6 @@ public class DefaultDeleteAttributeStrategy implements DeleteAttributeStrategy {
 
     @Autowired
     private VersionValidation versionValidation;
-
-    @Autowired
-    private AttributeValidationRepository attributeValidationRepository;
 
     @Override
     public Structure.Attribute delete(RefBookVersionEntity entity, DeleteAttributeRequest request) {
@@ -35,8 +31,6 @@ public class DefaultDeleteAttributeStrategy implements DeleteAttributeStrategy {
         deleteStorageField(entity, attributeCode);
 
         structure.remove(attributeCode);
-
-        attributeValidationRepository.deleteByVersionIdAndAttribute(entity.getId(), attributeCode);
 
         return attribute;
     }

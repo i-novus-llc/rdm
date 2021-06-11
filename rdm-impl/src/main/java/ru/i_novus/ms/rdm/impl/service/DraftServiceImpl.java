@@ -796,6 +796,8 @@ public class DraftServiceImpl implements DraftService {
 
         forceUpdateOptLockValue(draftEntity);
 
+        attributeValidationRepository.deleteByVersionIdAndAttribute(draftEntity.getId(), attribute.getCode());
+
         auditStructureEdit(draftEntity, "delete_attribute", attribute);
     }
 
