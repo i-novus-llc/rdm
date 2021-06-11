@@ -58,8 +58,8 @@ public class VersionValidationImpl implements VersionValidation {
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
-    private RefBookRepository refBookRepository;
-    private RefBookVersionRepository versionRepository;
+    private final RefBookRepository refBookRepository;
+    private final RefBookVersionRepository versionRepository;
 
     @Autowired
     public VersionValidationImpl(RefBookRepository refBookRepository,
@@ -472,8 +472,11 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateNewAttribute(Structure.Attribute newAttribute,
                                      Structure oldStructure, String refBookCode) {
 
-        if (!newAttribute.hasIsPrimary() && !newAttribute.isReferenceType()
-                && !isEmpty(oldStructure.getReferences()) && !oldStructure.hasPrimary())
+        if (!newAttribute.hasIsPrimary()
+                && !oldStructure.hasPrimary()
+                && !isEmpty(oldStructure.getReferences())
+                && !newAttribute.isReferenceType() // Только для добавления первичного ключа в старые справочники!
+        )
             throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
 
         validateAttribute(newAttribute);
