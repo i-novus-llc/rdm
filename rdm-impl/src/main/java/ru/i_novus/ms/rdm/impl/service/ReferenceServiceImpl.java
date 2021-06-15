@@ -11,7 +11,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.service.DraftService;
@@ -163,11 +162,9 @@ public class ReferenceServiceImpl implements ReferenceService {
         );
         publishedEntities.forEach(publishedEntity -> refreshReference(referrerEntity, publishedEntity, reference, conflictType));
 
-        DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
-        deleteCriteria.setReferrerVersionId(referrerEntity.getId());
-        deleteCriteria.setRefFieldCode(reference.getAttribute());
-        deleteCriteria.setConflictType(conflictType);
-        conflictQueryProvider.delete(deleteCriteria);
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndConflictType(
+                referrerEntity.getId(), reference.getAttribute(), conflictType
+        );
     }
 
     /**

@@ -129,4 +129,11 @@ public interface RefBookConflictRepository extends
      * Удаление конфликтов структуры для заданного поля-ссылки.
      */
     void deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(Integer referrerVersionId, String refFieldCode);
+
+    /**
+     * Удаление конфликтов после обновления значений ссылок.
+     */
+    void deleteByReferrerVersionIdAndRefFieldCodeAndConflictType(Integer referrerVersionId,
+                                                                 String refFieldCode,
+                                                                 ConflictType conflictType);
 }
