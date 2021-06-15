@@ -884,16 +884,23 @@ public class DraftServiceImpl implements DraftService {
 
         versionValidation.validateAttributeExists(versionEntity.getId(), structure, attributeCode);
 
-        List<AttributeValidationEntity> validationEntities = validations.stream()
-                .map(validation -> new AttributeValidationEntity(versionEntity, attributeCode, validation.getType(), validation.valuesToString()))
-                .collect(toList());
+        List<AttributeValidationEntity> validationEntities = validations != null
+                ? validations.stream()
+                .map(validation -> new AttributeValidationEntity(versionEntity, attributeCode,
+                        validation.getType(), validation.valuesToString()))
+                .collect(toList())
+                : emptyList();
 
-        boolean skipReferenceValidation = isReferenceValidationSkipped(versionEntity.getId(), oldAttribute, newAttribute);
-        validateVersionData(versionEntity, skipReferenceValidation, validationEntities);
+        if (!isEmpty(validationEntities)) {
+            boolean skipReferenceValidation = isReferenceValidationSkipped(versionEntity.getId(), oldAttribute, newAttribute);
+            validateVersionData(versionEntity, skipReferenceValidation, validationEntities);
+        }
 
         deleteAttributeValidation(versionEntity.getId(), attributeCode, null);
 
-        attributeValidationRepository.saveAll(validationEntities);
+        if (!isEmpty(validationEntities)) {
+            attributeValidationRepository.saveAll(validationEntities);
+        }
 
         // RDM-887: Вынести после RDM-889 в стратегии добавления и изменения атрибута!
         conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(versionEntity.getId(), attributeCode);
