@@ -674,8 +674,9 @@ public class ConflictServiceImpl implements ConflictService {
                                                   List<Structure.Reference> refFromReferences,
                                                   StructureDiff structureDiff) {
         List<RefBookConflictEntity> entities = calculateDisplayDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
-        if (!isEmpty(entities))
+        if (!isEmpty(entities)) {
             conflictRepository.saveAll(entities);
+        }
     }
 
     /**
@@ -699,8 +700,9 @@ public class ConflictServiceImpl implements ConflictService {
         pageIterator.forEachRemaining(page ->
                 refFromReferences.forEach(refFromReference -> {
                     List<RefBookConflictEntity> entities = calculateAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReference, page.getContent());
-                    if (!isEmpty(entities))
+                    if (!isEmpty(entities)) {
                         conflictRepository.saveAll(entities);
+                    }
                 })
         );
     }
@@ -862,8 +864,9 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(conflictQueryProvider::search, criteria);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = recalculateStructureConflicts(refFromEntity, newRefToEntity, page.getContent(), structureDiff);
-            if (!isEmpty(entities))
+            if (!isEmpty(entities)) {
                 conflictRepository.saveAll(entities);
+            }
         });
     }
 
@@ -921,8 +924,9 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(conflictQueryProvider::search, criteria);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, page.getContent(), isAltered);
-            if (!isEmpty(entities))
+            if (!isEmpty(entities)) {
                 conflictRepository.saveAll(entities);
+            }
         });
     }
 
