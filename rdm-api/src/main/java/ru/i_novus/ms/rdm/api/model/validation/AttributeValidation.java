@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -20,7 +21,7 @@ import java.util.Objects;
         @JsonSubTypes.Type(value = DateRangeAttributeValidation.class, name = "DATE_RANGE"),
         @JsonSubTypes.Type(value = RegExpAttributeValidation.class, name = "REG_EXP")
 })
-public abstract class AttributeValidation {
+public abstract class AttributeValidation implements Serializable {
 
     @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Integer versionId;
@@ -100,5 +101,18 @@ public abstract class AttributeValidation {
     @Override
     public int hashCode() {
         return Objects.hash(versionId, attribute, type);
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("AttributeValidation{");
+        sb.append("versionId=").append(versionId);
+        sb.append(", attribute='").append(attribute).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", values='").append(valuesToString()).append('\'');
+        sb.append('}');
+
+        return sb.toString();
     }
 }
