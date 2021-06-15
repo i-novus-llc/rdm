@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,8 @@ public class AsyncOperationQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationQueue.class);
 
-    static final String QUEUE_ID = "RDM-INTERNAL-ASYNC-OPERATION-QUEUE";
+    @Value("${rdm.asyncOperation.queue}")
+    private String queueId;
 
     @Autowired
     @Qualifier("queueJmsTemplate")
@@ -49,7 +51,7 @@ public class AsyncOperationQueue {
 
         logger.info("Sending message to internal async operation queue. Message: {}", message);
         try {
-            jmsTemplate.convertAndSend(QUEUE_ID, message);
+            jmsTemplate.convertAndSend(queueId, message);
 
         } catch (Exception e) {
             logger.error("Error while sending message to internal async operation queue.", e);

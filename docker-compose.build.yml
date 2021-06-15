@@ -18,3 +18,9 @@ services:
       context: .
       args:
         JAR_FILE: rdm-esnsi/target/rdm-esnsi.jar
+
+  db:
+    build:
+      context: db
+      args:
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}

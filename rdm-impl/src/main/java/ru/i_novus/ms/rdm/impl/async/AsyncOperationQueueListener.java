@@ -21,7 +21,6 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue.QUEUE_ID;
 
 @Component
 class AsyncOperationQueueListener {
@@ -49,7 +48,7 @@ class AsyncOperationQueueListener {
         this.messages = messages;
     }
 
-    @JmsListener(destination = QUEUE_ID, containerFactory = "internalAsyncOperationContainerFactory")
+    @JmsListener(destination = "${rdm.asyncOperation.queue}", containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
         if (logger.isInfoEnabled()) {
