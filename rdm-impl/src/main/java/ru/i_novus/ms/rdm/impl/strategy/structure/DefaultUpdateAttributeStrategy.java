@@ -73,6 +73,8 @@ public class DefaultUpdateAttributeStrategy implements UpdateAttributeStrategy {
             refreshReferenceDisplayValues(entity, newReference);
         }
 
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(entity.getId(), request.getCode());
+
         return newAttribute;
     }
 

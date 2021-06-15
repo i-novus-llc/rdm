@@ -9,12 +9,16 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 @Component
 public class DefaultCreateAttributeStrategy implements CreateAttributeStrategy {
+
+    @Autowired
+    private RefBookConflictRepository conflictRepository;
 
     @Autowired
     private DraftDataService draftDataService;
@@ -53,6 +57,8 @@ public class DefaultCreateAttributeStrategy implements CreateAttributeStrategy {
 
         structure.add(attribute, reference);
         entity.setStructure(structure);
+
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(entity.getId(), attribute.getCode());
 
         return attribute;
     }

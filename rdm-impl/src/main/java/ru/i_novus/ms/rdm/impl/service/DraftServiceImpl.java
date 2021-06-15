@@ -901,9 +901,6 @@ public class DraftServiceImpl implements DraftService {
         if (!isEmpty(validationEntities)) {
             attributeValidationRepository.saveAll(validationEntities);
         }
-
-        // RDM-887: Вынести после RDM-889 в стратегии добавления и изменения атрибута!
-        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndRefRecordIdIsNull(versionEntity.getId(), attributeCode);
     }
 
     /**
