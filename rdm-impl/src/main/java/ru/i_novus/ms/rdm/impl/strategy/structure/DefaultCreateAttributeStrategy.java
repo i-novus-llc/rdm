@@ -28,7 +28,7 @@ public class DefaultCreateAttributeStrategy implements CreateAttributeStrategy {
     @Override
     public Structure.Attribute create(RefBookVersionEntity entity, CreateAttributeRequest request) {
 
-        final Structure structure = entity.getStructure() != null ? entity.getStructure() : new Structure();
+        final Structure structure = entity.getStructure();
         structureChangeValidator.validateCreateAttribute(request, structure);
 
         final String refBookCode = entity.getRefBook().getCode();

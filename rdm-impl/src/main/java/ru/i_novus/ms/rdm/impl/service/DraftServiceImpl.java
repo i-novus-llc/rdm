@@ -757,6 +757,9 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
 
+        final Structure structure = draftEntity.getStructure() != null ? draftEntity.getStructure() : new Structure();
+        draftEntity.setStructure(structure);
+
         Structure.Attribute attribute = getStrategy(draftEntity, CreateAttributeStrategy.class)
                 .create(draftEntity, request);
 
