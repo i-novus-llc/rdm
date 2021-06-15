@@ -2,13 +2,16 @@ package ru.i_novus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiParam;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.UpdatableDto;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
+import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -50,6 +53,9 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
     @ApiModelProperty("Выражение для вычисления отображаемого ссылочного значения")
     private UpdateValue<String> displayExpression;
 
+    @ApiParam("Пользовательские проверки для атрибута")
+    private List<AttributeValidation> validations;
+
     public UpdateAttributeRequest() {
         // Nothing to do.
     }
@@ -78,6 +84,15 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
         setUpdateValueIfExists(reference::getAttribute, this::setAttribute);
         setUpdateValueIfExists(reference::getReferenceCode, this::setReferenceCode);
         setUpdateValueIfExists(reference::getDisplayExpression, this::setDisplayExpression);
+    }
+
+    public UpdateAttributeRequest(Integer optLockValue,
+                                  Structure.Attribute attribute,
+                                  Structure.Reference reference,
+                                  List<AttributeValidation> validations) {
+        this(optLockValue, attribute, reference);
+
+        this.validations = validations;
     }
 
     @Override
@@ -160,6 +175,14 @@ public class UpdateAttributeRequest extends UpdatableDto implements DraftChangeR
 
     public void setDisplayExpression(UpdateValue<String> displayExpression) {
         this.displayExpression = displayExpression;
+    }
+
+    public List<AttributeValidation> getValidations() {
+        return validations;
+    }
+
+    public void setValidations(List<AttributeValidation> validations) {
+        this.validations = validations;
     }
 
     public boolean hasIsPrimary() {

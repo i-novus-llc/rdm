@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,50 +247,24 @@ public class StructureController {
 
     public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        CreateAttributeRequest attributeRequest = getCreateAttributeRequest(optLockValue, formAttribute);
-        draftService.createAttribute(versionId, attributeRequest);
-        try {
-            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
-            validationRequest.setNewAttribute(attributeRequest);
-            validationRequest.setValidations(createValidations(formAttribute));
+        CreateAttributeRequest request = getCreateAttributeRequest(optLockValue, formAttribute);
+        request.setValidations(createValidations(formAttribute));
 
-            draftService.updateAttributeValidations(versionId, validationRequest);
-
-        } catch (RestException re) {
-            DeleteAttributeRequest rollbackRequest = new DeleteAttributeRequest(null, formAttribute.getCode());
-            draftService.deleteAttribute(versionId, rollbackRequest);
-            throw re;
-        }
+        draftService.createAttribute(versionId, request);
     }
 
     public void updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        Structure oldStructure = versionService.getStructure(versionId);
-        Structure.Attribute oldAttribute = oldStructure.getAttribute(formAttribute.getCode());
-        Structure.Reference oldReference = oldStructure.getReference(formAttribute.getCode());
+        UpdateAttributeRequest request = getUpdateAttributeRequest(optLockValue, formAttribute);
+        request.setValidations(createValidations(formAttribute));
 
-        UpdateAttributeRequest attributeRequest = getUpdateAttributeRequest(optLockValue, formAttribute);
-        draftService.updateAttribute(versionId, attributeRequest);
-        try {
-            AttributeValidationRequest validationRequest = new AttributeValidationRequest();
-            validationRequest.setOldAttribute(getVersionAttribute(versionId, oldAttribute, oldReference));
-            validationRequest.setNewAttribute(getCreateAttributeRequest(optLockValue, formAttribute));
-            validationRequest.setValidations(createValidations(formAttribute));
-
-            draftService.updateAttributeValidations(versionId, validationRequest);
-
-        } catch (RestException re) {
-            UpdateAttributeRequest rollbackRequest = new UpdateAttributeRequest(null, oldAttribute, oldReference);
-            draftService.updateAttribute(versionId, rollbackRequest);
-            throw re;
-        }
+        draftService.updateAttribute(versionId, request);
     }
 
     public void deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
-        draftService.deleteAttributeValidation(versionId, attributeCode, null);
-
         DeleteAttributeRequest request = new DeleteAttributeRequest(optLockValue, attributeCode);
+
         draftService.deleteAttribute(versionId, request);
     }
 
@@ -350,13 +323,6 @@ public class StructureController {
         }
 
         return readAttribute;
-    }
-
-    /** Получение атрибута для версии из конкретного атрибута (+ ссылки). */
-    private RefBookVersionAttribute getVersionAttribute(Integer versionId,
-                                                        Structure.Attribute attribute,
-                                                        Structure.Reference reference) {
-        return new RefBookVersionAttribute(versionId, attribute, reference);
     }
 
     /** Получение атрибута для добавления из атрибута формы. */

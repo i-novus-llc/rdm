@@ -21,12 +21,29 @@ public class RefBookVersionAttribute implements Serializable {
     @SuppressWarnings("WeakerAccess")
     public RefBookVersionAttribute() {}
 
+    /** Конструктор на основе атрибута и ссылки. */
     public RefBookVersionAttribute(Integer versionId,
                                    Structure.Attribute attribute,
                                    Structure.Reference reference) {
         this.versionId = versionId;
         this.attribute = attribute;
         this.reference = reference;
+    }
+
+    /** Конструктор на основе атрибута и структуры. */
+    public RefBookVersionAttribute(Integer versionId,
+                                   Structure.Attribute attribute,
+                                   Structure structure) {
+        this(versionId, attribute, structure.getReference(attribute.getCode()));
+    }
+
+    /** Конструктор с копированием атрибута и ссылки. */
+    public static RefBookVersionAttribute build(Integer versionId, String code, Structure structure) {
+
+        return new RefBookVersionAttribute(versionId,
+                        Structure.Attribute.build(structure.getAttribute(code)),
+                        Structure.Reference.build(structure.getReference(code))
+                );
     }
 
     public Integer getVersionId() {

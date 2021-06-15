@@ -765,6 +765,12 @@ public class DraftServiceImpl implements DraftService {
 
         forceUpdateOptLockValue(draftEntity);
 
+        updateAttributeValidations(draftEntity,
+                null,
+                new RefBookVersionAttribute(draftId, attribute, structure),
+                request.getValidations()
+        );
+
         auditStructureEdit(draftEntity, "create_attribute", attribute);
     }
 
@@ -777,10 +783,19 @@ public class DraftServiceImpl implements DraftService {
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
         validateOptLockValue(draftEntity, request);
 
+        final Structure structure = draftEntity.getStructure();
+        RefBookVersionAttribute oldVersionAttribute =
+                RefBookVersionAttribute.build(draftId, request.getCode(), structure);
+
         Structure.Attribute attribute = getStrategy(draftEntity, UpdateAttributeStrategy.class)
                 .update(draftEntity, request);
 
         forceUpdateOptLockValue(draftEntity);
+
+        updateAttributeValidations(draftEntity,
+                oldVersionAttribute,
+                new RefBookVersionAttribute(draftId, attribute, structure),
+                request.getValidations());
 
         auditStructureEdit(draftEntity, "update_attribute", attribute);
     }
