@@ -14,10 +14,8 @@ import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
@@ -178,10 +176,7 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
                     .filter(c -> Objects.equals(c.getRefRecordId(), refRowValue.getSystemId()))
                     .findFirst().orElse(null);
 
-            FieldValue fieldValue = refRowValue.getFieldValue(reference.getAttribute());
-            Reference fieldReference = (fieldValue instanceof ReferenceFieldValue)
-                            ? ((ReferenceFieldValue) fieldValue).getValue()
-                            : null;
+            Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
             if (fieldReference == null) continue;
 
             RowValue oldRowValue = oldRowValues.get(fieldReference.getValue());

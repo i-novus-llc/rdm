@@ -233,10 +233,19 @@ public class RowUtils {
         RowValue foundRowValue = rowValues.stream()
                 .filter(rowValue -> Objects.equals(rowValue.getSystemId(), systemId))
                 .findFirst().orElse(null);
-        if (foundRowValue == null)
-            return null;
+        return (foundRowValue != null) ? getFieldReference(foundRowValue, fieldCode) : null;
+    }
 
-        FieldValue fieldValue = foundRowValue.getFieldValue(fieldCode);
+    /**
+     * Получение ссылки из указанного поля в записи.
+     *
+     * @param rowValue  запись
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Ссылка или null
+     */
+    public static Reference getFieldReference(RowValue rowValue, String fieldCode) {
+
+        FieldValue fieldValue = rowValue.getFieldValue(fieldCode);
         return (fieldValue instanceof ReferenceFieldValue) ? ((ReferenceFieldValue) fieldValue).getValue() : null;
     }
 
