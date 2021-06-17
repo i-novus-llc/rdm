@@ -70,7 +70,7 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
      */
     private void processReferrer(RefBookVersionEntity referrer, RefBookVersionEntity entity) {
 
-        // Удалить существующие конфликты для всех записей.
+        // Удалить существующие конфликты данных для всех записей.
         deleteAllDataConflicts(referrer, entity);
 
         String refBookCode = entity.getRefBook().getCode();

@@ -161,9 +161,9 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.UPDATED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                        referrer.getId(), referenceCode, ConflictType.UPDATED, refRecordIds
+                );
 
         List<RefBookConflictEntity> toAdd = new ArrayList<>(conflicts.size());
         List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());

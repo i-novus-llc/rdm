@@ -109,12 +109,12 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                           Collection<? extends RowValue> refRowValues) {
 
         // Найти существующие конфликты DELETED для текущей ссылки.
-        List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
+        List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.DELETED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                        referrer.getId(), referenceCode, ConflictType.DELETED, refRecordIds
+                );
         if (isEmpty(conflicts))
             return;
 

@@ -164,9 +164,9 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.DELETED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                referrer.getId(), referenceCode, ConflictType.DELETED, refRecordIds
+                );
         if (isEmpty(conflicts))
             return;
 

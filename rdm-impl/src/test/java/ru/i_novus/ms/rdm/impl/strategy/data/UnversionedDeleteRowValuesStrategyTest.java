@@ -80,7 +80,9 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
         verifyFindReferrers(versionRepository);
 
         verify(conflictRepository)
-                .deleteByReferrerVersionIdAndRefRecordIdIn(eq(referrer.getId()), eq(singletonList(refSystemId)));
+                .deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIn(
+                        eq(referrer.getId()), eq(entity.getId()), eq(singletonList(refSystemId))
+                );
 
         verify(searchDataService, times(3)).getPagedData(any());
 

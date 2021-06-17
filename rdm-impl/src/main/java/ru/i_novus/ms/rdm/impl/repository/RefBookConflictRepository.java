@@ -13,6 +13,12 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Репозиторий сущностей-конфликтов.
+ * <p/>
+ * Т.к. ссылка может указывать только на один справочник,
+ * то при наличии refFieldCode можно не указывать publishedVersionId.
+ */
 @SuppressWarnings("squid:S1214")
 public interface RefBookConflictRepository extends
         JpaRepository<RefBookConflictEntity, Integer>,
@@ -54,16 +60,13 @@ public interface RefBookConflictRepository extends
      * с последними опубликованными версиями справочников.
      *
      * @param referrerVersionId версия ссылочного справочника
-     * @param refRecordIds      идентификаторы конфликтных записей
      * @param refFieldCode      наименование поля-ссылки = код атрибута-ссылки
      * @param conflictType      тип конфликта
+     * @param refRecordIds      идентификаторы конфликтных записей
      * @return Список конфликтов
      */
-    List<RefBookConflictEntity> findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-            Integer referrerVersionId,
-            List<Long> refRecordIds,
-            String refFieldCode,
-            ConflictType conflictType
+    List<RefBookConflictEntity> findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+            Integer referrerVersionId, String refFieldCode, ConflictType conflictType, List<Long> refRecordIds
     );
 
     /**
@@ -110,9 +113,26 @@ public interface RefBookConflictRepository extends
                                @Param("newReferrerVersionId") Integer newReferrerVersionId);
 
     /**
-     * Удаление конфликтов по заданным записям данных.
+     * Удаление конфликтов по заданным записям версии ссылочного справочника.
      */
     void deleteByReferrerVersionIdAndRefRecordIdIn(Integer referrerVersionId, Collection<Long> refRecordIds);
+
+    /**
+     * Удаление конфликтов по заданным записям версий справочников.
+     */
+    void deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIn(
+            Integer referrerVersionId, Integer publishedVersionId, Collection<Long> refRecordIds
+    );
+
+    /**
+     * Удаление конфликтов по заданным записям для заданного поля-ссылки.
+     */
+    void deleteByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+            Integer referrerVersionId,
+            String refFieldCode,
+            ConflictType conflictType,
+            Collection<Long> refRecordIds
+    );
 
     /**
      * Удаление конфликтов данных для указанной версии ссылочного справочника.

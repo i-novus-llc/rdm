@@ -115,8 +115,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
         );
 
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
-        when(conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED)
+        when(conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED), eq(refRecordIds)
         ))
                 .thenReturn(conflicts);
 
@@ -129,8 +129,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
         verify(searchDataService, times(3)).getPagedData(any());
 
         // .recalculateDataConflicts
-        verify(conflictRepository).findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED)
+        verify(conflictRepository).findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED), eq(refRecordIds)
         );
 
         ArgumentCaptor<List<RefBookConflictEntity>> toUpdateCaptor = ArgumentCaptor.forClass(List.class);
