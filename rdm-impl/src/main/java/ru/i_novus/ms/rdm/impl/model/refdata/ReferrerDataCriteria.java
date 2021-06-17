@@ -13,13 +13,13 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toReferenceSearchCriterias;
 
 /**
- * Критерий поиска данных в ссылающемся справочнике
+ * Критерий поиска данных в ссылочном справочнике
  * по значениям первичных ключей исходного справочника.
  */
 public class ReferrerDataCriteria extends StorageDataCriteria {
 
     /**
-     * Размер страницы данных ссылающегося справочника.
+     * Размер страницы данных ссылочного справочника.
      * <p/>
      * Совпадает со значением ConflictServiceImpl.REF_BOOK_VERSION_DATA_PAGE_SIZE.
      */
@@ -28,7 +28,7 @@ public class ReferrerDataCriteria extends StorageDataCriteria {
     /**
      * Конструктор критерия.
      *
-     * @param referrer      версия ссылающегося справочника
+     * @param referrer      версия справочника, который ссылается
      * @param references    список атрибутов-ссылок
      * @param storageCode   код хранилища версии
      * @param primaryValues значения первичных ключей

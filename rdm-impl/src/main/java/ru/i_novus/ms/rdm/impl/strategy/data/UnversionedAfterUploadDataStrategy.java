@@ -10,22 +10,20 @@ import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
 import java.util.*;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -163,48 +161,9 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                                        String referenceCode,
                                                        Collection<? extends RowValue> refRowValues) {
 
-        List<String> referenceValues = refRowValues.stream()
-                .map(rowValue -> RowUtils.getFieldReferenceValue(rowValue, referenceCode))
-                .filter(Objects::nonNull)
-                .distinct().collect(toList());
+        List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
 
-        StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, primaries, referenceValues);
+        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries, entity.getStorageCode(), referenceValues);
         return searchDataService.getPagedData(dataCriteria).getCollection();
-    }
-
-    private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity,
-                                                     List<Structure.Attribute> primaries,
-                                                     List<String> referenceValues) {
-
-        Set<List<FieldSearchCriteria>> primarySearchCriterias = toPrimarySearchCriterias(primaries, referenceValues);
-
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                entity.getStorageCode(), // Без учёта локализации
-                entity.getFromDate(), entity.getToDate(),
-                ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        dataCriteria.setSize(referenceValues.size());
-
-        return dataCriteria;
-    }
-
-    private Set<List<FieldSearchCriteria>> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
-                                                                    List<String> referenceValues) {
-        return referenceValues.stream()
-                .map(refValue -> toPrimarySearchCriterias(primaries, refValue))
-                .collect(toSet());
-    }
-
-    private List<FieldSearchCriteria> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
-                                                               String referenceValue) {
-        // На данный момент первичным ключом может быть только одно поле.
-        // Ссылка на значение составного ключа невозможна.
-        Structure.Attribute primary = primaries.get(0);
-
-        return singletonList(
-                ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
-                        SearchTypeEnum.EXACT, singletonList(referenceValue)
-                )
-        );
     }
 }

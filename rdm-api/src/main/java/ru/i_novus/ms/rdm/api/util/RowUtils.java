@@ -241,6 +241,21 @@ public class RowUtils {
     }
 
     /**
+     * Получение значений ссылки из указанного поля-ссылки в записях.
+     *
+     * @param rowValues записи ссылочного справочника
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Значения поля-ссылки
+     */
+    public static List<String> getFieldReferenceValues(Collection<? extends RowValue> rowValues, String fieldCode) {
+
+        return rowValues.stream()
+                .map(rowValue -> RowUtils.getFieldReferenceValue(rowValue, fieldCode))
+                .filter(Objects::nonNull)
+                .distinct().collect(toList());
+    }
+
+    /**
      * Получение значения ссылки из указанного поля-ссылки в записи.
      *
      * @param rowValue  запись ссылочного справочника

@@ -114,8 +114,8 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
                                                                List<Structure.Attribute> primaries) {
         return primaries.stream()
                 .map(primary ->
-                        ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
-                                SearchTypeEnum.EXACT, singletonList(RowUtils.toSearchValue(primary, rowValue)))
+                        ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(), SearchTypeEnum.EXACT,
+                                singletonList(RowUtils.toSearchValue(primary, rowValue)))
                 ).collect(toList());
     }
 
