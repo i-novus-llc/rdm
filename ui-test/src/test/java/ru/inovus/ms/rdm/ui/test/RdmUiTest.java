@@ -155,7 +155,7 @@ public class RdmUiTest {
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
         DataFormModal addForm = dataListWidget.addRowForm();
-        List<Map<RefBookField, Object>> refBookRows = generateRefBookRows(1, null, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.DATE, FieldType.BOOLEAN);
+        List<Map<RefBookField, Object>> refBookRows = generateRefBookRows(1, null, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE);
         Map<RefBookField, Object> row = refBookRows.get(0);
         fillDataForm(addForm, row);
         addForm.save();
