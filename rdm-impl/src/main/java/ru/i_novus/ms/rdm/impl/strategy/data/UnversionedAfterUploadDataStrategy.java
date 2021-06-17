@@ -87,8 +87,8 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
         pageIterator.forEachRemaining(page ->
 
             // При наличии конфликта DELETED:
-            // если запись восстановлена - удалить конфликт,
-            // иначе - заменить тип конфликта на UPDATED.
+            // если запись восстановлена, то удалить конфликт,
+            // иначе заменить тип конфликта на UPDATED.
             recalculateDataConflicts(referrer, entity, primaries, references, page.getCollection())
         );
     }

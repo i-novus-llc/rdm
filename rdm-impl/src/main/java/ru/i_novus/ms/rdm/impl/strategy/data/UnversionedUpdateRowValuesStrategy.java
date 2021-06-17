@@ -139,8 +139,9 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
 
-            // Если отображаемое значение восстановилось - удалить конфликт UPDATED при его наличии,
-            // иначе - создать конфликт UPDATED при его отсутствии.
+            // Если отображаемое значение восстановлено,
+            // то удалить конфликт UPDATED при его наличии,
+            // иначе создать конфликт UPDATED при его отсутствии.
             recalculateDataConflicts(referrer, entity, oldRowValues, newRowValues, references, page.getCollection())
         );
     }
