@@ -7,10 +7,9 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.strategy.DefaultBaseStrategyTest;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import static org.junit.Assert.assertEquals;
@@ -24,17 +23,11 @@ import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 public class DefaultCreateAttributeStrategyTest extends DefaultBaseStrategyTest {
 
-    public static final String NEW_ATTRIBUTE_CODE = STRING_ATTRIBUTE_CODE + "_new";
-    public static final Structure.Attribute NEW_ATTRIBUTE = Structure.Attribute.build(
-            NEW_ATTRIBUTE_CODE, NEW_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "add"
-    );
-    public static final Structure.Reference NEW_REFERENCE = new Structure.Reference(
-            NEW_ATTRIBUTE_CODE, REFERRED_BOOK_CODE,
-            DisplayExpression.toPlaceholder(REFERRED_BOOK_ATTRIBUTE_CODE)
-    );
-
     @InjectMocks
     private DefaultCreateAttributeStrategy strategy;
+
+    @Mock
+    private RefBookConflictRepository conflictRepository;
 
     @Mock
     private DraftDataService draftDataService;
