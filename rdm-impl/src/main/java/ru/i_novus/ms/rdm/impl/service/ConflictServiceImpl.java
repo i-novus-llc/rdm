@@ -651,7 +651,8 @@ public class ConflictServiceImpl implements ConflictService {
         // NB: CalculateConflictRequest: refFromEntity, oldRefToEntity, newRefToEntity + isAltered
         // NB: CalculateStructureConflictRequest: + refFromReferences, structureDiff && -> isAltered
         if (isAltered) {
-            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
+            String refCode = oldRefToEntity.getRefBook().getCode();
+            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(refCode);
 
             createCalculatedDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
             createCalculatedAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReferences);

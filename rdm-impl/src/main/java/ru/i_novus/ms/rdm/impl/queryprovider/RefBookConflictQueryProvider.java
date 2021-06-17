@@ -13,10 +13,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.impl.entity.QRefBookConflictEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
+import ru.i_novus.ms.rdm.impl.entity.QRefBookConflictEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.predicate.RefBookConflictPredicates;
 
 import javax.persistence.EntityManager;
@@ -48,7 +48,7 @@ public class RefBookConflictQueryProvider {
             new Sort.Order(Sort.Direction.ASC, CONFLICT_REF_FIELD_CODE_SORT_PROPERTY)
     );
 
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Autowired
     public RefBookConflictQueryProvider(EntityManager entityManager) {

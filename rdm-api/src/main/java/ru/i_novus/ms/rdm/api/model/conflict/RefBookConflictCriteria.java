@@ -39,7 +39,7 @@ public class RefBookConflictCriteria extends AbstractCriteria {
 
     @ApiParam("Системные идентификаторы записи с конфликтом")
     @QueryParam("refRecordIds")
-    List<Long> refRecordIds;
+    private List<Long> refRecordIds;
 
     @ApiParam("Названия полей-ссылок с конфликтами по отображаемому значению")
     @QueryParam("refFieldCodes")
