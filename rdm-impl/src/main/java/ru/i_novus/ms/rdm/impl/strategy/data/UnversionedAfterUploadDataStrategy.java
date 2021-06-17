@@ -24,6 +24,7 @@ import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -119,6 +120,9 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
             return;
 
         Collection<RowValue> rowValues = findReferredRowValues(entity, primaries, referenceCode, refRowValues);
+        if (isEmpty(rowValues))
+            return;
+
         Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, rowValues);
 
         // Определить действия над конфликтами по результату сравнения отображаемых значений.
@@ -162,6 +166,8 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                                        Collection<? extends RowValue> refRowValues) {
 
         List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
+        if (isEmpty(referenceValues))
+            return emptyList();
 
         StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries, entity.getStorageCode(), referenceValues);
         return searchDataService.getPagedData(dataCriteria).getCollection();
