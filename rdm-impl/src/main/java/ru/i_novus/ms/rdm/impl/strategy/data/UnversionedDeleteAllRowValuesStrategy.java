@@ -87,7 +87,7 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
 
             // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.
             List<RefBookConflictEntity> conflicts = recalculateDataConflicts(
-                    referrer, referenceCodes, entity, page.getCollection()
+                    referrer, entity, referenceCodes, page.getCollection()
             );
             if (!isEmpty(conflicts)) {
                 conflictRepository.saveAll(conflicts);
@@ -103,22 +103,22 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
     }
 
     private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                 List<String> referenceCodes,
                                                                  RefBookVersionEntity entity,
+                                                                 List<String> referenceCodes,
                                                                  Collection<? extends RowValue> refRowValues) {
         if (isEmpty(refRowValues))
             return emptyList();
 
         return refRowValues.stream()
                 .flatMap(rowValue ->
-                        recalculateDataConflicts(referrer, referenceCodes, entity, rowValue)
+                        recalculateDataConflicts(referrer, entity, referenceCodes, rowValue)
                 )
                 .collect(toList());
     }
 
     private Stream<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                   List<String> referenceCodes,
                                                                    RefBookVersionEntity entity,
+                                                                   List<String> referenceCodes,
                                                                    RowValue refRowValue) {
         return referenceCodes.stream()
                 .filter(code -> RowUtils.getFieldReferenceValue(refRowValue, code) != null)
