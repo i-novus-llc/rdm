@@ -173,14 +173,15 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
 
             // Определить действия над конфликтами по результату
             // сравнения первичных ключей и отображаемых значений.
+            Long refRecordId = (Long) refRowValue.getSystemId();
             RefBookConflictEntity conflict = conflicts.stream()
-                    .filter(c -> Objects.equals(c.getRefRecordId(), refRowValue.getSystemId()))
+                    .filter(c -> Objects.equals(c.getRefRecordId(), refRecordId))
                     .findFirst().orElse(null);
 
             Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
-            if (fieldReference == null) continue;
+            RowValue oldRowValue = (fieldReference != null) ? oldRowValues.get(fieldReference.getValue()) : null;
+            if (oldRowValue == null) continue;
 
-            RowValue oldRowValue = oldRowValues.get(fieldReference.getValue());
             RowValue newRowValue = RowUtils.getBySystemId(newRowValues.values(), oldRowValue.getSystemId());
 
             String newDisplayValue = FieldValueUtils.toDisplayValue(
@@ -196,7 +197,7 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
             if (!isEqual && conflict == null) {
                 // Изменение исходной записи:
                 RefBookConflictEntity changed = new RefBookConflictEntity(referrer, entity,
-                        (Long) refRowValue.getSystemId(), referenceCode, ConflictType.UPDATED);
+                        refRecordId, referenceCode, ConflictType.UPDATED);
                 toAdd.add(changed); // создать UPDATED-конфликт
             }
         }
