@@ -8,19 +8,21 @@ import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 @Component
-public class UnversionedDeleteAttributeStrategy
-        extends UnversionedBaseAttributeStrategy implements DeleteAttributeStrategy {
+public class UnversionedDeleteAttributeStrategy implements DeleteAttributeStrategy {
 
     @Autowired
     @Qualifier("defaultDeleteAttributeStrategy")
     private DeleteAttributeStrategy deleteAttributeStrategy;
+
+    @Autowired
+    private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
 
     @Override
     public Structure.Attribute delete(RefBookVersionEntity entity, DeleteAttributeRequest request) {
 
         Structure.Attribute attribute = deleteAttributeStrategy.delete(entity, request);
 
-        processReferrers(entity);
+        unversionedChangeStructureStrategy.processReferrers(entity);
 
         return attribute;
     }

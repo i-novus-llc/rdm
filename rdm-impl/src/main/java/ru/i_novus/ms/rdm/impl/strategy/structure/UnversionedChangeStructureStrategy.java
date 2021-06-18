@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.structure;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -11,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -26,8 +28,9 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 
+@Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedBaseAttributeStrategy {
+public class UnversionedChangeStructureStrategy implements Strategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;
@@ -38,7 +41,7 @@ public class UnversionedBaseAttributeStrategy {
     @Autowired
     private SearchDataService searchDataService;
 
-    protected void processReferrers(RefBookVersionEntity entity) {
+    public void processReferrers(RefBookVersionEntity entity) {
 
         List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         if (primaries.isEmpty())

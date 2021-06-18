@@ -8,19 +8,21 @@ import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 @Component
-public class UnversionedCreateAttributeStrategy
-        extends UnversionedBaseAttributeStrategy implements CreateAttributeStrategy {
+public class UnversionedCreateAttributeStrategy implements CreateAttributeStrategy {
 
     @Autowired
     @Qualifier("defaultCreateAttributeStrategy")
     private CreateAttributeStrategy createAttributeStrategy;
+
+    @Autowired
+    private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
 
     @Override
     public Structure.Attribute create(RefBookVersionEntity entity, CreateAttributeRequest request) {
 
         Structure.Attribute attribute = createAttributeStrategy.create(entity, request);
 
-        processReferrers(entity);
+        unversionedChangeStructureStrategy.processReferrers(entity);
 
         return attribute;
     }
