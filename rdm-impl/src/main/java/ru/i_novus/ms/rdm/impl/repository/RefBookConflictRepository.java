@@ -56,7 +56,7 @@ public interface RefBookConflictRepository extends
                                                            Integer publishedVersionId);
 
     /**
-     * Поиск конфликтов заданного типа для указанной версии ссылочного справочника
+     * Поиск конфликтов данных заданного типа для указанной версии ссылочного справочника
      * с последними опубликованными версиями справочников.
      *
      * @param referrerVersionId версия ссылочного справочника
@@ -67,6 +67,14 @@ public interface RefBookConflictRepository extends
      */
     List<RefBookConflictEntity> findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
             Integer referrerVersionId, String refFieldCode, ConflictType conflictType, List<Long> refRecordIds
+    );
+
+    /**
+     * Поиск конфликтов структуры заданного типа для указанной версии ссылочного справочника
+     * с последними опубликованными версиями справочников.
+     */
+    List<RefBookConflictEntity> findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIsNull(
+            Integer referrerVersionId, String refFieldCode, ConflictType conflictType
     );
 
     /**
@@ -122,16 +130,6 @@ public interface RefBookConflictRepository extends
      */
     void deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIn(
             Integer referrerVersionId, Integer publishedVersionId, Collection<Long> refRecordIds
-    );
-
-    /**
-     * Удаление конфликтов по заданным записям для заданного поля-ссылки.
-     */
-    void deleteByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
-            Integer referrerVersionId,
-            String refFieldCode,
-            ConflictType conflictType,
-            Collection<Long> refRecordIds
     );
 
     /**
