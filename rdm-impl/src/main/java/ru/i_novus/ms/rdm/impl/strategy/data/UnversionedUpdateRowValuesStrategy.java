@@ -166,7 +166,7 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
                         referrer.getId(), referenceCode, ConflictType.UPDATED, refRecordIds
                 );
 
-        List<RefBookConflictEntity> toAdd = new ArrayList<>(conflicts.size());
+        List<RefBookConflictEntity> toAdd = new ArrayList<>(refRowValues.size());
         List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
 
         for (RowValue refRowValue : refRowValues) {
