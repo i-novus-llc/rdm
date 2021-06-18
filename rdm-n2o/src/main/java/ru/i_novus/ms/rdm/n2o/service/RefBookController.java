@@ -127,9 +127,6 @@ public class RefBookController {
     private Page<UiRefBook> search(RefBookCriteria criteria) {
 
         Page<RefBook> refBooks = refBookService.search(criteria);
-        if (CollectionUtils.isEmpty(refBooks.getContent()))
-            return new RestPage<>();
-
         List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
         return new RestPage<>(list, criteria, refBooks.getTotalElements());
     }

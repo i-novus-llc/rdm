@@ -4,7 +4,6 @@ import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
@@ -39,9 +38,6 @@ public class VersionController {
 
         // NB: criteria.getExcludeDraft() ignored now.
         Page<RefBookVersion> versions = versionService.getVersions(criteria);
-        if (CollectionUtils.isEmpty(versions.getContent()))
-            return new RestPage<>();
-
         List<UiRefBook> list = versions.getContent().stream().map(this::toUiRefBook).collect(toList());
         return new RestPage<>(list, criteria, versions.getTotalElements());
     }
