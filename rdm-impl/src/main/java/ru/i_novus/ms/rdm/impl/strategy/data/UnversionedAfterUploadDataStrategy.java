@@ -169,7 +169,8 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
         if (isEmpty(referenceValues))
             return emptyList();
 
-        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries, entity.getStorageCode(), referenceValues);
+        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
+                entity.getStorageCode(), entity.getStructure().getAttributes(), referenceValues);
         return searchDataService.getPagedData(dataCriteria).getCollection();
     }
 }

@@ -46,14 +46,30 @@ public class ConverterUtil {
         throw new UnsupportedOperationException();
     }
 
-    /** Получение списка полей на основе структуры справочника. */
+    /**
+     * Получение списка полей на основе структуры справочника.
+     *
+     * @param structure структура справочника
+     * @return Список полей
+     */
     public static List<Field> fields(Structure structure) {
 
-        List<Field> fields = new ArrayList<>();
-        if (structure != null && !structure.isEmpty()) {
-            structure.getAttributes().forEach(attribute -> fields.add(field(attribute)));
-        }
-        return fields;
+        return (structure != null)
+                ? fields(structure.getAttributes())
+                : emptyList();
+    }
+
+    /**
+     * Получение списка полей на основе списка атрибутов.
+     *
+     * @param attributes список атрибутов
+     * @return Список полей
+     */
+    public static List<Field> fields(List<Structure.Attribute> attributes) {
+
+        return (attributes != null)
+                ? attributes.stream().map(ConverterUtil::field).collect(toList())
+                : emptyList();
     }
 
     /**

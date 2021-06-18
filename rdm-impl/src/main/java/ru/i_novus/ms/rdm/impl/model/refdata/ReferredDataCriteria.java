@@ -25,15 +25,16 @@ public class ReferredDataCriteria extends StorageDataCriteria {
      * @param entity          версия справочника, на который ссылаются
      * @param primaries       список первичных ключей
      * @param storageCode     код хранилища версии
+     * @param fieldAttributes список атрибутов как возвращаемых полей
      * @param referenceValues значения атрибута-ссылки
      */
     public ReferredDataCriteria(RefBookVersionEntity entity,
                                 List<Structure.Attribute> primaries,
                                 String storageCode,
+                                List<Structure.Attribute> fieldAttributes,
                                 List<String> referenceValues) {
 
-        super(storageCode, entity.getFromDate(), entity.getToDate(),
-                ConverterUtil.fields(entity.getStructure()));
+        super(storageCode, entity.getFromDate(), entity.getToDate(), ConverterUtil.fields(fieldAttributes));
 
         if (!isEmpty(referenceValues)) {
             setFieldFilters(toPrimarySearchCriterias(primaries, referenceValues));
