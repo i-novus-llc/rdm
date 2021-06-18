@@ -90,6 +90,9 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
 
+    @Autowired
+    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+
     // Data:
     @Autowired
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
@@ -102,8 +105,13 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
 
+    // Structure:
     @Autowired
-    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+    private UnversionedCreateAttributeStrategy unversionedCreateAttributeStrategy;
+    @Autowired
+    private UnversionedUpdateAttributeStrategy unversionedUpdateAttributeStrategy;
+    @Autowired
+    private UnversionedDeleteAttributeStrategy unversionedDeleteAttributeStrategy;
 
     // File:
     @Autowired
@@ -182,6 +190,9 @@ public class StrategyLocatorConfig {
         result.put(AfterUploadDataStrategy.class, unversionedAfterUploadDataStrategy);
 
         // Structure:
+        result.put(CreateAttributeStrategy.class, unversionedCreateAttributeStrategy);
+        result.put(UpdateAttributeStrategy.class, unversionedUpdateAttributeStrategy);
+        result.put(DeleteAttributeStrategy.class, unversionedDeleteAttributeStrategy);
 
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
