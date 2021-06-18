@@ -10,14 +10,16 @@ public class RefBook {
     private final String shortName;
     private final String category;
     private final String description;
+    private final String type;
     private final List<Map<RefBookField, Object>> rows;
 
-    public RefBook(String code, String name, String shortName, String category, String description, List<Map<RefBookField, Object>> rows) {
+    public RefBook(String code, String name, String shortName, String category, String description, String type, List<Map<RefBookField, Object>> rows) {
         this.code = code;
         this.name = name;
         this.shortName = shortName;
         this.category = category;
         this.description = description;
+        this.type = type;
         this.rows = rows;
     }
 
@@ -39,6 +41,10 @@ public class RefBook {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public List<Map<RefBookField, Object>> getRows() {

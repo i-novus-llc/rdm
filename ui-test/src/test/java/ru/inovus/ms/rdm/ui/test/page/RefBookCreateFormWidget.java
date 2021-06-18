@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.ui.test.page;
 
 import net.n2oapp.framework.autotest.N2oSelenide;
+import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
 import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
 import net.n2oapp.framework.autotest.impl.component.control.N2oTextArea;
 import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
@@ -24,6 +25,11 @@ public class RefBookCreateFormWidget extends N2oFormWidget {
     public N2oTextArea descriptionInput() {
         return fields().field("Описание").control(N2oTextArea.class);
     }
+
+    public N2oInputSelect typeInput() {
+        return fields().field("Тип").control(N2oInputSelect.class);
+    }
+
 
     public RefBookEditPage save() {
         openedFromPage.toolbar().bottomRight().button("Сохранить").click();
