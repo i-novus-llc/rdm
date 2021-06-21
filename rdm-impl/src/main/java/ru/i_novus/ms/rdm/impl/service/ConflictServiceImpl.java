@@ -651,7 +651,8 @@ public class ConflictServiceImpl implements ConflictService {
         // NB: CalculateConflictRequest: refFromEntity, oldRefToEntity, newRefToEntity + isAltered
         // NB: CalculateStructureConflictRequest: + refFromReferences, structureDiff && -> isAltered
         if (isAltered) {
-            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(oldRefToEntity.getRefBook().getCode());
+            String refCode = oldRefToEntity.getRefBook().getCode();
+            List<Structure.Reference> refFromReferences = refFromEntity.getStructure().getRefCodeReferences(refCode);
 
             createCalculatedDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
             createCalculatedAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReferences);
@@ -674,8 +675,9 @@ public class ConflictServiceImpl implements ConflictService {
                                                   List<Structure.Reference> refFromReferences,
                                                   StructureDiff structureDiff) {
         List<RefBookConflictEntity> entities = calculateDisplayDamagedConflicts(refFromEntity, newRefToEntity, refFromReferences, structureDiff);
-        if (!isEmpty(entities))
+        if (!isEmpty(entities)) {
             conflictRepository.saveAll(entities);
+        }
     }
 
     /**
@@ -699,8 +701,9 @@ public class ConflictServiceImpl implements ConflictService {
         pageIterator.forEachRemaining(page ->
                 refFromReferences.forEach(refFromReference -> {
                     List<RefBookConflictEntity> entities = calculateAlteredConflicts(refFromEntity, oldRefToEntity, newRefToEntity, refFromReference, page.getContent());
-                    if (!isEmpty(entities))
+                    if (!isEmpty(entities)) {
                         conflictRepository.saveAll(entities);
+                    }
                 })
         );
     }
@@ -766,7 +769,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         return fieldEntries.stream()
                 .map(fieldEntry -> {
+                    // RDM-891: Исключать значение, если не удаётся преобразовать в тип.
                     Object castedFieldValue = castFieldValue(fieldEntry.getValue(), refToAttribute.getType());
+                    // RDM-890: Нет сравнения hash в ссылке и hash ссылаемой записи.
                     if (isFieldValueRow(refToAttribute.getCode(), castedFieldValue, refToRowValues)) {
                         return new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 fieldEntry.getKey(), fieldEntry.getValue().getField(), ConflictType.ALTERED);
@@ -862,8 +867,9 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(conflictQueryProvider::search, criteria);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = recalculateStructureConflicts(refFromEntity, newRefToEntity, page.getContent(), structureDiff);
-            if (!isEmpty(entities))
+            if (!isEmpty(entities)) {
                 conflictRepository.saveAll(entities);
+            }
         });
     }
 
@@ -921,8 +927,9 @@ public class ConflictServiceImpl implements ConflictService {
         PageIterator<RefBookConflictEntity, RefBookConflictCriteria> pageIterator = new PageIterator<>(conflictQueryProvider::search, criteria);
         pageIterator.forEachRemaining(page -> {
             List<RefBookConflictEntity> entities = recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, page.getContent(), isAltered);
-            if (!isEmpty(entities))
+            if (!isEmpty(entities)) {
                 conflictRepository.saveAll(entities);
+            }
         });
     }
 

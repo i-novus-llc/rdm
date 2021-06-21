@@ -34,15 +34,19 @@ public class StructureChangeValidator {
     private static final String ATTRIBUTE_PRIMARY_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.primary.incompatible.with.data";
     private static final String ATTRIBUTE_TYPE_INCOMPATIBLE_WITH_DATA_EXCEPTION_CODE = "attribute.type.incompatible.with.data";
 
-    private DraftDataService draftDataService;
-    private SearchDataService searchDataService;
-    private RefBookVersionRepository versionRepository;
+    private final RefBookVersionRepository versionRepository;
+
+    private final DraftDataService draftDataService;
+    private final SearchDataService searchDataService;
 
     @Autowired
-    public StructureChangeValidator(DraftDataService draftDataService, SearchDataService searchDataService, RefBookVersionRepository versionRepository) {
+    public StructureChangeValidator(RefBookVersionRepository versionRepository,
+                                    DraftDataService draftDataService,
+                                    SearchDataService searchDataService) {
+        this.versionRepository = versionRepository;
+
         this.draftDataService = draftDataService;
         this.searchDataService = searchDataService;
-        this.versionRepository = versionRepository;
     }
 
     public void validateCreateAttribute(CreateAttributeRequest request, Structure oldStructure) {
@@ -121,11 +125,9 @@ public class StructureChangeValidator {
 
     private void validatePrimaryKeyUnique(String storageCode, UpdateAttributeRequest request) {
 
-        List<Message> errorMessages = new PrimaryKeyUniqueValidation(
-                draftDataService,
-                storageCode,
-                singletonList(request.getCode())
-        ).validate();
+        List<String> primaryNames = singletonList(request.getCode());
+        List<Message> errorMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode, primaryNames)
+                .validate();
 
         if (!CollectionUtils.isEmpty(errorMessages))
             throw new UserException(errorMessages);

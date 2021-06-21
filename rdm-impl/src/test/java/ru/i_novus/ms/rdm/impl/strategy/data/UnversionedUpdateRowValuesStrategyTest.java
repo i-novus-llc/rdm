@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -30,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     protected static final String NAME_FIELD_RESTORED_VALUE_SUFFIX = "_restored";
     protected static final String NAME_FIELD_CHANGED_VALUE_SUFFIX = "_changed";
@@ -63,7 +64,7 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
     @SuppressWarnings("unchecked")
     public void testUpdate() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         List<RowValue> oldRowValues = List.of(
                 // Без изменения:
@@ -125,8 +126,8 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
         );
 
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
-        when(conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.UPDATED)
+        when(conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.UPDATED), eq(refRecordIds)
         ))
                 .thenReturn(conflicts);
 
@@ -142,8 +143,8 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseRowVa
         verify(searchDataService, times(2)).getPagedData(any());
 
         // .recalculateDataConflicts
-        verify(conflictRepository).findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.UPDATED)
+        verify(conflictRepository).findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.UPDATED), eq(refRecordIds)
         );
 
         ArgumentCaptor<List<RefBookConflictEntity>> toAddCaptor = ArgumentCaptor.forClass(List.class);

@@ -128,11 +128,11 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
         pageIterator.forEachRemaining(page -> {
 
             // Удалить существующие конфликты для найденных записей.
-            deleteDataConflicts(referrer, page.getCollection());
+            deleteDataConflicts(referrer, entity, page.getCollection());
 
             // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.
             List<RefBookConflictEntity> conflicts = recalculateDataConflicts(
-                    referrer, referenceCodes, entity, primaryValues, page.getCollection()
+                    referrer, entity, primaryValues, referenceCodes, page.getCollection()
             );
             if (!isEmpty(conflicts)) {
                 conflictRepository.saveAll(conflicts);
@@ -140,31 +140,34 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
         });
     }
 
-    private void deleteDataConflicts(RefBookVersionEntity referrer, Collection<? extends RowValue> rowValues) {
+    private void deleteDataConflicts(RefBookVersionEntity referrer,
+                                     RefBookVersionEntity entity, Collection<? extends RowValue> rowValues) {
 
         List<Long> refRecordIds = RowUtils.toSystemIds(rowValues);
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIn(referrer.getId(), refRecordIds);
+        conflictRepository.deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIn(
+                referrer.getId(), entity.getId(), refRecordIds
+        );
     }
 
     private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                 List<String> referenceCodes,
                                                                  RefBookVersionEntity entity,
                                                                  List<String> primaryValues,
+                                                                 List<String> referenceCodes,
                                                                  Collection<? extends RowValue> refRowValues) {
         if (isEmpty(refRowValues))
             return emptyList();
 
         return refRowValues.stream()
                 .flatMap(rowValue ->
-                        recalculateDataConflicts(referrer, referenceCodes, entity, primaryValues, rowValue)
+                        recalculateDataConflicts(referrer, entity, primaryValues, referenceCodes, rowValue)
                 )
                 .collect(toList());
     }
 
     private Stream<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity referrer,
-                                                                   List<String> referenceCodes,
                                                                    RefBookVersionEntity entity,
                                                                    List<String> primaryValues,
+                                                                   List<String> referenceCodes,
                                                                    RowValue refRowValue) {
         return referenceCodes.stream()
                 .filter(code -> {

@@ -17,6 +17,8 @@ public interface VersionValidation {
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
     void validateRefBookCodeNotExists(String refBookCode);
 
+    boolean hasReferrerVersions(String refBookCode);
+
     void validateVersionExists(Integer versionId);
 
     void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
@@ -36,6 +38,16 @@ public interface VersionValidation {
     void validateDraftStructure(String refBookCode, Structure draftStructure);
 
     void validateReferrerStructure(Structure structure);
+
+    void validateNewAttribute(Structure.Attribute newAttribute,
+                              Structure oldStructure, String refBookCode);
+
+    void validateNewReference(Structure.Attribute newAttribute,
+                              Structure.Reference newReference,
+                              Structure oldStructure, String refBookCode);
+
+    void validateOldAttribute(Structure.Attribute oldAttribute,
+                              Structure oldStructure, String refBookCode);
 
     boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                             List<Structure.Attribute> primaries2);

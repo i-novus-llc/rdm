@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.strategy.data;
+package ru.i_novus.ms.rdm.impl.strategy;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -7,6 +7,7 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.ReferrerVersionCriteria;
+import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -24,7 +25,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.NAME_ATTRIBUTE_CODE;
 
-public abstract class UnversionedBaseRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
+public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTest {
+
+    private static final String USED_VERSION = "-1.0";
 
     protected static final int REFERRER_ID = 10;
     protected static final String REFERRER_CODE = "refer";
@@ -38,6 +41,20 @@ public abstract class UnversionedBaseRowValuesStrategyTest extends DefaultBaseRo
     private static final RefBookStatusType FIND_REFERRERS_STATUS = RefBookStatusType.USED;
     private static final RefBookSourceType FIND_REFERRERS_SOURCE = RefBookSourceType.ALL;
     private static final ReferrerVersionCriteria FIND_REFERRERS_CRITERIA = new ReferrerVersionCriteria(REFBOOK_CODE, FIND_REFERRERS_STATUS, FIND_REFERRERS_SOURCE);
+
+    protected RefBookVersionEntity createUnversionedEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(DRAFT_ID);
+        entity.setRefBook(createRefBookEntity());
+        entity.setStructure(createStructure());
+        entity.setStorageCode(DRAFT_CODE);
+        entity.setStatus(RefBookVersionStatus.PUBLISHED);
+        entity.setVersion(USED_VERSION);
+        entity.setFromDate(TimeUtils.now());
+
+        return entity;
+    }
 
     protected void mockFindReferrers(RefBookVersionRepository versionRepository, List<RefBookVersionEntity> referrers) {
 

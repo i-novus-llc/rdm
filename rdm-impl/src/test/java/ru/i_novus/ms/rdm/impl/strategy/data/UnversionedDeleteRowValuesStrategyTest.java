@@ -9,6 +9,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrategyTest {
 
     @InjectMocks
     private UnversionedDeleteRowValuesStrategy strategy;
@@ -47,7 +48,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
     @SuppressWarnings("unchecked")
     public void testDelete() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         Integer referredId = 3;
         List<Object> systemIds = List.of(1L, 2L);
@@ -79,7 +80,9 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseRowVa
         verifyFindReferrers(versionRepository);
 
         verify(conflictRepository)
-                .deleteByReferrerVersionIdAndRefRecordIdIn(eq(referrer.getId()), eq(singletonList(refSystemId)));
+                .deleteByReferrerVersionIdAndPublishedVersionIdAndRefRecordIdIn(
+                        eq(referrer.getId()), eq(entity.getId()), eq(singletonList(refSystemId))
+                );
 
         verify(searchDataService, times(3)).getPagedData(any());
 

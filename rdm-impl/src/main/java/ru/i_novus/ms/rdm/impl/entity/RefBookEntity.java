@@ -132,7 +132,6 @@ public abstract class RefBookEntity implements Serializable {
         sb.append(", category='").append(category).append('\'');
         sb.append(", removable=").append(removable);
         sb.append(", archived=").append(archived);
-        sb.append(", versionList=").append(versionList);
         sb.append('}');
         return sb.toString();
     }

@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -12,7 +11,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.service.DraftService;
@@ -96,7 +94,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             return;
 
         references.stream()
-                .filter(reference -> BooleanUtils.isNotTrue(
+                .filter(reference -> !Boolean.TRUE.equals(
                         conflictRepository.hasReferrerConflict(referrerVersionId, reference.getAttribute(),
                                 ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
                 ))
@@ -164,11 +162,9 @@ public class ReferenceServiceImpl implements ReferenceService {
         );
         publishedEntities.forEach(publishedEntity -> refreshReference(referrerEntity, publishedEntity, reference, conflictType));
 
-        DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
-        deleteCriteria.setReferrerVersionId(referrerEntity.getId());
-        deleteCriteria.setRefFieldCode(reference.getAttribute());
-        deleteCriteria.setConflictType(conflictType);
-        conflictQueryProvider.delete(deleteCriteria);
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndConflictType(
+                referrerEntity.getId(), reference.getAttribute(), conflictType
+        );
     }
 
     /**
@@ -208,6 +204,7 @@ public class ReferenceServiceImpl implements ReferenceService {
                     .map(RefBookConflictEntity::getRefRecordId)
                     .collect(toList());
 
+            // RDM-884: Для обязательных атрибутов: если новое значение null, кидать ошибку required value
             draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
         });
     }

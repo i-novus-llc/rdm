@@ -174,12 +174,9 @@ public class RefBookServiceTest {
         RefBookEntity refBookEntity = createRefBookEntity(1);
         RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
 
-        // .findVersionOrThrow
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
 
-        // .hasReferrerVersions
-        when(versionRepository.existsReferrerVersions(eq(refBookEntity.getCode()), any(String.class), any(String.class)))
-                .thenReturn(Boolean.FALSE);
+        when(versionValidation.hasReferrerVersions(eq(refBookEntity.getCode()))).thenReturn(Boolean.FALSE);
 
         mockSourceTypeVersion();
         mockRefBookModel();

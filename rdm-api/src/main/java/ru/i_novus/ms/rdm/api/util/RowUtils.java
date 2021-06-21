@@ -233,11 +233,35 @@ public class RowUtils {
         RowValue foundRowValue = rowValues.stream()
                 .filter(rowValue -> Objects.equals(rowValue.getSystemId(), systemId))
                 .findFirst().orElse(null);
-        if (foundRowValue == null)
-            return null;
+        return (foundRowValue != null) ? getFieldReference(foundRowValue, fieldCode) : null;
+    }
 
-        FieldValue fieldValue = foundRowValue.getFieldValue(fieldCode);
+    /**
+     * Получение ссылки из указанного поля в записи.
+     *
+     * @param rowValue  запись
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Ссылка или null
+     */
+    public static Reference getFieldReference(RowValue rowValue, String fieldCode) {
+
+        FieldValue fieldValue = rowValue.getFieldValue(fieldCode);
         return (fieldValue instanceof ReferenceFieldValue) ? ((ReferenceFieldValue) fieldValue).getValue() : null;
+    }
+
+    /**
+     * Получение значений ссылки из указанного поля-ссылки в записях.
+     *
+     * @param rowValues записи ссылочного справочника
+     * @param fieldCode наименование поля-ссылки = код атрибута-ссылки
+     * @return Значения поля-ссылки
+     */
+    public static List<String> getFieldReferenceValues(Collection<? extends RowValue> rowValues, String fieldCode) {
+
+        return rowValues.stream()
+                .map(rowValue -> RowUtils.getFieldReferenceValue(rowValue, fieldCode))
+                .filter(Objects::nonNull)
+                .distinct().collect(toList());
     }
 
     /**

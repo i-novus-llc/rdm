@@ -10,22 +10,22 @@ import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.structure.UnversionedChangeStructureStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
 
 import java.util.*;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -45,12 +45,17 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
     @Qualifier("defaultAfterUploadDataStrategy")
     private AfterUploadDataStrategy afterUploadDataStrategy;
 
+    @Autowired
+    private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
+
     @Override
     public void apply(RefBookVersionEntity entity) {
 
         afterUploadDataStrategy.apply(entity);
 
         processReferrers(entity);
+
+        unversionedChangeStructureStrategy.processReferrers(entity);
     }
 
     private void processReferrers(RefBookVersionEntity entity) {
@@ -88,8 +93,8 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
         pageIterator.forEachRemaining(page ->
 
             // При наличии конфликта DELETED:
-            // если запись восстановлена - удалить конфликт,
-            // иначе - заменить тип конфликта на UPDATED.
+            // если запись восстановлена, то удалить конфликт,
+            // иначе заменить тип конфликта на UPDATED.
             recalculateDataConflicts(referrer, entity, primaries, references, page.getCollection())
         );
     }
@@ -111,16 +116,19 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                           Collection<? extends RowValue> refRowValues) {
 
         // Найти существующие конфликты DELETED для текущей ссылки.
-        List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
+        List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.DELETED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                        referrer.getId(), referenceCode, ConflictType.DELETED, refRecordIds
+                );
         if (isEmpty(conflicts))
             return;
 
         Collection<RowValue> rowValues = findReferredRowValues(entity, primaries, referenceCode, refRowValues);
+        if (isEmpty(rowValues))
+            return;
+
         Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, rowValues);
 
         // Определить действия над конфликтами по результату сравнения отображаемых значений.
@@ -163,48 +171,12 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                                        String referenceCode,
                                                        Collection<? extends RowValue> refRowValues) {
 
-        List<String> referenceValues = refRowValues.stream()
-                .map(rowValue -> RowUtils.getFieldReferenceValue(rowValue, referenceCode))
-                .filter(Objects::nonNull)
-                .distinct().collect(toList());
+        List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
+        if (isEmpty(referenceValues))
+            return emptyList();
 
-        StorageDataCriteria dataCriteria = toEntityDataCriteria(entity, primaries, referenceValues);
+        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
+                entity.getStorageCode(), entity.getStructure().getAttributes(), referenceValues);
         return searchDataService.getPagedData(dataCriteria).getCollection();
-    }
-
-    private StorageDataCriteria toEntityDataCriteria(RefBookVersionEntity entity,
-                                                     List<Structure.Attribute> primaries,
-                                                     List<String> referenceValues) {
-
-        Set<List<FieldSearchCriteria>> primarySearchCriterias = toPrimarySearchCriterias(primaries, referenceValues);
-
-        StorageDataCriteria dataCriteria = new StorageDataCriteria(
-                entity.getStorageCode(), // Без учёта локализации
-                entity.getFromDate(), entity.getToDate(),
-                ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
-        dataCriteria.setSize(referenceValues.size());
-
-        return dataCriteria;
-    }
-
-    private Set<List<FieldSearchCriteria>> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
-                                                                    List<String> referenceValues) {
-        return referenceValues.stream()
-                .map(refValue -> toPrimarySearchCriterias(primaries, refValue))
-                .collect(toSet());
-    }
-
-    private List<FieldSearchCriteria> toPrimarySearchCriterias(List<Structure.Attribute> primaries,
-                                                               String referenceValue) {
-        // На данный момент первичным ключом может быть только одно поле.
-        // Ссылка на значение составного ключа невозможна.
-        Structure.Attribute primary = primaries.get(0);
-
-        return singletonList(
-                ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
-                        SearchTypeEnum.EXACT, singletonList(referenceValue)
-                )
-        );
     }
 }

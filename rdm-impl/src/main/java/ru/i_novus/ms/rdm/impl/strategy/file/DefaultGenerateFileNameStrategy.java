@@ -10,7 +10,7 @@ public class DefaultGenerateFileNameStrategy implements GenerateFileNameStrategy
     @Override
     public String generateName(RefBookVersion version, FileType fileType) {
 
-        return version.getCode() + "_" +
+        return version.getCode() +
                 getVersionPart(version) +
                 "." + fileType.name().toLowerCase();
     }
@@ -18,13 +18,13 @@ public class DefaultGenerateFileNameStrategy implements GenerateFileNameStrategy
     @Override
     public String generateZipName(RefBookVersion version, FileType fileType) {
 
-        return version.getCode() + "_" +
+        return version.getCode() +
                 getVersionPart(version) +
                 "_" + fileType.name() + ".zip";
     }
 
     protected String getVersionPart(RefBookVersion version) {
 
-        return version.isDraft() ? "0.0" : version.getVersion();
+        return "_" + (version.isDraft() ? "0.0" : version.getVersion());
     }
 }

@@ -1,12 +1,15 @@
 package ru.i_novus.ms.rdm.api.model.validation;
 
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Модель пользовательской проверки атрибута.
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = RequiredAttributeValidation.class, name = "REQUIRED"),
@@ -18,12 +21,14 @@ import java.util.Objects;
         @JsonSubTypes.Type(value = DateRangeAttributeValidation.class, name = "DATE_RANGE"),
         @JsonSubTypes.Type(value = RegExpAttributeValidation.class, name = "REG_EXP")
 })
-public abstract class AttributeValidation {
+public abstract class AttributeValidation implements Serializable {
 
     @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Integer versionId;
+
     @ApiModelProperty(accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String attribute;
+
     private AttributeValidationType type;
 
     public AttributeValidation(AttributeValidationType type) {
@@ -55,14 +60,17 @@ public abstract class AttributeValidation {
     }
 
     /**
+     * Преобразование значений проверки в строку.
+     *
      * @return Значения проверки в виде строки, формат зависит от реализации
      */
     public abstract String valuesToString();
 
     /**
-     * Заполнение значений проверки из строки
-     * @param value значение(я) проверки в виде String, формат зависит от реализации
-     * @throws IllegalArgumentException если некорректный формат
+     * Заполнение значений проверки из строки.
+     *
+     * @param value значения проверки в виде строки, формат зависит от реализации
+     * @throws IllegalArgumentException при некорректном формате
      */
     public abstract AttributeValidation valueFromString(String value);
 
@@ -71,9 +79,11 @@ public abstract class AttributeValidation {
     }
 
     public static AttributeValidation ofTypeWithAttr(String stype, String val, String attr) {
+
         AttributeValidationType type = AttributeValidationType.valueOf(stype.toUpperCase());
         AttributeValidation validation = type.getValidationInstance().valueFromString(val);
         validation.setAttribute(attr);
+
         return validation;
     }
 
@@ -81,6 +91,7 @@ public abstract class AttributeValidation {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         AttributeValidation that = (AttributeValidation) o;
         return Objects.equals(versionId, that.versionId) &&
                 Objects.equals(attribute, that.attribute) &&
@@ -90,5 +101,18 @@ public abstract class AttributeValidation {
     @Override
     public int hashCode() {
         return Objects.hash(versionId, attribute, type);
+    }
+
+    @Override
+    public String toString() {
+
+        final StringBuilder sb = new StringBuilder("AttributeValidation{");
+        sb.append("versionId=").append(versionId);
+        sb.append(", attribute='").append(attribute).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", values='").append(valuesToString()).append('\'');
+        sb.append('}');
+
+        return sb.toString();
     }
 }

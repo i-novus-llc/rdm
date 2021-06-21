@@ -11,6 +11,7 @@ import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.structure.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 
@@ -61,6 +62,14 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
 
+    // Structure:
+    @Autowired
+    private DefaultCreateAttributeStrategy defaultCreateAttributeStrategy;
+    @Autowired
+    private DefaultUpdateAttributeStrategy defaultUpdateAttributeStrategy;
+    @Autowired
+    private DefaultDeleteAttributeStrategy defaultDeleteAttributeStrategy;
+
     // File:
     @Autowired
     private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
@@ -81,6 +90,9 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
 
+    @Autowired
+    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+
     // Data:
     @Autowired
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
@@ -93,8 +105,13 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
 
+    // Structure:
     @Autowired
-    private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+    private UnversionedCreateAttributeStrategy unversionedCreateAttributeStrategy;
+    @Autowired
+    private UnversionedUpdateAttributeStrategy unversionedUpdateAttributeStrategy;
+    @Autowired
+    private UnversionedDeleteAttributeStrategy unversionedDeleteAttributeStrategy;
 
     // File:
     @Autowired
@@ -121,22 +138,31 @@ public class StrategyLocatorConfig {
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+
         // RefBook:
         result.put(RefBookCreateValidationStrategy.class, defaultRefBookCreateValidationStrategy);
         result.put(CreateRefBookEntityStrategy.class, defaultCreateRefBookEntityStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
+
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
+
         // Data:
         result.put(AddRowValuesStrategy.class, defaultAddRowValuesStrategy);
         result.put(UpdateRowValuesStrategy.class, defaultUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, defaultDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, defaultAfterUploadDataStrategy);
+
+        // Structure:
+        result.put(CreateAttributeStrategy.class, defaultCreateAttributeStrategy);
+        result.put(UpdateAttributeStrategy.class, defaultUpdateAttributeStrategy);
+        result.put(DeleteAttributeStrategy.class, defaultDeleteAttributeStrategy);
+
         // File:
         result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
@@ -147,18 +173,27 @@ public class StrategyLocatorConfig {
     private Map<Class<? extends Strategy>, Strategy> getUnversionedStrategies() {
 
         Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+
         // RefBook:
         result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
+
         // Version + Draft:
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
+
         // Data:
         result.put(AddRowValuesStrategy.class, unversionedAddRowValuesStrategy);
         result.put(UpdateRowValuesStrategy.class, unversionedUpdateRowValuesStrategy);
         result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, unversionedDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, unversionedAfterUploadDataStrategy);
+
+        // Structure:
+        result.put(CreateAttributeStrategy.class, unversionedCreateAttributeStrategy);
+        result.put(UpdateAttributeStrategy.class, unversionedUpdateAttributeStrategy);
+        result.put(DeleteAttributeStrategy.class, unversionedDeleteAttributeStrategy);
+
         // File:
         result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
         result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);

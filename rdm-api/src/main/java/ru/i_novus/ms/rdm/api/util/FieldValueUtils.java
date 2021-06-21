@@ -146,14 +146,12 @@ public class FieldValueUtils {
 
     /**
      * Приведение строкового значения ссылки к значению указанного типа.
-     * <p/>
-     * См. также {@link ru.i_novus.ms.rdm.impl.util.ConverterUtil#castReferenceValue(Field, String)}.
      *
      * @param value       строковое значение ссылки
      * @param toFieldType тип, к которому приводится значение
      * @return Типизированное значение ссылки
      */
-    private static Serializable castReferenceValue(String value, FieldType toFieldType) {
+    public static Serializable castReferenceValue(String value, FieldType toFieldType) {
 
         return switch (toFieldType) {
             case INTEGER -> new BigInteger(value);

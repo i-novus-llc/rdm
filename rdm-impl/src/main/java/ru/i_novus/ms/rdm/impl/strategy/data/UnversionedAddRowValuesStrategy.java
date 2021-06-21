@@ -114,8 +114,8 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
                                                                List<Structure.Attribute> primaries) {
         return primaries.stream()
                 .map(primary ->
-                        ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(),
-                                SearchTypeEnum.EXACT, singletonList(RowUtils.toSearchValue(primary, rowValue)))
+                        ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(), SearchTypeEnum.EXACT,
+                                singletonList(RowUtils.toSearchValue(primary, rowValue)))
                 ).collect(toList());
     }
 
@@ -140,8 +140,8 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         pageIterator.forEachRemaining(page ->
 
             // При наличии конфликта DELETED:
-            // если запись восстановлена - удалить конфликт,
-            // иначе - заменить тип конфликта на UPDATED.
+            // если запись восстановлена, то удалить конфликт,
+            // иначе заменить тип конфликта на UPDATED.
             recalculateDataConflicts(referrer, rowValues, references, page.getCollection())
         );
     }
@@ -164,9 +164,9 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.DELETED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                referrer.getId(), referenceCode, ConflictType.DELETED, refRecordIds
+                );
         if (isEmpty(conflicts))
             return;
 

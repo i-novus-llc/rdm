@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.ms.rdm.impl.strategy.DefaultBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -17,7 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class DefaultUpdateRowValuesStrategyTest extends DefaultBaseRowValuesStrategyTest {
+public class DefaultUpdateRowValuesStrategyTest extends DefaultBaseStrategyTest {
 
     @InjectMocks
     private DefaultUpdateRowValuesStrategy strategy;

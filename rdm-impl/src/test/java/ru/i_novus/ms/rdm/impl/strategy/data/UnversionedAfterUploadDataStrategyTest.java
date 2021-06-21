@@ -11,6 +11,8 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.structure.UnversionedChangeStructureStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -31,7 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseRowValuesStrategyTest {
+public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrategyTest {
 
     private static final String NAME_FIELD_DELETED_VALUE_SUFFIX = "_deleted";
 
@@ -53,11 +55,14 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseRowVa
     @Mock
     private AfterUploadDataStrategy afterUploadDataStrategy;
 
+    @Mock
+    private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
+
     @Test
     @SuppressWarnings("unchecked")
     public void testApply() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         List<RowValue> rowValues = List.of(
                 // Без существующего конфликта:
@@ -114,8 +119,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseRowVa
         );
 
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
-        when(conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED)
+        when(conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED), eq(refRecordIds)
         ))
                 .thenReturn(conflicts);
 
@@ -128,8 +133,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseRowVa
         verify(searchDataService, times(3)).getPagedData(any());
 
         // .recalculateDataConflicts
-        verify(conflictRepository).findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                eq(REFERRER_VERSION_ID), eq(refRecordIds), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED)
+        verify(conflictRepository).findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                eq(REFERRER_VERSION_ID), eq(REFERRER_ATTRIBUTE_CODE), eq(ConflictType.DELETED), eq(refRecordIds)
         );
 
         ArgumentCaptor<List<RefBookConflictEntity>> toUpdateCaptor = ArgumentCaptor.forClass(List.class);

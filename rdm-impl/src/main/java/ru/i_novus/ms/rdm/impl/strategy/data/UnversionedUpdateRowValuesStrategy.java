@@ -14,10 +14,8 @@ import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
@@ -141,8 +139,9 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
                 new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
 
-            // Если отображаемое значение восстановилось - удалить конфликт UPDATED при его наличии,
-            // иначе - создать конфликт UPDATED при его отсутствии.
+            // Если отображаемое значение восстановлено,
+            // то удалить конфликт UPDATED при его наличии,
+            // иначе создать конфликт UPDATED при его отсутствии.
             recalculateDataConflicts(referrer, entity, oldRowValues, newRowValues, references, page.getCollection())
         );
     }
@@ -163,28 +162,26 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
         String referenceCode = reference.getAttribute();
         List<RefBookConflictEntity> conflicts =
-                conflictRepository.findByReferrerVersionIdAndRefRecordIdInAndRefFieldCodeAndConflictType(
-                referrer.getId(), refRecordIds, referenceCode, ConflictType.UPDATED
-        );
+                conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
+                        referrer.getId(), referenceCode, ConflictType.UPDATED, refRecordIds
+                );
 
-        List<RefBookConflictEntity> toAdd = new ArrayList<>(conflicts.size());
+        List<RefBookConflictEntity> toAdd = new ArrayList<>(refRowValues.size());
         List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
 
         for (RowValue refRowValue : refRowValues) {
 
             // Определить действия над конфликтами по результату
             // сравнения первичных ключей и отображаемых значений.
+            Long refRecordId = (Long) refRowValue.getSystemId();
             RefBookConflictEntity conflict = conflicts.stream()
-                    .filter(c -> Objects.equals(c.getRefRecordId(), refRowValue.getSystemId()))
+                    .filter(c -> Objects.equals(c.getRefRecordId(), refRecordId))
                     .findFirst().orElse(null);
 
-            FieldValue fieldValue = refRowValue.getFieldValue(reference.getAttribute());
-            Reference fieldReference = (fieldValue instanceof ReferenceFieldValue)
-                            ? ((ReferenceFieldValue) fieldValue).getValue()
-                            : null;
-            if (fieldReference == null) continue;
+            Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
+            RowValue oldRowValue = (fieldReference != null) ? oldRowValues.get(fieldReference.getValue()) : null;
+            if (oldRowValue == null) continue;
 
-            RowValue oldRowValue = oldRowValues.get(fieldReference.getValue());
             RowValue newRowValue = RowUtils.getBySystemId(newRowValues.values(), oldRowValue.getSystemId());
 
             String newDisplayValue = FieldValueUtils.toDisplayValue(
@@ -200,7 +197,7 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
             if (!isEqual && conflict == null) {
                 // Изменение исходной записи:
                 RefBookConflictEntity changed = new RefBookConflictEntity(referrer, entity,
-                        (Long) refRowValue.getSystemId(), referenceCode, ConflictType.UPDATED);
+                        refRecordId, referenceCode, ConflictType.UPDATED);
                 toAdd.add(changed); // создать UPDATED-конфликт
             }
         }
