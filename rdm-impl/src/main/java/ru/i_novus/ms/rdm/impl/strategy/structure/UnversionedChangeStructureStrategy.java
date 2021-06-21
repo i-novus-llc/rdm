@@ -204,7 +204,7 @@ public class UnversionedChangeStructureStrategy implements Strategy {
 
         Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
         RowValue referredRowValue = (fieldReference != null) ? referredRowValues.get(fieldReference.getValue()) : null;
-        return referredRowValue != null &&
-                fieldReference.hashCode() == referredRowValue.hashCode();
+        return referredRowValue != null;
+        // RDM-890: Так не работает, т.к. нет hash в ссылке поля: fieldReference.getHash() == referredRowValue.getHash()
     }
 }

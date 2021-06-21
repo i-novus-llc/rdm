@@ -769,7 +769,9 @@ public class ConflictServiceImpl implements ConflictService {
 
         return fieldEntries.stream()
                 .map(fieldEntry -> {
+                    // RDM-891: Исключать значение, если не удаётся преобразовать в тип.
                     Object castedFieldValue = castFieldValue(fieldEntry.getValue(), refToAttribute.getType());
+                    // RDM-890: Нет сравнения hash в ссылке и hash ссылаемой записи.
                     if (isFieldValueRow(refToAttribute.getCode(), castedFieldValue, refToRowValues)) {
                         return new RefBookConflictEntity(refFromEntity, newRefToEntity,
                                 fieldEntry.getKey(), fieldEntry.getValue().getField(), ConflictType.ALTERED);

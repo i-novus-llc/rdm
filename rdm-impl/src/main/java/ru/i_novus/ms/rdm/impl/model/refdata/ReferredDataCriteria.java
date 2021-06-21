@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -57,9 +58,12 @@ public class ReferredDataCriteria extends StorageDataCriteria {
         // Ссылка на значение составного ключа невозможна.
         Structure.Attribute primary = primaries.get(0);
 
+        // RDM-891: Исключать значение, если не удаётся преобразовать в тип.
+        final Serializable primaryValue = castReferenceValue(referenceValue, primary.getType());
+        
         return singletonList(
                 ConverterUtil.toFieldSearchCriteria(primary.getCode(), primary.getType(), SearchTypeEnum.EXACT,
-                        singletonList(castReferenceValue(referenceValue, primary.getType()))
+                        singletonList(primaryValue)
                 )
         );
     }
