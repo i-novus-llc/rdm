@@ -1,14 +1,15 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
-import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Информация о публикуемом черновике справочника для UI.
  */
-public class UiRefBookPublish extends RefBook {
+public class UiRefBookPublish extends UiRefBook {
 
     /**
      * Текст сообщения об ошибке, возникшей
@@ -24,8 +25,8 @@ public class UiRefBookPublish extends RefBook {
      */
     private Map<String, String> conflictingReferrerNames = new HashMap<>(0);
 
-    public UiRefBookPublish(RefBook refBook) {
-        super(refBook);
+    public UiRefBookPublish(UiRefBook uiRefBook) {
+        super(uiRefBook);
     }
 
     public String getErrorMessage() {
@@ -42,5 +43,26 @@ public class UiRefBookPublish extends RefBook {
 
     public void setConflictingReferrerNames(Map<String, String> conflictingReferrerNames) {
         this.conflictingReferrerNames = conflictingReferrerNames;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        UiRefBookPublish that = (UiRefBookPublish) o;
+        return Objects.equals(errorMessage, that.errorMessage) &&
+                Objects.equals(conflictingReferrerNames, that.conflictingReferrerNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), errorMessage, conflictingReferrerNames);
+    }
+
+    @Override
+    public String toString() {
+        return JsonUtil.toJsonString(this);
     }
 }

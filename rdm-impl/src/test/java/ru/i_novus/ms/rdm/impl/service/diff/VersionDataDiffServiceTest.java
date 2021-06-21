@@ -17,6 +17,7 @@ import ru.i_novus.ms.rdm.api.model.diff.VersionDataDiffCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.BaseTest;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getVdsObjectMapper;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings({"rawtypes","java:S5778"})
+@SuppressWarnings({"java:S5778"})
 public class VersionDataDiffServiceTest extends BaseTest {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
@@ -131,7 +132,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         )).thenReturn(List.of(newVersion, oldVersion));
 
         // getVersionIds:
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setCode(TEST_REFBOOK_CODE);
         newVersion.setRefBook(refBookEntity);
 
@@ -180,7 +181,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         )).thenReturn(List.of(newVersion, oldVersion));
 
         // getVersionIds:
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setCode(TEST_REFBOOK_CODE);
         newVersion.setRefBook(refBookEntity);
 
@@ -245,7 +246,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
         )).thenReturn(List.of(newVersion, oldVersion));
 
         // getVersionIds:
-        RefBookEntity refBookEntity = new RefBookEntity();
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setCode(TEST_REFBOOK_CODE);
         newVersion.setRefBook(refBookEntity);
 

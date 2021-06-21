@@ -7,34 +7,44 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
+import ru.i_novus.platform.datastorage.temporal.service.*;
 
-import java.util.Collections;
+import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveValidationTest {
@@ -70,7 +80,7 @@ public class ArchiveValidationTest {
     private FileStorage fileStorage;
 
     @Mock
-    private FileNameGenerator fileNameGenerator;
+    private GenerateFileNameStrategy generateFileNameStrategy;
 
     @Mock
     private VersionFileRepository versionFileRepository;
@@ -82,8 +92,15 @@ public class ArchiveValidationTest {
     @Mock
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    @Mock
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+
     @Before
-    public void setUp() {
+    public void setUp() throws NoSuchFieldException {
+
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test
@@ -103,42 +120,84 @@ public class ArchiveValidationTest {
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
         updateRequest.setVersionId(versionId);
         assertArchiveValidationError(() -> refBookService.update(updateRequest));
-
     }
 
     private void assertArchiveValidationError(MethodExecutor executor) {
 
         doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
                 .when(versionValidation).validateRefBook(eq(refBookId));
+
+        RefBookVersionEntity versionEntity = createVersionEntity();
+        when(versionRepository.findById(versionId)).thenReturn(Optional.of(versionEntity));
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.findById(draftId)).thenReturn(Optional.of(draftEntity));
+
         doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
-                .when(versionValidation).validateDraft(eq(draftId));
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
-                .when(versionValidation).validateVersion(eq(versionId));
+                .when(validateVersionNotArchivedStrategy).validate(any());
 
         try {
             executor.execute();
             fail();
+
         } catch (UserException e) {
             assertEquals("refbook.is.archived", e.getMessage());
         }
 
         doNothing()
                 .when(versionValidation).validateRefBook(eq(refBookId));
+
         doNothing()
-                .when(versionValidation).validateDraft(eq(draftId));
-        doNothing()
-                .when(versionValidation).validateVersion(eq(versionId));
+                .when(validateVersionNotArchivedStrategy).validate(any());
 
         try {
             executor.execute();
+
         } catch (UserException e) {
             assertNotEquals("refbook.is.archived", e.getMessage());
-        } catch (Exception ignored){}
 
+        } catch (Exception ignored){}
+    }
+
+    private RefBookVersionEntity createVersionEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(versionId);
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        entity.setRefBook(refBookEntity);
+
+        return entity;
+    }
+
+    private RefBookVersionEntity createDraftEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(draftId);
+        entity.setStatus(RefBookVersionStatus.DRAFT);
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        entity.setRefBook(refBookEntity);
+
+        return entity;
     }
 
     private interface MethodExecutor {
         void execute();
     }
 
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+
+        return result;
+    }
 }

@@ -16,8 +16,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static ru.i_novus.ms.rdm.impl.file.process.XmlParseUtils.closeEventReader;
-import static ru.i_novus.ms.rdm.impl.file.process.XmlParseUtils.createEventReader;
+import static ru.i_novus.ms.rdm.impl.file.process.XmlParseUtils.*;
 
 public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implements Closeable {
 
@@ -45,41 +44,48 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     public Map<String, Object> getPassport(){
-        if(passportProcessed) {
+
+        if (passportProcessed)
             return passport;
-        }
+
         try {
-            if (reader.hasNext()) {
-                if (reader.peek().isStartDocument())
-                    reader.nextEvent();
+            if (!reader.hasNext())
+                return null;
 
-                XMLEvent curEvent = null;
-                while (reader.peek() != null && !(XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
-                    curEvent = reader.nextEvent();
-                }
-                if (curEvent == null || reader.peek() == null || XmlParseUtils.isStartElementWithName(reader.peek(), STRUCTURE_TAG_NAME) || XmlParseUtils.isStartElementWithName(reader.peek(), DATA_TAG_NAME))
-                    return null;
+            if (reader.peek().isStartDocument())
+                reader.nextEvent();
 
-                passport = new LinkedHashMap<>();
-                reader.nextEvent();     // current is start-tag <passport>
-                XmlParseUtils.parseValues(reader, passport, PASSPORT_TAG_NAME);
-            }
+            XMLEvent event = findStartElementWithName(reader, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME);
+            if (event == null ||
+                    isStartElementWithName(event, STRUCTURE_TAG_NAME, DATA_TAG_NAME))
+                return null;
+
+            // current tag should be a start-tag <passport>
+            passport = new LinkedHashMap<>();
+            reader.nextEvent();
+            XmlParseUtils.parseValues(reader, passport, PASSPORT_TAG_NAME);
+
         } catch (XMLStreamException e) {
             throw new FileContentException(e);
         }
         passportProcessed = true;
+
         return passport;
     }
 
+    @SuppressWarnings("unchecked")
     private void parseStructureAndValidations(Structure structure,
                                               Map<String, List<AttributeValidation>> validations) throws XMLStreamException {
+
+        // current tag should be a start-tag <structure>
         reader.nextEvent();
-        while (!XmlParseUtils.isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
-                !XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
+        while (!isEndElementWithName(reader.peek(), STRUCTURE_TAG_NAME) &&
+                !isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME)) {
 
             Map<String, Object> values = new LinkedHashMap<>();
-            reader.nextEvent();// current is <row> in <structure>
+            reader.nextEvent();
 
+            // current tag should be a <row> of <structure>
             XmlParseUtils.parseValues(reader, values, ROW_TAG_NAME);
 
             Structure.Attribute attribute = parseStructureAttribute(values);
@@ -148,31 +154,27 @@ public class XmlUpdateDraftFileProcessor extends UpdateDraftFileProcessor implem
 
     @Override
     protected Pair<Structure, Map<String, List<AttributeValidation>>> getStructureAndValidations() {
-        if (reader.hasNext()) {
-            try {
-                XMLEvent curEvent = reader.peek();
-                while (curEvent != null && !(XmlParseUtils.isStartElementWithName(curEvent, STRUCTURE_TAG_NAME, DATA_TAG_NAME))) {
-                    reader.nextEvent();
-                    curEvent = reader.peek();
-                }
 
-                if (curEvent == null || reader.peek() == null ||
-                        XmlParseUtils.isStartElementWithName(reader.peek(), PASSPORT_TAG_NAME, DATA_TAG_NAME))
-                    return null;
+        if (!reader.hasNext())
+            return null;
+        
+        try {
+            XMLEvent event = findStartElementWithName(reader, STRUCTURE_TAG_NAME, DATA_TAG_NAME);
+            if (event == null ||
+                    isStartElementWithName(event, PASSPORT_TAG_NAME, DATA_TAG_NAME))
+                return null;
 
-                Structure structure = new Structure();
-                Map<String, List<AttributeValidation>> validations = new HashMap<>();
-                parseStructureAndValidations(structure, validations);
+            Structure structure = new Structure();
+            Map<String, List<AttributeValidation>> validations = new HashMap<>();
+            parseStructureAndValidations(structure, validations);
 
-                reader.nextTag();
+            reader.nextTag();
 
-                return Pair.of(structure, validations);
+            return Pair.of(structure, validations);
 
-            } catch (XMLStreamException e) {
-                throw new FileContentException(e);
-            }
+        } catch (XMLStreamException e) {
+            throw new FileContentException(e);
         }
-        return null;
     }
 
     @Override

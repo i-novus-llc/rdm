@@ -31,6 +31,7 @@ import static java.util.Objects.nonNull;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Component
+@SuppressWarnings("java:S3740")
 public class RefBookVersionQueryProvider {
 
     private static final String CANNOT_ORDER_BY_EXCEPTION_CODE = "cannot.order.by \"{0}\"";
@@ -44,9 +45,9 @@ public class RefBookVersionQueryProvider {
     public static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
-    private PassportPredicateProducer passportPredicateProducer;
+    private final PassportPredicateProducer passportPredicateProducer;
 
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Autowired
     public RefBookVersionQueryProvider(PassportPredicateProducer passportPredicateProducer,
@@ -193,7 +194,7 @@ public class RefBookVersionQueryProvider {
         List<Sort.Order> orders = criteria.getOrders();
 
         if (CollectionUtils.isEmpty(orders)) {
-            jpaQuery.orderBy(getOrderByLastPublishDateExpression(jpaQuery).asc());
+            jpaQuery.orderBy(getLastPublishDateOrder(jpaQuery).asc());
 
         } else {
             criteria.getOrders().stream()
@@ -222,7 +223,7 @@ public class RefBookVersionQueryProvider {
             sortExpression = qPassportValueEntity.value;
 
         } else if (REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY.equals(order.getProperty()))
-            sortExpression = getOrderByLastPublishDateExpression(jpaQuery);
+            sortExpression = getLastPublishDateOrder(jpaQuery);
         else
             sortExpression = getSortOrder(order.getProperty());
 
@@ -236,29 +237,19 @@ public class RefBookVersionQueryProvider {
      */
     private static ComparableExpressionBase getSortOrder(String orderProperty) {
 
-        switch (orderProperty) {
-            case VERSION_ID_SORT_PROPERTY:
-                return QRefBookVersionEntity.refBookVersionEntity.id;
-
-            case REF_BOOK_ID_SORT_PROPERTY:
-                return QRefBookVersionEntity.refBookVersionEntity.refBook.id;
-
-            case REF_BOOK_CODE_SORT_PROPERTY:
-            case REF_BOOK_DISPLAY_CODE_SORT_PROPERTY:
-                return QRefBookVersionEntity.refBookVersionEntity.refBook.code;
-
-            case REF_BOOK_FROM_DATE_SORT_PROPERTY:
-                return QRefBookVersionEntity.refBookVersionEntity.fromDate;
-
-            case REF_BOOK_CATEGORY_SORT_PROPERTY:
-                return QRefBookVersionEntity.refBookVersionEntity.refBook.category;
-
-            default:
-                throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, orderProperty));
-        }
+        return switch (orderProperty) {
+            case VERSION_ID_SORT_PROPERTY -> QRefBookVersionEntity.refBookVersionEntity.id;
+            case REF_BOOK_ID_SORT_PROPERTY -> QRefBookVersionEntity.refBookVersionEntity.refBook.id;
+            case REF_BOOK_CODE_SORT_PROPERTY,
+                    REF_BOOK_DISPLAY_CODE_SORT_PROPERTY -> QRefBookVersionEntity.refBookVersionEntity.refBook.code;
+            case REF_BOOK_FROM_DATE_SORT_PROPERTY -> QRefBookVersionEntity.refBookVersionEntity.fromDate;
+            case REF_BOOK_CATEGORY_SORT_PROPERTY -> QRefBookVersionEntity.refBookVersionEntity.refBook.category;
+            default -> throw new UserException(new Message(CANNOT_ORDER_BY_EXCEPTION_CODE, orderProperty));
+        };
     }
 
-    private ComparableExpressionBase getOrderByLastPublishDateExpression(JPAQuery<RefBookVersionEntity> jpaQuery) {
+    private ComparableExpressionBase getLastPublishDateOrder(JPAQuery<RefBookVersionEntity> jpaQuery) {
+
         QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_from_date");
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_max_version");
 

@@ -20,9 +20,7 @@ import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -152,16 +150,17 @@ public class ConflictServiceTest {
     @Mock
     private RefBookConflictRepository conflictRepository;
 
-    private RefBookVersionEntity referrerEntity;
-    private RefBookVersionEntity publishedEntity;
+    private RefBookVersionEntity referrerVersion;
+    private RefBookVersionEntity publishedVersion;
 
     @Before
     public void setUp() {
-        referrerEntity = createReferrerEntity(REFERRER_VERSION_ID, createReferrerStructure());
-        referrerEntity.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        publishedEntity = createPublishingEntity(PUBLISHED_VERSION_ID, createPublishingStructure());
-        publishedEntity.setStatus(RefBookVersionStatus.PUBLISHED);
+        referrerVersion = createReferrerEntity(REFERRER_VERSION_ID, createReferrerStructure());
+        referrerVersion.setStatus(RefBookVersionStatus.PUBLISHED);
+
+        publishedVersion = createPublishingEntity(PUBLISHED_VERSION_ID, createPublishingStructure());
+        publishedVersion.setStatus(RefBookVersionStatus.PUBLISHED);
     }
 
     private Structure createReferrerStructure() {
@@ -177,7 +176,8 @@ public class ConflictServiceTest {
     }
 
     private RefBookVersionEntity createReferrerEntity(Integer versionId, Structure structure) {
-        RefBookEntity refBookEntity = new RefBookEntity();
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setId(REFERRER_REF_BOOK_ID);
         refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
 
@@ -203,7 +203,8 @@ public class ConflictServiceTest {
     }
 
     private RefBookVersionEntity createPublishingEntity(Integer versionId, Structure structure) {
-        RefBookEntity refBookEntity = new RefBookEntity();
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setId(PUBLISHED_REF_BOOK_ID);
         refBookEntity.setCode(PUBLISHED_REF_BOOK_CODE);
 
@@ -223,22 +224,22 @@ public class ConflictServiceTest {
     @Test
     public void testCalculateDamagedConflicts() {
 
-        referrerEntity.setStructure(createCalculateStructureConflictsReferrerStructure());
-        publishedEntity.setStructure(createCalculateStructureConflictsVersionOldStructure());
+        referrerVersion.setStructure(createCalculateStructureConflictsReferrerStructure());
+        publishedVersion.setStructure(createCalculateStructureConflictsVersionOldStructure());
         RefBookVersionEntity publishingEntity = createPublishingEntity(PUBLISHING_DRAFT_ID, createCalculateStructureConflictsVersionNewStructure());
 
-        StructureDiff structureDiff = getCalculateStructureConflictsStructureDiff(publishedEntity.getStructure(), publishingEntity.getStructure());
+        StructureDiff structureDiff = getCalculateStructureConflictsStructureDiff(publishedVersion.getStructure(), publishingEntity.getStructure());
 
-        when(compareService.compareStructures(eq(publishedEntity.getId()), eq(publishingEntity.getId()))).thenReturn(structureDiff);
+        when(compareService.compareStructures(eq(publishedVersion.getId()), eq(publishingEntity.getId()))).thenReturn(structureDiff);
 
         List<RefBookConflictEntity> expectedList = asList(
-                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_DELETE_REFERENCE, ConflictType.DISPLAY_DAMAGED),
-                new RefBookConflictEntity(referrerEntity, publishingEntity, null, REFERRER_ATTRIBUTE_UPDATE_CODE_REFERENCE, ConflictType.DISPLAY_DAMAGED)
+                new RefBookConflictEntity(referrerVersion, publishingEntity, null, REFERRER_ATTRIBUTE_DELETE_REFERENCE, ConflictType.DISPLAY_DAMAGED),
+                new RefBookConflictEntity(referrerVersion, publishingEntity, null, REFERRER_ATTRIBUTE_UPDATE_CODE_REFERENCE, ConflictType.DISPLAY_DAMAGED)
         );
 
-        List<Structure.Reference> referrerReferences = referrerEntity.getStructure().getRefCodeReferences(publishedEntity.getRefBook().getCode());
-        List<RefBookConflictEntity> actualList = calculateDamagedConflicts(referrerEntity,
-                publishedEntity, publishingEntity, referrerReferences);
+        List<Structure.Reference> referrerReferences = referrerVersion.getStructure().getRefCodeReferences(publishedVersion.getRefBook().getCode());
+        List<RefBookConflictEntity> actualList = calculateDamagedConflicts(referrerVersion,
+                publishedVersion, publishingEntity, referrerReferences);
         assertConflictEntities(expectedList, actualList);
     }
 
@@ -262,12 +263,12 @@ public class ConflictServiceTest {
     @Test
     public void testCalculateAlteredConflicts() {
 
-        referrerEntity.setStructure(createCalculateStructureConflictsReferrerStructure());
-        publishedEntity.setStructure(createCalculateStructureConflictsVersionOldStructure());
+        referrerVersion.setStructure(createCalculateStructureConflictsReferrerStructure());
+        publishedVersion.setStructure(createCalculateStructureConflictsVersionOldStructure());
         RefBookVersionEntity publishingEntity = createPublishingEntity(PUBLISHING_DRAFT_ID, createCalculateStructureConflictsVersionNewStructure());
 
         Page<RefBookRowValue> referrerRowValues = createCalculateStructureConflictsReferrerRowValues();
-        when(versionService.search(eq(referrerEntity.getId()), any(SearchDataCriteria.class))).thenReturn(referrerRowValues);
+        when(versionService.search(eq(referrerVersion.getId()), any(SearchDataCriteria.class))).thenReturn(referrerRowValues);
 
         Page<RefBookRowValue> publishingRowValues = createCalculateStructureConflictsPublishedRowValues();
         when(versionService.search(eq(publishingEntity.getId()), any(SearchDataCriteria.class))).thenReturn(publishingRowValues);
@@ -275,21 +276,21 @@ public class ConflictServiceTest {
         List<RefBookConflictEntity> expectedList = new ArrayList<>(10 + 10);
         LongStream.range(1, 10).forEach(systemId -> {
             if (systemId % 2 == 0) {
-                RefBookConflictEntity entity = new RefBookConflictEntity(referrerEntity,
+                RefBookConflictEntity entity = new RefBookConflictEntity(referrerVersion,
                         publishingEntity, systemId, REFERRER_ATTRIBUTE_DELETE_REFERENCE, ConflictType.ALTERED);
                 expectedList.add(entity);
             }
 
             if (systemId % 3 == 0) {
-                RefBookConflictEntity entity = new RefBookConflictEntity(referrerEntity,
+                RefBookConflictEntity entity = new RefBookConflictEntity(referrerVersion,
                         publishingEntity, systemId, REFERRER_ATTRIBUTE_UPDATE_TYPE_REFERENCE, ConflictType.ALTERED);
                 expectedList.add(entity);
             }
         });
 
-        List<Structure.Reference> referrerReferences = referrerEntity.getStructure().getRefCodeReferences(publishedEntity.getRefBook().getCode());
-        List<RefBookConflictEntity> actualList = calculateAlteredConflicts(referrerEntity,
-                publishedEntity, publishingEntity, referrerReferences);
+        List<Structure.Reference> referrerReferences = referrerVersion.getStructure().getRefCodeReferences(publishedVersion.getRefBook().getCode());
+        List<RefBookConflictEntity> actualList = calculateAlteredConflicts(referrerVersion,
+                publishedVersion, publishingEntity, referrerReferences);
         assertConflictEntities(expectedList, actualList);
     }
 
@@ -405,7 +406,7 @@ public class ConflictServiceTest {
                     new ReferenceFieldValue(REFERRER_ATTRIBUTE_DELETE_REFERENCE, createCalculateStructureConflictsReferrerReference(systemId, REFERRER_REFERENCE_DELETE_EXPRESSION)),
                     new ReferenceFieldValue(REFERRER_ATTRIBUTE_UPDATE_TYPE_REFERENCE, createCalculateStructureConflictsReferrerReference(systemId, REFERRER_REFERENCE_UPDATE_TYPE_EXPRESSION))
             ));
-            rowValues.add(new RefBookRowValue(longRowValue, referrerEntity.getId()));
+            rowValues.add(new RefBookRowValue(longRowValue, referrerVersion.getId()));
         });
 
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
@@ -419,7 +420,7 @@ public class ConflictServiceTest {
             LongRowValue longRowValue = new LongRowValue(systemId, singletonList(
                     new StringFieldValue(PUBLISHED_ATTRIBUTE_CODE, getCalculateStructureConflictsPublishedPrimaryValue(systemId))
             ));
-            rowValues.add(new RefBookRowValue(longRowValue, referrerEntity.getId()));
+            rowValues.add(new RefBookRowValue(longRowValue, referrerVersion.getId()));
         });
 
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
@@ -513,7 +514,7 @@ public class ConflictServiceTest {
         Page<RefBookConflictEntity> conflicts = createRecalculateConflictsPage();
 
         Page<RefBookRowValue> refFromRowValues = createRecalculateConflictsRowValues();
-        when(versionService.search(eq(referrerEntity.getId()), any())).thenReturn(refFromRowValues);
+        when(versionService.search(eq(referrerVersion.getId()), any())).thenReturn(refFromRowValues);
 
         RefBookDataDiff refBookDataDiff = createRecalculateConflictsDataDiff();
         when(compareService.compareData(any())).thenReturn(refBookDataDiff);
@@ -524,12 +525,12 @@ public class ConflictServiceTest {
             ConflictType conflictType =
                     PUBLISHED_ROW_SYS_ID_DELETED_UNCHANGING.equals(systemId) ? ConflictType.DELETED : ConflictType.UPDATED;
             expectedList.add(
-                    new RefBookConflictEntity(referrerEntity, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
+                    new RefBookConflictEntity(referrerVersion, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
             );
         });
 
-        List<RefBookConflictEntity> actualList = conflictService.recalculateDataConflicts(referrerEntity,
-                publishedEntity, publishingEntity, conflicts.getContent(), false);
+        List<RefBookConflictEntity> actualList = conflictService.recalculateDataConflicts(referrerVersion,
+                publishedVersion, publishingEntity, conflicts.getContent(), false);
         assertConflictEntities(expectedList, actualList);
 
         // Проверка в случае изменения данных и структуры.
@@ -540,13 +541,13 @@ public class ConflictServiceTest {
 
             if (!ConflictType.UPDATED.equals(conflictType)) {
                 expectedAlteredList.add(
-                        new RefBookConflictEntity(referrerEntity, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
+                        new RefBookConflictEntity(referrerVersion, publishingEntity, systemId, REFERRER_ATTRIBUTE_REFERENCE, conflictType)
                 );
             }
         });
 
-        List<RefBookConflictEntity> actualAlteredList = conflictService.recalculateDataConflicts(referrerEntity,
-                publishedEntity, publishingEntity, conflicts.getContent(), true);
+        List<RefBookConflictEntity> actualAlteredList = conflictService.recalculateDataConflicts(referrerVersion,
+                publishedVersion, publishingEntity, conflicts.getContent(), true);
         assertConflictEntities(expectedAlteredList, actualAlteredList);
     }
     
@@ -554,23 +555,19 @@ public class ConflictServiceTest {
 
         List<RefBookConflictEntity> conflicts = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
 
-        CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED.forEach(systemId -> {
-            conflicts.add(new RefBookConflictEntity(referrerEntity,
-                    publishedEntity,
-                    systemId,
-                    REFERRER_ATTRIBUTE_REFERENCE,
-                    ConflictType.UPDATED)
-            );
-        });
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_UPDATED.forEach(systemId ->
+                conflicts.add(
+                        new RefBookConflictEntity(referrerVersion, publishedVersion,
+                                systemId, REFERRER_ATTRIBUTE_REFERENCE, ConflictType.UPDATED)
+                )
+        );
 
-        CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED.forEach(systemId -> {
-            conflicts.add(new RefBookConflictEntity(referrerEntity,
-                    publishedEntity,
-                    systemId,
-                    REFERRER_ATTRIBUTE_REFERENCE,
-                    ConflictType.DELETED)
-            );
-        });
+        CONFLICTED_PUBLISHED_ROW_SYS_IDS_DELETED.forEach(systemId ->
+                conflicts.add(
+                        new RefBookConflictEntity(referrerVersion, publishedVersion,
+                                systemId, REFERRER_ATTRIBUTE_REFERENCE, ConflictType.DELETED)
+                )
+        );
 
         return new PageImpl<>(conflicts, Pageable.unpaged(), conflicts.size());
     }
@@ -584,7 +581,7 @@ public class ConflictServiceTest {
                             new ReferenceFieldValue(REFERRER_ATTRIBUTE_REFERENCE, createRecalculateConflictsReferrerReference(systemId))
                     )
             );
-            rowValues.add(new RefBookRowValue(longRowValue, referrerEntity.getId()));
+            rowValues.add(new RefBookRowValue(longRowValue, referrerVersion.getId()));
         });
 
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
@@ -675,11 +672,13 @@ public class ConflictServiceTest {
     }
 
     private String getRecalculateConflictsReferrerPrimaryValue(Long publishedRowSystemId) {
+
         final Long REFERRER_PRIMARY_CODE_MULTIPLIER = 10L;
         return String.valueOf(publishedRowSystemId * REFERRER_PRIMARY_CODE_MULTIPLIER);
     }
 
     private String getRecalculateConflictsReferrerDisplayValue(Long publishedRowSystemId) {
+
         String publishedRowCode = String.valueOf(publishedRowSystemId);
         return publishedRowCode + PUBLISHED_ATTRIBUTE_NAME_VALUE_SUFFIX + ": "
                 + publishedRowCode + PUBLISHED_ATTRIBUTE_AMOUNT_VALUE_SUFFIX;

@@ -15,6 +15,7 @@
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <jacoco.skip>false</jacoco.skip>
+        <sonar.coverage.exclusions>**/ClientConfiguration.java, **/RdmWebConfiguration.java, **/UiStrategyLocatorConfig.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

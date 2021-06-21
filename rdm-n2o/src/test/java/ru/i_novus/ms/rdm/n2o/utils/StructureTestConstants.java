@@ -4,7 +4,10 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class StructureTestConstants {
 
@@ -16,6 +19,8 @@ public class StructureTestConstants {
     public static final String FLOAT_ATTRIBUTE_CODE = "REAL";
     public static final String BOOLEAN_ATTRIBUTE_CODE = "BOOL";
     public static final String DATE_ATTRIBUTE_CODE = "DATE";
+
+    public static final List<String> PRIMARY_CODES = singletonList(ID_ATTRIBUTE_CODE);
 
     public static final List<String> ATTRIBUTE_CODES = List.of(
             ID_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE,
@@ -42,7 +47,7 @@ public class StructureTestConstants {
     public static final Structure.Attribute ID_ATTRIBUTE = Structure.Attribute.buildPrimary(
             ID_ATTRIBUTE_CODE, ID_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "primary key");
     public static final Structure.Attribute NAME_ATTRIBUTE = Structure.Attribute.buildLocalizable(
-            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "name field");
+            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, null); // без описания!
     public static final Structure.Attribute STRING_ATTRIBUTE = Structure.Attribute.build(
             STRING_ATTRIBUTE_CODE, STRING_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "string-typed");
     public static final Structure.Attribute INTEGER_ATTRIBUTE = Structure.Attribute.build(
@@ -78,6 +83,8 @@ public class StructureTestConstants {
             REFERENCE, SELF_REFER
     );
 
+    public static final Structure DEFAULT_STRUCTURE = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
+
     public static final String CHANGE_ATTRIBUTE_CODE = "CHANGE";
     public static final Structure.Attribute CHANGE_ATTRIBUTE = Structure.Attribute.build(
             CHANGE_ATTRIBUTE_CODE, CHANGE_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "change");
@@ -92,5 +99,14 @@ public class StructureTestConstants {
 
     private StructureTestConstants() {
         // Nothing to do.
+    }
+
+    public static List<String> getAllAttributeCodes() {
+
+        List<String> allAttributeCodes = new ArrayList<>();
+        allAttributeCodes.addAll(ATTRIBUTE_CODES);
+        allAttributeCodes.addAll(REFERENCE_CODES);
+
+        return allAttributeCodes;
     }
 }

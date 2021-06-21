@@ -7,15 +7,13 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.DraftServiceImpl;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
-import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nConstants;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -31,30 +29,31 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nDraftServiceImpl extends DraftServiceImpl {
 
-    private L10nStorageCodeService storageCodeService;
+    private final L10nStorageCodeService storageCodeService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public L10nDraftServiceImpl(L10nStorageCodeService storageCodeService,
-                                RefBookVersionRepository versionRepository, RefBookConflictRepository conflictRepository,
+                                RefBookVersionRepository versionRepository,
+                                RefBookConflictRepository conflictRepository,
                                 DraftDataService draftDataService, DropDataService dropDataService,
                                 SearchDataService searchDataService,
                                 RefBookLockService refBookLockService, VersionService versionService,
-                                FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                                VersionFileService versionFileService,
                                 VersionValidation versionValidation,
                                 PassportValueRepository passportValueRepository,
                                 AttributeValidationRepository attributeValidationRepository,
-                                StructureChangeValidator structureChangeValidator,
-                                AuditLogService auditLogService) {
+                                VersionFileService versionFileService,
+                                AuditLogService auditLogService,
+                                StrategyLocator strategyLocator) {
 
         super(versionRepository, conflictRepository,
                 draftDataService, dropDataService, searchDataService,
                 refBookLockService, versionService,
-                fileStorage, fileNameGenerator, versionFileService,
                 versionValidation,
-                passportValueRepository, attributeValidationRepository, structureChangeValidator,
-                auditLogService);
+                passportValueRepository, attributeValidationRepository,
+                versionFileService,
+                auditLogService,
+                strategyLocator);
 
         this.storageCodeService = storageCodeService;
     }

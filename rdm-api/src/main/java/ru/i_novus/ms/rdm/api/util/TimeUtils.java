@@ -10,6 +10,7 @@ import java.util.Date;
 
 import static java.util.Objects.isNull;
 
+@SuppressWarnings("java:S5843")
 public final class TimeUtils {
 
     public static final String DATE_TIME_PATTERN_ISO = "yyyy-MM-dd HH:mm:ss";
@@ -21,6 +22,7 @@ public final class TimeUtils {
 
     public static final String DATE_PATTERN_ISO = "yyyy-MM-dd";
     public static final String DATE_PATTERN_EUROPEAN = "dd.MM.u";
+    public static final String DATE_PATTERN_ERA = "dd.MM.yyyy";
 
     public static final String DATE_TIME_PATTERN_ISO_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01]) (0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
     public static final String DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
@@ -38,6 +40,7 @@ public final class TimeUtils {
     public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER);
     public static final DateTimeFormatter DATE_TIME_PATTERN_EUROPEAN_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_EUROPEAN);
     public static final DateTimeFormatter DATE_PATTERN_ISO_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_ISO);
+    public static final DateTimeFormatter DATE_PATTERN_ERA_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_ERA);
     public static final DateTimeFormatter DATE_PATTERN_EUROPEAN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_EUROPEAN);
 
     public static final DateTimeFormatter STRICT_EUROPEAN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_EUROPEAN).withResolverStyle(ResolverStyle.STRICT);

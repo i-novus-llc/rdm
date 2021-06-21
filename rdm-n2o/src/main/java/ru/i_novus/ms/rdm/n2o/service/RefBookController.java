@@ -11,49 +11,74 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
-import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
-import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
+import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Controller
 public class RefBookController {
 
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
 
+    private static final String REFBOOK_TYPE_DEFAULT = "refbook.type.default";
+    private static final String REFBOOK_TYPE_UNVERSIONED = "refbook.type.unversioned";
+
     private static final String REFBOOK_STATUS_ARCHIVED = "refbook.status.archived";
     private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
     private static final String REFBOOK_STATUS_PUBLISHED = "refbook.status.published";
 
-    private RefBookService refBookService;
+    private final RefBookService refBookService;
 
-    private Messages messages;
+    private final RefBookAdapter refBookAdapter;
 
-    private RdmPermission rdmPermission;
+    private final Messages messages;
+
+    private final RdmPermission rdmPermission;
 
     @Autowired
     public RefBookController(RefBookService refBookService,
+                             RefBookAdapter refBookAdapter,
                              Messages messages,
                              RdmPermission rdmPermission) {
+
         this.refBookService = refBookService;
+        this.refBookAdapter = refBookAdapter;
 
         this.messages = messages;
         this.rdmPermission = rdmPermission;
     }
 
     /**
+     * Поиск справочников.
+     * Обёртка над сервисным методом для учёта прав доступа.
+     *
+     * @param criteria критерий поиска
+     * @return Список справочников
+     */
+    @SuppressWarnings("unused") // used in: refBook.query.xml
+    public Page<UiRefBook> getList(RefBookCriteria criteria) {
+
+        return search(permitCriteria(criteria));
+    }
+
+    /**
      * Поиск справочника по версии.
      * Обёртка над сервисным методом для учёта прав доступа.
      *
-     * @param criteria критерий поиска справочника
+     * @param criteria критерий поиска
      * @return Справочник
      */
     @SuppressWarnings("unused") // used in: refBook.query.xml
-    public RefBook searchRefBook(RefBookCriteria criteria) {
+    public UiRefBook getVersionRefBook(RefBookCriteria criteria) {
 
         RefBook refBook = refBookService.getByVersionId(permitCriteria(criteria).getVersionId());
         if (refBook == null)
@@ -62,7 +87,7 @@ public class RefBookController {
         if (criteria.getExcludeDraft())
             refBook.setDraftVersionId(null);
 
-        return refBook;
+        return refBookAdapter.toUiRefBook(refBook);
     }
 
     /**
@@ -72,14 +97,13 @@ public class RefBookController {
      * @return Справочник по последней версии
      */
     @SuppressWarnings("unused") // used in: refBookVersion.query.xml
-    public RefBook searchLastVersion(RefBookCriteria criteria) {
+    public UiRefBook getLastVersion(RefBookCriteria criteria) {
 
         Page<RefBook> refBooks = refBookService.searchVersions(permitCriteria(criteria));
-
-        if (refBooks == null || CollectionUtils.isEmpty(refBooks.getContent()))
+        if (CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
-        return refBooks.getContent().get(0);
+        return refBookAdapter.toUiRefBook(refBooks.getContent().get(0));
     }
 
     /**
@@ -90,13 +114,21 @@ public class RefBookController {
      * @return Список справочников
      */
     @SuppressWarnings("unused") // used in: referenceRefBook.query.xml
-    public Page<RefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
+    public Page<UiRefBook> searchReferenceRefBooks(RefBookCriteria criteria) {
 
         criteria.setHasPublished(true);
         criteria.setExcludeDraft(true);
         criteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
 
-        return refBookService.search(permitCriteria(criteria));
+        return search(criteria);
+    }
+
+    /** Поиск справочников без учёта permission. */
+    private Page<UiRefBook> search(RefBookCriteria criteria) {
+
+        Page<RefBook> refBooks = refBookService.search(criteria);
+        List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
+        return new RestPage<>(list, criteria, refBooks.getTotalElements());
     }
 
     /**
@@ -107,9 +139,41 @@ public class RefBookController {
      */
     private RefBookCriteria permitCriteria(RefBookCriteria criteria) {
 
-        criteria.setExcludeDraft(rdmPermission.excludeDraft());
+        if (!criteria.getExcludeDraft()) {
+            boolean excludeDraft = rdmPermission.excludeDraft();
+            if (excludeDraft) criteria.setExcludeDraft(excludeDraft);
+        }
 
         return criteria;
+    }
+
+    @SuppressWarnings("unused") // used in: refBookTypeList.query.xml
+    public Page<UiRefBookType> getTypeList() {
+
+        List<UiRefBookType> list = new ArrayList<>();
+        list.add(getRefBookType(RefBookTypeEnum.DEFAULT, REFBOOK_TYPE_DEFAULT));
+        list.add(getRefBookType(RefBookTypeEnum.UNVERSIONED, REFBOOK_TYPE_UNVERSIONED));
+
+        return new RestPage<>(list, Pageable.unpaged(), list.size());
+    }
+
+    private UiRefBookType getRefBookType(RefBookTypeEnum type, String code) {
+        return new UiRefBookType(type, messages.getMessage(code));
+    }
+
+    public UiRefBookType getTypeItem(RefBookTypeCriteria criteria) {
+
+        Page<UiRefBookType> types = getTypeList();
+
+        return types.getContent().stream()
+                .filter(type -> filterType(criteria, type))
+                .findFirst().orElse(null);
+    }
+
+    private boolean filterType(RefBookTypeCriteria criteria, UiRefBookType type) {
+
+        return (criteria.getId() == null || criteria.getId().equals(type.getId())) &&
+                (criteria.getName() == null || criteria.getName().equals(type.getName()));
     }
 
     @SuppressWarnings("unused") // used in: refBookStatusList.query.xml

@@ -18,7 +18,8 @@
         </fields>
 
         <toolbar place="bottomRight">
-            <button id="download" label="Скачать">
+            <button id="download" label="Скачать"
+                    color="primary">
                 <a href="${server.servlet.context-path}/files/:versionId/:fileType" target="self">
                     <path-param name="versionId" value="{versionId}"/>
                     <path-param name="fileType" value="{fileType.id}"/>

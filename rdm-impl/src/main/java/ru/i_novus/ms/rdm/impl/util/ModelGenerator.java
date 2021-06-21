@@ -12,12 +12,14 @@ public class ModelGenerator {
     }
 
     public static RefBookVersion versionModel(RefBookVersionEntity entity) {
+
         if (entity == null) return null;
 
         RefBookVersion model = new RefBookVersion();
         model.setId(entity.getId());
         model.setRefBookId(entity.getRefBook().getId());
         model.setCode(entity.getRefBook().getCode());
+        model.setType(entity.getRefBook().getType());
         model.setCategory(entity.getRefBook().getCategory());
         model.setVersion(entity.getVersion());
         model.setComment(entity.getComment());

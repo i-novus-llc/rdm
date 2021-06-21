@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
+<object xmlns="http://n2oapp.net/framework/config/schema/object-4.0"
+        name="Справочник">
 
     <operations>
         <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
@@ -7,17 +8,18 @@
                 <rest method="POST">${rdm.backend.path}/refBook</rest>
             </invocation>
 
-            <in-parameters>
-                <param id="code" mapping="['code']" domain="string" mapper="spel"/>
-                <param id="category.id" mapping="['category']" domain="string" mapper="spel"/>
-                <param id="name" mapping="['passport.name']" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="['passport.shortName']" domain="string" mapper="spel"/>
-                <param id="description" mapping="['passport.description']" domain="string" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="code" mapping="['code']" domain="string"/>
+                <field id="type.id" mapping="['type']" domain="string" default-value="DEFAULT"/>
+                <field id="category.id" mapping="['category']" domain="string"/>
+                <field id="name" mapping="['passport.name']" domain="string"/>
+                <field id="shortName" mapping="['passport.shortName']" domain="string"/>
+                <field id="description" mapping="['passport.description']" domain="string"/>
+            </in>
 
-            <out-parameters>
-                <param id="refBookId" mapping="['refBookId']" domain="integer"/>
-            </out-parameters>
+            <out>
+                <field id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </out>
         </operation>
 
         <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
@@ -33,19 +35,19 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-                <param id="code" mapping="[2].code" domain="string" mapper="spel"/>
-                <param id="category.id" mapping="[2].category" domain="string" mapper="spel"/>
-                <param id="name" mapping="[2].name" domain="string" mapper="spel"/>
-                <param id="shortName" mapping="[2].shortName" domain="string" mapper="spel"/>
-                <param id="description" mapping="[2].description" domain="string" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="version.id" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="code" mapping="[2].code" domain="string"/>
+                <field id="category.id" mapping="[2].category" domain="string"/>
+                <field id="name" mapping="[2].name" domain="string"/>
+                <field id="shortName" mapping="[2].shortName" domain="string"/>
+                <field id="description" mapping="[2].description" domain="string"/>
+            </in>
 
-            <out-parameters>
-                <param id="id" mapping="id" domain="integer"/>
-            </out-parameters>
+            <out>
+                <field id="id" mapping="id" domain="integer"/>
+            </out>
         </operation>
 
         <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
@@ -55,9 +57,9 @@
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
 
-            <in-parameters>
-                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </in>
         </operation>
 
         <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
@@ -74,10 +76,10 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="version.id" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="version.id" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+            </in>
         </operation>
 
         <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
@@ -92,14 +94,14 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="file.path" mapping="[0].path" domain="string"/>
-                <param id="file.name" mapping="[0].name" domain="string"/>
-            </in-parameters>
+            <in>
+                <field id="file.path" mapping="[0].path" domain="string"/>
+                <field id="file.name" mapping="[0].name" domain="string"/>
+            </in>
 
-            <out-parameters>
-                <param id="refBookId" mapping="['refBookId']" domain="integer"/>
-            </out-parameters>
+            <out>
+                <field id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </out>
         </operation>
 
         <operation id="uploadFromFile" submit-label="Загрузить из файла" success-text="Файл загружен"
@@ -116,15 +118,15 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="file.path" mapping="[1].path" domain="string"/>
-                <param id="file.name" mapping="[1].name" domain="string"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="file.path" mapping="[1].path" domain="string"/>
+                <field id="file.name" mapping="[1].name" domain="string"/>
+            </in>
 
-            <out-parameters>
-                <param id="refBookId" mapping="refBookId" domain="integer"/>
-            </out-parameters>
+            <out>
+                <field id="refBookId" mapping="refBookId" domain="integer"/>
+            </out>
         </operation>
 
         <operation id="uploadData" submit-label="Загрузить данные" success-text="Данные загружены">
@@ -141,16 +143,16 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-                <param id="file.path" mapping="[2].path" domain="string"/>
-                <param id="file.name" mapping="[2].name" domain="string"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="file.path" mapping="[2].path" domain="string"/>
+                <field id="file.name" mapping="[2].name" domain="string"/>
+            </in>
 
-            <out-parameters>
-                <param id="refBookId" mapping="refBookId" domain="integer"/>
-            </out-parameters>
+            <out>
+                <field id="refBookId" mapping="refBookId" domain="integer"/>
+            </out>
         </operation>
 
         <operation id="toArchive" submit-label="Отправить в архив" success-text="Справочник отправлен в архив"
@@ -159,9 +161,9 @@
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/toArchive</rest>
             </invocation>
 
-            <in-parameters>
-                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </in>
         </operation>
 
         <operation id="fromArchive" submit-label="Вернуть из архива" success-text="Справочник возвращён из архива"
@@ -170,9 +172,28 @@
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/fromArchive</rest>
             </invocation>
 
-            <in-parameters>
-                <param id="refBookId" mapping="['refBookId']" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="refBookId" mapping="['refBookId']" domain="integer"/>
+            </in>
+        </operation>
+
+        <operation id="noOperation" name="Без выполнения действия" success-text="Данные не изменены">
+            <invocation>
+                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
+                      method="noOperation">
+                    <spring/>
+
+                    <arguments>
+                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                    </arguments>
+                </java>
+            </invocation>
+
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+            </in>
         </operation>
     </operations>
 

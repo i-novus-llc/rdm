@@ -6,11 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.VersionServiceImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nConstants;
@@ -26,20 +23,19 @@ import java.util.List;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nVersionServiceImpl extends VersionServiceImpl {
 
-    private L10nStorageCodeService storageCodeService;
+    private final L10nStorageCodeService storageCodeService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
     public L10nVersionServiceImpl(L10nStorageCodeService storageCodeService,
                                   RefBookVersionRepository versionRepository,
                                   SearchDataService searchDataService,
-                                  FileStorage fileStorage, FileNameGenerator fileNameGenerator,
-                                  VersionFileRepository versionFileRepository, VersionFileService versionFileService,
+                                  VersionFileService versionFileService,
                                   AuditLogService auditLogService) {
 
-        super(versionRepository, searchDataService,
-                fileStorage, fileNameGenerator,
-                versionFileRepository, versionFileService,
+        super(versionRepository,
+                searchDataService,
+                versionFileService,
                 auditLogService);
 
         this.storageCodeService = storageCodeService;

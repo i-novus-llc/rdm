@@ -5,6 +5,7 @@ import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.exception.FileContentException;
 import ru.i_novus.ms.rdm.api.exception.FileProcessingException;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 
 import javax.xml.stream.XMLEventReader;
@@ -21,9 +22,7 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
 
     private static final String CODE_TAG_NAME = "code";
-    private static final String PASSPORT_TAG_NAME = "passport";
-    private static final String STRUCTURE_TAG_NAME = "structure";
-    private static final String DATA_TAG_NAME = "data";
+    private static final String TYPE_TAG_NAME = "type";
 
     private static final XMLInputFactory FACTORY = XMLInputFactory.newInstance();
 
@@ -41,20 +40,17 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
     @Override
     protected RefBookCreateRequest getRefBookCreateRequest() {
 
-        String refBookCode = null;
+        String refBookCode;
+        String refBookType;
         try {
-            if(!reader.hasNext()) {
+            if (!reader.hasNext())
                 return null;
-            }
 
-            XMLEvent event = reader.nextEvent();
-            while (!isStartElementWithName(event, CODE_TAG_NAME, PASSPORT_TAG_NAME, STRUCTURE_TAG_NAME, DATA_TAG_NAME) && reader.hasNext()) {
-                event = reader.nextEvent();
-            }
+            if (reader.peek().isStartDocument())
+                reader.nextEvent();
 
-            if (isStartElementWithName(event, CODE_TAG_NAME)) {
-                refBookCode = reader.getElementText();
-            }
+            refBookCode = findTagText(CODE_TAG_NAME);
+            refBookType = findTagText(TYPE_TAG_NAME);
 
         } catch (XMLStreamException e) {
             throw new FileContentException(e);
@@ -67,10 +63,20 @@ public class XmlCreateRefBookFileProcessor extends CreateRefBookFileProcessor im
         }
 
         if (!StringUtils.isEmpty(refBookCode)) {
-            return new RefBookCreateRequest(refBookCode, null, null);
+            return new RefBookCreateRequest(refBookCode, RefBookTypeEnum.fromValue(refBookType), null, null);
         }
 
         throw new UserException(REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE);
+    }
+
+    private String findTagText(String tagName) throws XMLStreamException {
+
+        XMLEvent event = findStartElementWithName(reader, CODE_TAG_NAME, TYPE_TAG_NAME);
+        if (isStartElementWithName(event, tagName) && reader.hasNext()) {
+            reader.nextEvent();
+            return reader.getElementText();
+        }
+        return null;
     }
 
     @Override

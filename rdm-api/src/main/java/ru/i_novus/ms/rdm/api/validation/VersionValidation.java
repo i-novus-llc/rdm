@@ -8,21 +8,18 @@ public interface VersionValidation {
 
     void validateRefBook(Integer refBookId);
 
-    void validateVersion(Integer versionId);
-
-    void validateDraft(Integer draftId);
-
     void validateRefBookCode(String refBookCode);
 
     void validateRefBookExists(Integer refBookId);
 
     void validateRefBookCodeExists(String refBookCode);
 
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     void validateRefBookCodeNotExists(String refBookCode);
 
-    void validateVersionExists(Integer versionId);
+    boolean hasReferrerVersions(String refBookCode);
 
-    void validateDraftExists(Integer draftId);
+    void validateVersionExists(Integer versionId);
 
     void validateOptLockValue(Integer draftId, Integer draftLockValue, Integer optLockValue);
 
@@ -30,7 +27,7 @@ public interface VersionValidation {
 
     void validateAttributeExists(Integer versionId, Structure structure, String attribute);
 
-    void validateDraftAttributeExists(Integer versionId, String attribute);
+    void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute);
 
     void validateStructure(Structure structure);
 
@@ -41,6 +38,16 @@ public interface VersionValidation {
     void validateDraftStructure(String refBookCode, Structure draftStructure);
 
     void validateReferrerStructure(Structure structure);
+
+    void validateNewAttribute(Structure.Attribute newAttribute,
+                              Structure oldStructure, String refBookCode);
+
+    void validateNewReference(Structure.Attribute newAttribute,
+                              Structure.Reference newReference,
+                              Structure oldStructure, String refBookCode);
+
+    void validateOldAttribute(Structure.Attribute oldAttribute,
+                              Structure oldStructure, String refBookCode);
 
     boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                             List<Structure.Attribute> primaries2);

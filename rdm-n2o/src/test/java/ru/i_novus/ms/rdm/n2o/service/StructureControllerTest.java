@@ -58,8 +58,6 @@ public class StructureControllerTest extends TestCase {
     private ConflictService conflictService;
 
     @Captor
-    ArgumentCaptor<AttributeValidationRequest> validationRequestArgumentCaptor;
-    @Captor
     ArgumentCaptor<UpdateAttributeRequest> updateAttributeArgumentCaptor;
     @Captor
     ArgumentCaptor<CreateAttributeRequest> createAttributeArgumentCaptor;
@@ -130,7 +128,7 @@ public class StructureControllerTest extends TestCase {
     }
 
     /**
-     * Тест получения атрибута со всеми проверками (без соответствия типов и проверок)
+     * Тест получения атрибута со всеми проверками (без соответствия типов и проверок).
      */
     @Test
     public void testReadValidations() {
@@ -153,7 +151,7 @@ public class StructureControllerTest extends TestCase {
     }
 
     /**
-     * Тест получения по умолчанию (для создания атрибута).
+     * Тест получения по умолчанию (для добавления атрибута).
      */
     @Test
     public void testReadDefault() {
@@ -172,26 +170,24 @@ public class StructureControllerTest extends TestCase {
     }
 
     /**
-     * Тест обновления атрибута со всеми проверками
+     * Тест обновления атрибута со всеми проверками.
      */
     @Test
-    public void testUpdateValidations() throws Exception {
-
-        Structure structure = new Structure();
-        when(versionService.getStructure(eq(versionId))).thenReturn(structure);
+    public void testUpdateAttributeWithValidations() {
 
         FormAttribute formAttribute = createAllValidationAttribute();
         structureController.updateAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).updateAttribute(eq(versionId), updateAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), validationRequestArgumentCaptor.capture());
+        verify(draftService, times(1))
+                .updateAttribute(eq(versionId), updateAttributeArgumentCaptor.capture());
 
-        assertValidationListEquals(expectedValidations, validationRequestArgumentCaptor.getValue().getValidations());
-        assertEquals(testCode, updateAttributeArgumentCaptor.getValue().getCode());
+        UpdateAttributeRequest request = updateAttributeArgumentCaptor.getValue();
+        assertEquals(testCode, request.getCode());
+        assertValidationListEquals(expectedValidations, request.getValidations());
     }
 
     /**
-     * Тест обновления атрибута со всеми проверками
+     * Тест добавления атрибута-ссылки.
      */
     @Test
     public void testCreateReference() {
@@ -210,19 +206,23 @@ public class StructureControllerTest extends TestCase {
 
         structureController.createAttribute(versionId, null, formAttribute);
 
-        verify(draftService, times(1)).createAttribute(eq(versionId), createAttributeArgumentCaptor.capture());
-        verify(draftService, times(1)).updateAttributeValidations(eq(versionId), any(AttributeValidationRequest.class));
+        verify(draftService, times(1))
+                .createAttribute(eq(versionId), createAttributeArgumentCaptor.capture());
 
-        CreateAttributeRequest actual = createAttributeArgumentCaptor.getValue();
-        assertEquals(testCode, actual.getAttribute().getCode());
-        assertEquals(testName, actual.getAttribute().getName());
-        assertEquals(testDescription, actual.getAttribute().getDescription());
-        assertEquals(FieldType.REFERENCE, actual.getAttribute().getType());
-        assertFalse(actual.getAttribute().hasIsPrimary());
-        assertFalse(actual.getAttribute().isLocalizable());
-        assertEquals(testCode, actual.getReference().getAttribute());
-        assertEquals(referenceDisplayExpression, actual.getReference().getDisplayExpression());
-        assertEquals(referenceCode, actual.getReference().getReferenceCode());
+        CreateAttributeRequest request = createAttributeArgumentCaptor.getValue();
+
+        Structure.Attribute attribute = request.getAttribute();
+        assertEquals(testCode, attribute.getCode());
+        assertEquals(testName, attribute.getName());
+        assertEquals(testDescription, attribute.getDescription());
+        assertEquals(FieldType.REFERENCE, attribute.getType());
+        assertFalse(attribute.hasIsPrimary());
+        assertFalse(attribute.isLocalizable());
+
+        Structure.Reference reference = request.getReference();
+        assertEquals(testCode, reference.getAttribute());
+        assertEquals(referenceDisplayExpression, reference.getDisplayExpression());
+        assertEquals(referenceCode, reference.getReferenceCode());
     }
 
     /**
@@ -302,51 +302,49 @@ public class StructureControllerTest extends TestCase {
     }
 
     private void assertValidationEquals(AttributeValidation expected, AttributeValidation actual) {
+
         switch (expected.getType()) {
-            case REQUIRED:
-                assertEquals(REQUIRED, actual.getType());
-                break;
-
-            case UNIQUE:
-                assertEquals(UNIQUE, actual.getType());
-                break;
-
-            case PLAIN_SIZE:
+            case REQUIRED -> assertEquals(REQUIRED, actual.getType());
+            case UNIQUE -> assertEquals(UNIQUE, actual.getType());
+            case PLAIN_SIZE -> {
                 assertEquals(PLAIN_SIZE, actual.getType());
-                assertEquals(((PlainSizeAttributeValidation) expected).getSize(), ((PlainSizeAttributeValidation) expected).getSize());
-                break;
-
-            case FLOAT_SIZE:
+                assertEquals(((PlainSizeAttributeValidation) expected).getSize(),
+                        ((PlainSizeAttributeValidation) expected).getSize());
+            }
+            case FLOAT_SIZE -> {
                 assertEquals(FLOAT_SIZE, actual.getType());
-                assertEquals(((FloatSizeAttributeValidation) expected).getIntPartSize(), ((FloatSizeAttributeValidation) expected).getIntPartSize());
-                assertEquals(((FloatSizeAttributeValidation) expected).getFracPartSize(), ((FloatSizeAttributeValidation) expected).getFracPartSize());
-                break;
-
-            case INT_RANGE:
+                assertEquals(((FloatSizeAttributeValidation) expected).getIntPartSize(),
+                        ((FloatSizeAttributeValidation) expected).getIntPartSize());
+                assertEquals(((FloatSizeAttributeValidation) expected).getFracPartSize(),
+                        ((FloatSizeAttributeValidation) expected).getFracPartSize());
+            }
+            case INT_RANGE -> {
                 assertEquals(INT_RANGE, actual.getType());
-                assertEquals(((IntRangeAttributeValidation) expected).getMin(), ((IntRangeAttributeValidation) expected).getMin());
-                assertEquals(((IntRangeAttributeValidation) expected).getMax(), ((IntRangeAttributeValidation) expected).getMax());
-                break;
-
-            case FLOAT_RANGE:
+                assertEquals(((IntRangeAttributeValidation) expected).getMin(),
+                        ((IntRangeAttributeValidation) expected).getMin());
+                assertEquals(((IntRangeAttributeValidation) expected).getMax(),
+                        ((IntRangeAttributeValidation) expected).getMax());
+            }
+            case FLOAT_RANGE -> {
                 assertEquals(FLOAT_RANGE, actual.getType());
-                assertEquals(((FloatRangeAttributeValidation) expected).getMin(), ((FloatRangeAttributeValidation) expected).getMin());
-                assertEquals(((FloatRangeAttributeValidation) expected).getMax(), ((FloatRangeAttributeValidation) expected).getMax());
-                break;
-
-            case DATE_RANGE:
+                assertEquals(((FloatRangeAttributeValidation) expected).getMin(),
+                        ((FloatRangeAttributeValidation) expected).getMin());
+                assertEquals(((FloatRangeAttributeValidation) expected).getMax(),
+                        ((FloatRangeAttributeValidation) expected).getMax());
+            }
+            case DATE_RANGE -> {
                 assertEquals(DATE_RANGE, actual.getType());
-                assertEquals(((DateRangeAttributeValidation) expected).getMin(), ((DateRangeAttributeValidation) expected).getMin());
-                assertEquals(((DateRangeAttributeValidation) expected).getMax(), ((DateRangeAttributeValidation) expected).getMax());
-                break;
-
-            case REG_EXP:
+                assertEquals(((DateRangeAttributeValidation) expected).getMin(),
+                        ((DateRangeAttributeValidation) expected).getMin());
+                assertEquals(((DateRangeAttributeValidation) expected).getMax(),
+                        ((DateRangeAttributeValidation) expected).getMax());
+            }
+            case REG_EXP -> {
                 assertEquals(REG_EXP, actual.getType());
-                assertEquals(((RegExpAttributeValidation) expected).getRegExp(), ((RegExpAttributeValidation) expected).getRegExp());
-                break;
-
-            default:
-                fail();
+                assertEquals(((RegExpAttributeValidation) expected).getRegExp(),
+                        ((RegExpAttributeValidation) expected).getRegExp());
+            }
+            default -> fail();
         }
     }
 

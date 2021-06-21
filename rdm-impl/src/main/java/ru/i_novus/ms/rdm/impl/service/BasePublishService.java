@@ -49,27 +49,27 @@ class BasePublishService {
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
-    private RefBookVersionRepository versionRepository;
+    private final RefBookVersionRepository versionRepository;
 
-    private DraftDataService draftDataService;
-    private SearchDataService searchDataService;
-    private DropDataService dropDataService;
+    private final DraftDataService draftDataService;
+    private final SearchDataService searchDataService;
+    private final DropDataService dropDataService;
 
-    private RefBookLockService refBookLockService;
-    private VersionService versionService;
-    private ConflictService conflictService;
+    private final RefBookLockService refBookLockService;
+    private final VersionService versionService;
+    private final ConflictService conflictService;
 
-    private VersionFileService versionFileService;
-    private VersionNumberStrategy versionNumberStrategy;
+    private final VersionFileService versionFileService;
+    private final VersionNumberStrategy versionNumberStrategy;
 
-    private VersionValidation versionValidation;
-    private VersionPeriodPublishValidation versionPeriodPublishValidation;
+    private final VersionValidation versionValidation;
+    private final VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private AuditLogService auditLogService;
+    private final AuditLogService auditLogService;
 
-    private AsyncOperationQueue asyncQueue;
+    private final AsyncOperationQueue asyncQueue;
 
-    private JmsTemplate jmsTemplate;
+    private final JmsTemplate jmsTemplate;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
@@ -116,13 +116,15 @@ class BasePublishService {
     @Transactional
     public PublishResponse publish(Integer draftId, PublishRequest request) {
 
-        PublishResponse result = new PublishResponse();
-
+        // Получение версии-черновика и Предварительная валидация
         RefBookVersionEntity draftEntity = getVersionOrThrow(draftId);
         if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
-            return null;
+            return null; // Почему не в валидации?
 
         validatePublishingDraft(draftEntity);
+
+        // Предварительное заполнение значений
+        PublishResponse result = new PublishResponse();
 
         Integer refBookId = draftEntity.getRefBook().getId();
         String oldStorageCode = draftEntity.getStorageCode();
@@ -132,6 +134,8 @@ class BasePublishService {
         try {
             versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
 
+            // Дополнительное заполнение значений с валидацией
+            // NB: Получение versionName должно быть в одной транзации с сохранением в версии.
             String versionName = nextVersionNumberOrThrow(request.getVersionName(), refBookId);
 
             LocalDateTime fromDate = request.getFromDate();
@@ -143,13 +147,14 @@ class BasePublishService {
 
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
+            // Получение старой версии
             RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
+
+            // Создание и заполнение хранилища новой версии на основе старой версии и версии-черновика
             String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
             newStorageCode = draftDataService.applyDraft(lastStorageCode, oldStorageCode, fromDate, toDate);
 
-            Set<String> droppedDataStorages = new HashSet<>();
-            droppedDataStorages.add(draftEntity.getStorageCode());
-
+            // Смена версии-черновика на опубликованную версию
             draftEntity.setStorageCode(newStorageCode);
             draftEntity.setVersion(versionName);
             draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
@@ -161,15 +166,23 @@ class BasePublishService {
             draftEntity.refreshLastActionDate();
             versionRepository.save(draftEntity);
 
+            // Заполнение результата публикации
             result.setRefBookCode(draftEntity.getRefBook().getCode());
             result.setOldId(lastPublishedEntity != null ? lastPublishedEntity.getId() : null);
             result.setNewId(draftId);
+
+            // Обнаружение конфликтов
+            // NB: Обнаружение должно быть до удаления хранилища oldStorageCode.
 
             // Конфликты могут быть только при наличии
             // ссылочных атрибутов со значениями для ранее опубликованной версии.
             if (result.getOldId() != null) {
                 conflictService.discoverConflicts(result.getOldId(), result.getNewId());
             }
+
+            // Удаление ненужных хранилищ
+            Set<String> droppedDataStorages = new HashSet<>();
+            droppedDataStorages.add(oldStorageCode);
 
             if (lastPublishedEntity != null && lastStorageCode != null
                     && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
@@ -179,12 +192,15 @@ class BasePublishService {
             }
             dropDataService.drop(droppedDataStorages);
 
+            // Генерация файлов для опубликованной версии
             saveVersionToFiles(draftId);
 
+            // Выполнение действий после публикации
             PostPublishRequest postRequest = new PostPublishRequest(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
             postPublish(draftEntity.getRefBook().getCode(), postRequest);
 
         } catch (Exception e) {
+            // Откат создания хранилища
             if (!StringUtils.isEmpty(newStorageCode)) {
                 dropDataService.drop(newStorageCode);
             }

@@ -7,7 +7,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -35,9 +35,9 @@ public class StructureRowMapperTest {
     public void testOurSuperUniversalRowMapper() {
         String refererCode = "REFERER_CODE";
         String refererStorageCode = "666";
-        LocalDateTime refererPublishDateTime = LocalDate.of(1970, 01, 01).atStartOfDay();
+        LocalDateTime refererPublishDateTime = LocalDate.of(1970, 1, 1).atStartOfDay();
         RefBookVersionEntity refererVersion = new RefBookVersionEntity();
-        refererVersion.setRefBook(new RefBookEntity());
+        refererVersion.setRefBook(new DefaultRefBookEntity());
         refererVersion.getRefBook().setCode(refererCode);
         refererVersion.setStorageCode(refererStorageCode);
         refererVersion.setFromDate(refererPublishDateTime);

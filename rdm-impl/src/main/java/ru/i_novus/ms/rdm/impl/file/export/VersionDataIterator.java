@@ -9,25 +9,33 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
+ * Итератор записей коллекции версий справочника.
+ *
  * Created by znurgaliev on 23.07.2018.
  */
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionDataIterator implements Iterator<Row> {
 
     private static final int BUFFER_SIZE = 1000;
-    private int currentPage = 0;
-    private Iterator<Integer> versionIdIterator;
+
+    private final VersionService versionService;
+    private final Iterator<Integer> versionIdIterator;
+
     private Integer currentVersionId;
-    private VersionService versionService;
     private Iterator<RefBookRowValue> buffer;
+
+    private int currentPage = 0;
     private boolean hasNext = true;
 
-    public VersionDataIterator(VersionService versionService, List<Integer> versionIdList) {
+    public VersionDataIterator(VersionService versionService, Collection<Integer> versionIds) {
+
         this.versionService = versionService;
-        this.versionIdIterator = versionIdList.iterator();
+        this.versionIdIterator = versionIds.iterator();
+
         this.currentVersionId = this.versionIdIterator.next();
     }
 

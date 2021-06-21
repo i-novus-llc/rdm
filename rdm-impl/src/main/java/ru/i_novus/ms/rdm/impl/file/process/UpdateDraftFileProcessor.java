@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
-    private Integer refBookId;
+    private final Integer refBookId;
 
-    private DraftService draftService;
+    private final DraftService draftService;
 
     public UpdateDraftFileProcessor(Integer refBookId, DraftService draftService) {
         this.refBookId = refBookId;
@@ -36,10 +38,11 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
     @Override
     public Draft process(Supplier<InputStream> fileSource) {
 
-        Map<String, Object> passport = null;
-        Pair<Structure, Map<String, List<AttributeValidation>>> pair = null;
+        Map<String, Object> passport;
+        Pair<Structure, Map<String, List<AttributeValidation>>> pair;
 
-        try(InputStream inputStream = fileSource.get()) {
+        try (InputStream inputStream = fileSource.get()) {
+
             setFile(inputStream);
             passport = getPassport();
             pair = getStructureAndValidations();
@@ -54,7 +57,8 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             throw new FileProcessingException(e);
         }
 
-        if (passport != null && pair != null) {
+        if (passport != null && pair != null && !isEmpty(pair.getFirst())) {
+
             CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
             request.setReferrerValidationRequired(true);
             return draftService.create(request);

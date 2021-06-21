@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.impl.entity;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -181,22 +180,21 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
-     * Проверка на операцию, выполняемую над справочником.
-     *
-     * @param operation операция
-     * @return Результат проверки
-     */
-    public boolean isOperation(RefBookOperation operation) {
-        return refBookOperation != null && operation.equals(refBookOperation.getOperation());
-    }
-
-    /**
      * Проверка статуса версии на DRAFT.
      *
      * @return Результат проверки
      */
     public boolean isDraft() {
         return RefBookVersionStatus.DRAFT.equals(status);
+    }
+
+    /**
+     * Проверка версии на изменяемость.
+     *
+     * @return Результат проверки
+     */
+    public boolean isChangeable() {
+        return refBook != null && refBook.isChangeableVersion(this);
     }
 
     /**
@@ -334,38 +332,32 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
-     * Преобразование набора строк в паспорт справочника.
+     * Преобразование набора значений в паспорт справочника.
      *
-     * @param passport      набор значений-строк
-     * @param allValues     признак преобразования всех значений:
-     *                      если false, то преобразуются только не-null значения
-     * @param versionEntity версия, указываемая в паспортных данных
+     * @param passport  набор значений
+     * @param allValues признак преобразования всех значений:
+     *                  если false, то преобразуются только не-null значения
+     * @param entity    сущность-версия, указываемая в паспортных данных
      * @return Паспорт справочника
      */
-    public static List<PassportValueEntity> stringPassportToValues(Map<String, String> passport,
-                                                                   boolean allValues,
-                                                                   RefBookVersionEntity versionEntity) {
+    public static List<PassportValueEntity> toPassportValues(Map<String, ?> passport,
+                                                             boolean allValues,
+                                                             RefBookVersionEntity entity) {
         return passport.entrySet().stream()
                 .filter(e -> allValues || e.getValue() != null)
-                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), e.getValue(), versionEntity))
+                .map(e -> toPassportValue(e, entity))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Преобразование набора значений в паспорт справочника.
+     * Преобразование пары название-значение в значение атрибута паспорта справочника.
      *
-     * @param passport      набор значений
-     * @param allValues     признак преобразования всех значений:
-     *                      если false, то преобразуются только не-null значения
-     * @param versionEntity версия, указываемая в паспортных данных
-     * @return Паспорт справочника
+     * @param entry     пара название-значение
+     * @param entity    сущность-версия, указываемая в паспортных данных
+     * @return Значение атрибута паспорта справочника
      */
-    public static List<PassportValueEntity> objectPassportToValues(Map<String, Object> passport,
-                                                                   boolean allValues,
-                                                                   RefBookVersionEntity versionEntity) {
-        return passport.entrySet().stream()
-                .filter(e -> allValues || e.getValue() != null)
-                .map(e -> new PassportValueEntity(new PassportAttributeEntity(e.getKey()), (String) e.getValue(), versionEntity))
-                .collect(Collectors.toList());
+    private static PassportValueEntity toPassportValue(Map.Entry<String, ?> entry,
+                                                       RefBookVersionEntity entity) {
+        return new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), (String) entry.getValue(), entity);
     }
 }

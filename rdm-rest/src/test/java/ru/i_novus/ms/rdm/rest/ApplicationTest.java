@@ -398,7 +398,7 @@ public class ApplicationTest {
         Map<String, String> passportMap = new HashMap<>();
         passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
         nameCriteria.setPassport(passportMap);
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, null, passportMap));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, null, null, passportMap));
 
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
@@ -1219,13 +1219,14 @@ public class ApplicationTest {
 
     @Test
     public void testExportImportDraftFile() throws IOException {
-        //создание справочника из файла
+
+        // Создание справочника из файла
         RefBook refBook = refBookService.create(createRefBookCreateRequest("Z002"));
         FileModel fileModel = createFileModel("create_testUpload.xlsx", "testUpload.xlsx");
         Draft draft1 = draftService.create(refBook.getRefBookId(), fileModel);
         Page<RefBookRowValue> expectedPage = draftService.search(draft1.getId(), new SearchDataCriteria());
 
-        //выгрузка файла
+        // Выгрузка файла
         ExportFile exportFile = draftService.getDraftFile(draft1.getId(), FileType.XLSX);
         ZipInputStream zis = new ZipInputStream(exportFile.getInputStream());
         ZipEntry zipEntry = zis.getNextEntry();
@@ -1234,12 +1235,12 @@ public class ApplicationTest {
         }
         fileModel = fileStorageService.save(zis, zipEntry.getName());
 
-        //создание нового черновика из выгруженного
+        // Создание нового черновика из выгруженного
         Draft draft2 = draftService.create(refBook.getRefBookId(), fileModel);
         assertNotEquals(draft1, draft2);
         Page<RefBookRowValue> actualPage = draftService.search(draft2.getId(), new SearchDataCriteria());
 
-        //сравнение двух черновиков
+        // Сравнение двух черновиков
         assertEquals(expectedPage, actualPage);
     }
 
@@ -1508,7 +1509,7 @@ public class ApplicationTest {
         Integer draftId = draft.getId();
 
         Draft actualDraft = draftService.getDraft(draftId);
-        assertEquals(Integer.valueOf(0), actualDraft.getOptLockValue());
+        assertEquals(draft.getOptLockValue(), actualDraft.getOptLockValue());
 
         // Создание атрибута.
         draft = actualDraft;
@@ -2171,15 +2172,15 @@ public class ApplicationTest {
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order1");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order3");
-        RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, null, passport));
+        RefBook refBook1 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 2, null, null, passport));
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order2");
-        RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, null, passport));
+        RefBook refBook2 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 3, null, null, passport));
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order3");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order1");
-        RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, null, passport));
+        RefBook refBook3 = refBookService.create(new RefBookCreateRequest(REFBOOK_CODE + 1, null, null, passport));
 
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REFBOOK_CODE);
@@ -2738,15 +2739,16 @@ public class ApplicationTest {
     }
 
     private void failCreateRefBook(String filename, String message) {
+
+        String failText = String.format("При создании справочника из файла '%s' ожидается ошибка:\n%s", filename, message);
         try {
             FileModel fileModel = createFileModel("testCreate_" + filename, "testCreate/" + filename);
             refBookService.create(fileModel);
 
-            fail("Ожидается ошибка:\n" + message);
+            fail(failText);
 
         } catch (RestException e) {
-
-            assertEquals(message, getExceptionMessage(e));
+            assertEquals(failText, message, getExceptionMessage(e));
 
         }
     }
@@ -3119,7 +3121,7 @@ public class ApplicationTest {
     }
 
     private RefBookCreateRequest createRefBookCreateRequest(String refBookCode) {
-        return new RefBookCreateRequest(refBookCode, null, null);
+        return new RefBookCreateRequest(refBookCode, null, null, null);
     }
 
     private void updateData(Integer draftId, Row row, Integer optLockValue) {

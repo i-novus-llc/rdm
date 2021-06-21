@@ -1,10 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<object xmlns="http://n2oapp.net/framework/config/schema/object-3.0" name="Справочник">
-
-    <!-- to-do: Убрать, когда будет сделана https://jira.i-novus.ru/browse/NNO-4199 -->
-    <fields>
-        <field id="hasDataConflict"/>
-    </fields>
+<object xmlns="http://n2oapp.net/framework/config/schema/object-4.0"
+        name="Запись справочника">
 
     <operations>
         <operation id="deleteRecord" submit-label="Удалить" success-text="Запись успешно удалена"
@@ -22,11 +18,11 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer" mapper="spel"/>
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-                <param id="id" mapping="[2]" domain="long" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer"/>
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="id" mapping="[2]" domain="long"/>
+            </in>
         </operation>
 
         <operation id="deleteAllRecords" submit-label="Удалить все" success-text="Все записи успешно удалены"
@@ -43,10 +39,10 @@
                 </java>
             </invocation>
 
-            <in-parameters>
-                <param id="versionId" mapping="[0]" domain="integer" mapper="spel" />
-                <param id="optLockValue" mapping="[1]" domain="integer" mapper="spel"/>
-            </in-parameters>
+            <in>
+                <field id="versionId" mapping="[0]" domain="integer" />
+                <field id="optLockValue" mapping="[1]" domain="integer"/>
+            </in>
         </operation>
     </operations>
 

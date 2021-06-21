@@ -4,6 +4,7 @@
     <unique filters="versionId" result-mapping="#this">
         <java method="getById">
             <spring bean="versionRestServiceJaxRsProxyClient"/>
+            
             <arguments>
                 <argument type="primitive" name="versionId" class="java.lang.Integer"/>
             </arguments>

@@ -29,11 +29,11 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.castReferenceValue;
-import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 
 /**
  * Проверка конкретного строкового значения на ссылочную целостность.
  */
+@SuppressWarnings("java:S3740")
 public class ReferenceValueValidation extends AppendRowValidation {
 
     public static final String REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE = "validation.reference.value.not.found";
@@ -47,10 +47,11 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private final List<Structure.Reference> referenceKeys;
     private final List<String> referenceKeyCodes;
 
-    private List<Map<Structure.Reference, String>> referenceKeyMaps;
-    private Map<String, List<RefBookRowValue>> referenceSearchValuesMap;
+    private final List<Map<Structure.Reference, String>> referenceKeyMaps;
+    private final Map<String, List<RefBookRowValue>> referenceSearchValuesMap;
 
     public ReferenceValueValidation(VersionService versionService, Structure structure, List<Row> rows) {
+
         this.versionService = versionService;
 
         this.structure = structure;
@@ -92,7 +93,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Message validate(Structure.Reference reference, Map<String, Object> rowData) {
 
-        String referenceValue = toReferenceValue(reference.getAttribute(), rowData);
+        String referenceValue = getReferenceValue(reference.getAttribute(), rowData);
         if (StringUtils.isEmpty(referenceValue))
             return null;
 
@@ -113,7 +114,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
         Map<Structure.Reference, String> map = new HashMap<>();
         referenceKeys.stream()
                 .filter(reference -> row.getData().get(reference.getAttribute()) != null)
-                .forEach(ref -> map.put(ref, toReferenceValue(ref.getAttribute(), row.getData())));
+                .forEach(ref -> map.put(ref, getReferenceValue(ref.getAttribute(), row.getData())));
         return map;
     }
 
@@ -162,11 +163,11 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private Set<List<AttributeFilter>> createSearchFilters(Structure.Reference reference, List<Row> rows, Structure.Attribute referredAttribute) {
 
         List<String> referenceValues = rows.stream()
-                .map(row -> toReferenceValue(reference.getAttribute(), row.getData()))
+                .map(row -> getReferenceValue(reference.getAttribute(), row.getData()))
                 .filter(Objects::nonNull)
                 .distinct().collect(toList());
 
-        Field referredField = field(referredAttribute);
+        Field referredField = ConverterUtil.field(referredAttribute);
         List<Serializable> referredValues = referenceValues.stream()
                 .map(referenceValue -> castReferenceValue(referredField, referenceValue))
                 .filter(Objects::nonNull)
@@ -177,6 +178,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
                 .collect(toSet());
     }
 
+    /** Получение последней опубликованной версии справочника, на который ссылаются. */
     private RefBookVersion getReferredVersion(Structure.Reference reference) {
         try {
             return versionService.getLastPublishedVersion(reference.getReferenceCode());
@@ -203,7 +205,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
     private RefBookRowValue toReferredRowValue(String attribute, RefBookRowValue rowValue) {
 
         FieldValue fieldValue = rowValue.getFieldValue(attribute);
-        String value = ConverterUtil.toString(fieldValue.getValue());
+        String value = ConverterUtil.toStringValue(fieldValue.getValue());
         List<FieldValue> fieldValues = singletonList(new StringFieldValue(attribute, value));
         rowValue.setFieldValues(fieldValues);
 
@@ -212,7 +214,7 @@ public class ReferenceValueValidation extends AppendRowValidation {
 
     private Message createMessage(String attributeCode, Map<String, Object> rowData) {
         return new Message(REFERENCE_VALUE_NOT_FOUND_CODE_EXCEPTION_CODE,
-                structure.getAttribute(attributeCode).getName(), toReferenceValue(attributeCode, rowData));
+                structure.getAttribute(attributeCode).getName(), getReferenceValue(attributeCode, rowData));
     }
 
     /**
@@ -232,7 +234,8 @@ public class ReferenceValueValidation extends AppendRowValidation {
         });
     }
 
-    private String toReferenceValue(String attributeCode, Map<String, Object> rowData) {
+    private String getReferenceValue(String attributeCode, Map<String, Object> rowData) {
+
         Object value = rowData.get(attributeCode);
         return (value != null) ? ((Reference) value).getValue() : null;
     }

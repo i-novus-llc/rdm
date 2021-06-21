@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202104021315_RDM-828_add_type_column" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="ref_book" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <comment>Добавление поля Тип для справочника</comment>
+        <sql>
+            <![CDATA[
+                ALTER TABLE n2o_rdm_management.ref_book ADD COLUMN type VARCHAR;
+
+                COMMENT ON COLUMN n2o_rdm_management.ref_book.type IS 'Тип справочника';
+                COMMENT ON COLUMN n2o_rdm_management.ref_book.category IS 'Категория справочника';
+
+                UPDATE n2o_rdm_management.ref_book SET type = 'DEFAULT';
+                ALTER TABLE n2o_rdm_management.ref_book ALTER COLUMN type SET DEFAULT 'DEFAULT';
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

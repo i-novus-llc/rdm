@@ -143,16 +143,9 @@ public class UpdateRecordGetterResolverTest extends BaseTest {
         version.setRefBookId(TEST_REFBOOK_ID);
         version.setCode(TEST_REFBOOK_CODE);
 
-        version.setStructure(createStructure());
+        version.setStructure(new Structure(DEFAULT_STRUCTURE));
 
         return version;
-    }
-
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
-    private Structure createStructure() {
-
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
     }
 
     private RefBookRowValue createRowValue() {

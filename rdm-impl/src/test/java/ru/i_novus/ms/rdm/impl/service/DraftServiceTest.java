@@ -2,9 +2,10 @@ package ru.i_novus.ms.rdm.impl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.internal.util.reflection.FieldSetter;
@@ -13,24 +14,29 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
-import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
-import ru.i_novus.ms.rdm.api.model.refdata.*;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
+import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.FileNameGenerator;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.impl.file.MockFileStorage;
-import ru.i_novus.ms.rdm.impl.file.UploadFileTestData;
-import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.*;
-import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.data.DeleteAllRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.UpdateRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -40,13 +46,11 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 import ru.i_novus.platform.datastorage.temporal.service.*;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
@@ -60,13 +64,17 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceTest {
 
-    private static final String TEST_STORAGE_CODE = "test_storage_code";
-    private static final String TEST_DRAFT_CODE = "test_draft_code";
-    private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
-    private static final String TEST_REF_BOOK = "test_ref_book";
-    private static final int REFBOOK_ID = 2;
+    private static final String ERROR_WAITING = "Ожидается ошибка: ";
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final int REFBOOK_ID = 1;
+    private static final String REF_BOOK_CODE = "test_refbook";
+
+    private static final int DRAFT_ID = 2;
+    private static final String DRAFT_CODE = "draft_code";
+    private static final String NEW_DRAFT_CODE = "new_draft_code";
+    private static final int PUBLISHED_VERSION_ID = 3;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private DraftServiceImpl draftService;
@@ -88,11 +96,6 @@ public class DraftServiceTest {
     @Mock
     private RefBookLockService refBookLockService;
 
-    @Spy
-    private FileStorage fileStorage = new MockFileStorage();
-    @Mock
-    private FileNameGenerator fileNameGenerator;
-
     @Mock
     private VersionValidationImpl versionValidation;
     @Mock
@@ -105,9 +108,6 @@ public class DraftServiceTest {
     private AttributeValidationRepository attributeValidationRepository;
 
     @Mock
-    private PerRowFileGeneratorFactory fileGeneratorFactory;
-
-    @Mock
     private FieldFactory fieldFactory;
 
     @Mock
@@ -118,6 +118,19 @@ public class DraftServiceTest {
 
     @Mock
     private RefBookConflictRepository conflictRepository;
+
+    @Mock
+    private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+    @Mock
+    private FindDraftEntityStrategy findDraftEntityStrategy;
+    @Mock
+    private CreateDraftEntityStrategy createDraftEntityStrategy;
+    @Mock
+    private CreateDraftStorageStrategy createDraftStorageStrategy;
+    @Mock
+    private UpdateRowValuesStrategy updateRowValuesStrategy;
+    @Mock
+    private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
     private static final String PK_SUFFIX = "_pk";
@@ -155,8 +168,11 @@ public class DraftServiceTest {
 
         JsonUtil.jsonMapper = objectMapper;
 
-        reset(draftDataService, fileNameGenerator, fileGeneratorFactory);
-        when(draftDataService.createDraft(anyList())).thenReturn(TEST_DRAFT_CODE_NEW);
+        reset(draftDataService);
+        when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);
+
+        final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+        FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
 
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("draftDataService"), draftDataService);
         FieldSetter.setField(structureChangeValidator, StructureChangeValidator.class.getDeclaredField("searchDataService"), searchDataService);
@@ -167,238 +183,149 @@ public class DraftServiceTest {
     }
 
     @Test
-    public void testStructureToString() {
-        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
+    public void testCreateWhenDraftWithSameStructure() {
 
-        assertNotNull(testDraftVersion.getStructure().toString());
-    }
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
+                .thenReturn(draftEntity);
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(draftEntity);
 
-    @Test
-    public void testCreateWithExistingDraftSameStructure() {
-        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(testDraftVersion);
+        Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
+        Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
 
-        Draft expected = new Draft(1, TEST_DRAFT_CODE, testDraftVersion.getOptLockValue());
-        Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, testDraftVersion.getStructure()));
-
-        verify(draftDataService).deleteAllRows(eq(TEST_DRAFT_CODE));
+        verify(deleteAllRowValuesStrategy).deleteAll(eq(draftEntity));
         assertEquals(expected, actual);
     }
 
     @Test
-    public void testCreateWithExistingDraftDifferentStructure() {
-        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity();
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenAnswer(v -> {
+    public void testCreateWhenDraftWithDifferentStructure() {
+
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        draftEntity.getStructure().add(
+                Structure.Attribute.build("temp_attr", "temp_attr", FieldType.STRING, null),
+                null);
+
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenAnswer(v -> {
             RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
-            saved.setId(testDraftVersion.getId() + 1);
+            saved.setId(draftEntity.getId() + 1);
             return saved;
         });
 
         Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
 
+        mockCreateDraftEntityStrategy(draftEntity.getRefBook(), structure);
+
         Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
 
-        assertNotEquals(testDraftVersion.getId(), draftActual.getId());
-        assertNotEquals(TEST_DRAFT_CODE, draftActual.getStorageCode());
+        assertNotEquals(draftEntity.getId(), draftActual.getId());
+        assertNotEquals(DRAFT_CODE, draftActual.getStorageCode());
     }
 
     @Test
-    public void testCreateWithoutDraftWithPublishedVersion() {
+    public void testCreateWhenPublished() {
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
 
-        RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
+        RefBookVersionEntity publishedEntity = createPublishedEntity();
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
-                .thenReturn(lastRefBookVersion);
+                .thenReturn(publishedEntity);
 
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(REFBOOK_ID);
-        expectedRefBookVersion.setId(null);
-        expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
-        expectedRefBookVersion.getRefBook().setCode(TEST_REF_BOOK);
-        when(versionRepository.save(eq(expectedRefBookVersion))).thenReturn(expectedRefBookVersion);
+        mockCreateDraftEntityStrategy(publishedEntity.getRefBook(), publishedEntity.getStructure());
+
+        RefBookVersionEntity savedDraftEntity = createDraftEntity();
+        savedDraftEntity.setId(null);
+        savedDraftEntity.setStorageCode(NEW_DRAFT_CODE);
+        when(versionRepository.saveAndFlush(eq(savedDraftEntity))).thenReturn(savedDraftEntity);
 
         draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure()));
 
-        verify(versionRepository).save(eq(expectedRefBookVersion));
+        verify(versionRepository).saveAndFlush(eq(savedDraftEntity));
     }
 
     @Test
-    public void testCreateDraftFromXlsFileWithDraft() {
+    public void testCreateFromVersion() {
 
-        RefBookVersionEntity testDraftVersion = createTestDraftVersionEntity(REFBOOK_ID);
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(testDraftVersion);
+        // .createFromVersion
+        RefBookVersionEntity versionEntity = createPublishedEntity();
+        when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
+        when(attributeValidationRepository.findAllByVersionId(versionEntity.getId())).thenReturn(emptyList());
 
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(testDraftVersion.getRefBook().getId());
-        expectedRefBookVersion.setId(testDraftVersion.getId());
-        expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
+        // .create
+        RefBookEntity refBookEntity = versionEntity.getRefBook();
+        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookEntity.getId(), RefBookVersionStatus.PUBLISHED))
+                .thenReturn(versionEntity);
 
-        Structure structure = new Structure();
-        setTestStructure(structure);
-        expectedRefBookVersion.setStructure(structure);
+        mockCreateDraftEntityStrategy(refBookEntity, versionEntity.getStructure());
 
-        draftService.create(testDraftVersion.getRefBook().getId(), createTestFileModel("/", "R002", "xlsx"));
+        ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        when(versionRepository.saveAndFlush(captor.capture())).thenReturn(new RefBookVersionEntity());
 
-        verify(versionRepository).save(eq(expectedRefBookVersion));
-    }
+        Draft draft = draftService.createFromVersion(versionEntity.getId());
+        assertNotNull(draft);
 
-    private void setTestStructure(Structure structure) {
-        structure.setAttributes(asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.STRING, "DATEBEG"),
-                Structure.Attribute.build("DATEEND", "DATEEND", FieldType.STRING, "DATEEND")
-        ));
-    }
-
-    @Test
-    public void testCreateDraftFromXlsFileWithPublishedVersion() {
-
-        RefBookVersionEntity lastRefBookVersion = createTestPublishedVersion();
-        when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
-                .thenReturn(lastRefBookVersion);
-
-        RefBookVersionEntity expectedRefBookVersion = createTestDraftVersionEntity(REFBOOK_ID);
-        expectedRefBookVersion.setId(null);
-        expectedRefBookVersion.setStorageCode(TEST_DRAFT_CODE_NEW);
-
-        Structure structure = new Structure();
-        setTestStructure(structure);
-        expectedRefBookVersion.setStructure(structure);
-
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null).thenReturn(expectedRefBookVersion);
-
-        draftService.create(REFBOOK_ID, createTestFileModel("/", "R002", "xlsx"));
-
-        verify(versionRepository).save(eq(expectedRefBookVersion));
+        assertNotNull(captor);
+        RefBookVersionEntity draftEntity = captor.getValue();
+        assertNotNull(draftEntity);
+        assertNull(draftEntity.getId());
+        assertEquals(NEW_DRAFT_CODE, draftEntity.getStorageCode());
+        assertEquals(refBookEntity, draftEntity.getRefBook());
+        assertEquals(versionEntity.getStructure(), draftEntity.getStructure());
     }
 
     @Test
-    public void testCreateDraftFromXmlFileWithDraft() {
+    public void testCreateFromVersionWhenDraft() {
 
-        RefBookVersionEntity versionBefore = createTestDraftVersionEntity(REFBOOK_ID);
+        RefBookVersionEntity versionEntity = createDraftEntity();
+        when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
 
-        Integer draftId = 1;
-        RefBookVersionEntity versionWithStructure = createTestDraftVersionWithPassport();
-        versionWithStructure.setId(draftId);
+        Draft draft = draftService.createFromVersion(versionEntity.getId());
+        assertNotNull(draft);
+        assertEquals(versionEntity.getId(), draft.getId());
+        assertEquals(versionEntity.getStorageCode(), draft.getStorageCode());
+        assertEquals(versionEntity.getOptLockValue(), draft.getOptLockValue());
+    }
 
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
-                .thenReturn(createCopyOfVersion(versionBefore)).thenReturn(createCopyOfVersion(versionWithStructure));
+    private void mockCreateDraftEntityStrategy(RefBookEntity refBookEntity, Structure structure) {
 
-        versionWithStructure.setStorageCode(TEST_DRAFT_CODE_NEW);
-        versionWithStructure.setRefBook(versionBefore.getRefBook());
-        versionWithStructure.setStructure(UploadFileTestData.createStructure()); // NB: reference
+        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
+        createdEntity.setId(null);
+        createdEntity.setStructure(structure);
+        createdEntity.setStorageCode(null);
 
-        RefBookVersionEntity referenceEntity = UploadFileTestData.createReferenceVersion();
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(UploadFileTestData.REFERENCE_ENTITY_CODE), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referenceEntity);
-        when(versionService.getLastPublishedVersion(eq(UploadFileTestData.REFERENCE_ENTITY_CODE))).thenReturn(ModelGenerator.versionModel(referenceEntity));
-
-        PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();
-        when(versionService.search(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(referenceRows);
-
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
-
-        when(versionRepository.save(any(RefBookVersionEntity.class))).thenReturn(versionWithStructure);
-        when(versionRepository.getOne(draftId)).thenReturn(versionWithStructure);
-
-        ArgumentCaptor<RefBookVersionEntity> draftCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
-
-        draftService.create(REFBOOK_ID, createTestFileModel("/file/", "uploadFile", "xml"));
-        verify(versionRepository).save(draftCaptor.capture());
-
-        versionWithStructure.setStructure(UploadFileTestData.createStructure());
-        RefBookVersionEntity actualDraftVersion = draftCaptor.getValue();
-        actualDraftVersion.setId(versionWithStructure.getId());
-
-        Assert.assertEquals(versionWithStructure, draftCaptor.getValue());
-
-        // Old draft is not dropped since its structure is changed.
+        when(createDraftEntityStrategy.create(eq(refBookEntity), eq(structure), any()))
+                .thenReturn(createdEntity);
     }
 
     @Test
-    public void testRemoveDraft() {
+    public void testRemove() {
 
-        RefBookVersionEntity draftEntity = createTestDraftVersionEntity(REFBOOK_ID);
-        when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.findById(draftEntity.getId())).thenReturn(Optional.of(draftEntity));
 
         draftService.remove(draftEntity.getId());
 
         verify(versionRepository).deleteById(eq(draftEntity.getId()));
     }
 
-    @Test
-    public void testChangeStructure() {
+    //@Test
+    public void testCreateAttribute() {
 
-        RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        mockChangeStructure(draftEntity);
         final Integer draftId = draftEntity.getId();
-        when(versionRepository.getOne(eq(draftId))).thenReturn(draftEntity);
-        when(versionService.getStructure(eq(draftId))).thenReturn(draftEntity.getStructure());
-
-        doCallRealMethod().when(versionValidation).validateAttribute(any());
-        doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
-
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any(), any());
-        doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(eq(draftId), any(), any());
-        doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(eq(draftId), any(), any(), any());
 
         // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new RefBookEntity();
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
         referredBook1.setCode("REF_801");
         RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
         referredEntity1.setRefBook(referredBook1);
-        referredEntity1.setStructure(new Structure(singletonList(idAttribute), null));
+        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
 
-        // -- Добавление атрибута null. Должна быть ошибка
-        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, null, null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление ссылочного атрибута без ссылки. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, nameAttribute, null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление обычного атрибута со ссылкой. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, idAttribute, nameReference);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление ссылочного атрибута с неверной привязкой к ссылке. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, nameAttribute, badNameReference);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.reference.value", IllegalArgumentException.class);
-
-        // -- Добавление атрибута с неверным кодом. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, idAttribute, null);
-        String idCode = idAttribute.getCode();
-        idAttribute.setCode("Код");
-        failCreateAttribute(draftId, createRefAttribute, "attribute.code.is.invalid", UserException.class);
-        idAttribute.setCode(idCode);
-
-        createRefAttribute = new CreateAttributeRequest(null, nameAttribute, nameReference);
-
-        // -- Добавление атрибута с кодом null. Должна быть ошибка
-        String nameCode = nameAttribute.getCode();
-        nameAttribute.setCode(null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-        nameAttribute.setCode(nameCode);
-
-        // -- Добавление атрибута с типом null. Должна быть ошибка
-        FieldType nameType = nameAttribute.getType();
-        nameAttribute.setType(null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-        nameAttribute.setType(nameType);
-
-        // -- Добавление ссылочного атрибута - первичного ключа. Должна быть ошибка
-        boolean isRefPrimary = nameAttribute.hasIsPrimary();
-        nameAttribute.setIsPrimary(Boolean.TRUE);
-        failCreateAttribute(draftId, createRefAttribute, "reference.attribute.cannot.be.primary.key", UserException.class);
-        // -- Добавление ссылочного атрибута в структуру без первичного ключа. Должна быть ошибка
-        nameAttribute.setIsPrimary(Boolean.FALSE);
-        failCreateAttribute(draftId, createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
-        nameAttribute.setIsPrimary(isRefPrimary);
-
         // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, idAttribute, null);
+        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
         draftService.createAttribute(draftId, createIdAttribute);
         Structure structure = versionService.getStructure(draftId);
         assertTrue(structure.hasPrimary());
@@ -409,6 +336,7 @@ public class DraftServiceTest {
         failCreateAttribute(draftId, createIdAttribute, "attribute.with.code.already.exists", UserException.class);
 
         // -- Корректное добавление
+        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
         draftService.createAttribute(draftId, createRefAttribute);
 
         structure = versionService.getStructure(draftId);
@@ -416,11 +344,100 @@ public class DraftServiceTest {
         assertEquals(nameAttribute, structure.getAttribute(nameAttribute.getCode()));
         assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
 
-        // -- Удаление первичного ключа при наличии ссылки. Должна быть ошибка
-        failDeleteAttribute(draftId, structure, createIdAttribute.getAttribute().getCode(), "reference.book.must.have.primary.key", UserException.class);
+        // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
+        CreateAttributeRequest createPrimaryAttribute = new CreateAttributeRequest(null, copy(pkAttribute), copy(nullReference));
+        draftService.createAttribute(draftId, createPrimaryAttribute);
+
+        structure = versionService.getStructure(draftId);
+        List<Structure.Attribute> primaries = structure.getPrimaries();
+        assertEquals(1, primaries.size());
+        assertTrue(primaries.contains(pkAttribute));
+        assertFalse(primaries.contains(updateIdAttribute));
+    }
+
+    //@Test
+    public void testCreateAttributeFail() {
+
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        mockChangeStructure(draftEntity);
+        final Integer draftId = draftEntity.getId();
+
+        // Добавление ссылочного атрибута
+
+        // -- Добавление атрибута null. Должна быть ошибка
+        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, null, null);
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылочного атрибута без ссылки. Должна быть ошибка
+        createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), null);
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление обычного атрибута со ссылкой. Должна быть ошибка
+        createRefAttribute = new CreateAttributeRequest(null, copy(idAttribute), copy(nameReference));
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылочного атрибута с неверной привязкой к ссылке. Должна быть ошибка
+        createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(badNameReference));
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.reference.value", IllegalArgumentException.class);
+
+        // -- Добавление атрибута с неверным кодом. Должна быть ошибка
+        Structure.Attribute badCodeAttribute = copy(idAttribute);
+        badCodeAttribute.setCode("Код");
+        createRefAttribute = new CreateAttributeRequest(null, badCodeAttribute, null);
+        failCreateAttribute(draftId, createRefAttribute, "attribute.code.is.invalid", UserException.class);
+
+        // -- Добавление атрибута с кодом null. Должна быть ошибка
+        Structure.Attribute nullCodeAttribute = copy(nameAttribute);
+        nullCodeAttribute.setCode(null);
+        createRefAttribute = new CreateAttributeRequest(null, nullCodeAttribute, copy(nameReference));
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление атрибута с типом null. Должна быть ошибка
+        Structure.Attribute nullTypeAttribute = copy(nameAttribute);
+        nullTypeAttribute.setType(null);
+        createRefAttribute = new CreateAttributeRequest(null, nullTypeAttribute, copy(nameReference));
+        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
+
+        // -- Добавление ссылочного атрибута - первичного ключа. Должна быть ошибка
+        Structure.Attribute primaryAttribute = copy(nameAttribute);
+        primaryAttribute.setIsPrimary(Boolean.TRUE);
+        createRefAttribute = new CreateAttributeRequest(null, primaryAttribute, copy(nameReference));
+        failCreateAttribute(draftId, createRefAttribute, "reference.attribute.cannot.be.primary.key", UserException.class);
+
+        // -- Добавление ссылочного атрибута в структуру без первичного ключа. Должна быть ошибка
+        Structure.Attribute nonPrimaryAttribute = copy(nameAttribute);
+        nonPrimaryAttribute.setIsPrimary(Boolean.FALSE);
+        createRefAttribute = new CreateAttributeRequest(null, nonPrimaryAttribute, nameReference);
+        failCreateAttribute(draftId, createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
+    }
+
+    //@Test
+    public void testUpdateAttribute() {
+
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        mockChangeStructure(draftEntity);
+        final Integer draftId = draftEntity.getId();
+
+        // Добавление ссылочного атрибута
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
+        referredBook1.setCode("REF_801");
+        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
+        referredEntity1.setRefBook(referredBook1);
+        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
+
+        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
+        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
+        draftService.createAttribute(draftId, createIdAttribute);
+
+        // -- Корректное добавление
+        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
+        draftService.createAttribute(draftId, createRefAttribute);
+
+        Structure structure = versionService.getStructure(draftId);
 
         // Изменение ссылочного атрибута
-        RefBookEntity referredBook2 = new RefBookEntity();
+        RefBookEntity referredBook2 = new DefaultRefBookEntity();
         referredBook2.setCode("REF_802");
         RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
         referredEntity2.setRefBook(referredBook2);
@@ -428,18 +445,19 @@ public class DraftServiceTest {
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
 
         // -- Корректное изменение
-        when(draftDataService.isUnique(eq(TEST_DRAFT_CODE), anyList())).thenReturn(true);
-        UpdateAttributeRequest updateRefAttribute = new UpdateAttributeRequest(null, updateNameAttribute, nameReference);
+        when(draftDataService.isUnique(eq(DRAFT_CODE), anyList())).thenReturn(true);
+        UpdateAttributeRequest updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(nameReference));
         draftService.updateAttribute(draftId, updateRefAttribute);
         assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
         assertEquals(nameReference, structure.getReference(updateRefAttribute.getCode()));
 
         // -- Изменение значений полей Reference
-        updateRefAttribute = new UpdateAttributeRequest(null, updateNameAttribute, updateNameReference);
+        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
         draftService.updateAttribute(draftId, updateRefAttribute);
         assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
 
         // -- Передача null. Значение не должно измениться
+        //UpdateAttributeRequest updateNullRefCode = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
         String updateRefCode = updateRefAttribute.getCode();
         updateRefAttribute.setReferenceCode(null);
         // -- Изменение поля на null. Значение должно обновиться
@@ -465,7 +483,7 @@ public class DraftServiceTest {
         // Изменение типа атрибута
         // -- Изменение со ссылочного на строковый. Ссылка должна удалиться из структуры
         updateNameAttribute.setType(FieldType.STRING);
-        updateRefAttribute = new UpdateAttributeRequest(null, updateNameAttribute, nullReference);
+        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(nullReference));
         draftService.updateAttribute(draftId, updateRefAttribute);
         assertNull(structure.getReference(updateRefAttribute.getCode()));
 
@@ -475,7 +493,7 @@ public class DraftServiceTest {
 
         // -- Изменение со ссылочного на строковый, все поля заполнены
         updateNameAttribute.setType(FieldType.REFERENCE);
-        updateRefAttribute = new UpdateAttributeRequest(null, updateNameAttribute, updateNameReference);
+        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
         draftService.updateAttribute(draftId, updateRefAttribute);
         assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
         assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
@@ -497,21 +515,43 @@ public class DraftServiceTest {
         draftService.updateAttribute(draftId, updateRefAttribute);
 
         // Изменение первичного атрибута
-        UpdateAttributeRequest updatePrimaryAttribute = new UpdateAttributeRequest(null, updateIdAttribute, null);
+        UpdateAttributeRequest updatePrimaryAttribute = new UpdateAttributeRequest(null, copy(updateIdAttribute), null);
         draftService.updateAttribute(draftId, updatePrimaryAttribute);
         assertEquals(updateIdAttribute, structure.getAttribute(updatePrimaryAttribute.getCode()));
         assertEquals(1, structure.getPrimaries().size());
         assertEquals(updateIdAttribute, structure.getPrimaries().get(0));
+    }
 
-        // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
-        CreateAttributeRequest createPrimaryAttribute = new CreateAttributeRequest(null, pkAttribute, nullReference);
-        draftService.createAttribute(draftId, createPrimaryAttribute);
+    //@Test
+    public void testDeleteAttribute() {
 
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        mockChangeStructure(draftEntity);
+        final Integer draftId = draftEntity.getId();
+
+        // Добавление ссылочного атрибута
+        RefBookEntity referredBook1 = new DefaultRefBookEntity();
+        referredBook1.setCode("REF_801");
+        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
+        referredEntity1.setRefBook(referredBook1);
+        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
+
+        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
+        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
+        draftService.createAttribute(draftId, createIdAttribute);
+        Structure structure = versionService.getStructure(draftId);
+        assertNotNull(structure);
+
+        // -- Корректное добавление
+        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
+        draftService.createAttribute(draftId, createRefAttribute);
         structure = versionService.getStructure(draftId);
-        List<Structure.Attribute> primaries = structure.getPrimaries();
-        assertEquals(1, primaries.size());
-        assertTrue(primaries.contains(pkAttribute));
-        assertFalse(primaries.contains(updateIdAttribute));
+
+        // Удаление атрибута
+
+        // -- Удаление первичного ключа при наличии ссылки. Должна быть ошибка
+        failDeleteAttribute(draftId, structure, createIdAttribute.getAttribute().getCode(), "reference.book.must.have.primary.key", UserException.class);
 
         // Удаление атрибута-ссылки для удаления первичного ключа
         DeleteAttributeRequest deleteAttributeRequest = new DeleteAttributeRequest(null, nameAttribute.getCode());
@@ -519,51 +559,159 @@ public class DraftServiceTest {
 
         // Удаление первичности ключа. Не должно быть атрибутов - первичных ключей
         assertTrue(structure.hasPrimary());
-        pkAttribute.setIsPrimary(false);
-        updateRefAttribute = new UpdateAttributeRequest(null, pkAttribute, nullReference);
+        Structure.Attribute nonIdAttribute = copy(idAttribute);
+        nonIdAttribute.setIsPrimary(false);
+        UpdateAttributeRequest updateRefAttribute = new UpdateAttributeRequest(null, nonIdAttribute, copy(nullReference));
         draftService.updateAttribute(draftId, updateRefAttribute);
         structure = versionService.getStructure(draftId);
         assertFalse(structure.hasPrimary());
     }
 
-    @Test
-    public void testChangeStructureWithData() {
+    //@Test
+    public void testCreateAttributeWhenData() {
 
-        RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
+        RefBookVersionEntity draftEntity = createDraftEntity();
         final Integer draftId = draftEntity.getId();
+
         String draftTable = draftEntity.getStorageCode();
         String draftTableWithData = draftTable + "_with_data";
         draftEntity.setStorageCode(draftTableWithData);
 
-        when(versionRepository.getOne(eq(draftId))).thenReturn(draftEntity);
-        when(versionService.getStructure(eq(draftId))).thenReturn(draftEntity.getStructure());
+        mockChangeStructure(draftEntity);
 
         when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
 
-        doCallRealMethod().when(versionValidation).validateAttribute(any());
-
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any(), any());
         doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
 
+        // -- Добавление обычного атрибута
         Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
-        CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(null, firstAttribute, null);
+        CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(null, copy(firstAttribute), null);
         draftService.createAttribute(draftId, createAttributeRequest);
         Structure structure = versionService.getStructure(draftId);
         assertFalse(structure.isEmpty());
 
         // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
         Structure.Attribute secondAttribute = Structure.Attribute.buildPrimary("second", "Второй", FieldType.INTEGER, "описание second");
-        createAttributeRequest = new CreateAttributeRequest(null, secondAttribute, null);
+        createAttributeRequest = new CreateAttributeRequest(null, copy(secondAttribute), null);
         failCreateAttribute(draftId, createAttributeRequest, "validation.required.pk.err", UserException.class);
+    }
+
+    private void mockChangeStructure(RefBookVersionEntity draftEntity) {
+
+        reset(versionRepository, versionService, versionValidation, structureChangeValidator);
+
+        final Integer draftId = draftEntity.getId();
+        when(versionRepository.findById(eq(draftId))).thenReturn(Optional.of(draftEntity));
+        when(versionService.getStructure(eq(draftId))).thenReturn(draftEntity.getStructure());
+
+        doCallRealMethod().when(versionValidation).validateAttribute(any());
+        doCallRealMethod().when(versionValidation).validateReferenceAbility(any());
+
+        doCallRealMethod().when(structureChangeValidator).validateCreateAttribute(any(), any());
+        doCallRealMethod().when(structureChangeValidator).validateUpdateAttribute(eq(draftId), any(), any());
+        doCallRealMethod().when(structureChangeValidator).validateUpdateAttributeStorage(eq(draftId), any(), any(), any());
+    }
+
+    private void failCreateAttribute(Integer draftId,
+                                     CreateAttributeRequest request,
+                                     String message,
+                                     Class expectedExceptionClass) {
+
+        Structure.Attribute attribute = request.getAttribute();
+        Structure.Reference reference = request.getReference();
+        try {
+            draftService.createAttribute(draftId, request);
+            fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
+
+        } catch (Exception e) {
+            assertEquals(expectedExceptionClass, e.getClass());
+            assertEquals(message, getExceptionMessage(e));
+
+            if (!"attribute.with.code.already.exists".equals(message)) {
+                Structure newStructure = versionService.getStructure(draftId);
+                assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
+                assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
+            }
+        }
+    }
+
+    private void failUpdateAttribute(Integer draftId,
+                                     UpdateAttributeRequest request,
+                                     Structure oldStructure,
+                                     String oldCode,
+                                     String message,
+                                     Class expectedExceptionClass) {
+
+        Structure.Attribute oldAttribute = oldStructure.getAttribute(oldCode);
+        Structure.Reference oldReference = oldStructure.getReference(oldCode);
+        try {
+            draftService.updateAttribute(draftId, request);
+            fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
+
+        } catch (Exception e) {
+            assertEquals(expectedExceptionClass, e.getClass());
+            assertEquals(message, getExceptionMessage(e));
+
+            Structure newStructure = versionService.getStructure(draftId);
+            String newCode = request.getCode();
+            if (StringUtils.isEmpty(newCode)) {
+                assertNull("Не должно быть атрибута без кода", newStructure.getAttribute(newCode));
+                assertNull("Не должно быть ссылки без кода атрибута", newStructure.getReference(newCode));
+
+                newCode = oldCode;
+            }
+
+            assertEquals("Атрибут не должен измениться", oldAttribute, newStructure.getAttribute(newCode));
+            assertEquals("Ссылка не должна измениться", oldReference, newStructure.getReference(newCode));
+        }
+    }
+
+    private void failDeleteAttribute(Integer draftId,
+                                     Structure oldStructure,
+                                     String attributeCode,
+                                     String message,
+                                     Class expectedExceptionClass) {
+
+        Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
+        Structure.Reference reference = oldStructure.getReference(attributeCode);
+        DeleteAttributeRequest request = new DeleteAttributeRequest(null, attributeCode);
+        try {
+            draftService.deleteAttribute(draftId, request);
+            fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
+
+        } catch (Exception e) {
+            assertEquals(expectedExceptionClass, e.getClass());
+            assertEquals(message, getExceptionMessage(e));
+
+            Structure newStructure = versionService.getStructure(draftId);
+            assertNotNull("Атрибут не должен удалиться", newStructure.getAttribute(attribute.getCode()));
+            if (reference != null) {
+                assertNotNull("Ссылка не должна удалиться", newStructure.getReference(reference.getAttribute()));
+            } else {
+                assertNull("Ссылка не должна появиться", newStructure.getReference(attributeCode));
+            }
+        }
     }
 
     @Test
     public void testUpdateVersionRowsByPrimaryKey() {
-        FieldType[] primaryAllowedType = {FieldType.STRING, FieldType.INTEGER, FieldType.FLOAT, FieldType.REFERENCE, FieldType.DATE};
-        Object[] primaryValues = {"abc", BigInteger.valueOf(123L), BigDecimal.valueOf(123.123), new Reference("2", "-"), LocalDate.of(2019, 12, 12)};
+
+        FieldType[] primaryAllowedType = {
+                FieldType.STRING,
+                FieldType.INTEGER, FieldType.FLOAT,
+                FieldType.REFERENCE,
+                FieldType.DATE
+        };
+        Object[] primaryValues = {
+                "abc",
+                BigInteger.valueOf(123L), BigDecimal.valueOf(123.123),
+                new Reference("2", "-"),
+                LocalDate.of(2019, 12, 12)
+        };
+
         for (int i = 0; i < primaryAllowedType.length; i++) {
             testUpdateByPrimaryKey(primaryAllowedType[i], primaryValues[i]);
-            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, draftDataService);
+            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, updateRowValuesStrategy);
         }
     }
 
@@ -579,7 +727,7 @@ public class DraftServiceTest {
                 ),
                 primaryType == FieldType.REFERENCE ? singletonList(new Structure.Reference(primaryCode, "REF_TO_CODE", "-")) : emptyList()
         );
-        RefBookVersionEntity draft = createTestDraftVersionEntity();
+        RefBookVersionEntity draft = createDraftEntity();
         draft.setStructure(draftStructure);
 
         long systemId = 123L;
@@ -618,6 +766,7 @@ public class DraftServiceTest {
 
         when(searchDataService.getPagedData(any())).thenReturn(pagedData);
         when(versionRepository.getOne(draft.getId())).thenReturn(draft);
+        when(versionRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
         when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
 
         Map<String, Object> map = new HashMap<>();
@@ -625,182 +774,51 @@ public class DraftServiceTest {
         map.put(notPrimaryCode, notPrimaryUpdatedValue);
         draftService.updateData(draft.getId(), new UpdateDataRequest(null, new Row(null, map)));
 
-        verify(draftDataService, times(1)).updateRows(anyString(), any());
+        verify(updateRowValuesStrategy).update(any(RefBookVersionEntity.class), any(), any());
     }
 
-    private void failCreateAttribute(Integer draftId,
-                                     CreateAttributeRequest request,
-                                     String message,
-                                     Class expectedExceptionClass) {
+    private RefBookVersionEntity createDraftEntity() {
 
-        Structure.Attribute attribute = request.getAttribute();
-        Structure.Reference reference = request.getReference();
-        try {
-            draftService.createAttribute(draftId, request);
-            fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
-
-        } catch (Exception e) {
-            assertEquals(expectedExceptionClass, e.getClass());
-            assertEquals(message, getExceptionMessage(e));
-
-            if (!"attribute.with.code.already.exists".equals(message)) {
-                Structure newStructure = versionService.getStructure(draftId);
-                assertNull("Атрибут не должен добавиться", attribute == null ? null : newStructure.getAttribute(attribute.getCode()));
-                assertNull("Ссылка не должна добавиться", reference == null ? null : newStructure.getReference(reference.getAttribute()));
-            }
-        }
+        return createDraftEntity(createRefBookEntity());
     }
 
-    private void failUpdateAttribute(Integer draftId,
-                                     UpdateAttributeRequest request,
-                                     Structure oldStructure,
-                                     String oldCode,
-                                     String message,
-                                     Class expectedExceptionClass) {
-
-        Structure.Attribute oldAttribute = oldStructure.getAttribute(oldCode);
-        Structure.Reference oldReference = oldStructure.getReference(oldCode);
-        try {
-            draftService.updateAttribute(draftId, request);
-            fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
-
-        } catch (Exception e) {
-            assertEquals(expectedExceptionClass, e.getClass());
-            assertEquals(message, getExceptionMessage(e));
-
-            Structure newStructure = versionService.getStructure(draftId);
-            String newCode = request.getCode();
-            if (StringUtils.isEmpty(newCode)) {
-                assertNull("Не должно быть атрибута без кода", newStructure.getAttribute(newCode));
-                assertNull("Не должно быть ссылки без кода атрибута", newStructure.getReference(newCode));
-
-                newCode = oldCode;
-            }
-
-            assertEquals("Атрибут не должен измениться", oldAttribute, newStructure.getAttribute(newCode));
-            assertEquals("Ссылка не должна измениться", oldReference, newStructure.getReference(newCode));
-        }
-    }
-
-    private void failDeleteAttribute(Integer draftId,
-                                     Structure oldStructure,
-                                     String attributeCode,
-                                     String message,
-                                     Class expectedExceptionClass) {
-
-        Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
-        Structure.Reference reference = oldStructure.getReference(attributeCode);
-        DeleteAttributeRequest request = new DeleteAttributeRequest(null, attributeCode);
-        try {
-            draftService.deleteAttribute(draftId, request);
-            fail("Ожидается ошибка " + expectedExceptionClass.getSimpleName());
-
-        } catch (Exception e) {
-            assertEquals(expectedExceptionClass, e.getClass());
-            assertEquals(message, getExceptionMessage(e));
-
-            Structure newStructure = versionService.getStructure(draftId);
-            assertNotNull("Атрибут не должен удалиться", newStructure.getAttribute(attribute.getCode()));
-            if (reference != null) {
-                assertNotNull("Ссылка не должна удалиться", newStructure.getReference(reference.getAttribute()));
-            } else {
-                assertNull("Ссылка не должна появиться", newStructure.getReference(attributeCode));
-            }
-        }
-    }
-
-    private RefBookVersionEntity createTestDraftVersionEntity() {
+    private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity) {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setId(1);
-        entity.setStorageCode(TEST_DRAFT_CODE);
-        entity.setRefBook(createTestRefBook());
-        entity.setStatus(RefBookVersionStatus.DRAFT);
+        entity.setId(DRAFT_ID);
+        entity.setRefBook(refBookEntity);
         entity.setStructure(new Structure());
-        entity.setPassportValues(createTestPassportValues(entity));
+        entity.setStorageCode(DRAFT_CODE);
+        entity.setStatus(RefBookVersionStatus.DRAFT);
+        entity.setPassportValues(createPassportValues(entity));
 
         return entity;
     }
 
-    private RefBookVersionEntity createTestDraftVersionEntity(int refBookId) {
+    private RefBookVersionEntity createPublishedEntity() {
 
-        RefBookVersionEntity entity = createTestDraftVersionEntity();
-
-        RefBookEntity refBook = new RefBookEntity();
-        refBook.setId(refBookId);
-        entity.setRefBook(refBook);
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(PUBLISHED_VERSION_ID);
+        entity.setRefBook(createRefBookEntity());
+        entity.setStructure(new Structure());
+        entity.setStorageCode("testVersionStorageCode");
+        entity.setStatus(RefBookVersionStatus.PUBLISHED);
+        entity.setPassportValues(createPassportValues(entity));
 
         return entity;
     }
 
-    /*
-     * Example:
-     * path = '/file/'
-     * fileName = 'uploadFile'
-     * extension = 'xml'
-     **/
-    private FileModel createTestFileModel(String path, String fileName, String extension) {
-        String fullName = fileName + "." + extension;
+    private RefBookEntity createRefBookEntity() {
 
-        FileModel fileModel = new FileModel(fileName, fullName); // NB: fileName as path!
-        if (fileStorage instanceof MockFileStorage) {
-            ((MockFileStorage)fileStorage).setFileModel(fileModel);
-            ((MockFileStorage)fileStorage).setFilePath(path + fullName);
-        }
+        RefBookEntity entity = new DefaultRefBookEntity();
+        entity.setId(REFBOOK_ID);
+        entity.setCode(REF_BOOK_CODE);
 
-        InputStream input = DraftServiceTest.class.getResourceAsStream(path + fullName);
-
-        if (!(fileStorage instanceof MockFileStorage)) {
-            when(fileStorage.saveContent(eq(input), eq(fileName))).thenReturn(fileModel.generateFullPath());
-            when(fileStorage.getContent(eq(fileModel.generateFullPath())))
-                    .thenReturn(input,
-                            DraftServiceTest.class.getResourceAsStream(path + fullName),
-                            DraftServiceTest.class.getResourceAsStream(path + fullName),
-                            DraftServiceTest.class.getResourceAsStream(path + fullName));
-        }
-
-        // NB: Check mock.
-        String fullPath = fileStorage.saveContent(input, fileModel.getPath());
-        fileModel.setPath(fullPath);
-        return fileModel;
+        return entity;
     }
 
-    private RefBookVersionEntity createTestPublishedVersion() {
-        RefBookVersionEntity testDraftVersion = new RefBookVersionEntity();
-        testDraftVersion.setId(3);
-        testDraftVersion.setStorageCode("testVersionStorageCode");
-        testDraftVersion.setRefBook(createTestRefBook());
-        testDraftVersion.setStatus(RefBookVersionStatus.PUBLISHED);
-        testDraftVersion.setStructure(new Structure());
-        testDraftVersion.setPassportValues(createTestPassportValues(testDraftVersion));
-        return testDraftVersion;
-    }
+    private List<PassportValueEntity> createPassportValues(RefBookVersionEntity version) {
 
-    private RefBookVersionEntity createCopyOfVersion(RefBookVersionEntity version) {
-        RefBookVersionEntity copy = new RefBookVersionEntity();
-        copy.setId(version.getId());
-        copy.setStructure(version.getStructure());
-        copy.setStatus(version.getStatus());
-        copy.setRefBook(version.getRefBook());
-        copy.setPassportValues(new ArrayList<>(version.getPassportValues()));
-        copy.setStorageCode(version.getStorageCode());
-        return copy;
-    }
-
-    /*
-     * Creates a version entity to be saved while creating a version from xml-file with passport values
-     * */
-    private RefBookVersionEntity createTestDraftVersionWithPassport() {
-        RefBookVersionEntity version = new RefBookVersionEntity();
-        version.setId(null);
-        version.setStatus(RefBookVersionStatus.DRAFT);
-        version.setStructure(null);
-        version.setPassportValues(UploadFileTestData.createPassportValues(version));
-
-        return version;
-    }
-
-    private List<PassportValueEntity> createTestPassportValues(RefBookVersionEntity version) {
         List<PassportValueEntity> passportValues = new ArrayList<>();
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
@@ -808,11 +826,14 @@ public class DraftServiceTest {
         return passportValues;
     }
 
-    private RefBookEntity createTestRefBook() {
-        RefBookEntity testRefBook = new RefBookEntity();
-        testRefBook.setId(REFBOOK_ID);
-        testRefBook.setCode(TEST_REF_BOOK);
-        return testRefBook;
+    private Structure.Attribute copy(Structure.Attribute attribute) {
+
+        return Structure.Attribute.build(attribute);
+    }
+
+    private Structure.Reference copy(Structure.Reference reference) {
+
+        return Structure.Reference.build(reference);
     }
 
     /** Получение кода сообщения об ошибке из исключения. */
@@ -829,5 +850,28 @@ public class DraftServiceTest {
             return e.getMessage();
 
         return null;
+    }
+
+    private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
+
+        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
+
+        return result;
+    }
+
+    private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
+
+        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        // Version + Draft:
+        result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+        result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
+        result.put(CreateDraftEntityStrategy.class, createDraftEntityStrategy);
+        result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
+        // Data:
+        result.put(UpdateRowValuesStrategy.class, updateRowValuesStrategy);
+        result.put(DeleteAllRowValuesStrategy.class, deleteAllRowValuesStrategy);
+
+        return result;
     }
 }

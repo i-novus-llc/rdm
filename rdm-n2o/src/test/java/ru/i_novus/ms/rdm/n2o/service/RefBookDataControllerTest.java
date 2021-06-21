@@ -47,7 +47,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.service.RefBookDataController.EMPTY_SEARCH_DATA_CRITERIA;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
@@ -123,6 +123,9 @@ public class RefBookDataControllerTest extends BaseTest {
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
         assertEquals(rowValues.size(), dataGridRows.getContent().size() - 1);
+
+        verify(versionService)
+                .search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
     }
 
     @Test
@@ -150,17 +153,26 @@ public class RefBookDataControllerTest extends BaseTest {
 
         List<RefBookRowValue> rowValues = createContent(TEST_REFBOOK_VERSION_ID);
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
-        when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(new PageImpl<>(emptyList()));
+        when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
+                .thenReturn(new PageImpl<>(emptyList())) // origin storage
+                .thenReturn(rowValuesPage); // locale storage
 
-        when(refBookDataDecorator.getDataStructure(eq(TEST_REFBOOK_VERSION_ID), eq(criteria))).thenReturn(version.getStructure());
+        when(refBookDataDecorator.getDataStructure(eq(TEST_REFBOOK_VERSION_ID), eq(criteria)))
+                .thenReturn(version.getStructure());
+
+        when(refBookDataDecorator.getDataContent(eq(rowValues), eq(criteria)))
+                .thenAnswer(invocation -> invocation.getArguments()[0]);
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
         Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
-        // "Запись"-заголовок.
-        assertEquals(1, dataGridRows.getContent().size());
+        // За вычетом "записи"-заголовка.
+        assertEquals(rowValues.size(), dataGridRows.getContent().size() - 1);
+
+        verify(versionService, times(2))
+                .search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
     }
 
     @Test
@@ -324,11 +336,9 @@ public class RefBookDataControllerTest extends BaseTest {
         assertObjects(Assert::assertEquals, expected.getStructure(), actual.getStructure());
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     private List<RefBookRowValue> createContent(int versionId) {

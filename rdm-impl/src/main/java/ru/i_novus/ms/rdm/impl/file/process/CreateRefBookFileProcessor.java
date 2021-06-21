@@ -13,7 +13,7 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
 
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
 
-    private RefBookService refBookService;
+    private final RefBookService refBookService;
 
     public CreateRefBookFileProcessor(RefBookService refBookService) {
         this.refBookService = refBookService;
@@ -26,8 +26,8 @@ public abstract class CreateRefBookFileProcessor implements FileProcessor<RefBoo
     @Override
     public RefBook process(Supplier<InputStream> fileSource) {
 
-        RefBookCreateRequest refBookCreateRequest = null;
-        try(InputStream inputStream = fileSource.get()) {
+        RefBookCreateRequest refBookCreateRequest;
+        try (InputStream inputStream = fileSource.get()) {
             setFile(inputStream);
             refBookCreateRequest = getRefBookCreateRequest();
 

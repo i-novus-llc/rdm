@@ -25,8 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.*;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.ATTRIBUTE_LIST;
-import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.REFERENCE_LIST;
+import static ru.i_novus.ms.rdm.n2o.l10n.utils.StructureTestConstants.DEFAULT_STRUCTURE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class L10nLocalizeRecordPageResolverTest extends BaseTest {
@@ -108,11 +107,9 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
         assertEmpty(fields);
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     private List<SourceComponent> createFields(Structure structure) {

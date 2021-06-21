@@ -1,22 +1,16 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
-import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.service.DraftService;
@@ -29,6 +23,10 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,15 +42,15 @@ public class ReferenceServiceImpl implements ReferenceService {
     private static final String VERSION_IS_NOT_LAST_PUBLISHED_EXCEPTION_CODE = "version.is.not.last.published";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
-    private RefBookConflictQueryProvider conflictQueryProvider;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
+    private final RefBookConflictQueryProvider conflictQueryProvider;
 
-    private DraftDataService draftDataService;
+    private final DraftDataService draftDataService;
 
-    private DraftService draftService;
+    private final DraftService draftService;
 
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -96,7 +94,7 @@ public class ReferenceServiceImpl implements ReferenceService {
             return;
 
         references.stream()
-                .filter(reference -> BooleanUtils.isNotTrue(
+                .filter(reference -> !Boolean.TRUE.equals(
                         conflictRepository.hasReferrerConflict(referrerVersionId, reference.getAttribute(),
                                 ConflictType.DISPLAY_DAMAGED, RefBookVersionStatus.PUBLISHED)
                 ))
@@ -116,18 +114,20 @@ public class ReferenceServiceImpl implements ReferenceService {
     @Override
     @Transactional
     public void refreshLastReferrers(String refBookCode) {
+
         new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
-                .iterate().forEachRemaining(
-                referrers -> referrers.forEach(referrer -> refreshReferrer(referrer.getId(), null)
+                .iterate().forEachRemaining(referrers ->
+                referrers.forEach(referrer ->
+                        refreshReferrer(referrer.getId(), null)
                 )
         );
     }
 
     /**
-     * Получение или создание entity версии-черновика справочника.
+     * Получение или создание сущности-черновика справочника.
      *
      * @param versionId версия справочника
-     * @return Сущность версии-черновика справочника
+     * @return Сущность-черновик справочника
      */
     private RefBookVersionEntity getOrCreateDraftEntity(Integer versionId) {
 
@@ -162,11 +162,9 @@ public class ReferenceServiceImpl implements ReferenceService {
         );
         publishedEntities.forEach(publishedEntity -> refreshReference(referrerEntity, publishedEntity, reference, conflictType));
 
-        DeleteRefBookConflictCriteria deleteCriteria = new DeleteRefBookConflictCriteria();
-        deleteCriteria.setReferrerVersionId(referrerEntity.getId());
-        deleteCriteria.setRefFieldCode(reference.getAttribute());
-        deleteCriteria.setConflictType(conflictType);
-        conflictQueryProvider.delete(deleteCriteria);
+        conflictRepository.deleteByReferrerVersionIdAndRefFieldCodeAndConflictType(
+                referrerEntity.getId(), reference.getAttribute(), conflictType
+        );
     }
 
     /**
@@ -206,6 +204,7 @@ public class ReferenceServiceImpl implements ReferenceService {
                     .map(RefBookConflictEntity::getRefRecordId)
                     .collect(toList());
 
+            // RDM-884: Для обязательных атрибутов: если новое значение null, кидать ошибку required value
             draftDataService.updateReferenceInRows(referrerEntity.getStorageCode(), fieldValue, systemIds);
         });
     }

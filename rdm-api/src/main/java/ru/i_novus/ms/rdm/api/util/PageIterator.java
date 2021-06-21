@@ -9,13 +9,13 @@ import java.util.function.Function;
 
 public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Page<? extends T>> {
 
-    private Function<? super C, Page<? extends T>> pageSource;
+    private final Function<? super C, Page<? extends T>> pageSource;
 
-    private C criteria;
-
-    private Page<? extends T> nextPage;
+    private final C criteria;
 
     private int currentPage;
+
+    private Page<? extends T> nextPage;
 
     public PageIterator(Function<? super C, Page<? extends T>> pageSource, C criteria) {
         this(pageSource, criteria, false);
@@ -28,31 +28,36 @@ public class PageIterator<T, C extends AbstractCriteria> implements Iterator<Pag
 
         this.pageSource = pageSource;
         this.criteria = criteria;
-        currentPage = criteria.getPageNumber() - 1;
+        this.currentPage = criteria.getPageNumber() - 1;
     }
 
     @Override
     public boolean hasNext() {
+
         criteria.setPageNumber(currentPage + 1);
+
         nextPage = pageSource.apply(criteria);
         List<? extends T> content = nextPage.getContent();
+
         return !content.isEmpty();
     }
 
     @Override
     @SuppressWarnings("squid:S2272")
     public Page<? extends T> next() {
+
         Page<? extends T> result;
+
         if (nextPage != null) {
             result = nextPage;
             nextPage = null;
+
         } else {
             criteria.setPageNumber(currentPage + 1);
             result = pageSource.apply(criteria);
         }
         currentPage++;
+
         return result;
     }
-
 }
-

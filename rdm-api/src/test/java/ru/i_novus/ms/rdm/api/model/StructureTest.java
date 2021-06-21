@@ -51,6 +51,19 @@ public class StructureTest extends BaseTest {
         assertFalse(structure.hasPrimary());
         structure.clearPrimary();
         assertFalse(structure.hasPrimary());
+    }
+
+    @Test
+    public void testEmptyToString() {
+
+        Structure structure = new Structure();
+        assertNotNull(structure.toString());
+    }
+
+    @Test
+    public void testEmptyByEmpty() {
+
+        Structure structure = new Structure();
 
         Structure sameStructure = new Structure(null, null);
         assertObjects(Assert::assertEquals, structure, sameStructure);
@@ -704,8 +717,7 @@ public class StructureTest extends BaseTest {
     /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     /** Поверхностное копирование структуры. */

@@ -23,6 +23,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.diff.CachedDataDiffService;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -31,7 +32,6 @@ import ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriter
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.CompareDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,15 +53,14 @@ public class CompareServiceImpl implements CompareService {
     private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
     private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
 
-    private CompareDataService compareDataService;
-    private VersionService versionService;
-    private CachedDataDiffService cachedDataDiffService;
+    private final CompareDataService compareDataService;
+    private final VersionService versionService;
+    private final CachedDataDiffService cachedDataDiffService;
 
-    private RefBookVersionRepository versionRepository;
-    private PassportAttributeRepository passportAttributeRepository;
+    private final RefBookVersionRepository versionRepository;
+    private final PassportAttributeRepository passportAttributeRepository;
 
-    private FieldFactory fieldFactory;
-    private VersionValidation versionValidation;
+    private final VersionValidation versionValidation;
 
     @Autowired
     public CompareServiceImpl(CompareDataService compareDataService,
@@ -69,7 +68,6 @@ public class CompareServiceImpl implements CompareService {
                               CachedDataDiffService cachedDataDiffService,
                               RefBookVersionRepository versionRepository,
                               PassportAttributeRepository passportAttributeRepository,
-                              FieldFactory fieldFactory,
                               VersionValidation versionValidation) {
         this.compareDataService = compareDataService;
         this.versionService = versionService;
@@ -78,7 +76,6 @@ public class CompareServiceImpl implements CompareService {
         this.versionRepository = versionRepository;
         this.passportAttributeRepository = passportAttributeRepository;
 
-        this.fieldFactory = fieldFactory;
         this.versionValidation = versionValidation;
     }
 
@@ -227,7 +224,7 @@ public class CompareServiceImpl implements CompareService {
                     Structure.Attribute oldAttribute = oldStructure.getAttribute(newAttribute.getCode());
                     return attributeEquals(oldAttribute, newAttribute);
                 })
-                .map(attribute -> fieldFactory.createField(attribute.getCode(), attribute.getType()))
+                .map(attribute -> ConverterUtil.field(attribute.getCode(), attribute.getType()))
                 .collect(toList());
     }
 
@@ -341,7 +338,7 @@ public class CompareServiceImpl implements CompareService {
 
             int skipPageCount = criteria.getPageNumber() - totalNewCount / criteria.getPageSize();
             long newDataOnLastPageCount = totalNewCount % criteria.getPageSize();
-            long skipDeletedRowsCount = criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
+            long skipDeletedRowsCount = (long) criteria.getPageSize() * skipPageCount - newDataOnLastPageCount;
 
             long pageSize = skipDeletedRowsCount + criteria.getPageSize();
             if (pageSize <= 0)

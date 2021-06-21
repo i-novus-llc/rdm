@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,7 +10,9 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "ref_book", schema = "n2o_rdm_management")
-public class RefBookEntity implements Serializable {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+public abstract class RefBookEntity implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -17,6 +21,10 @@ public class RefBookEntity implements Serializable {
 
     @Column(name = "code", nullable = false)
     private String code;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "type", insertable = false, updatable = false)
+    private RefBookTypeEnum type;
 
     @Column(name = "category")
     private String category;
@@ -29,6 +37,15 @@ public class RefBookEntity implements Serializable {
 
     @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
     private List<RefBookVersionEntity> versionList = new ArrayList<>();
+
+    // Hibernate only.
+    protected RefBookEntity() {
+        // Nothing to do.
+    }
+
+    public RefBookEntity(RefBookTypeEnum type) {
+        this.type = type;
+    }
 
     public Integer getId() {
         return id;
@@ -44,6 +61,18 @@ public class RefBookEntity implements Serializable {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public RefBookTypeEnum getType() {
+        return type;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public Boolean getRemovable() {
@@ -70,13 +99,9 @@ public class RefBookEntity implements Serializable {
         this.versionList = versionList;
     }
 
-    public String getCategory() {
-        return category;
-    }
+    public abstract RefBookVersionEntity createChangeableVersion();
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
+    public abstract boolean isChangeableVersion(RefBookVersionEntity version);
 
     @Override
     @SuppressWarnings("squid:S1067")
@@ -87,13 +112,27 @@ public class RefBookEntity implements Serializable {
         RefBookEntity that = (RefBookEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(code, that.code) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(category, that.category) &&
                 Objects.equals(removable, that.removable) &&
-                Objects.equals(archived, that.archived) &&
-                Objects.equals(category, that.category);
+                Objects.equals(archived, that.archived);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, removable, archived, category);
+        return Objects.hash(id, code, type, category, removable, archived);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RefBookEntity{");
+        sb.append("id=").append(id);
+        sb.append(", code='").append(code).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", category='").append(category).append('\'');
+        sb.append(", removable=").append(removable);
+        sb.append(", archived=").append(archived);
+        sb.append('}');
+        return sb.toString();
     }
 }

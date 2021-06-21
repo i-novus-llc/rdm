@@ -2,9 +2,9 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
@@ -34,10 +34,10 @@ public class VersionValidationImpl implements VersionValidation {
     public static final String REFBOOK_WITH_CODE_NOT_FOUND_EXCEPTION_CODE = "refbook.with.code.not.found";
     private static final String REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
     public static final String VERSION_NOT_FOUND_EXCEPTION_CODE = "version.not.found";
-    public static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String DRAFT_WAS_CHANGED_EXCEPTION_CODE = "draft.was.changed";
     public static final String LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE = "last.published.not.found";
     public static final String REFBOOK_IS_ARCHIVED_EXCEPTION_CODE = "refbook.is.archived";
+    public static final String REFBOOK_WITH_CODE_IS_ARCHIVED_EXCEPTION_CODE = "refbook.with.code.is.archived";
     private static final String VERSION_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "version.attribute.not.found";
     private static final String DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE = "draft.attribute.not.found";
 
@@ -58,8 +58,8 @@ public class VersionValidationImpl implements VersionValidation {
 
     private static final Pattern CODE_PATTERN = Pattern.compile("[A-Za-z][0-9A-Za-z\\-._]{0,49}");
 
-    private RefBookRepository refBookRepository;
-    private RefBookVersionRepository versionRepository;
+    private final RefBookRepository refBookRepository;
+    private final RefBookVersionRepository versionRepository;
 
     @Autowired
     public VersionValidationImpl(RefBookRepository refBookRepository,
@@ -77,28 +77,6 @@ public class VersionValidationImpl implements VersionValidation {
     public void validateRefBook(Integer refBookId) {
         validateRefBookExists(refBookId);
         validateRefBookNotArchived(refBookId);
-    }
-
-    /**
-     * Общая проверка версии справочника.
-     *
-     * @param versionId идентификатор версии
-     */
-    @Override
-    public void validateVersion(Integer versionId) {
-        validateVersionExists(versionId);
-        validateVersionNotArchived(versionId);
-    }
-
-    /**
-     * Общая проверка черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraft(Integer draftId) {
-        validateDraftExists(draftId);
-        validateDraftNotArchived(draftId);
     }
 
     /**
@@ -130,6 +108,19 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
+     * Проверка наличия справочника не в архиве.
+     *
+     * @param refBookId идентификатор справочника
+     */
+    private void validateRefBookNotArchived(Integer refBookId) {
+
+        if (refBookId != null
+                && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
+            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
+        }
+    }
+
+    /**
      * Проверка наличия справочника с указанным кодом.
      *
      * @param refBookCode код справочника
@@ -149,11 +140,26 @@ public class VersionValidationImpl implements VersionValidation {
      * @param refBookCode код справочника
      */
     @Override
+    @SuppressWarnings("I-novus:MethodNameWordCountRule")
     public void validateRefBookCodeNotExists(String refBookCode) {
 
         if (StringUtils.isEmpty(refBookCode)
                         || refBookRepository.existsByCode(refBookCode))
             throw new UserException(new Message(REFBOOK_WITH_ALREADY_EXISTS_EXCEPTION_CODE, refBookCode));
+    }
+
+    /**
+     * Проверка на наличие справочников, ссылающихся на указанный справочник.
+     *
+     * @param refBookCode код справочника
+     * @return Результат проверки
+     */
+    @Override
+    public boolean hasReferrerVersions(String refBookCode) {
+
+        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
+                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
+        return Boolean.TRUE.equals(exists);
     }
 
     /**
@@ -171,20 +177,6 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования черновика справочника.
-     *
-     * @param draftId идентификатор черновика
-     */
-    @Override
-    public void validateDraftExists(Integer draftId) {
-
-        if (draftId == null
-                || !versionRepository.existsByIdAndStatus(draftId, RefBookVersionStatus.DRAFT)) {
-            throw new NotFoundException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, draftId));
-        }
-    }
-
-    /**
      * Проверка значения оптимистической блокировки черновика справочника.
      *
      * @param draftId        идентификатор черновика
@@ -196,32 +188,6 @@ public class VersionValidationImpl implements VersionValidation {
         if (draftId != null && optLockValue != null
                 && !optLockValue.equals(draftLockValue)) {
             throw new UserException(new Message(DRAFT_WAS_CHANGED_EXCEPTION_CODE, draftId));
-        }
-    }
-
-    /**
-     * Проверка наличия справочника не в архиве.
-     *
-     * @param refBookId идентификатор справочника
-     */
-    private void validateRefBookNotArchived(Integer refBookId) {
-
-        if (refBookId != null
-                && versionRepository.exists(RefBookVersionPredicates.isVersionOfRefBook(refBookId).and(RefBookVersionPredicates.isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
-        }
-    }
-
-    /**
-     * Проверка наличия версии справочника не в архиве.
-     *
-     * @param versionId идентификатор версии
-     */
-    private void validateVersionNotArchived(Integer versionId) {
-
-        if (versionId != null
-                && versionRepository.exists(RefBookVersionPredicates.hasVersionId(versionId).and(RefBookVersionPredicates.isArchived()))) {
-            throw new UserException(new Message(REFBOOK_IS_ARCHIVED_EXCEPTION_CODE));
         }
     }
 
@@ -254,20 +220,17 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка существования атрибута версии справочника.
+     * Проверка существования атрибута черновика справочника.
      *
-     * @param versionId идентификатор версии
+     * @param draftId   идентификатор черновика
+     * @param structure структура черновика
      * @param attribute код атрибута
      */
     @Override
-    public void validateDraftAttributeExists(Integer versionId, String attribute) {
+    public void validateDraftAttributeExists(Integer draftId, Structure structure, String attribute) {
 
-        validateDraftExists(versionId);
-
-        Structure structure = versionRepository.getOne(versionId).getStructure();
-        if (structure.getAttribute(attribute) == null) {
-            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, versionId, attribute));
-        }
+        if (structure.getAttribute(attribute) == null)
+            throw new NotFoundException(new Message(DRAFT_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE, draftId, attribute));
     }
 
     /** Проверка структуры.
@@ -429,9 +392,9 @@ public class VersionValidationImpl implements VersionValidation {
     }
 
     /**
-     * Проверка структуры ссылочного справочника.
+     * Проверка структуры версии ссылочного справочника.
      *
-     * @param structure структура справочника, который ссылается
+     * @param structure структура версии справочника, который ссылается
      */
     @Override
     public void validateReferrerStructure(Structure structure) {
@@ -461,7 +424,12 @@ public class VersionValidationImpl implements VersionValidation {
             throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
     }
 
-    /** Получение версии справочника, на который указывает ссылка. */
+    /**
+     * Получение версии справочника, на который ссылаются.
+     *
+     * @param referredCode код этого справочника
+     * @return Версия справочника
+     */
     private RefBookVersionEntity getReferredEntity(String referredCode) {
 
         validateRefBookCode(referredCode);
@@ -493,11 +461,67 @@ public class VersionValidationImpl implements VersionValidation {
             throw new UserException(new Message(REFERRED_BOOK_HAS_MORE_PRIMARIES_EXCEPTION_CODE, referredCode));
     }
 
-    /** Проверка на наличие справочников, ссылающихся на указанный справочник. */
-    private boolean hasReferrerVersions(String refBookCode) {
-        Boolean exists = versionRepository.existsReferrerVersions(refBookCode,
-                RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name());
-        return Boolean.TRUE.equals(exists);
+    /**
+     * Проверка атрибута перед добавлением в структуру.
+     *
+     * @param newAttribute добавляемый атрибут
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateNewAttribute(Structure.Attribute newAttribute,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (!newAttribute.hasIsPrimary()
+                && !oldStructure.hasPrimary()
+                && !isEmpty(oldStructure.getReferences())
+                && !newAttribute.isReferenceType() // Только для добавления первичного ключа в старые справочники!
+        )
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
+
+        validateAttribute(newAttribute);
+    }
+
+    /**
+     * Проверка атрибута-ссылки перед добавлением в структуру.
+     *
+     * @param newAttribute добавляемый атрибут
+     * @param newReference добавляемый атрибут-ссылка
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateNewReference(Structure.Attribute newAttribute,
+                                     Structure.Reference newReference,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (newAttribute.hasIsPrimary())
+            throw new UserException(new Message(REFERENCE_ATTRIBUTE_CANNOT_BE_PRIMARY_KEY_EXCEPTION_CODE, newAttribute.getName()));
+
+        if (!oldStructure.hasPrimary())
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
+
+        Structure.Reference oldReference = oldStructure.getReference(newReference.getAttribute());
+        if (!StructureUtils.isDisplayExpressionEquals(oldReference, newReference)) {
+            validateReferenceAbility(newReference);
+        }
+    }
+
+    /**
+     * Проверка атрибута перед удалением из структуры.
+     *
+     * @param oldAttribute удаляемый атрибут
+     * @param oldStructure исходная структура
+     * @param refBookCode  код справочника
+     */
+    @Override
+    public void validateOldAttribute(Structure.Attribute oldAttribute,
+                                     Structure oldStructure, String refBookCode) {
+
+        if (oldAttribute.hasIsPrimary() &&
+                !isEmpty(oldStructure.getReferences()) &&
+                oldStructure.getPrimaries().size() == 1)
+            throw new UserException(new Message(REFERENCE_BOOK_MUST_HAVE_PRIMARY_KEY_EXCEPTION_CODE, refBookCode));
     }
 
     /**
@@ -509,13 +533,15 @@ public class VersionValidationImpl implements VersionValidation {
      */
     public boolean equalsPrimaries(List<Structure.Attribute> primaries1,
                                    List<Structure.Attribute> primaries2) {
-        return !isEmpty(primaries1) && !isEmpty(primaries2)
+        return !CollectionUtils.isEmpty(primaries1) &&
+                !CollectionUtils.isEmpty(primaries2)
                 && primaries1.size() == primaries2.size()
                 && primaries1.stream().allMatch(primary1 -> containsPrimary(primaries2, primary1));
     }
 
     /** Проверка на наличие первичного ключа в списке первичных ключей. */
     private static boolean containsPrimary(List<Structure.Attribute> primaries, Structure.Attribute primary) {
+
         return primaries.stream().anyMatch(p -> p.storageEquals(primary));
     }
 

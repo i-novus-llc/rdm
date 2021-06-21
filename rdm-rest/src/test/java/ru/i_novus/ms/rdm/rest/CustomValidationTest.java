@@ -73,7 +73,7 @@ public class CustomValidationTest {
     public void testAddDeleteValidation() {
 
         String REF_BOOK_NAME = "CustomValidationTest";
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null, null));
 
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
         final Integer draftId = draft.getId();
@@ -120,7 +120,7 @@ public class CustomValidationTest {
     @Test
     public void testUpdateValidation() {
         String REF_BOOK_NAME = "CustomValidationUpdateTest";
-        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null));
+        RefBook refBook = refBookService.create(new RefBookCreateRequest(REF_BOOK_NAME, null, null, null));
         Draft draft = draftService.create(new CreateDraftRequest(refBook.getRefBookId(), createStructure()));
 
         RefBookVersionAttribute versionAttribute = new RefBookVersionAttribute(draft.getId(), new Structure.Attribute(), new Structure.Reference());

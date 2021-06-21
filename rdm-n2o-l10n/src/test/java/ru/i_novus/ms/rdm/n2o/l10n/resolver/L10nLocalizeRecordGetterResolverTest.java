@@ -184,11 +184,9 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
         return version;
     }
 
-    /** Создание структуры с глубоким копированием атрибутов и ссылок. */
     private Structure createStructure() {
 
-        Structure structure = new Structure(ATTRIBUTE_LIST, REFERENCE_LIST);
-        return new Structure(structure);
+        return new Structure(DEFAULT_STRUCTURE);
     }
 
     private RefBookRowValue createRowValue() {

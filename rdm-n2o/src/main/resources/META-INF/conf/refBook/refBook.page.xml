@@ -175,10 +175,8 @@
                         </button>
 
                         <button id="uploadData_r" label="Загрузить данные"
-                                widget-id="version_select" model="resolve"
-                                visible="{version.status=='DRAFT'}">
-                            <show-modal page-id="uploadData" upload="defaults"
-                                        submit-operation-id="uploadData" refresh-widget-id="version_select">
+                                widget-id="version_select" model="resolve">
+                            <show-modal page-id="uploadData" upload="defaults" refresh-widget-id="version_select">
                                 <query-param name="versionId" value="{version.id}"/>
                             </show-modal>
                         </button>
@@ -194,7 +192,7 @@
                         <set field-label-location="left">
                             <output-text id="id">
                                 <dependencies>
-                                    <visibility>return ${rdm.l10n.support}</visibility>
+                                    <visibility>return false</visibility>
                                     <set-value on="localeCode">localeCode.versionId</set-value>
                                 </dependencies>
                             </output-text>
@@ -260,7 +258,7 @@
                                         upload="query" route="/update"
                                         submit-operation-id="update" submit-label="Изменить"
                                         refresh-widget-id="version_select">
-                                <query-param name="id" value="{id}" ref-widget-id="dataTable" ref-model="resolve"/>
+                                <query-param name="id" value="{id}" ref-widget-id="dataTableWithConflicts" ref-model="resolve"/>
                                 <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                                 <query-param name="dataAction" value="update"/>
                             </show-modal>
