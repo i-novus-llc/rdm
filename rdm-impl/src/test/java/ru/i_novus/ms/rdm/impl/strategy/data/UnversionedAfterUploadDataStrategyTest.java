@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.structure.UnversionedChangeStructureStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -53,6 +54,9 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
 
     @Mock
     private AfterUploadDataStrategy afterUploadDataStrategy;
+
+    @Mock
+    private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
 
     @Test
     @SuppressWarnings("unchecked")
