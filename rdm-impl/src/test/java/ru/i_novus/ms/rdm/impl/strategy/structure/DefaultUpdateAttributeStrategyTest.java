@@ -46,13 +46,14 @@ public class DefaultUpdateAttributeStrategyTest extends DefaultBaseStrategyTest 
         RefBookVersionEntity entity = createDraftEntity();
         fillOptLockValue(entity, DRAFT_OPT_LOCK_VALUE);
 
-        Structure.Attribute oldAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        final Structure.Attribute oldAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
         entity.getStructure().add(oldAttribute, null);
 
-        Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        final Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
         newAttribute.setName(newAttribute.getName() + "_update");
 
         UpdateAttributeRequest request = new UpdateAttributeRequest(DRAFT_OPT_LOCK_VALUE, newAttribute, null);
+
         Structure.Attribute attribute = strategy.update(entity, request);
         assertEquals(newAttribute, attribute); // Изменённый атрибут
 

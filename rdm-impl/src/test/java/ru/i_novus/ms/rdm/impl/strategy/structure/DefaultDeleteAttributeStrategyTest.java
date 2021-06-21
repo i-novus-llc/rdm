@@ -33,11 +33,12 @@ public class DefaultDeleteAttributeStrategyTest extends DefaultBaseStrategyTest 
         RefBookVersionEntity entity = createDraftEntity();
         fillOptLockValue(entity, DRAFT_OPT_LOCK_VALUE);
 
-        Structure.Attribute oldAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        final Structure.Attribute oldAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
         entity.getStructure().add(oldAttribute, null);
 
         final String oldAttributeCode = oldAttribute.getCode();
         DeleteAttributeRequest request = new DeleteAttributeRequest(DRAFT_OPT_LOCK_VALUE, oldAttributeCode);
+
         Structure.Attribute attribute = strategy.delete(entity, request);
         assertEquals(oldAttribute, attribute); // Удалённый атрибут
 
