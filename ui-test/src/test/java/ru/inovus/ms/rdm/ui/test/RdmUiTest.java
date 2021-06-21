@@ -45,6 +45,8 @@ public class RdmUiTest {
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
     private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
 
+    private static final String REFBOOK_UNVERSIONED = "Неверсионный";
+
     //легче работать с упорядочным по id списком, поэтому через этот класс задаем порядок
     private final AtomicInteger refBookDataIdSeq = new AtomicInteger();
 
@@ -69,7 +71,7 @@ public class RdmUiTest {
 
     @After
     public void logout() throws Exception {
-        open("/logout", LoginPage.class).shouldExists();;
+        open("/logout", LoginPage.class).shouldExists();
     }
 
     /**
@@ -108,8 +110,8 @@ public class RdmUiTest {
      * Создание/редактирование/удаление неверсионного справочника
      */
     @Test
-    public void testNonVersionedRefBook() {
-        RefBook refBook = generateRefBook("Неверсионный", 3, null);
+    public void testUnversionedRefBook() {
+        RefBook refBook = generateRefBook(REFBOOK_UNVERSIONED, 3, null);
         RefBookListPage refBookListPage = login();
         createRefBook(refBookListPage, refBook);
         refBookListPage.shouldExists();
@@ -122,7 +124,6 @@ public class RdmUiTest {
         refBookListPage.deleteRow(0);
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveSize(0);
-
     }
 
     private void search(RefBookListPage refBookListPage, RefBook refBook) {
@@ -156,7 +157,7 @@ public class RdmUiTest {
             addedRowsNameColumnValues.add((String) row.entrySet().stream().filter(entry -> "name".equals(entry.getKey().getCode())).findAny().get().getValue());
             dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
         }
-        if ("Неверсионный".equals(refBook.getType())){
+        if (REFBOOK_UNVERSIONED.equals(refBook.getType())){
             open("/", RefBookListPage.class);
         } else {
             refBookEditPage.publish();
@@ -207,7 +208,7 @@ public class RdmUiTest {
         dataListWidget.deleteRowForm(addedRowsNameColumnValues.size()-1);
         addedRowsNameColumnValues.remove(addedRowsNameColumnValues.size()-1);
         dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
-        if ("Неверсионный".equals(refBook.getType())){
+        if (REFBOOK_UNVERSIONED.equals(refBook.getType())){
             open("/", RefBookListPage.class);
         } else {
             refBookEditPage.publish();
