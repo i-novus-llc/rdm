@@ -50,7 +50,7 @@ public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseSt
     @SuppressWarnings("unchecked")
     public void testDeleteAll() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();

@@ -64,7 +64,7 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
     @SuppressWarnings("unchecked")
     public void testUpdate() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         List<RowValue> oldRowValues = List.of(
                 // Без изменения:

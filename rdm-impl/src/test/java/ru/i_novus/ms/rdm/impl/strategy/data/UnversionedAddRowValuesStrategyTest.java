@@ -58,7 +58,7 @@ public class UnversionedAddRowValuesStrategyTest extends UnversionedBaseStrategy
     @SuppressWarnings("unchecked")
     public void testAdd() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         List<RowValue> rowValues = List.of(
                 // Без существующего конфликта:

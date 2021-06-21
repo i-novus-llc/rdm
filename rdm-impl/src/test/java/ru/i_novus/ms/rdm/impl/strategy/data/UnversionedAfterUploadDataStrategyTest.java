@@ -62,7 +62,7 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
     @SuppressWarnings("unchecked")
     public void testApply() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         List<RowValue> rowValues = List.of(
                 // Без существующего конфликта:

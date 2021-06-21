@@ -48,7 +48,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
     @SuppressWarnings("unchecked")
     public void testDelete() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        RefBookVersionEntity entity = createUnversionedEntity();
 
         Integer referredId = 3;
         List<Object> systemIds = List.of(1L, 2L);
