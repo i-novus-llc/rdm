@@ -7,10 +7,7 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.ReferrerVersionCriteria;
-import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
@@ -27,9 +24,7 @@ import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.NAME_ATTRIBUTE_
 
 public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTest {
 
-    private static final String USED_VERSION = "-1.0";
-
-    protected static final int REFERRER_ID = 10;
+    protected static final int REFERRER_ID = 30;
     protected static final String REFERRER_CODE = "refer";
 
     protected static final int REFERRER_VERSION_ID = 33;
@@ -44,14 +39,22 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
 
     protected RefBookVersionEntity createUnversionedEntity() {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        RefBookEntity refBookEntity = createUnversionedRefBookEntity();
+        RefBookVersionEntity entity = refBookEntity.createChangeableVersion();
+
         entity.setId(DRAFT_ID);
-        entity.setRefBook(createRefBookEntity());
+        entity.setRefBook(createUnversionedRefBookEntity());
         entity.setStructure(createStructure());
         entity.setStorageCode(DRAFT_CODE);
-        entity.setStatus(RefBookVersionStatus.PUBLISHED);
-        entity.setVersion(USED_VERSION);
-        entity.setFromDate(TimeUtils.now());
+
+        return entity;
+    }
+
+    protected RefBookEntity createUnversionedRefBookEntity() {
+
+        RefBookEntity entity = new UnversionedRefBookEntity();
+        entity.setId(REFBOOK_ID);
+        entity.setCode(REFBOOK_CODE);
 
         return entity;
     }

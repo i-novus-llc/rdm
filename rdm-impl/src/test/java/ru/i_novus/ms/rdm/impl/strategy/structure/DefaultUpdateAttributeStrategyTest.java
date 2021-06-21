@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.strategy.structure;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.field;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
@@ -78,6 +80,13 @@ public class DefaultUpdateAttributeStrategyTest extends DefaultBaseStrategyTest 
         newAttribute.setName(newAttribute.getName() + "_update");
         Structure.Reference newReference = new Structure.Reference(CHANGE_REF_REFERENCE);
         newReference.setDisplayExpression(newReference.getDisplayExpression() + "_update");
+
+        RefBookVersionEntity referredEntity = createReferredVersionEntity(newReference);
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                newReference.getReferenceCode(), RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(referredEntity);
 
         UpdateAttributeRequest request = new UpdateAttributeRequest(DRAFT_OPT_LOCK_VALUE, newAttribute, newReference);
         Structure.Attribute attribute = strategy.update(entity, request);

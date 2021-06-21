@@ -11,11 +11,13 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
@@ -30,6 +32,14 @@ public abstract class DefaultBaseStrategyTest {
     protected static final String DRAFT_CODE = "draft_code";
     protected static final int DRAFT_OPT_LOCK_VALUE = 10;
 
+    protected static final int REFERRED_ID = 20;
+    protected static final int REFERRED_VERSION_ID = 22;
+
+    protected static final Structure.Attribute REFERRED_ATTRIBUTE = Structure.Attribute.build(
+            REFERRED_BOOK_ATTRIBUTE_CODE, REFERRED_BOOK_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, null
+    );
+    protected static final Structure REFERRED_STRUCTURE = new Structure(List.of(ID_ATTRIBUTE, REFERRED_ATTRIBUTE), null);
+
     protected static final String NAME_FIELD_VALUE_PREFIX = "name_";
     protected static final String TEXT_FIELD_VALUE_PREFIX = "text with id = ";
 
@@ -43,12 +53,28 @@ public abstract class DefaultBaseStrategyTest {
 
     protected RefBookVersionEntity createDraftEntity() {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        RefBookEntity refBookEntity = createDefaultRefBookEntity();
+        RefBookVersionEntity entity = refBookEntity.createChangeableVersion();
+
         entity.setId(DRAFT_ID);
-        entity.setRefBook(createRefBookEntity());
+        entity.setRefBook(createDefaultRefBookEntity());
         entity.setStructure(createStructure());
         entity.setStorageCode(DRAFT_CODE);
-        entity.setStatus(RefBookVersionStatus.DRAFT);
+
+        return entity;
+    }
+
+    protected RefBookVersionEntity createReferredVersionEntity(Structure.Reference reference) {
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setId(REFERRED_ID);
+        refBookEntity.setCode(reference.getReferenceCode());
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(REFERRED_VERSION_ID);
+        entity.setRefBook(refBookEntity);
+        entity.setStructure(new Structure(REFERRED_STRUCTURE));
+        entity.setStatus(RefBookVersionStatus.PUBLISHED);
 
         return entity;
     }
@@ -62,7 +88,7 @@ public abstract class DefaultBaseStrategyTest {
         }
     }
 
-    protected RefBookEntity createRefBookEntity() {
+    protected RefBookEntity createDefaultRefBookEntity() {
 
         RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
