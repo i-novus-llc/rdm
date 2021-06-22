@@ -20,6 +20,8 @@ import ru.inovus.ms.rdm.ui.test.model.RefBookField;
 import ru.inovus.ms.rdm.ui.test.page.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +33,10 @@ import static net.n2oapp.framework.autotest.N2oSelenide.open;
 public class RdmUiTest {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmUiTest.class);
+
+    private static final ZoneId UNIVERSAL_TIMEZONE = ZoneId.of("UTC");
+    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
     private static final String USERNAME = "admin";
     private static final String PASSWORD = "admin";
@@ -369,13 +375,17 @@ public class RdmUiTest {
     private RefBook generateRefBook(String type, int rowsCount, List<FieldType> fieldTypes, RefBook referredBook) {
 
         return new RefBook(
-                "D" + RandomStringUtils.randomAlphabetic(5),
-                RandomStringUtils.randomAlphabetic(5),
+                "a_" + RandomStringUtils.randomAlphabetic(5),
+                "a " + RandomStringUtils.randomAlphabetic(5) + " " + now().format(DATE_TIME_FORMATTER),
                 "shortName",
                 "system",
                 "description",
                 type,
                 generateRefBookRows(rowsCount, fieldTypes, referredBook)
         );
+    }
+
+    private static LocalDateTime now() {
+        return LocalDateTime.now(UNIVERSAL_TIMEZONE);
     }
 }
