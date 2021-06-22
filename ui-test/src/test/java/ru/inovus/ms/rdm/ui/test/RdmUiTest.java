@@ -7,20 +7,13 @@ import com.codeborne.selenide.Selenide;
 import net.n2oapp.framework.autotest.api.component.control.Control;
 import net.n2oapp.framework.autotest.api.component.control.InputText;
 import net.n2oapp.framework.autotest.api.component.control.TextArea;
-import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
-import net.n2oapp.framework.autotest.impl.component.control.N2oDateInput;
-import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
-import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
+import net.n2oapp.framework.autotest.impl.component.control.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.system.SystemProperties;
-import ru.inovus.ms.rdm.ui.test.page.LoginPage;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.model.RefBook;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
@@ -43,9 +36,18 @@ public class RdmUiTest {
     private static final String PASSWORD = "admin";
 
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
-    private static final int REF_BOOK_DATA_ROWS_CREATE_COUNT = 3;
+    private static final int DATA_ROWS_CREATE_COUNT = 3;
 
     private static final String REFBOOK_UNVERSIONED = "Неверсионный";
+
+    // Дата всегда должна быть последней, иначе календарь перекрывает другие поля.
+    private static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
+            FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE
+    );
+
+    private static final List<FieldType> REFERRER_FIELD_TYPES = List.of(
+            FieldType.INTEGER, FieldType.STRING, FieldType.REFERENCE
+    );
 
     //легче работать с упорядочным по id списком, поэтому через этот класс задаем порядок
     private final AtomicInteger refBookDataIdSeq = new AtomicInteger();
@@ -78,29 +80,35 @@ public class RdmUiTest {
      * Создает и публикует два справочника, один из которых ссылочный с ссылкой на первый справочник
      */
     @Test
-    public void testCreateRefBookAndRefBookWithReference() {
-        RefBook simpleRefBook = generateRefBook(null, REF_BOOK_DATA_ROWS_CREATE_COUNT, null);
-        RefBook refBookWithReference = generateRefBook(null, REF_BOOK_DATA_ROWS_CREATE_COUNT, simpleRefBook);
+    public void testCreateSimpleAndReferrerRefBook() {
+
+        RefBook simpleRefBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
+        RefBook referrerRefBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, simpleRefBook);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
+
         createRefBook(refBookListPage, simpleRefBook);
         refBookListPage.shouldExists();
+
         search(refBookListPage, simpleRefBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+
+        createRefBook(refBookListPage, referrerRefBook);
+
         RefBookEditPage refBookEditPage = refBookListPage.openRefBookEditPage(0);
         editRefBook(refBookEditPage, simpleRefBook);
 
-        createRefBook(refBookListPage, refBookWithReference);
+        search(refBookListPage, referrerRefBook);
+        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
 
-        search(refBookListPage, refBookWithReference);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBookWithReference.getCode()));
         refBookListPage.deleteRow(0);
-        search(refBookListPage, refBookWithReference);
+        search(refBookListPage, referrerRefBook);
         refBookListPage.rowShouldHaveSize(0);
 
         search(refBookListPage, simpleRefBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+
         refBookListPage.deleteRow(0);
         search(refBookListPage, simpleRefBook);
         refBookListPage.rowShouldHaveSize(0);
@@ -111,17 +119,25 @@ public class RdmUiTest {
      */
     @Test
     public void testUnversionedRefBook() {
-        RefBook refBook = generateRefBook(REFBOOK_UNVERSIONED, 3, null);
+
+        RefBook refBook = generateRefBook(REFBOOK_UNVERSIONED, 3, DEFAULT_FIELD_TYPES, null);
+
         RefBookListPage refBookListPage = login();
+        refBookListPage.shouldExists();
+
         createRefBook(refBookListPage, refBook);
         refBookListPage.shouldExists();
+
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBook.getCode()));
+
         RefBookEditPage refBookEditPage = refBookListPage.openRefBookEditPage(0);
         editRefBook(refBookEditPage, refBook);
+
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBook.getCode()));
         refBookListPage.deleteRow(0);
+
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveSize(0);
     }
@@ -182,6 +198,7 @@ public class RdmUiTest {
     }
 
     private void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
+
         List<Map<RefBookField, Object>> existedRows = refBook.getRows();
         List<String> addedRowsNameColumnValues = existedRows.stream().map(row -> (String) row.entrySet().stream()
                 .filter(entry -> "name".equals(entry.getKey().getCode()))
@@ -189,7 +206,7 @@ public class RdmUiTest {
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
         DataFormModal addForm = dataListWidget.addRowForm();
-        List<Map<RefBookField, Object>> refBookRows = generateRefBookRows(1, null, FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE);
+        List<Map<RefBookField, Object>> refBookRows = generateRefBookRows(1, DEFAULT_FIELD_TYPES, null);
         Map<RefBookField, Object> row = refBookRows.get(0);
         fillDataForm(addForm, row);
         addForm.save();
@@ -198,23 +215,24 @@ public class RdmUiTest {
                 .findAny().get().getValue());
         dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
 
-        DataFormModal editForm = dataListWidget.editRowForm(addedRowsNameColumnValues.size()-1);
+        final int lastRowNum = addedRowsNameColumnValues.size() - 1;
+        DataFormModal editForm = dataListWidget.editRowForm(lastRowNum);
         String newNameVal = "Другое наименование";
         fillInputText(editForm.stringInput("Наименование"), newNameVal);
         editForm.edit();
-        addedRowsNameColumnValues.set(addedRowsNameColumnValues.size()-1, newNameVal);
+        addedRowsNameColumnValues.set(lastRowNum, newNameVal);
         dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
 
-        dataListWidget.deleteRowForm(addedRowsNameColumnValues.size()-1);
-        addedRowsNameColumnValues.remove(addedRowsNameColumnValues.size()-1);
+        dataListWidget.deleteRowForm(lastRowNum);
+        addedRowsNameColumnValues.remove(lastRowNum);
         dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
+
         if (REFBOOK_UNVERSIONED.equals(refBook.getType())){
             open("/", RefBookListPage.class);
         } else {
             refBookEditPage.publish();
             waitPublishing();
         }
-
     }
 
     private void fillDataForm(DataFormModal dataForm, Map<RefBookField, Object> row) {
@@ -250,10 +268,10 @@ public class RdmUiTest {
         if (refBookField.getAttributeTypeName().equals(FieldType.REFERENCE)) {
             N2oInputSelect refBookInput = structureForm.refBookInput();
             refBookInput.shouldBeEmpty();
-            refBookInput.val(refBookField.getReference().getCode());
+            refBookInput.val(refBookField.getReferredBook().getCode());
             refBookInput.expandPopUpOptions();
-            refBookInput.select(Condition.text(refBookField.getReference().getCode()));
-            refBookInput.shouldSelected(refBookField.getReference().getCode());
+            refBookInput.select(Condition.text(refBookField.getReferredBook().getCode()));
+            refBookInput.shouldSelected(refBookField.getReferredBook().getCode());
 
             N2oInputSelect displayAttrInput = structureForm.displayAttrInput();
             displayAttrInput.select(0);
@@ -305,22 +323,41 @@ public class RdmUiTest {
         return refBookListPage;
     }
 
-
     private void waitPublishing() {
         Selenide.sleep(SLEEP_TIME);
     }
-    private List<Map<RefBookField, Object>> generateRefBookRows(int rowsCount, RefBook reference, FieldType ... types) {
+
+    private List<Map<RefBookField, Object>> generateRefBookRows(int rowsCount, List<FieldType> fieldTypes, RefBook referredBook) {
+
         List<Map<RefBookField, Object>> result = new ArrayList<>(rowsCount);
         for(int i = 0; i < rowsCount; i++) {
-            Map<RefBookField, Object> row = new LinkedHashMap<>(types.length);
-            for (FieldType fieldType : types) {
+            Map<RefBookField, Object> row = new LinkedHashMap<>(fieldTypes.size());
+            for (FieldType fieldType : fieldTypes) {
                 switch (fieldType) {
-                    case STRING -> row.put(new RefBookField("name", "Наименование", fieldType, false, null), RandomStringUtils.randomAlphabetic(5));
-                    case INTEGER -> row.put(new RefBookField("id", "Идентификатор", fieldType, true, null), String.valueOf(refBookDataIdSeq.getAndIncrement()));
-                    case DOUBLE -> row.put(new RefBookField("some_double", "Некоторое дробное поле", fieldType, false, null), String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3));
-                    case DATE -> row.put(new RefBookField("some_date", "Некоторая дата", fieldType, false, null), LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
-                    case BOOLEAN -> row.put(new RefBookField("some_boolean", "Некоторое булеан поле", fieldType, false, null), RandomUtils.nextBoolean());
-                    case REFERENCE -> row.put(new RefBookField("some_reference", "Некоторое ссылочное поле", fieldType, false, reference), 0);
+                    case STRING -> row.put(
+                            new RefBookField("name", "Наименование", fieldType, false, null),
+                            RandomStringUtils.randomAlphabetic(5)
+                    );
+                    case INTEGER -> row.put(
+                            new RefBookField("id", "Идентификатор", fieldType, true, null),
+                            String.valueOf(refBookDataIdSeq.getAndIncrement())
+                    );
+                    case DOUBLE -> row.put(
+                            new RefBookField("some_double", "Некоторое дробное поле", fieldType,
+                                    false, null), String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
+                    );
+                    case DATE -> row.put(
+                            new RefBookField("some_date", "Некоторая дата", fieldType, false, null),
+                            LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+                    );
+                    case BOOLEAN -> row.put(
+                            new RefBookField("some_boolean", "Некоторое булеан поле", fieldType,
+                                    false, null), RandomUtils.nextBoolean()
+                    );
+                    case REFERENCE -> row.put(
+                            new RefBookField("some_reference", "Некоторое ссылочное поле", fieldType, false, referredBook),
+                            referredBook != null && referredBook.getRows().size() > i ? i : null
+                    );
                     default -> throw new IllegalArgumentException(fieldType + " invalid field type");
                 }
             }
@@ -329,12 +366,8 @@ public class RdmUiTest {
         return result;
     }
 
-    private RefBook generateRefBook(String type, int rowsCount, RefBook reference) {
-        List<FieldType> fieldTypes = new ArrayList<>(Arrays.asList(FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE));
-        if(reference != null) {
-            // дата всегда должна быть последней иначе календарь перекрывает другие поля
-            fieldTypes.add(fieldTypes.indexOf(FieldType.DATE), FieldType.REFERENCE);
-        }
+    private RefBook generateRefBook(String type, int rowsCount, List<FieldType> fieldTypes, RefBook referredBook) {
+
         return new RefBook(
                 "D" + RandomStringUtils.randomAlphabetic(5),
                 RandomStringUtils.randomAlphabetic(5),
@@ -342,6 +375,7 @@ public class RdmUiTest {
                 "system",
                 "description",
                 type,
-                generateRefBookRows(rowsCount, reference, fieldTypes.toArray(new FieldType[fieldTypes.size()])));
+                generateRefBookRows(rowsCount, fieldTypes, referredBook)
+        );
     }
 }

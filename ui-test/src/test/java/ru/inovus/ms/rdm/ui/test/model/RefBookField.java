@@ -6,15 +6,14 @@ public class RefBookField {
     private final String name;
     private final FieldType attributeTypeName;
     private final boolean isPrimaryKey;
-    private final RefBook reference;
+    private final RefBook referredBook;
 
-
-    public RefBookField(String code, String name, FieldType attributeTypeName, boolean isPrimaryKey, RefBook reference) {
+    public RefBookField(String code, String name, FieldType attributeTypeName, boolean isPrimaryKey, RefBook referredBook) {
         this.code = code;
         this.name = name;
         this.attributeTypeName = attributeTypeName;
         this.isPrimaryKey = isPrimaryKey;
-        this.reference = reference;
+        this.referredBook = referredBook;
     }
 
     public String getCode() {
@@ -33,7 +32,7 @@ public class RefBookField {
         return isPrimaryKey;
     }
 
-    public RefBook getReference() {
-        return reference;
+    public RefBook getReferredBook() {
+        return referredBook;
     }
 }
