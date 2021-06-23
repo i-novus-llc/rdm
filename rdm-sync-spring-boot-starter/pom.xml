@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>rdm-sync-spring-boot-starter</artifactId>
-    <packaging>jar</packaging>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.1.17-SNAPSHOT</version>
+        <version>1.113.1</version>
     </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rdm-sync-spring-boot-starter</artifactId>
+    <packaging>jar</packaging>
 
     <properties>
         <jaxb.api.version>2.3.1</jaxb.api.version>
-        <jacoco.skip>false</jacoco.skip>
+
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
@@ -55,6 +54,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>ru.i-novus.components</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
@@ -81,7 +95,6 @@
             <artifactId>jaxb-impl</artifactId>
             <version>2.3.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jms</artifactId>
@@ -90,33 +103,11 @@
             <groupId>javax.jms</groupId>
             <artifactId>javax.jms-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-quartz</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <!-- test -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- / test -->
-
     </dependencies>
 
     <build>
@@ -127,5 +118,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

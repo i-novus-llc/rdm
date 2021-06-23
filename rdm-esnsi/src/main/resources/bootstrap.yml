@@ -1,7 +1,0 @@
-spring:
-  application:
-    name: rdm-esnsi
-  cloud:
-    consul:
-      config:
-        enabled: ${config.server.enable}

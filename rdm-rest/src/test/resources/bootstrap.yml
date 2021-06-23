@@ -1,7 +1,0 @@
-spring:
-  application:
-    name: rdm-rest
-  cloud:
-    consul:
-      config:
-        enabled: false

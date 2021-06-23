@@ -7,12 +7,8 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.1.17-SNAPSHOT</version>
+        <version>1.113.1</version>
     </parent>
-
-    <properties>
-        <jacoco.skip>false</jacoco.skip>
-    </properties>
 
     <dependencies>
 
@@ -60,20 +56,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>
-
-        <!-- test -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- / test -->
 
     </dependencies>
 

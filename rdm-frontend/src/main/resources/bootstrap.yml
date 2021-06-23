@@ -1,7 +1,0 @@
-spring:
-  application:
-    name: rdm-frontend
-  cloud:
-    consul:
-      config:
-        enabled: ${config.server.enable}
