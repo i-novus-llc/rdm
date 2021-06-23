@@ -161,7 +161,7 @@ public class RdmUiTest {
     @Test
     public void testUnversionedRefBook() {
 
-        RefBook refBook = generateRefBook(REFBOOK_UNVERSIONED, 3, DEFAULT_FIELD_TYPES, null);
+        RefBook refBook = generateRefBook(RefBook.getUnversionedType(), 3, DEFAULT_FIELD_TYPES, null);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
@@ -223,7 +223,11 @@ public class RdmUiTest {
             dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
         }
 
-        publishRefBook(refBookEditPage, refBook);
+        if (refBook.isUnversioned()) {
+            openRefBookListPage();
+        } else {
+            publishRefBook(refBookEditPage);
+        }
     }
 
     private void createStructure(StructureListWidget structureListWidget, Set<RefBookField> fieldsToFirstRefBook) {
@@ -279,7 +283,11 @@ public class RdmUiTest {
         nameColumnValues.remove(lastRowNum);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
-        publishRefBook(refBookEditPage, refBook);
+        if (refBook.isUnversioned()) {
+            openRefBookListPage();
+        } else {
+            publishRefBook(refBookEditPage);
+        }
     }
 
     private void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
@@ -306,7 +314,11 @@ public class RdmUiTest {
         nameColumnValues.set(0, newNameValue);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
-        publishRefBook(refBookEditPage, refBook);
+        if (refBook.isUnversioned()) {
+            openRefBookListPage();
+        } else {
+            publishRefBook(refBookEditPage);
+        }
     }
 
     private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
@@ -340,18 +352,18 @@ public class RdmUiTest {
         dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
         dataWithConflictsListWidget.rowShouldHaveSize(0); // Нет конфликтов
 
+        openRefBookListPage();
+    }
+
+    private void openRefBookListPage() {
+
         open("/", RefBookListPage.class);
     }
 
-    private void publishRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
+    private void publishRefBook(RefBookEditPage refBookEditPage) {
 
-        if (REFBOOK_UNVERSIONED.equals(refBook.getType())) {
-            open("/", RefBookListPage.class);
-
-        } else {
-            refBookEditPage.publish();
-            waitActionResult();
-        }
+        refBookEditPage.publish();
+        waitActionResult();
     }
 
     private void fillDataForm(DataFormModal dataForm, Map<RefBookField, Object> row) {
