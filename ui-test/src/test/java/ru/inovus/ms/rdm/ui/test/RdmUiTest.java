@@ -118,9 +118,27 @@ public class RdmUiTest {
         // Создание ссылочного справочника.
         createRefBook(refBookListPage, referrerRefBook);
 
-        RefBookEditPage refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        RefBookEditPage refBookEditPage;
+
+        // Изменение обычного справочника.
+        refBookEditPage = refBookListPage.openRefBookEditPage(0);
         editRefBook(refBookEditPage, simpleRefBook);
 
+        // Создание конфликтов.
+        search(refBookListPage, simpleRefBook);
+        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+
+        refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        createDataConflicts(refBookEditPage, simpleRefBook);
+
+        // Проверка конфликтов.
+        search(refBookListPage, referrerRefBook);
+        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
+
+        refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        resolveDataConflicts(refBookEditPage, referrerRefBook);
+
+        // Удаление ссылочного справочника.
         search(refBookListPage, referrerRefBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
 
@@ -291,7 +309,7 @@ public class RdmUiTest {
         publishRefBook(refBookEditPage, refBook);
     }
 
-    private void checkDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
+    private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
 
         List<Map<RefBookField, Object>> existedRows = referrer.getRows();
         List<String> nameColumnValues = existedRows.stream()
