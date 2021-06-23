@@ -1,19 +1,38 @@
 package ru.inovus.ms.rdm.ui.test.model;
 
+import java.util.Map;
+
 public class RefBookField {
 
     private final String code;
     private final String name;
-    private final FieldType attributeTypeName;
-    private final boolean isPrimaryKey;
-    private final RefBook referredBook;
+    private final FieldType type;
+    private final boolean isPrimary;
 
-    public RefBookField(String code, String name, FieldType attributeTypeName, boolean isPrimaryKey, RefBook referredBook) {
+    private final RefBook referredBook;
+    private final Map.Entry<Integer, String> referredField;
+
+    public RefBookField(String code, String name, FieldType type, boolean isPrimary) {
+
         this.code = code;
         this.name = name;
-        this.attributeTypeName = attributeTypeName;
-        this.isPrimaryKey = isPrimaryKey;
+        this.type = type;
+        this.isPrimary = isPrimary;
+
+        this.referredBook = null;
+        this.referredField = null;
+    }
+
+    public RefBookField(String code, String name, FieldType type, boolean isPrimary,
+                        RefBook referredBook, Map.Entry<Integer, String> referredField) {
+
+        this.code = code;
+        this.name = name;
+        this.type = type;
+        this.isPrimary = isPrimary;
+
         this.referredBook = referredBook;
+        this.referredField = referredField;
     }
 
     public String getCode() {
@@ -24,15 +43,23 @@ public class RefBookField {
         return name;
     }
 
-    public FieldType getAttributeTypeName() {
-        return attributeTypeName;
+    public FieldType getType() {
+        return type;
     }
 
-    public boolean isPrimaryKey() {
-        return isPrimaryKey;
+    public boolean isPrimary() {
+        return isPrimary;
     }
 
     public RefBook getReferredBook() {
         return referredBook;
+    }
+
+    public Map.Entry<Integer, String> getReferredField() {
+        return referredField;
+    }
+
+    public boolean isReferenceType() {
+        return FieldType.REFERENCE.equals(getType());
     }
 }
