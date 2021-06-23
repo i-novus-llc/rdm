@@ -4,12 +4,8 @@ import com.codeborne.selenide.Condition;
 import net.n2oapp.framework.autotest.api.collection.Fields;
 import net.n2oapp.framework.autotest.api.component.page.SimplePage;
 import net.n2oapp.framework.autotest.api.component.widget.FormWidget;
-import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
-import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
-import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
-import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
+import net.n2oapp.framework.autotest.impl.component.control.*;
 import net.n2oapp.framework.autotest.impl.component.modal.N2oModal;
-import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 
 import static com.codeborne.selenide.Selectors.byClassName;
 import static com.codeborne.selenide.Selenide.$;
@@ -36,7 +32,7 @@ public class StructureFormModal extends N2oModal {
         return fields().field("Отображаемый атрибут").control(N2oInputSelect.class);
     }
 
-    public N2oCheckbox pkInput() {
+    public N2oCheckbox primaryKeyInput() {
         return fields().field("Первичный ключ").control(N2oCheckbox.class);
     }
 

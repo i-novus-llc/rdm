@@ -41,3 +41,5 @@ buildNumber.properties
 /rdm-rest/rdm_log/
 /rdm-rest/src/test/resources/rdm/temp/
 /rdm-rest/activemq-data/
+/ui-test/allure-results/
+/ui-test/build/reports/tests/

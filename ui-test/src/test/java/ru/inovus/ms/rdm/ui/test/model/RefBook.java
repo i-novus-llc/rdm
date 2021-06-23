@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class RefBook {
 
+    private static final String REFBOOK_UNVERSIONED = "Неверсионный";
+
     private final String code;
     private final String name;
     private final String shortName;
@@ -49,5 +51,13 @@ public class RefBook {
 
     public List<Map<RefBookField, Object>> getRows() {
         return rows;
+    }
+
+    public boolean isUnversioned() {
+        return getUnversionedType().equals(getType());
+    }
+
+    public static String getUnversionedType() {
+        return REFBOOK_UNVERSIONED;
     }
 }
