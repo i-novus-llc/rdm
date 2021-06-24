@@ -69,7 +69,7 @@ public class RdmUiTest {
     public static void setUp() {
 
         Configuration.baseUrl = getBaseUrl();
-        Configuration.timeout = 12000;
+        Configuration.timeout = 80000;
     }
 
     // URL запущенного фронтенда RDM.
