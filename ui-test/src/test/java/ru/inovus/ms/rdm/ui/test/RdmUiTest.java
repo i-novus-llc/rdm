@@ -45,8 +45,6 @@ public class RdmUiTest {
     private static final int DATA_ROWS_CREATE_COUNT = 3;
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
 
-    private static final String REFBOOK_UNVERSIONED = "Неверсионный";
-
     // Дата всегда должна быть последней, иначе календарь перекрывает другие поля.
     private static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
             FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE
