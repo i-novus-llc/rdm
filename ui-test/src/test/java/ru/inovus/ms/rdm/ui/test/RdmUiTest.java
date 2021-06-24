@@ -119,21 +119,21 @@ public class RdmUiTest {
         RefBookEditPage refBookEditPage;
 
         // Изменение обычного справочника.
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         editRefBook(refBookEditPage, simpleRefBook);
 
         // Создание конфликтов.
         search(refBookListPage, simpleRefBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
 
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         createDataConflicts(refBookEditPage, simpleRefBook);
 
         // Проверка конфликтов.
         search(refBookListPage, referrerRefBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
 
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         resolveDataConflicts(refBookEditPage, referrerRefBook);
 
         // Удаление ссылочного справочника.
@@ -170,7 +170,7 @@ public class RdmUiTest {
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBook.getCode()));
 
-        RefBookEditPage refBookEditPage = refBookListPage.openRefBookEditPage(0);
+        RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         editRefBook(refBookEditPage, refBook);
 
         search(refBookListPage, refBook);
@@ -264,7 +264,6 @@ public class RdmUiTest {
         DataFormModal addForm = dataListWidget.addRowForm();
         fillDataForm(addForm, row);
         addForm.save();
-        waitActionResult();
 
         nameColumnValues.add(getNameColumnValue(row));
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
@@ -274,13 +273,11 @@ public class RdmUiTest {
         String newNameValue = "Другое наименование";
         fillInputText(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
-        waitActionResult();
 
         nameColumnValues.set(lastRowNum, newNameValue);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
         dataListWidget.deleteRowForm(lastRowNum);
-        waitActionResult();
 
         nameColumnValues.remove(lastRowNum);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
@@ -304,7 +301,6 @@ public class RdmUiTest {
 
         // Конфликт DELETED.
         dataListWidget.deleteRowForm(0);
-        waitActionResult();
 
         nameColumnValues.remove(0);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
@@ -314,7 +310,6 @@ public class RdmUiTest {
         String newNameValue = nameColumnValues.get(0) + "_updated";
         fillInputText(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
-        waitActionResult();
 
         nameColumnValues.set(0, newNameValue);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
@@ -353,7 +348,6 @@ public class RdmUiTest {
         DataFormModal editForm = dataWithConflictsListWidget.fixRowForm(0);
         fillReference(editForm.referenceInput(ATTR_REFERENCE_NAME), 0);
         editForm.edit();
-        waitActionResult();
 
         dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
         dataWithConflictsListWidget.rowShouldHaveSize(0); // Нет конфликтов
@@ -364,6 +358,11 @@ public class RdmUiTest {
     private void openRefBookListPage() {
 
         open("/", RefBookListPage.class);
+    }
+
+    private RefBookEditPage openRefBookEditPage(RefBookListPage refBookListPage, int rowNum) {
+
+        return refBookListPage.openRefBookEditPage(rowNum);
     }
 
     private void publishRefBook(RefBookEditPage refBookEditPage) {
@@ -555,9 +554,11 @@ public class RdmUiTest {
 
     private String getNameColumnValue(Map<RefBookField, Object> row) {
 
-        return (String) row.entrySet().stream()
-                .filter(entry -> "name".equals(entry.getKey().getCode()))
-                .findAny().get().getValue();
+        Map.Entry<RefBookField, Object> field = row.entrySet().stream()
+                        .filter(entry -> "name".equals(entry.getKey().getCode()))
+                        .findAny().orElse(null);
+
+        return (field != null) ? (String) field.getValue() : null;
     }
 
     private static LocalDateTime now() {
