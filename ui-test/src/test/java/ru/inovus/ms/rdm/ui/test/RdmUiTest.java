@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.ui.test;
 
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
@@ -69,7 +68,7 @@ public class RdmUiTest {
     public static void setUp() {
 
         Configuration.baseUrl = getBaseUrl();
-        Configuration.timeout = 80000;
+        Configuration.timeout = 8000;
     }
 
     // URL запущенного фронтенда RDM.
