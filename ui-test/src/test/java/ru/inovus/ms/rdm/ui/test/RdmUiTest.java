@@ -45,10 +45,13 @@ public class RdmUiTest {
     private static final int DATA_ROWS_CREATE_COUNT = 3;
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
 
-    // Дата всегда должна быть последней, иначе календарь перекрывает другие поля.
+    // Все простые поля для проверки справочников.
     private static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
+            // В списке дата всегда должна быть последней, иначе календарь перекрывает другие поля.
             FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE
     );
+
+    // Минимальное количество полей для проверки ссылочных справочников.
     private static final List<FieldType> REFERRED_FIELD_TYPES = List.of(
             FieldType.INTEGER, FieldType.STRING
     );
@@ -91,7 +94,7 @@ public class RdmUiTest {
     }
 
     @After
-    public void logout() throws Exception {
+    public void logout() {
         open("/logout", LoginPage.class).shouldExists();
     }
 
@@ -100,30 +103,7 @@ public class RdmUiTest {
      */
     @Test
     public void testCreateDefaultRefBook() {
-
-        RefBook refBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
-
-        RefBookListPage refBookListPage = login();
-        refBookListPage.shouldExists();
-
-        // Создание.
-        createRefBook(refBookListPage, refBook);
-        refBookListPage.shouldExists();
-
-        search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
-
-        // Редактирование.
-        RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
-        editRefBook(refBookEditPage, refBook);
-
-        search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
-
-        // Удаление.
-        refBookListPage.deleteRow(0);
-        search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveSize(0);
+        testRefBook(null);
     }
 
     /**
@@ -131,8 +111,12 @@ public class RdmUiTest {
      */
     @Test
     public void testUnversionedRefBook() {
+        testRefBook(RefBook.getUnversionedType());
+    }
 
-        RefBook refBook = generateRefBook(RefBook.getUnversionedType(), 3, DEFAULT_FIELD_TYPES, null);
+    private void testRefBook(String type) {
+
+        RefBook refBook = generateRefBook(type, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
@@ -157,13 +141,25 @@ public class RdmUiTest {
     }
 
     /**
-     * Проверка работы со ссылочным справочником.
+     * Проверка работы с обычным справочником, ссылающимся на обычный справочник.
      */
     @Test
-    public void testReferrerRefBook() {
+    public void testDefaultReferrerToDefault() {
+        testReferrerRefBook(null, null);
+    }
 
-        RefBook referredBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, REFERRED_FIELD_TYPES, null);
-        RefBook referrerBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, referredBook);
+    /**
+     * Проверка работы с обычным справочником, ссылающимся на неверсионный справочник.
+     */
+    @Test
+    public void testDefaultReferrerToUnversioned() {
+        testReferrerRefBook(RefBook.getUnversionedType(), null);
+    }
+
+    private void testReferrerRefBook(String referredType, String referrerType) {
+
+        RefBook referredBook = generateRefBook(referredType, DATA_ROWS_CREATE_COUNT, REFERRED_FIELD_TYPES, null);
+        RefBook referrerBook = generateRefBook(referrerType, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, referredBook);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
