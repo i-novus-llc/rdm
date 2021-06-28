@@ -48,10 +48,10 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class CompareServiceImpl implements CompareService {
 
-    private static final String COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.primaries.not.found";
-    private static final String COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.primaries.not.found";
-    private static final String COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.primaries.not.match";
-    private static final String COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE = "compare.primaries.not.equals";
+    private static final String COMPARE_OLD_VERSION_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.version.primaries.not.found";
+    private static final String COMPARE_NEW_VERSION_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.version.primaries.not.found";
+    private static final String COMPARE_VERSIONS_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.versions.primaries.not.match";
+    private static final String COMPARE_REFBOOKS_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.refbooks.primaries.not.match";
 
     private final CompareDataService compareDataService;
     private final VersionService versionService;
@@ -376,18 +376,18 @@ public class CompareServiceImpl implements CompareService {
 
         List<Structure.Attribute> oldPrimaries = oldVersion.getStructure().getPrimaries();
         if (isEmpty(oldPrimaries))
-            throw new UserException(new Message(COMPARE_OLD_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
+            throw new UserException(new Message(COMPARE_OLD_VERSION_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, oldVersion.getRefBook().getCode(), oldVersion.getVersion()));
 
         List<Structure.Attribute> newPrimaries = newVersion.getStructure().getPrimaries();
         if (isEmpty(newPrimaries))
-            throw new UserException(new Message(COMPARE_NEW_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
+            throw new UserException(new Message(COMPARE_NEW_VERSION_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, newVersion.getRefBook().getCode(), newVersion.getVersion()));
 
         if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries)) {
             if (newVersion.getRefBook().getCode().equals(oldVersion.getRefBook().getCode())) {
-                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
+                throw new UserException(new Message(COMPARE_VERSIONS_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
                         oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
             } else {
-                throw new UserException(new Message(COMPARE_PRIMARIES_NOT_EQUALS_EXCEPTION_CODE,
+                throw new UserException(new Message(COMPARE_REFBOOKS_PRIMARIES_NOT_MATCH_EXCEPTION_CODE,
                         oldVersion.getRefBook().getCode(), oldVersion.getVersionNumber(),
                         newVersion.getRefBook().getCode(), newVersion.getVersionNumber()));
             }
