@@ -28,6 +28,7 @@ public class UnversionedDeleteAttributeStrategyTest extends UnversionedBaseStrat
 
         RefBookVersionEntity entity = createUnversionedEntity();
         fillOptLockValue(entity, DRAFT_OPT_LOCK_VALUE);
+        when(unversionedChangeStructureStrategy.hasReferrerVersions(entity)).thenReturn(true);
 
         final Structure.Attribute oldAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
         entity.getStructure().add(oldAttribute, null);
@@ -41,6 +42,11 @@ public class UnversionedDeleteAttributeStrategyTest extends UnversionedBaseStrat
         assertEquals(oldAttribute, attribute); // Удалённый атрибут
 
         verify(deleteAttributeStrategy).delete(entity, request);
+
+        verify(unversionedChangeStructureStrategy).hasReferrerVersions(entity);
+        verify(unversionedChangeStructureStrategy).validatePrimariesEquality(
+                eq(entity.getRefBook().getCode()), eq(entity.getStructure()), any(Structure.class)
+        );
         verify(unversionedChangeStructureStrategy).processReferrers(entity);
 
         verifyNoMoreInteractions(deleteAttributeStrategy, unversionedChangeStructureStrategy);
