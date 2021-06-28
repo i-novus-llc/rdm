@@ -1,11 +1,15 @@
 package ru.i_novus.ms.rdm.impl.strategy.structure;
 
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
+import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
@@ -32,6 +36,10 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class UnversionedChangeStructureStrategy implements Strategy {
 
+    private static final String COMPARE_OLD_STRUCTURE_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.old.structure.primaries.not.found";
+    private static final String COMPARE_NEW_STRUCTURE_PRIMARIES_NOT_FOUND_EXCEPTION_CODE = "compare.new.structure.primaries.not.found";
+    private static final String COMPARE_STRUCTURES_PRIMARIES_NOT_MATCH_EXCEPTION_CODE = "compare.structures.primaries.not.match";
+
     @Autowired
     private RefBookVersionRepository versionRepository;
 
@@ -41,6 +49,42 @@ public class UnversionedChangeStructureStrategy implements Strategy {
     @Autowired
     private SearchDataService searchDataService;
 
+    @Autowired
+    private VersionValidation versionValidation;
+
+    public boolean hasReferrerVersions(RefBookVersionEntity entity) {
+
+        return versionValidation.hasReferrerVersions(entity.getRefBook().getCode());
+    }
+
+    /**
+     * Проверка первичных ключей структур справочника на совпадение.
+     * <p/>
+     * См. CompareServiceImpl.validatePrimariesEquality.
+     *
+     * @param refBookCode  код справочника
+     * @param oldStructure старая структура справочника
+     * @param newStructure новая структура справочника
+     */
+    public void validatePrimariesEquality(String refBookCode, Structure oldStructure, Structure newStructure) {
+
+        List<Structure.Attribute> oldPrimaries = oldStructure.getPrimaries();
+        if (CollectionUtils.isEmpty(oldPrimaries))
+            throw new UserException(new Message(COMPARE_OLD_STRUCTURE_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+
+        List<Structure.Attribute> newPrimaries = newStructure.getPrimaries();
+        if (CollectionUtils.isEmpty(newPrimaries))
+            throw new UserException(new Message(COMPARE_NEW_STRUCTURE_PRIMARIES_NOT_FOUND_EXCEPTION_CODE, refBookCode));
+
+        if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries))
+            throw new UserException(new Message(COMPARE_STRUCTURES_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, refBookCode));
+    }
+
+    /**
+     * Обработка ссылочных справочников.
+     *
+     * @param entity сущность-версия, на которую есть ссылки
+     */
     public void processReferrers(RefBookVersionEntity entity) {
 
         List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
