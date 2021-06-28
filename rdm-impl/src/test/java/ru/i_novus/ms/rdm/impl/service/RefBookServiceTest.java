@@ -1,17 +1,16 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.querydsl.core.types.Predicate;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -38,7 +37,6 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -126,15 +124,11 @@ public class RefBookServiceTest {
         RefBookCriteria versionCriteria = new RefBookCriteria();
         versionCriteria.setSourceType(RefBookSourceType.LAST_PUBLISHED);
         versionCriteria.setRefBookIds(refBookEntities.stream().map(RefBookEntity::getId).collect(toList()));
-        when(refBookVersionQueryProvider.toPredicate(versionCriteria)).thenReturn(null);
 
         List<RefBookVersionEntity> lastPublishedEntities = new ArrayList<>(versionEntities);
-        PageRequest versionRequest = PageRequest.of(0, refBookEntities.size());
-        when(versionRepository.findAll(Mockito.<Predicate>any(), eq(versionRequest)))
-                .thenReturn(new PageImpl<>(lastPublishedEntities, criteria, lastPublishedEntities.size()));
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class), any(Boolean.class), any(Integer.class)))
+        when(refBookModelDataRepository.findData(any(Integer.class)))
                 .thenAnswer(v -> {
                     RefBookModelData data = new RefBookModelData();
 
@@ -176,9 +170,6 @@ public class RefBookServiceTest {
 
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
 
-        when(versionValidation.hasReferrerVersions(eq(refBookEntity.getCode()))).thenReturn(Boolean.FALSE);
-
-        mockSourceTypeVersion();
         mockRefBookModel();
 
         RefBook refBook = refBookService.getByVersionId(versionEntity.getId());
@@ -222,7 +213,6 @@ public class RefBookServiceTest {
         when(createFirstVersionStrategy.create(request, refBookEntity, versionEntity.getStorageCode()))
                 .thenReturn(versionEntity);
 
-        mockSourceTypeVersion();
         mockRefBookModel();
 
         RefBook refBook = refBookService.create(request);
@@ -256,7 +246,6 @@ public class RefBookServiceTest {
         when(createFirstVersionStrategy.create(any(RefBookCreateRequest.class), any(), any()))
                 .thenReturn(versionEntity);
 
-        mockSourceTypeVersion();
         mockRefBookModel();
 
         // .createByXml
@@ -285,7 +274,6 @@ public class RefBookServiceTest {
         request.setPassport(emptyMap());
         request.setComment(updatedComment);
 
-        mockSourceTypeVersion();
         mockRefBookModel();
 
         RefBook refBook = refBookService.update(request);
@@ -318,18 +306,10 @@ public class RefBookServiceTest {
         verify(refBookRepository).deleteById(refBookEntity.getId());
     }
 
-    private void mockSourceTypeVersion() {
-
-        // .getSourceTypeVersion
-        when(versionRepository.findAll(Mockito.<Predicate>any(), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(emptyList(), Pageable.unpaged(), 0));
-    }
-
     private void mockRefBookModel() {
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class), any(Boolean.class), any(Integer.class)))
-                .thenReturn(new RefBookModelData());
+        when(refBookModelDataRepository.findData(any(Integer.class))).thenReturn(new RefBookModelData());
     }
 
     private RefBookEntity createRefBookEntity(Integer id) {

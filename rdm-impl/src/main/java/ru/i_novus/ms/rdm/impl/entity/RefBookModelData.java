@@ -24,6 +24,14 @@ public class RefBookModelData {
     @JoinColumn(name = "last_published_version_id")
     private RefBookVersionEntity lastPublishedVersion;
 
+    /** Удаляемость справочника. */
+    @Column(name = "removable")
+    private Boolean removable;
+
+    /** Наличие связанного справочника (т.е. ссылающегося на данный). */
+    @Column(name = "has_referrer_version")
+    private Boolean hasReferrer;
+
     /** Наличие конфликта данных. */
     @Column(name = "has_data_conflict")
     private Boolean hasDataConflict;
@@ -70,6 +78,22 @@ public class RefBookModelData {
 
     public void setLastPublishedVersion(RefBookVersionEntity lastPublishedVersion) {
         this.lastPublishedVersion = lastPublishedVersion;
+    }
+
+    public Boolean getRemovable() {
+        return removable;
+    }
+
+    public void setRemovable(Boolean removable) {
+        this.removable = removable;
+    }
+
+    public Boolean getHasReferrer() {
+        return hasReferrer;
+    }
+
+    public void setHasReferrer(Boolean hasReferrer) {
+        this.hasReferrer = hasReferrer;
     }
 
     public Boolean getHasDataConflict() {
