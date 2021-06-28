@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202106280935_RDM-859_from_date_index" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="CONTINUE">
+            <tableExists tableName="ref_book_version" schemaName="n2o_rdm_management"/>
+        </preConditions>
+        <comment>Добавление индекса для ускорения поиска последнего опубликованного справочника</comment>
+        <sql>
+            <![CDATA[
+                CREATE INDEX IF NOT EXISTS ix_ref_book_version_from_date
+                    ON n2o_rdm_management.ref_book_version USING btree (from_date DESC);
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
