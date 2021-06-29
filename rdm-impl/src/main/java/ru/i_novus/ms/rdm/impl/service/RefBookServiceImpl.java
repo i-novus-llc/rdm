@@ -52,6 +52,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
     private static final String REFBOOK_IS_NOT_CREATED_FROM_XLSX_EXCEPTION_CODE = "refbook.is.not.created.from.xlsx";
+    private static final String REFBOOK_HAS_REFERRERS_EXCEPTION_CODE = "refbook.has.referrers";
     private static final String REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE = "refbook.draft.not.found";
     private static final String OPTIMISTIC_LOCK_ERROR_EXCEPTION_CODE = "optimistic.lock.error";
 
@@ -264,6 +265,10 @@ public class RefBookServiceImpl implements RefBookService {
         refBookLockService.validateRefBookNotBusy(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+
+        if (versionValidation.hasReferrerVersions(refBookEntity.getCode()))
+            throw new UserException(new Message(REFBOOK_HAS_REFERRERS_EXCEPTION_CODE, refBookEntity.getCode()));
+
         List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
         RefBookVersionEntity lastVersion = getLastVersion(refBookVersions);
 
