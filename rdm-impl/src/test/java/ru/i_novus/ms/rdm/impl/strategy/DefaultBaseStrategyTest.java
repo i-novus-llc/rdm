@@ -8,6 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -23,7 +24,7 @@ import static java.util.Arrays.asList;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public abstract class DefaultBaseStrategyTest {
+public abstract class DefaultBaseStrategyTest extends BaseTest {
 
     protected static final int REFBOOK_ID = 1;
     protected static final String REFBOOK_CODE = "test";
