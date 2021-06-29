@@ -71,13 +71,60 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         newStructure.add(newAttribute, null);
 
         when(versionValidation.equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries())).thenReturn(true);
+        validateSuccess(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure)
+        );
 
-        try {
-            strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure);
+        verify(versionValidation).equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries());
 
-        } catch (UserException e) {
-            fail(e.getMessage());
-        }
+        verifyNoMore();
+    }
+
+    @Test
+    public void testValidatePrimariesEqualityFail() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+        Structure oldStructure = entity.getStructure();
+        Structure newStructure = new Structure(oldStructure);
+
+        final Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        newStructure.add(newAttribute, null);
+
+        when(versionValidation.equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries())).thenReturn(false);
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.structures.primaries.not.match"
+        );
+
+        newStructure.clearPrimary();
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.new.structure.primaries.not.found"
+        );
+
+        oldStructure.clearPrimary();
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.old.structure.primaries.not.found"
+        );
+
+        verify(versionValidation).equalsPrimaries(anyList(), anyList());
+
+        verifyNoMore();
+    }
+
+    @Test
+    public void testProcessSkip() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+        entity.getStructure().clearPrimary();
+
+        strategy.processReferrers(entity);
+
+        verifyNoMore();
     }
 
     @Test
@@ -103,7 +150,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
 
         verify(searchDataService).getPagedData(any());
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
@@ -136,7 +183,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 null, REFERRER_ATTRIBUTE_CODE, ConflictType.DISPLAY_DAMAGED);
         verify(conflictRepository).save(added);
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
@@ -172,7 +219,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
 
         verify(conflictRepository).deleteAll(eq(conflicts));
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
@@ -257,6 +304,11 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         assertNotNull(toDelete);
         assertEquals(1, toDelete.size());
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
+    }
+
+    private void verifyNoMore() {
+
+        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService, versionValidation);
     }
 }
