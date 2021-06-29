@@ -312,6 +312,30 @@ public class RefBookServiceTest {
         when(refBookModelDataRepository.findData(any(Integer.class))).thenReturn(new RefBookModelData());
     }
 
+    @Test
+    public void testToArchive() {
+
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+
+        refBookService.toArchive(refBookEntity.getId());
+        assertTrue(refBookEntity.getArchived());
+
+        verify(refBookRepository).save(refBookEntity);
+    }
+
+    @Test
+    public void testFromArchive() {
+
+        RefBookEntity refBookEntity = createRefBookEntity(1);
+        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+
+        refBookService.fromArchive(refBookEntity.getId());
+        assertFalse(refBookEntity.getArchived());
+
+        verify(refBookRepository).save(refBookEntity);
+    }
+
     private RefBookEntity createRefBookEntity(Integer id) {
 
         RefBookEntity entity = new DefaultRefBookEntity();
