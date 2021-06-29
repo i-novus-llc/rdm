@@ -551,6 +551,6 @@ public class VersionValidationImpl implements VersionValidation {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isValidCode(String code) {
-        return CODE_PATTERN.matcher(code).matches();
+        return !StringUtils.isEmpty(code) && CODE_PATTERN.matcher(code).matches();
     }
 }
