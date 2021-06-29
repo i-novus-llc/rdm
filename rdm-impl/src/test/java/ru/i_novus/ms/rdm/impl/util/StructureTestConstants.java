@@ -38,8 +38,14 @@ public class StructureTestConstants {
 
     public static final String REFERRED_BOOK_CODE = "REFERRED";
     public static final String REFERRED_BOOK_ATTRIBUTE_CODE = "VALUE";
+    public static final Structure.Attribute REFERRED_ATTRIBUTE = Structure.Attribute.build(
+            REFERRED_BOOK_ATTRIBUTE_CODE, REFERRED_BOOK_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "referred");
+
     public static final String SELF_REFERRED_BOOK_CODE = "SELFBOOK";
     public static final String SELF_REFERRED_BOOK_ATTRIBUTE_CODE = ID_ATTRIBUTE_CODE;
+    public static final Structure.Attribute SELF_REFERRED_ATTRIBUTE = Structure.Attribute.buildPrimary(
+            SELF_REFERRED_BOOK_ATTRIBUTE_CODE, SELF_REFERRED_BOOK_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "self-referred");
+
     public static final List<String> REFERRED_BOOK_CODES = List.of(
             REFERRED_BOOK_CODE, SELF_REFERRED_BOOK_CODE
     );
@@ -96,6 +102,9 @@ public class StructureTestConstants {
             CHANGE_REF_ATTRIBUTE_CODE, REFERRED_BOOK_CODE,
             DisplayExpression.toPlaceholder(REFERRED_BOOK_ATTRIBUTE_CODE)
     );
+
+    public static final Structure REFERRED_STRUCTURE = new Structure(List.of(ID_ATTRIBUTE, REFERRED_ATTRIBUTE), null);
+    public static final Structure SELF_REFERRED_STRUCTURE = new Structure(List.of(SELF_REFERRED_ATTRIBUTE), null);
 
     private StructureTestConstants() {
         // Nothing to do.

@@ -9,9 +9,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.impl.BaseTest;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 
@@ -19,7 +23,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,6 +52,10 @@ public class VersionValidationTest extends BaseTest {
         validateSuccess(
                 () -> versionValidation.validateRefBook(REFBOOK_ID)
         );
+
+        verify(refBookRepository).existsById(REFBOOK_ID);
+        verify(versionRepository).exists(any(BooleanExpression.class));
+        verifyNoMore();
     }
 
     @Test
@@ -60,6 +68,10 @@ public class VersionValidationTest extends BaseTest {
                 UserException.class,
                 "refbook.is.archived"
         );
+
+        verify(refBookRepository).existsById(REFBOOK_ID);
+        verify(versionRepository).exists(any(BooleanExpression.class));
+        verifyNoMore();
     }
 
     @Test
@@ -250,5 +262,60 @@ public class VersionValidationTest extends BaseTest {
                 NotFoundException.class,
                 "draft.attribute.not.found"
         );
+    }
+
+    @Test
+    public void testValidateStructure() {
+
+        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
+        referredEntity.setStructure(new Structure(REFERRED_STRUCTURE));
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(referredEntity);
+
+        RefBookVersionEntity selfReferredEntity = new RefBookVersionEntity();
+        selfReferredEntity.setStructure(new Structure(SELF_REFERRED_STRUCTURE));
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                SELF_REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(selfReferredEntity);
+
+        validateSuccess(
+                () -> versionValidation.validateStructure(STRUCTURE)
+        );
+    }
+
+    @Test
+    public void testValidateReferenceAbility() {
+
+        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
+        referredEntity.setRefBook(createRefBookEntity());
+        referredEntity.setStructure(new Structure(REFERRED_STRUCTURE));
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(referredEntity);
+
+        validateSuccess(
+                () -> versionValidation.validateReferenceAbility(REFERENCE)
+        );
+    }
+
+    private void verifyNoMore() {
+
+        verifyNoMoreInteractions(refBookRepository, versionRepository);
+    }
+
+    private RefBookEntity createRefBookEntity() {
+
+        RefBookEntity entity = new DefaultRefBookEntity();
+        entity.setId(REFBOOK_ID);
+        entity.setCode(REFBOOK_CODE);
+
+        return entity;
     }
 }
