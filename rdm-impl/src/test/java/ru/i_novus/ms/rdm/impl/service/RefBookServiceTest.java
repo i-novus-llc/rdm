@@ -296,6 +296,7 @@ public class RefBookServiceTest {
         refBookEntity.setVersionList(singletonList(versionEntity));
 
         when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+        when(versionValidation.hasReferrerVersions(refBookEntity.getCode())).thenReturn(false);
 
         refBookService.delete(refBookEntity.getId());
 
