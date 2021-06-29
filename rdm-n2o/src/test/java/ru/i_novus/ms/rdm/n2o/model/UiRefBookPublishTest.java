@@ -14,7 +14,7 @@ public class UiRefBookPublishTest extends BaseTest {
 
     private static final Integer REFBOOK_ID = -10;
     private static final String REFBOOK_CODE = "test";
-    private static final Integer DRAFT_ID = 2;
+    private static final Integer DRAFT_ID = 6;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
