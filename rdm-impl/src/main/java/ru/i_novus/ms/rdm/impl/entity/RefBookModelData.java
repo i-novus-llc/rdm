@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * Данные для заполнения модели RefBook.
@@ -134,5 +135,30 @@ public class RefBookModelData {
 
     public void setLastHasConflict(Boolean lastHasConflict) {
         this.lastHasConflict = lastHasConflict;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RefBookModelData that = (RefBookModelData) o;
+        return Objects.equals(currentVersionId, that.currentVersionId) &&
+                Objects.equals(draftVersion, that.draftVersion) &&
+                Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
+                Objects.equals(removable, that.removable) &&
+                Objects.equals(hasReferrer, that.hasReferrer) &&
+                Objects.equals(hasDataConflict, that.hasDataConflict) &&
+                Objects.equals(hasUpdatedConflict, that.hasUpdatedConflict) &&
+                Objects.equals(hasAlteredConflict, that.hasAlteredConflict) &&
+                Objects.equals(hasStructureConflict, that.hasStructureConflict) &&
+                Objects.equals(lastHasConflict, that.lastHasConflict);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(currentVersionId, draftVersion, lastPublishedVersion, removable, hasReferrer,
+                hasDataConflict, hasUpdatedConflict, hasAlteredConflict, hasStructureConflict, lastHasConflict);
     }
 }
