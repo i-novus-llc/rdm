@@ -2753,18 +2753,41 @@ public class ApplicationTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
-        if (values1 == values2) return true;
-        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
+
+        if (values1 == values2)
+            return true;
+
+        if (values1 == null || values2 == null || values1.size() != values2.size())
+            return false;
 
         for (FieldValue val1 : values1) {
             boolean isPresent = values2.stream().anyMatch(val2 -> {
+
                 if (val2 == val1) return true;
+
                 if (val2.getField().equals(val1.getField())) {
-                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().orElse(null);
+
+                    Field field = fields.stream()
+                            .filter(f -> Objects.equals(f.getName(), val2.getField()))
+                            .findFirst().orElse(null);
                     assertNotNull(field);
-                    //noinspection unchecked
-                    return field != null && field.valueOf(val2.getValue()).equals(val1);
+
+                    if (val1 instanceof ReferenceFieldValue) {
+                        Reference ref1 = ((ReferenceFieldValue) val1).getValue();
+                        Reference ref2 = ((ReferenceFieldValue) val2).getValue();
+
+                        return Objects.equals(ref1.getValue(), ref2.getValue())
+                                && Objects.equals(ref1.getDisplayValue(), ref2.getDisplayValue());
+                    } else {
+                        // Нельзя использовать Objects.equals(val1, val2),
+                        // т.к. типы значений могут не совпадать.
+                        // Например, FloatFieldValue должно быть BigDecimal, а REST возвращает Double.
+
+                        FieldValue realVal2 = field.valueOf(val2.getValue());
+                        return Objects.equals(val1, realVal2);
+                    }
                 }
                 return false;
             });
@@ -2824,12 +2847,15 @@ public class ApplicationTest {
 
     @SuppressWarnings("unchecked")
     private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<? extends RowValue> actualRows) {
+
         assertEquals("result size not equals", expectedRows.size(), actualRows.size());
+
         String expectedRowsStr = expectedRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
         String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
+
         assertTrue(
-                "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr
-                , actualRows.stream().anyMatch(actualRow ->
+                "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr,
+                actualRows.stream().anyMatch(actualRow ->
                         expectedRows.stream().anyMatch(expectedRow ->
                                 equalsFieldValues(fields, expectedRow.getFieldValues(), actualRow.getFieldValues())
                         )
