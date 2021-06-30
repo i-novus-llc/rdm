@@ -11,7 +11,6 @@ import static java.util.Collections.singletonList;
 
 public class StructureTestConstants {
 
-    public static final String UNKNOWN_ATTRIBUTE_CODE = "Unknown";
     public static final String ID_ATTRIBUTE_CODE = "ID";
     public static final String NAME_ATTRIBUTE_CODE = "NAME";
     public static final String STRING_ATTRIBUTE_CODE = "CHAR";
@@ -19,6 +18,9 @@ public class StructureTestConstants {
     public static final String FLOAT_ATTRIBUTE_CODE = "REAL";
     public static final String BOOLEAN_ATTRIBUTE_CODE = "BOOL";
     public static final String DATE_ATTRIBUTE_CODE = "DATE";
+
+    public static final String CODE_ATTRIBUTE_CODE = "CODE";
+    public static final String UNKNOWN_ATTRIBUTE_CODE = "Unknown";
 
     public static final List<String> PRIMARY_CODES = singletonList(ID_ATTRIBUTE_CODE);
 
@@ -68,6 +70,9 @@ public class StructureTestConstants {
             REFERENCE_ATTRIBUTE_CODE, REFERENCE_ATTRIBUTE_CODE.toLowerCase(), FieldType.REFERENCE, "reference");
     public static final Structure.Attribute SELF_REFER_ATTRIBUTE = Structure.Attribute.build(
             SELF_REFER_ATTRIBUTE_CODE, SELF_REFER_ATTRIBUTE_CODE.toLowerCase(), FieldType.REFERENCE, "self-ref");
+
+    public static final Structure.Attribute CODE_ATTRIBUTE = Structure.Attribute.buildPrimary(
+            CODE_ATTRIBUTE_CODE, CODE_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "primary code");
 
     public static final Structure.Reference REFERENCE = new Structure.Reference(
             REFERENCE_ATTRIBUTE_CODE, REFERRED_BOOK_CODE,

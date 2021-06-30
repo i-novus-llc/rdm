@@ -18,9 +18,12 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -34,6 +37,9 @@ public class VersionValidationTest extends BaseTest {
     private static final Integer VERSION_ID = 2;
     private static final Integer DRAFT_ID = 6;
     private static final Structure STRUCTURE = new Structure(DEFAULT_STRUCTURE);
+
+    private static final Integer REFERRED_BOOK_ID = -20;
+    private static final Integer SELF_REFERRED_BOOK_ID = -30;
 
     @InjectMocks
     private VersionValidationImpl versionValidation;
@@ -267,21 +273,8 @@ public class VersionValidationTest extends BaseTest {
     @Test
     public void testValidateStructure() {
 
-        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
-        referredEntity.setStructure(new Structure(REFERRED_STRUCTURE));
-
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
-                REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
-        ))
-                .thenReturn(referredEntity);
-
-        RefBookVersionEntity selfReferredEntity = new RefBookVersionEntity();
-        selfReferredEntity.setStructure(new Structure(SELF_REFERRED_STRUCTURE));
-
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
-                SELF_REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
-        ))
-                .thenReturn(selfReferredEntity);
+        mockReferredEntity();
+        mockSelfReferredEntity();
 
         validateSuccess(
                 () -> versionValidation.validateStructure(STRUCTURE)
@@ -291,18 +284,167 @@ public class VersionValidationTest extends BaseTest {
     @Test
     public void testValidateReferenceAbility() {
 
-        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
-        referredEntity.setRefBook(createRefBookEntity());
-        referredEntity.setStructure(new Structure(REFERRED_STRUCTURE));
+        mockReferredEntity();
+
+        validateSuccess(
+                () -> versionValidation.validateReferenceAbility(REFERENCE)
+        );
+    }
+
+    @Test
+    public void testValidateReferenceAbilityWhenEmpty() {
+
+        Structure.Reference reference = new Structure.Reference(
+                REFERENCE.getAttribute(),
+                REFERENCE.getReferenceCode(),
+                ""
+        );
+
+        validateFailure(
+                () -> versionValidation.validateReferenceAbility(reference),
+                UserException.class,
+                "reference.display.expression.is.empty"
+        );
+    }
+
+    @Test
+    public void testValidateReferenceAbilityWhenAbsent() {
+
+        RefBookVersionEntity referredEntity = createReferredEntity();
 
         when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
                 REFERRED_BOOK_CODE, RefBookVersionStatus.PUBLISHED
         ))
                 .thenReturn(referredEntity);
 
-        validateSuccess(
-                () -> versionValidation.validateReferenceAbility(REFERENCE)
+        Structure.Reference reference = new Structure.Reference(
+                REFERENCE.getAttribute(),
+                REFERENCE.getReferenceCode(),
+                DisplayExpression.toPlaceholder(UNKNOWN_ATTRIBUTE_CODE)
         );
+
+        validateFailure(
+                () -> versionValidation.validateReferenceAbility(reference),
+                NotFoundException.class,
+                "reference.referred.attribute.not.found"
+        );
+
+        reference.setDisplayExpression(
+                reference.getDisplayExpression() +
+                        DisplayExpression.toPlaceholder(UNKNOWN_ATTRIBUTE_CODE + "2")
+        );
+
+        validateFailure(
+                () -> versionValidation.validateReferenceAbility(reference),
+                NotFoundException.class,
+                "reference.referred.attributes.not.found"
+        );
+    }
+
+    @Test
+    public void testValidateDraftStructure() {
+
+        mockReferredEntity();
+        mockSelfReferredEntity();
+
+        when(versionRepository.existsReferrerVersions(REFBOOK_CODE, RefBookStatusType.ALL.name(), RefBookSourceType.ALL.name()))
+                .thenReturn(true);
+
+        RefBookVersionEntity draftEntity = new RefBookVersionEntity();
+        draftEntity.setStructure(STRUCTURE);
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                REFBOOK_CODE, RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(draftEntity);
+
+        validateSuccess(
+                () -> versionValidation.validateDraftStructure(REFBOOK_CODE, draftEntity.getStructure())
+        );
+    }
+
+    @Test
+    public void testValidateReferrerStructure() {
+
+        mockReferredEntity();
+        mockSelfReferredEntity();
+
+        validateSuccess(
+                () -> versionValidation.validateReferrerStructure(STRUCTURE)
+        );
+    }
+
+    @Test
+    public void testValidateNewAttribute() {
+
+        Structure oldStructure = new Structure(STRUCTURE);
+        oldStructure.remove(NAME_ATTRIBUTE_CODE);
+
+        Structure.Attribute newAttribute = new Structure.Attribute(NAME_ATTRIBUTE);
+
+        validateSuccess(
+                () -> versionValidation.validateNewAttribute(newAttribute, oldStructure, REFBOOK_CODE)
+        );
+    }
+
+    @Test
+    public void testValidateNewReference() {
+
+        Structure oldStructure = new Structure(STRUCTURE);
+        oldStructure.remove(REFERENCE_ATTRIBUTE_CODE);
+
+        Structure.Attribute newAttribute = new Structure.Attribute(REFERENCE_ATTRIBUTE);
+        Structure.Reference newReference = new Structure.Reference(REFERENCE);
+
+        mockReferredEntity();
+
+        validateSuccess(
+                () -> versionValidation.validateNewReference(newAttribute, newReference, oldStructure, REFBOOK_CODE)
+        );
+    }
+
+    @Test
+    public void testValidateOldAttribute() {
+
+        Structure oldStructure = new Structure(STRUCTURE);
+        Structure.Attribute oldAttribute = new Structure.Attribute(NAME_ATTRIBUTE);
+
+        validateSuccess(
+                () -> versionValidation.validateOldAttribute(oldAttribute, oldStructure, REFBOOK_CODE)
+        );
+    }
+
+    @Test
+    public void testEqualsPrimaries() {
+
+        Structure.Attribute idAttribute = new Structure.Attribute(ID_ATTRIBUTE);
+        Structure.Attribute codeAttribute = new Structure.Attribute(CODE_ATTRIBUTE);
+
+        assertFalse(versionValidation.equalsPrimaries(emptyList(), emptyList()));
+        assertFalse(versionValidation.equalsPrimaries(List.of(idAttribute), emptyList()));
+        assertFalse(versionValidation.equalsPrimaries(emptyList(), List.of(codeAttribute)));
+        assertFalse(versionValidation.equalsPrimaries(List.of(idAttribute), List.of(codeAttribute)));
+        assertTrue(versionValidation.equalsPrimaries(List.of(idAttribute), List.of(idAttribute)));
+    }
+
+    private void mockReferredEntity() {
+
+        RefBookVersionEntity referredEntity = createReferredEntity();
+        mockReferredEntity(REFERRED_BOOK_CODE, referredEntity);
+    }
+
+    private void mockSelfReferredEntity() {
+
+        RefBookVersionEntity referredEntity = createSelfReferredEntity();
+        mockReferredEntity(SELF_REFERRED_BOOK_CODE, referredEntity);
+    }
+
+    private void mockReferredEntity(String referredCode, RefBookVersionEntity referredEntity) {
+
+        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(
+                referredCode, RefBookVersionStatus.PUBLISHED
+        ))
+                .thenReturn(referredEntity);
     }
 
     private void verifyNoMore() {
@@ -310,11 +452,29 @@ public class VersionValidationTest extends BaseTest {
         verifyNoMoreInteractions(refBookRepository, versionRepository);
     }
 
-    private RefBookEntity createRefBookEntity() {
+    private RefBookVersionEntity createReferredEntity() {
+
+        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
+        referredEntity.setRefBook(createRefBookEntity(REFERRED_BOOK_ID, REFERRED_BOOK_CODE));
+        referredEntity.setStructure(new Structure(REFERRED_STRUCTURE));
+
+        return referredEntity;
+    }
+
+    private RefBookVersionEntity createSelfReferredEntity() {
+
+        RefBookVersionEntity referredEntity = new RefBookVersionEntity();
+        referredEntity.setRefBook(createRefBookEntity(SELF_REFERRED_BOOK_ID, SELF_REFERRED_BOOK_CODE));
+        referredEntity.setStructure(new Structure(SELF_REFERRED_STRUCTURE));
+
+        return referredEntity;
+    }
+
+    private RefBookEntity createRefBookEntity(Integer id, String code) {
 
         RefBookEntity entity = new DefaultRefBookEntity();
-        entity.setId(REFBOOK_ID);
-        entity.setCode(REFBOOK_CODE);
+        entity.setId(id);
+        entity.setCode(code);
 
         return entity;
     }
