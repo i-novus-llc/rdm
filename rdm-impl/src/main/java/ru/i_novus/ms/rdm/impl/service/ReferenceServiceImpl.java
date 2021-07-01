@@ -184,7 +184,7 @@ public class ReferenceServiceImpl implements ReferenceService {
         Structure.Attribute referenceAttribute = reference.findReferenceAttribute(publishedEntity.getStructure());
 
         Reference updatedReference = new Reference(
-                publishedEntity.getStorageCode(),
+                publishedEntity.getStorageCode(), // Без учёта локализации
                 publishedEntity.getFromDate(), // SYS_PUBLISH_TIME is not exist for draft
                 referenceAttribute.getCode(),
                 new DisplayExpression(reference.getDisplayExpression()),

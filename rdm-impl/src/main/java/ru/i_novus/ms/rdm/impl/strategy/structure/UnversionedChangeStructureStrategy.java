@@ -5,6 +5,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -229,6 +230,15 @@ public class UnversionedChangeStructureStrategy implements Strategy {
         }
     }
 
+    /**
+     * Получение записей по значениям ссылки.
+     *
+     * @param entity        новая версия исходного справочника
+     * @param primaries     первичные ключи исходного справочника
+     * @param referenceCode код атрибута-ссылки
+     * @param refRowValues  записи ссылочного справочника
+     * @return Записи исходного справочника
+     */
     private Collection<RowValue> findReferredRowValues(RefBookVersionEntity entity,
                                                        List<Structure.Attribute> primaries,
                                                        String referenceCode,
