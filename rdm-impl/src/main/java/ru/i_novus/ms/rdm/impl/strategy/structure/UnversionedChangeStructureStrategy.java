@@ -198,8 +198,11 @@ public class UnversionedChangeStructureStrategy implements Strategy {
 
         for (RowValue refRowValue : refRowValues) {
 
+            Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
+            if (fieldReference == null) continue;
+
             // Определить действия над конфликтами по результату сравнения hash-значений.
-            boolean isRestored = isHashRestored(refRowValue, referenceCode, referredRowValues);
+            boolean isRestored = isHashRestored(fieldReference, referredRowValues);
 
             Long refRecordId = (Long) refRowValue.getSystemId();
             List<RefBookConflictEntity> refConflicts = conflicts.stream()
@@ -211,7 +214,8 @@ public class UnversionedChangeStructureStrategy implements Strategy {
                 toDelete.addAll(refConflicts);
                 conflicts.removeAll(refConflicts);
 
-            } else if (!isRestored && isEmpty(refConflicts)) {
+            } else if (!isRestored && isEmpty(refConflicts) &&
+                    !StringUtils.isEmpty(fieldReference.getValue())) {
                 
                 // Изменение hash-значения в ссылке:
                 RefBookConflictEntity added = new RefBookConflictEntity(referrer, entity,
@@ -249,16 +253,17 @@ public class UnversionedChangeStructureStrategy implements Strategy {
             return emptyList();
 
         StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
-                entity.getStorageCode(), primaries, referenceValues);
+                entity.getStorageCode(), primaries, referenceValues); // Без учёта локализации
         return searchDataService.getPagedData(dataCriteria).getCollection();
     }
 
-    private boolean isHashRestored(RowValue refRowValue, String referenceCode,
-                                   Map<String, RowValue> referredRowValues) {
+    private boolean isHashRestored(Reference fieldReference, Map<String, RowValue> referredRowValues) {
 
-        Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
-        RowValue referredRowValue = (fieldReference != null) ? referredRowValues.get(fieldReference.getValue()) : null;
-        return referredRowValue != null;
-        // RDM-890: Так не работает, т.к. нет hash в ссылке поля: fieldReference.getHash() == referredRowValue.getHash()
+        if (StringUtils.isEmpty(fieldReference.getHash()))
+            return false;
+
+        RowValue referredRowValue = referredRowValues.get(fieldReference.getValue());
+        return referredRowValue != null &&
+                Objects.equals(fieldReference.getHash(), referredRowValue.getHash());
     }
 }
