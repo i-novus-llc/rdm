@@ -273,7 +273,8 @@ public class RowUtils {
      */
     public static String getFieldReferenceValue(RowValue rowValue, String fieldCode) {
 
-        Serializable value = rowValue.getFieldValue(fieldCode).getValue();
+        FieldValue fieldValue = rowValue.getFieldValue(fieldCode);
+        Serializable value = fieldValue != null ? fieldValue.getValue() : null;
         return value != null ? ((Reference) value).getValue() : null;
     }
 
