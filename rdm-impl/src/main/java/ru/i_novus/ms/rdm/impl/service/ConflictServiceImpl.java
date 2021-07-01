@@ -348,7 +348,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
                 // Если структура не изменена, то для перевычисления нужны все конфликты.
-                // Если же структура изменена, то все строки помечаются как ALTERED-конфликтные,
+                // Если же структура изменена, то все строки с заполненными ссылками помечаются как ALTERED-конфликтные,
                 // поэтому для перевычисления достаточно отработать только удалённые конфликты
                 // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
                 .filter(conflict -> !isAltered || ALTERED_RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType()))
