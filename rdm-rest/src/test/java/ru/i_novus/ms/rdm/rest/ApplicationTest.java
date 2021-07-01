@@ -2777,9 +2777,15 @@ public class ApplicationTest {
                     if (val1 instanceof ReferenceFieldValue) {
                         Reference ref1 = ((ReferenceFieldValue) val1).getValue();
                         Reference ref2 = ((ReferenceFieldValue) val2).getValue();
+                        if (ref2 != null && ref2.getValue() == null) {
+                            ref2 = null;
+                        }
 
-                        return Objects.equals(ref1.getValue(), ref2.getValue())
-                                && Objects.equals(ref1.getDisplayValue(), ref2.getDisplayValue());
+                        return (ref1 == null && ref2 == null) ||
+                                (ref1 != null && ref2 != null
+                                        && Objects.equals(ref1.getValue(), ref2.getValue())
+                                        && Objects.equals(ref1.getDisplayValue(), ref2.getDisplayValue())
+                                );
                     } else {
                         // Нельзя использовать Objects.equals(val1, val2),
                         // т.к. типы значений могут не совпадать.
