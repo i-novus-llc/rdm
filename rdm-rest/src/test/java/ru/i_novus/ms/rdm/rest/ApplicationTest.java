@@ -10,6 +10,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,7 +96,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
 
     private static final int REF_BOOK_ID = 500;
     private static final int REMOVABLE_REF_BOOK_ID = 501;
@@ -853,9 +854,6 @@ public class ApplicationTest {
         systemId++; // for row3
         row3.setSystemId(systemId);
 
-        row1.getData().replace("reference", new Reference(null, null));
-        row2.getData().replace("reference", new Reference(null, null));
-        row3.getData().replace("reference", new Reference(null, null));
         List<RowValue> expectedRowValues = asList(
                 rowValue(row1, structure), rowValue(row2, structure), rowValue(row3, structure)
         );
@@ -2776,6 +2774,10 @@ public class ApplicationTest {
 
                     if (val1 instanceof ReferenceFieldValue) {
                         Reference ref1 = ((ReferenceFieldValue) val1).getValue();
+                        if (ref1 != null && ref1.getValue() == null) {
+                            ref1 = null;
+                        }
+
                         Reference ref2 = ((ReferenceFieldValue) val2).getValue();
                         if (ref2 != null && ref2.getValue() == null) {
                             ref2 = null;
