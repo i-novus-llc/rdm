@@ -240,7 +240,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 .collect(toList());
 
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, existRowValues);
+        pagedData.init(existRowValues.size(), existRowValues);
 
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
@@ -257,7 +257,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
 
         CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(1, refRowValues);
+        refPagedData.init(refRowValues.size(), refRowValues);
 
         List<RefBookConflictEntity> conflicts = Stream.of(2L, 4L)
                 .map(id -> id * REFERRER_SYSTEM_ID_MULTIPLIER)
