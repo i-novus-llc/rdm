@@ -25,9 +25,11 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
+import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookConflictQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -36,6 +38,7 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -177,7 +180,6 @@ public class ConflictServiceImpl implements ConflictService {
         if (ConflictType.ALTERED.equals(conflictType) || ConflictType.DISPLAY_DAMAGED.equals(conflictType)) {
             StructureDiff structureDiff = compareService.compareStructures(oldRefToId, newRefToId);
 
-            // NB: to-do: Проверить сначала, есть ли реальные ссылки из refFromId ?!
             if (ConflictType.ALTERED.equals(conflictType))
                 return isRefBookAltered(structureDiff);
 
@@ -748,58 +750,71 @@ public class ConflictServiceImpl implements ConflictService {
                                                                  RefBookVersionEntity newRefToEntity,
                                                                  Structure.Reference refFromReference,
                                                                  List<? extends RefBookRowValue> refFromRows) {
-        Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
 
-        List<Map.Entry<Long, ReferenceFieldValue>> fieldEntries = refFromRows.stream()
-                .map(refFromRow -> {
-                    ReferenceFieldValue referenceFieldValue = (ReferenceFieldValue) (refFromRow.getFieldValue(refFromReference.getAttribute()));
-                    if (Objects.isNull(referenceFieldValue)
-                            || StringUtils.isEmpty(referenceFieldValue.getValue()))
-                        return null;
+        List<Structure.Attribute> oldPrimaries = oldRefToEntity.getStructure().getPrimaries();
+        List<Structure.Attribute> newPrimaries = newRefToEntity.getStructure().getPrimaries();
+        if (!versionValidation.equalsPrimaries(oldPrimaries, newPrimaries)) {
+            return emptyList(); // Для такого случая должен быть отдельный тип конфликта!
+        }
 
-                    return new AbstractMap.SimpleEntry<>(refFromRow.getSystemId(), referenceFieldValue);
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
+        String referenceCode = refFromReference.getAttribute();
 
-        List<ReferenceFilterValue> filterValues = fieldEntries.stream()
-                .map(fieldEntry -> new ReferenceFilterValue(refToAttribute, fieldEntry.getValue()))
-                .collect(toList());
-        List<RefBookRowValue> refToRowValues = getRefToRowValues(newRefToEntity.getId(), filterValues);
+        List<RefBookConflictEntity> toAdd = new ArrayList<>(refFromRows.size());
 
-        return fieldEntries.stream()
-                .map(fieldEntry -> {
-                    // RDM-891: Исключать значение, если не удаётся преобразовать в тип.
-                    Object castedFieldValue = castFieldValue(fieldEntry.getValue(), refToAttribute.getType());
-                    // RDM-890: Нет сравнения hash в ссылке и hash ссылаемой записи.
-                    if (isFieldValueRow(refToAttribute.getCode(), castedFieldValue, refToRowValues)) {
-                        return new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                fieldEntry.getKey(), fieldEntry.getValue().getField(), ConflictType.ALTERED);
-                    }
+        Collection<RowValue> rowValues = findReferredRowValues(newRefToEntity, newPrimaries, referenceCode, refFromRows);
+        if (isEmpty(rowValues))
+            return emptyList();
 
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
+        Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(newPrimaries, rowValues);
+
+        for (RowValue refRowValue : refFromRows) {
+
+            Reference fieldReference = RowUtils.getFieldReference(refRowValue, referenceCode);
+            if (fieldReference == null || fieldReference.getValue() == null) continue;
+
+            boolean isAltered = isHashChanged(fieldReference, referredRowValues);
+            if (isAltered) {
+                Long refRecordId = (Long) refRowValue.getSystemId();
+                RefBookConflictEntity added = new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                        refRecordId, referenceCode, ConflictType.ALTERED);
+                toAdd.add(added);
+            }
+        }
+
+        return toAdd;
     }
 
     /**
      * Получение записей по значениям ссылки.
      *
-     * @param versionId    идентификатор версии справочника
-     * @param filterValues список ссылочных значений, по которым выполняется поиск
-     * @return Список записей
+     * @param entity        новая версия исходного справочника
+     * @param primaries     первичные ключи исходного справочника
+     * @param referenceCode код атрибута-ссылки
+     * @param refRowValues  записи ссылочного справочника
+     * @return Записи исходного справочника
      */
-    private List<RefBookRowValue> getRefToRowValues(Integer versionId, List<ReferenceFilterValue> filterValues) {
-        if (versionId == null || isEmpty(filterValues))
+    private Collection<RowValue> findReferredRowValues(RefBookVersionEntity entity,
+                                                       List<Structure.Attribute> primaries,
+                                                       String referenceCode,
+                                                       Collection<? extends RowValue> refRowValues) {
+
+        List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
+        if (isEmpty(referenceValues))
             return emptyList();
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        criteria.setPageSize(REF_BOOK_VERSION_DATA_PAGE_SIZE);
-        criteria.setAttributeFilters(toAttributeFilters(filterValues));
+        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
+                entity.getStorageCode(), primaries, referenceValues); // Без учёта локализации
+        return searchDataService.getPagedData(dataCriteria).getCollection();
+    }
 
-        Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent() : emptyList();
+    private boolean isHashChanged(Reference fieldReference, Map<String, RowValue> referredRowValues) {
+
+        if (StringUtils.isEmpty(fieldReference.getHash()))
+            return true;
+
+        RowValue referredRowValue = referredRowValues.get(fieldReference.getValue());
+        return referredRowValue != null &&
+                !Objects.equals(fieldReference.getHash(), referredRowValue.getHash());
     }
 
     /**
