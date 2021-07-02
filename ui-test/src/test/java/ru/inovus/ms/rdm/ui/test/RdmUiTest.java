@@ -56,7 +56,7 @@ public class RdmUiTest {
             FieldType.INTEGER, FieldType.STRING
     );
     private static final List<FieldType> REFERRER_FIELD_TYPES = List.of(
-            // n2o 7.16: STRING нужен, иначе вылетает по таймауту.
+            // STRING нужен, иначе вылетает по таймауту.
             FieldType.INTEGER, FieldType.STRING, FieldType.REFERENCE
     );
 
@@ -76,7 +76,7 @@ public class RdmUiTest {
     public static void setUp() {
 
         Configuration.baseUrl = getBaseUrl();
-        Configuration.timeout = 60000; // n2o 7.16: увеличен с 8000, иначе вылетает по таймауту.
+        Configuration.timeout = 8000;
     }
 
     // URL запущенного фронтенда RDM.
@@ -528,6 +528,7 @@ public class RdmUiTest {
         return new RefBook(
                 "a_" + RandomStringUtils.randomAlphabetic(5),
                 "a " + RandomStringUtils.randomAlphabetic(5) +
+                        (referredBook != null ? " to " + referredBook.getCode() : "") +
                         " (" + now().format(DATE_TIME_FORMATTER) + ")",
                 "shortName",
                 "system",
