@@ -11236,17 +11236,17 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-auth@7.16.3, n2o-auth@^7.16.3:
-  version "7.16.3"
-  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.16.3.tgz#7eeadb8fe33f864db1b535412d71dfa291783fe5"
-  integrity sha512-8+4h9FR//uRiL48nP7/3aRpzceBimnAoC7Lnu4q2ZYzg260yEhUGQOcdUyN+5GKA9Rxppzd/3LRgCrXbJDqNXw==
+n2o-auth@7.16.5, n2o-auth@^7.16.5:
+  version "7.16.5"
+  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.16.5.tgz#4d9dba4c2fbf9db441681b848a5ab171998fd787"
+  integrity sha512-xfnIR2UY8zobxhhUXlbWV+9saE6eDxj2PFw6dY/Rbwe9YDe3VfGseaBAIvTGTQLa5KbXOL1+qo7aIwbo5Fq5Qw==
   dependencies:
-    n2o-framework "^7.16.3"
+    n2o-framework "^7.16.5"
 
-n2o-framework@7.16.3, n2o-framework@^7.16.3:
-  version "7.16.3"
-  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.16.3.tgz#e21557f03bab9f206a52d226b33d5f578c81e57e"
-  integrity sha512-NgZH/FuOPzTpNhjHpbAJiY78j2ZieoiBM5VzEgzWxrS1fagIqJHbh/Dyg+lX8Xk8kdMjWca05lABHI5kmyhZ8g==
+n2o-framework@7.16.5, n2o-framework@^7.16.5:
+  version "7.16.5"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.16.5.tgz#37e4bd12a2777eac49f4a8e394bb41ac3bbd6ac5"
+  integrity sha512-Rd85+OWdBSAWQFGcQmvxzxfpxLsZnRjFDmMEpKmj9UrznP52dHA42Lx+ch49W2yHuVdXPy3NGYrP7QWC+oleLw==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11283,7 +11283,7 @@ n2o-framework@7.16.3, n2o-framework@^7.16.3:
     invariant "^2.2.4"
     lodash "^4.17.15"
     moment "2.20.1"
-    n2o-auth "^7.16.3"
+    n2o-auth "^7.16.5"
     numeral "2.0.6"
     path-to-regexp "2.2.1"
     print-js "1.5.0"
