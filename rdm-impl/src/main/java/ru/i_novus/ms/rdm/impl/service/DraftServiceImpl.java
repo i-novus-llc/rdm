@@ -473,8 +473,8 @@ public class DraftServiceImpl implements DraftService {
             List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
                 List<RowValue> currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
-                getStrategy(draftEntity, UpdateRowValuesStrategy
-                        .class).update(draftEntity, currentRowValues, updatedRowValues);
+                getStrategy(draftEntity, UpdateRowValuesStrategy.class)
+                        .update(draftEntity, currentRowValues, updatedRowValues);
                 updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
             }
 
@@ -494,21 +494,6 @@ public class DraftServiceImpl implements DraftService {
 
     private List<Object> getAddedData(List<RowValue> rowValues) {
         return rowValues.stream().map(RowValue::getFieldValues).collect(toList());
-    }
-
-    private List<RowValue> getCurrentRowValues(RefBookVersionEntity entity, List<RowValue> updatedRowValues) {
-
-        List<String> fields = entity.getStructure().getAttributeCodes();
-        List<Object> systemIds = RowUtils.toSystemIds(updatedRowValues);
-        List<RowValue> oldRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
-
-        List<Message> messages = systemIds.stream()
-                .filter(systemId -> !RowUtils.containsSystemId(oldRowValues, systemId))
-                .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
-                .collect(toList());
-        if (!isEmpty(messages)) throw new UserException(messages);
-
-        return oldRowValues;
     }
 
     private List<RowDiff> getUpdatedDiffData(List<RowValue> currentRowValues, List<RowValue> updatedRowValues) {
@@ -608,6 +593,22 @@ public class DraftServiceImpl implements DraftService {
                         .filter(row -> RowUtils.equalsValuesByAttributes(row, rowValue, primaries))
                         .forEach(row -> row.setSystemId(rowValue.getSystemId()))
         );
+    }
+
+    private List<RowValue> getCurrentRowValues(RefBookVersionEntity entity, List<RowValue> rowValues) {
+
+        List<String> fields = entity.getStructure().getAttributeCodes();
+        List<Object> systemIds = RowUtils.toSystemIds(rowValues);
+        // Без учёта локализации
+        List<RowValue> currentRowValues = searchDataService.findRows(entity.getStorageCode(), fields, systemIds);
+
+        List<Message> messages = systemIds.stream()
+                .filter(systemId -> !RowUtils.containsSystemId(currentRowValues, systemId))
+                .map(systemId -> new Message(ROW_NOT_FOUND_EXCEPTION_CODE, systemId))
+                .collect(toList());
+        if (!isEmpty(messages)) throw new UserException(messages);
+
+        return currentRowValues;
     }
 
     /** Валидация добавляемых/обновляемых строк данных по структуре. */
