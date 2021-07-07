@@ -5,9 +5,6 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <changeSet id="202106280935_RDM-859_from_date_index" author="arahmatullin" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
-            <tableExists tableName="ref_book_version" schemaName="n2o_rdm_management"/>
-        </preConditions>
         <comment>Добавление индекса для ускорения поиска последнего опубликованного справочника</comment>
         <sql>
             <![CDATA[
