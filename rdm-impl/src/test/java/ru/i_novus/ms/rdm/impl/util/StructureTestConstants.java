@@ -11,7 +11,6 @@ import static java.util.Collections.singletonList;
 
 public class StructureTestConstants {
 
-    public static final String UNKNOWN_ATTRIBUTE_CODE = "Unknown";
     public static final String ID_ATTRIBUTE_CODE = "ID";
     public static final String NAME_ATTRIBUTE_CODE = "NAME";
     public static final String STRING_ATTRIBUTE_CODE = "CHAR";
@@ -19,6 +18,9 @@ public class StructureTestConstants {
     public static final String FLOAT_ATTRIBUTE_CODE = "REAL";
     public static final String BOOLEAN_ATTRIBUTE_CODE = "BOOL";
     public static final String DATE_ATTRIBUTE_CODE = "DATE";
+
+    public static final String CODE_ATTRIBUTE_CODE = "CODE";
+    public static final String UNKNOWN_ATTRIBUTE_CODE = "Unknown";
 
     public static final List<String> PRIMARY_CODES = singletonList(ID_ATTRIBUTE_CODE);
 
@@ -38,8 +40,14 @@ public class StructureTestConstants {
 
     public static final String REFERRED_BOOK_CODE = "REFERRED";
     public static final String REFERRED_BOOK_ATTRIBUTE_CODE = "VALUE";
+    public static final Structure.Attribute REFERRED_ATTRIBUTE = Structure.Attribute.build(
+            REFERRED_BOOK_ATTRIBUTE_CODE, REFERRED_BOOK_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "referred");
+
     public static final String SELF_REFERRED_BOOK_CODE = "SELFBOOK";
     public static final String SELF_REFERRED_BOOK_ATTRIBUTE_CODE = ID_ATTRIBUTE_CODE;
+    public static final Structure.Attribute SELF_REFERRED_ATTRIBUTE = Structure.Attribute.buildPrimary(
+            SELF_REFERRED_BOOK_ATTRIBUTE_CODE, SELF_REFERRED_BOOK_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "self-referred");
+
     public static final List<String> REFERRED_BOOK_CODES = List.of(
             REFERRED_BOOK_CODE, SELF_REFERRED_BOOK_CODE
     );
@@ -62,6 +70,9 @@ public class StructureTestConstants {
             REFERENCE_ATTRIBUTE_CODE, REFERENCE_ATTRIBUTE_CODE.toLowerCase(), FieldType.REFERENCE, "reference");
     public static final Structure.Attribute SELF_REFER_ATTRIBUTE = Structure.Attribute.build(
             SELF_REFER_ATTRIBUTE_CODE, SELF_REFER_ATTRIBUTE_CODE.toLowerCase(), FieldType.REFERENCE, "self-ref");
+
+    public static final Structure.Attribute CODE_ATTRIBUTE = Structure.Attribute.buildPrimary(
+            CODE_ATTRIBUTE_CODE, CODE_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "primary code");
 
     public static final Structure.Reference REFERENCE = new Structure.Reference(
             REFERENCE_ATTRIBUTE_CODE, REFERRED_BOOK_CODE,
@@ -96,6 +107,9 @@ public class StructureTestConstants {
             CHANGE_REF_ATTRIBUTE_CODE, REFERRED_BOOK_CODE,
             DisplayExpression.toPlaceholder(REFERRED_BOOK_ATTRIBUTE_CODE)
     );
+
+    public static final Structure REFERRED_STRUCTURE = new Structure(List.of(ID_ATTRIBUTE, REFERRED_ATTRIBUTE), null);
+    public static final Structure SELF_REFERRED_STRUCTURE = new Structure(List.of(SELF_REFERRED_ATTRIBUTE), null);
 
     private StructureTestConstants() {
         // Nothing to do.

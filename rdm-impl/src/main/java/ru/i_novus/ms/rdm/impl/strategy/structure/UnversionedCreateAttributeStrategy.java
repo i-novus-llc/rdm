@@ -20,9 +20,17 @@ public class UnversionedCreateAttributeStrategy implements CreateAttributeStrate
     @Override
     public Structure.Attribute create(RefBookVersionEntity entity, CreateAttributeRequest request) {
 
-        Structure.Attribute attribute = createAttributeStrategy.create(entity, request);
+        boolean hasReferrers = unversionedChangeStructureStrategy.hasReferrerVersions(entity);
+        Structure oldStructure = hasReferrers ? new Structure(entity.getStructure()) : null;
 
-        unversionedChangeStructureStrategy.processReferrers(entity);
+        Structure.Attribute attribute = createAttributeStrategy.create(entity, request);
+        
+        if (hasReferrers) {
+            unversionedChangeStructureStrategy.validatePrimariesEquality(
+                    entity.getRefBook().getCode(), oldStructure, entity.getStructure()
+            );
+            unversionedChangeStructureStrategy.processReferrers(entity);
+        }
 
         return attribute;
     }

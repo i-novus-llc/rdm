@@ -27,6 +27,8 @@ public class UnversionedCreateAttributeStrategyTest extends UnversionedBaseStrat
     public void testCreate() {
 
         RefBookVersionEntity entity = createUnversionedEntity();
+        fillOptLockValue(entity, DRAFT_OPT_LOCK_VALUE);
+        when(unversionedChangeStructureStrategy.hasReferrerVersions(entity)).thenReturn(true);
 
         final Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
         CreateAttributeRequest request = new CreateAttributeRequest(DRAFT_OPT_LOCK_VALUE, newAttribute, null);
@@ -37,6 +39,11 @@ public class UnversionedCreateAttributeStrategyTest extends UnversionedBaseStrat
         assertEquals(newAttribute, attribute); // Добавленный атрибут
 
         verify(createAttributeStrategy).create(entity, request);
+
+        verify(unversionedChangeStructureStrategy).hasReferrerVersions(entity);
+        verify(unversionedChangeStructureStrategy).validatePrimariesEquality(
+                eq(entity.getRefBook().getCode()), eq(entity.getStructure()), any(Structure.class)
+        );
         verify(unversionedChangeStructureStrategy).processReferrers(entity);
 
         verifyNoMoreInteractions(createAttributeStrategy, unversionedChangeStructureStrategy);

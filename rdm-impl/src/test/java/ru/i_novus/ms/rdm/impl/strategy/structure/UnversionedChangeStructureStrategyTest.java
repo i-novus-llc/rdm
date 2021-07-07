@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.structure;
 
 import net.n2oapp.criteria.api.CollectionPage;
+import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -8,6 +9,7 @@ import org.mockito.Mock;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
@@ -25,12 +27,10 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
-import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.UNKNOWN_ATTRIBUTE_CODE;
+import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrategyTest {
 
@@ -46,8 +46,89 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
     @Mock
     private SearchDataService searchDataService;
 
+    @Mock
+    private VersionValidation versionValidation;
+
     @Test
-    public void testDisplayDamaged() {
+    public void testHasReferrerVersions() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+
+        when(versionValidation.hasReferrerVersions(entity.getRefBook().getCode())).thenReturn(true);
+
+        boolean result = strategy.hasReferrerVersions(entity);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testValidatePrimariesEquality() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+        Structure oldStructure = entity.getStructure();
+        Structure newStructure = new Structure(oldStructure);
+
+        final Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        newStructure.add(newAttribute, null);
+
+        when(versionValidation.equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries())).thenReturn(true);
+        validateSuccess(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure)
+        );
+
+        verify(versionValidation).equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries());
+
+        verifyNoMore();
+    }
+
+    @Test
+    public void testValidatePrimariesEqualityFail() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+        Structure oldStructure = entity.getStructure();
+        Structure newStructure = new Structure(oldStructure);
+
+        final Structure.Attribute newAttribute = new Structure.Attribute(CHANGE_ATTRIBUTE);
+        newStructure.add(newAttribute, null);
+
+        when(versionValidation.equalsPrimaries(oldStructure.getPrimaries(), newStructure.getPrimaries())).thenReturn(false);
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.structures.primaries.not.match"
+        );
+
+        newStructure.clearPrimary();
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.new.structure.primaries.not.found"
+        );
+
+        oldStructure.clearPrimary();
+        validateFailure(
+                () -> strategy.validatePrimariesEquality(entity.getRefBook().getCode(), oldStructure, newStructure),
+                UserException.class,
+                "compare.old.structure.primaries.not.found"
+        );
+
+        verify(versionValidation).equalsPrimaries(anyList(), anyList());
+
+        verifyNoMore();
+    }
+
+    @Test
+    public void testProcessSkip() {
+
+        RefBookVersionEntity entity = createUnversionedEntity();
+        entity.getStructure().clearPrimary();
+
+        strategy.processReferrers(entity);
+
+        verifyNoMore();
+    }
+
+    @Test
+    public void testProcessDisplayDamaged() {
 
         RefBookVersionEntity entity = createUnversionedEntity();
 
@@ -69,11 +150,11 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
 
         verify(searchDataService).getPagedData(any());
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
-    public void testDisplayDamagedWithError() {
+    public void testProcessDisplayDamagedWithError() {
 
         RefBookVersionEntity entity = createUnversionedEntity();
 
@@ -102,17 +183,15 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 null, REFERRER_ATTRIBUTE_CODE, ConflictType.DISPLAY_DAMAGED);
         verify(conflictRepository).save(added);
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
-    public void testDisplayDamagedWithoutError() {
+    public void testProcessDisplayDamagedWithoutError() {
 
         RefBookVersionEntity entity = createUnversionedEntity();
 
         RefBookVersionEntity referrer = createReferrerVersionEntity();
-        Structure.Reference reference = referrer.getStructure().getReference(REFERRER_ATTRIBUTE_CODE);
-
         List<RefBookVersionEntity> referrers = singletonList(referrer);
         mockFindReferrers(versionRepository, referrers);
 
@@ -140,12 +219,12 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
 
         verify(conflictRepository).deleteAll(eq(conflicts));
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAltered() {
+    public void testProcessAltered() {
 
         RefBookVersionEntity entity = createUnversionedEntity();
 
@@ -225,6 +304,11 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         assertNotNull(toDelete);
         assertEquals(1, toDelete.size());
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService);
+        verifyNoMore();
+    }
+
+    private void verifyNoMore() {
+
+        verifyNoMoreInteractions(versionRepository, conflictRepository, searchDataService, versionValidation);
     }
 }
