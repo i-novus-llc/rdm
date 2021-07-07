@@ -50,8 +50,7 @@
                     <query-param name="code" value="{code}"/>
                 </open-page>
             </button>
-            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
-<!--            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger" enabling-condition="!archived &amp;&amp; !hasPublished">-->
+            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger" enabled="{!archived &amp;&amp; !hasReferrer}">
                 <invoke operation-id="delete"/>
             </button>
 

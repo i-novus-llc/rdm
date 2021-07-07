@@ -11243,12 +11243,12 @@ n2o-auth@7.15.4:
   dependencies:
     n2o-framework "^7.15.4"
 
-n2o-auth@^7.16.0:
-  version "7.16.0"
-  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.16.0.tgz#c4d1a2b674a82fc5373daf9d66686fecf7ff94ab"
-  integrity sha512-f9ovfcZeDJrHLlRzpbLAE0dLkJ2+xPWLE1FOJIG9ffyjwlnfucuWY2byqR09AEfmevplUALFCt5DnFS2pblkEA==
+n2o-auth@^7.16.5:
+  version "7.16.5"
+  resolved "https://npm.i-novus.ru/n2o-auth/-/n2o-auth-7.16.5.tgz#4d9dba4c2fbf9db441681b848a5ab171998fd787"
+  integrity sha512-xfnIR2UY8zobxhhUXlbWV+9saE6eDxj2PFw6dY/Rbwe9YDe3VfGseaBAIvTGTQLa5KbXOL1+qo7aIwbo5Fq5Qw==
   dependencies:
-    n2o-framework "^7.16.0"
+    n2o-framework "^7.16.5"
 
 n2o-framework@7.15.4:
   version "7.15.4"
@@ -11341,10 +11341,10 @@ n2o-framework@7.15.4:
     why-did-you-update "0.1.1"
     xhr-mock "2.4.1"
 
-n2o-framework@^7.15.4, n2o-framework@^7.16.0:
-  version "7.16.0"
-  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.16.0.tgz#9697e8d6d0d7e244c1420c1eec8236ae73f2beaf"
-  integrity sha512-rUIrUZyymx30nnpwNS1jEsu9OnaT8PSI5PA4VyXUpT9rDwgGzyBzfLI9NKHuasoGYE+AyKdK4+VDyQLN/JZS9g==
+n2o-framework@^7.15.4, n2o-framework@^7.16.5:
+  version "7.16.5"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.16.5.tgz#37e4bd12a2777eac49f4a8e394bb41ac3bbd6ac5"
+  integrity sha512-Rd85+OWdBSAWQFGcQmvxzxfpxLsZnRjFDmMEpKmj9UrznP52dHA42Lx+ch49W2yHuVdXPy3NGYrP7QWC+oleLw==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11381,7 +11381,7 @@ n2o-framework@^7.15.4, n2o-framework@^7.16.0:
     invariant "^2.2.4"
     lodash "^4.17.15"
     moment "2.20.1"
-    n2o-auth "^7.16.0"
+    n2o-auth "^7.16.5"
     numeral "2.0.6"
     path-to-regexp "2.2.1"
     print-js "1.5.0"

@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl;
 
+import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 
 import java.math.BigInteger;
@@ -8,6 +9,7 @@ import java.util.function.BiConsumer;
 
 import static org.junit.Assert.*;
 
+@SuppressWarnings({"java:S2187","java:S5778"})
 public class BaseTest {
 
     private static final String ERROR_EXPECTED = " error expected";
@@ -114,6 +116,51 @@ public class BaseTest {
 
         Object other = (!BigInteger.ZERO.equals(current)) ? BigInteger.ZERO : BigInteger.ONE;
         assertObjects(Assert::assertNotEquals, current, other);
+    }
+
+    /** Check method execution for success. */
+    public void validateSuccess(MethodExecutor executor) {
+        try {
+            executor.execute();
+
+        } catch (RuntimeException e) {
+            fail(e.getMessage());
+        }
+    }
+
+    /** Check method execution for failure with single message. */
+    public void validateFailure(MethodExecutor executor, Class<?> expectedClass, String expectedMessage) {
+        try {
+            executor.execute();
+            fail(getFailedMessage(expectedClass));
+
+        } catch (RuntimeException e) {
+            assertEquals(expectedClass, e.getClass());
+            assertEquals(expectedMessage, getExceptionMessage(e));
+        }
+    }
+
+    /** Check method execution for failure with multiple messages. */
+    public void validateFailure(MethodExecutor executor,
+                                Class<? extends UserException> expectedClass,
+                                List<String> expectedMessages) {
+        try {
+            executor.execute();
+            fail(getFailedMessage(expectedClass));
+
+        } catch (UserException e) {
+            assertEquals(expectedClass, e.getClass());
+            assertNotNull(e.getMessages());
+            assertEquals(expectedMessages.size(), e.getMessages().size());
+
+            for (int i = 0; i < expectedMessages.size(); i++) {
+                assertEquals(expectedMessages.get(i), e.getMessages().get(i).getCode());
+            }
+        }
+    }
+
+    public interface MethodExecutor {
+        void execute();
     }
 
     /** Get expected class message to use in `fail`. */

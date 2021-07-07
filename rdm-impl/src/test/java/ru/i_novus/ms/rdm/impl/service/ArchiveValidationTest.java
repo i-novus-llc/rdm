@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
+import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -47,11 +48,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ArchiveValidationTest {
+public class ArchiveValidationTest extends BaseTest {
 
-    private static final Integer refBookId = 1;
-    private static final Integer draftId = 2;
-    private static final Integer versionId = 3;
+    private static final Integer REFBOOK_ID = -10;
+    private static final Integer VERSION_ID = 2;
+    private static final Integer DRAFT_ID = 6;
 
     @InjectMocks
     private RefBookServiceImpl refBookService;
@@ -106,33 +107,33 @@ public class ArchiveValidationTest {
     @Test
     public void testArchiveValidation() {
 
-        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(refBookId, new Structure(), null, Collections.emptyMap())));
-        assertArchiveValidationError(() -> draftService.create(refBookId, new FileModel()));
+        assertArchiveValidationError(() -> draftService.create(new CreateDraftRequest(REFBOOK_ID, new Structure(), null, Collections.emptyMap())));
+        assertArchiveValidationError(() -> draftService.create(REFBOOK_ID, new FileModel()));
 
         UpdateFromFileRequest request = new UpdateFromFileRequest(null, new FileModel());
-        assertArchiveValidationError(() -> draftService.updateFromFile(draftId, request));
+        assertArchiveValidationError(() -> draftService.updateFromFile(DRAFT_ID, request));
 
-        assertArchiveValidationError(() -> draftService.remove(draftId));
-        assertArchiveValidationError(() -> draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, new Structure.Attribute(), null)));
-        assertArchiveValidationError(() -> draftService.deleteAttribute(draftId, new DeleteAttributeRequest(null, null)));
-        assertArchiveValidationError(() -> draftService.createAttribute(draftId, new CreateAttributeRequest(null, null, null)));
+        assertArchiveValidationError(() -> draftService.remove(DRAFT_ID));
+        assertArchiveValidationError(() -> draftService.updateAttribute(DRAFT_ID, new UpdateAttributeRequest(null, new Structure.Attribute(), null)));
+        assertArchiveValidationError(() -> draftService.deleteAttribute(DRAFT_ID, new DeleteAttributeRequest(null, null)));
+        assertArchiveValidationError(() -> draftService.createAttribute(DRAFT_ID, new CreateAttributeRequest(null, null, null)));
 
         RefBookUpdateRequest updateRequest = new RefBookUpdateRequest();
-        updateRequest.setVersionId(versionId);
+        updateRequest.setVersionId(VERSION_ID);
         assertArchiveValidationError(() -> refBookService.update(updateRequest));
     }
 
     private void assertArchiveValidationError(MethodExecutor executor) {
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
-                .when(versionValidation).validateRefBook(eq(refBookId));
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, REFBOOK_ID)))
+                .when(versionValidation).validateRefBook(eq(REFBOOK_ID));
 
         RefBookVersionEntity versionEntity = createVersionEntity();
-        when(versionRepository.findById(versionId)).thenReturn(Optional.of(versionEntity));
+        when(versionRepository.findById(VERSION_ID)).thenReturn(Optional.of(versionEntity));
         RefBookVersionEntity draftEntity = createDraftEntity();
-        when(versionRepository.findById(draftId)).thenReturn(Optional.of(draftEntity));
+        when(versionRepository.findById(DRAFT_ID)).thenReturn(Optional.of(draftEntity));
 
-        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, refBookId)))
+        doThrow(new NotFoundException(new Message(VersionValidationImpl.REFBOOK_IS_ARCHIVED_EXCEPTION_CODE, REFBOOK_ID)))
                 .when(validateVersionNotArchivedStrategy).validate(any());
 
         try {
@@ -144,7 +145,7 @@ public class ArchiveValidationTest {
         }
 
         doNothing()
-                .when(versionValidation).validateRefBook(eq(refBookId));
+                .when(versionValidation).validateRefBook(eq(REFBOOK_ID));
 
         doNothing()
                 .when(validateVersionNotArchivedStrategy).validate(any());
@@ -161,7 +162,7 @@ public class ArchiveValidationTest {
     private RefBookVersionEntity createVersionEntity() {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setId(versionId);
+        entity.setId(VERSION_ID);
 
         RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
@@ -172,17 +173,13 @@ public class ArchiveValidationTest {
     private RefBookVersionEntity createDraftEntity() {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
-        entity.setId(draftId);
+        entity.setId(DRAFT_ID);
         entity.setStatus(RefBookVersionStatus.DRAFT);
 
         RefBookEntity refBookEntity = new DefaultRefBookEntity();
         entity.setRefBook(refBookEntity);
 
         return entity;
-    }
-
-    private interface MethodExecutor {
-        void execute();
     }
 
     private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {

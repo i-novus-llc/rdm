@@ -331,6 +331,9 @@ public class VersionValidationImpl implements VersionValidation {
 
         RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
 
+        if (referredEntity == null)
+            throw new NotFoundException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, referredCode));
+
         if (referredEntity.hasEmptyStructure()) // Только проверка на наличие структуры!
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
     }
@@ -347,7 +350,7 @@ public class VersionValidationImpl implements VersionValidation {
             throw new UserException(new Message(REFERENCE_DISPLAY_EXPRESSION_IS_EMPTY_EXCEPTION_CODE, reference.getAttribute()));
 
         RefBookVersionEntity referredEntity = getReferredEntity(reference.getReferenceCode());
-        validateReferredStructure(referredEntity.getStructure(), referredEntity.getRefBook().getCode());
+        validateReferredStructure(referredEntity.getRefBook().getCode(), referredEntity.getStructure());
 
         validateReferenceDisplayExpression(reference, referredEntity.getStructure());
     }
@@ -417,8 +420,13 @@ public class VersionValidationImpl implements VersionValidation {
      */
     private void validateReferredDraftStructure(String referredCode, Structure draftStructure) {
 
+        validateRefBookCode(referredCode);
+
+        validateReferredStructure(referredCode, draftStructure);
+
         RefBookVersionEntity referredEntity = getReferredEntity(referredCode);
-        validateReferredStructure(draftStructure, referredCode);
+        if (referredEntity == null)
+            return;
 
         if (!equalsPrimaries(referredEntity.getStructure().getPrimaries(), draftStructure.getPrimaries()))
             throw new UserException(new Message(REFERRED_DRAFT_PRIMARIES_NOT_MATCH_EXCEPTION_CODE, referredCode, referredEntity.getVersion()));
@@ -434,21 +442,17 @@ public class VersionValidationImpl implements VersionValidation {
 
         validateRefBookCode(referredCode);
 
-        RefBookVersionEntity referredEntity = versionRepository
+        return versionRepository
                 .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(referredCode, RefBookVersionStatus.PUBLISHED);
-        if (referredEntity == null)
-            throw new NotFoundException(new Message(REFERRED_BOOK_NOT_FOUND_EXCEPTION_CODE, referredCode));
-
-        return referredEntity;
     }
 
     /**
      * Проверка структуры версии справочника, на который ссылаются.
      *
-     * @param structure    проверяемая структура
      * @param referredCode код этого справочника
+     * @param structure    проверяемая структура
      */
-    private void validateReferredStructure(Structure structure, String referredCode) {
+    private void validateReferredStructure(String referredCode, Structure structure) {
 
         if (structure == null)
             throw new UserException(new Message(REFERRED_BOOK_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, referredCode));
@@ -547,6 +551,6 @@ public class VersionValidationImpl implements VersionValidation {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isValidCode(String code) {
-        return CODE_PATTERN.matcher(code).matches();
+        return !StringUtils.isEmpty(code) && CODE_PATTERN.matcher(code).matches();
     }
 }

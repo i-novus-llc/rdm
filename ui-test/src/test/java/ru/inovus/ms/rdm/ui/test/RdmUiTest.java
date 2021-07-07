@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.ui.test;
 
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
@@ -28,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static net.n2oapp.framework.autotest.N2oSelenide.open;
 
 public class RdmUiTest {
@@ -45,13 +45,18 @@ public class RdmUiTest {
     private static final int DATA_ROWS_CREATE_COUNT = 3;
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
 
-    private static final String REFBOOK_UNVERSIONED = "Неверсионный";
-
-    // Дата всегда должна быть последней, иначе календарь перекрывает другие поля.
+    // Все простые поля для проверки справочников.
     private static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
+            // В списке дата всегда должна быть последней, иначе календарь перекрывает другие поля.
             FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE
     );
+
+    // Минимальное количество полей для проверки ссылочных справочников.
+    private static final List<FieldType> REFERRED_FIELD_TYPES = List.of(
+            FieldType.INTEGER, FieldType.STRING
+    );
     private static final List<FieldType> REFERRER_FIELD_TYPES = List.of(
+            // STRING нужен, иначе вылетает по таймауту.
             FieldType.INTEGER, FieldType.STRING, FieldType.REFERENCE
     );
 
@@ -90,96 +95,114 @@ public class RdmUiTest {
     }
 
     @After
-    public void logout() throws Exception {
+    public void logout() {
         open("/logout", LoginPage.class).shouldExists();
     }
 
     /**
-     * Создает и публикует два справочника:
-     * - первый - обычный со всеми простыми типами полей,
-     * - второй - ссылочный с ссылкой на первый справочник.
+     * Проверка работы с обычным (версионным) справочником.
      */
     @Test
-    public void testCreateSimpleAndReferrerRefBook() {
+    public void testCreateDefaultRefBook() {
+        testRefBook(null);
+    }
 
-        RefBook simpleRefBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
-        RefBook referrerRefBook = generateRefBook(null, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, simpleRefBook);
+    /**
+     * Проверка работы с неверсионным справочником.
+     */
+    @Test
+    public void testUnversionedRefBook() {
+        testRefBook(RefBook.getUnversionedType());
+    }
+
+    private void testRefBook(String type) {
+
+        RefBook refBook = generateRefBook(type, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
+
+        RefBookListPage refBookListPage = login();
+        refBookListPage.shouldExists();
+
+        // Создание.
+        createRefBook(refBookListPage, refBook);
+        refBookListPage.shouldExists();
+
+        search(refBookListPage, refBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+
+        // Редактирование.
+        RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        editRefBook(refBookEditPage, refBook);
+        search(refBookListPage, refBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+
+        // Удаление.
+        refBookListPage.deleteRow(0);
+        search(refBookListPage, refBook);
+        refBookListPage.rowShouldHaveSize(0);
+    }
+
+    /**
+     * Проверка работы с обычным справочником, ссылающимся на обычный справочник.
+     */
+    @Test
+    public void testDefaultReferrerToDefault() {
+        testReferrerRefBook(null, null);
+    }
+
+    /**
+     * Проверка работы с обычным справочником, ссылающимся на неверсионный справочник.
+     */
+    @Test
+    public void testDefaultReferrerToUnversioned() {
+        testReferrerRefBook(RefBook.getUnversionedType(), null);
+    }
+
+    private void testReferrerRefBook(String referredType, String referrerType) {
+
+        RefBook referredBook = generateRefBook(referredType, DATA_ROWS_CREATE_COUNT, REFERRED_FIELD_TYPES, null);
+        RefBook referrerBook = generateRefBook(referrerType, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, referredBook);
 
         RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
 
         // Создание обычного справочника.
-        createRefBook(refBookListPage, simpleRefBook);
+        createRefBook(refBookListPage, referredBook);
         refBookListPage.shouldExists();
 
-        search(refBookListPage, simpleRefBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+        search(refBookListPage, referredBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
 
         // Создание ссылочного справочника.
-        createRefBook(refBookListPage, referrerRefBook);
-
-        RefBookEditPage refBookEditPage;
-
-        // Изменение обычного справочника.
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
-        editRefBook(refBookEditPage, simpleRefBook);
+        createRefBook(refBookListPage, referrerBook);
 
         // Создание конфликтов.
-        search(refBookListPage, simpleRefBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+        search(refBookListPage, referredBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
 
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
-        createDataConflicts(refBookEditPage, simpleRefBook);
+        RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        createDataConflicts(refBookEditPage, referredBook);
 
-        // Проверка конфликтов.
-        search(refBookListPage, referrerRefBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
+        // Разрешение конфликтов.
+        search(refBookListPage, referrerBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
 
-        refBookEditPage = refBookListPage.openRefBookEditPage(0);
-        resolveDataConflicts(refBookEditPage, referrerRefBook);
+        refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        resolveDataConflicts(refBookEditPage, referrerBook);
 
         // Удаление ссылочного справочника.
-        search(refBookListPage, referrerRefBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(referrerRefBook.getCode()));
+        search(refBookListPage, referrerBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
 
         refBookListPage.deleteRow(0);
-        search(refBookListPage, referrerRefBook);
+        search(refBookListPage, referrerBook);
         refBookListPage.rowShouldHaveSize(0);
 
         // Удаление обычного справочника.
-        search(refBookListPage, simpleRefBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(simpleRefBook.getCode()));
+        search(refBookListPage, referredBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
 
         refBookListPage.deleteRow(0);
-        search(refBookListPage, simpleRefBook);
-        refBookListPage.rowShouldHaveSize(0);
-    }
-
-    /**
-     * Создание/редактирование/удаление неверсионного справочника
-     */
-    @Test
-    public void testUnversionedRefBook() {
-
-        RefBook refBook = generateRefBook(RefBook.getUnversionedType(), 3, DEFAULT_FIELD_TYPES, null);
-
-        RefBookListPage refBookListPage = login();
-        refBookListPage.shouldExists();
-
-        createRefBook(refBookListPage, refBook);
-        refBookListPage.shouldExists();
-
-        search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBook.getCode()));
-
-        RefBookEditPage refBookEditPage = refBookListPage.openRefBookEditPage(0);
-        editRefBook(refBookEditPage, refBook);
-
-        search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, Collections.singletonList(refBook.getCode()));
-        refBookListPage.deleteRow(0);
-
-        search(refBookListPage, refBook);
+        search(refBookListPage, referredBook);
         refBookListPage.rowShouldHaveSize(0);
     }
 
@@ -280,6 +303,7 @@ public class RdmUiTest {
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
         dataListWidget.deleteRowForm(lastRowNum);
+
         nameColumnValues.remove(lastRowNum);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
@@ -302,6 +326,7 @@ public class RdmUiTest {
 
         // Конфликт DELETED.
         dataListWidget.deleteRowForm(0);
+
         nameColumnValues.remove(0);
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
@@ -330,8 +355,8 @@ public class RdmUiTest {
         List<String> nameColumnConflictedValues = nameColumnValues.subList(0, 2);
 
         refBookEditPage.shouldExists();
-        DataListWidget dataListWidget = refBookEditPage.data();
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        //DataListWidget dataListWidget = refBookEditPage.data();
+        //dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
         DataWithConflictsListWidget dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
         dataWithConflictsListWidget.rowShouldHaveSize(2); // Два конфликта
@@ -358,6 +383,11 @@ public class RdmUiTest {
     private void openRefBookListPage() {
 
         open("/", RefBookListPage.class);
+    }
+
+    private RefBookEditPage openRefBookEditPage(RefBookListPage refBookListPage, int rowNum) {
+
+        return refBookListPage.openRefBookEditPage(rowNum);
     }
 
     private void publishRefBook(RefBookEditPage refBookEditPage) {
@@ -498,6 +528,7 @@ public class RdmUiTest {
         return new RefBook(
                 "a_" + RandomStringUtils.randomAlphabetic(5),
                 "a " + RandomStringUtils.randomAlphabetic(5) +
+                        (referredBook != null ? " to " + referredBook.getCode() : "") +
                         " (" + now().format(DATE_TIME_FORMATTER) + ")",
                 "shortName",
                 "system",
@@ -549,9 +580,11 @@ public class RdmUiTest {
 
     private String getNameColumnValue(Map<RefBookField, Object> row) {
 
-        return (String) row.entrySet().stream()
-                .filter(entry -> "name".equals(entry.getKey().getCode()))
-                .findAny().get().getValue();
+        Map.Entry<RefBookField, Object> field = row.entrySet().stream()
+                        .filter(entry -> "name".equals(entry.getKey().getCode()))
+                        .findAny().orElse(null);
+
+        return (field != null) ? (String) field.getValue() : null;
     }
 
     private static LocalDateTime now() {

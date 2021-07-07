@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.cache.template.SyncCacheTemplate;
 import net.n2oapp.framework.api.MetadataEnvironment;
 import net.n2oapp.framework.api.data.QueryExceptionHandler;
@@ -10,23 +11,33 @@ import net.n2oapp.framework.config.compile.pipeline.operation.SourceCacheOperati
 import net.n2oapp.framework.engine.data.N2oInvocationFactory;
 import net.n2oapp.framework.engine.data.N2oQueryProcessor;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.criteria.RestCriteriaConstructor;
 import ru.i_novus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
 import ru.i_novus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
 import ru.i_novus.ms.rdm.n2o.util.RdmPermissionImpl;
 import ru.i_novus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
+import javax.annotation.PostConstruct;
+
 @Configuration
 @EnableJaxRsProxyClient(
         scanPackages = "ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
         address = "${rdm.backend.path}"
 )
+@SuppressWarnings({"rawtypes","java:S3740"})
 public class ClientConfiguration {
+
+    @Autowired
+    @Qualifier("cxfObjectMapper")
+    private ObjectMapper objectMapper;
 
     @Bean
     public RdmPermission rdmPermission() {
@@ -78,5 +89,10 @@ public class ClientConfiguration {
         return new RdmSourceCacheOperation(new SyncCacheTemplate(cacheManager), metadataRegister);
     }
 
+    @PostConstruct
+    @SuppressWarnings("java:S2696")
+    public void setUpObjectMapper() {
+        JsonUtil.jsonMapper = objectMapper;
+    }
 }
 
