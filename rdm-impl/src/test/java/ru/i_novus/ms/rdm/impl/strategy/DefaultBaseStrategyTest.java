@@ -44,6 +44,8 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
     protected static final String NAME_FIELD_VALUE_PREFIX = "name_";
     protected static final String TEXT_FIELD_VALUE_PREFIX = "text with id = ";
 
+    protected static final String HASH_VALUE_PREFIX = "hash-";
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
@@ -110,10 +112,12 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
 
     protected LongRowValue createRowValue(Long systemId, BigInteger id, String name, String text) {
 
-        return new LongRowValue(systemId, asList(
-                new IntegerFieldValue(ID_ATTRIBUTE_CODE, id),
-                new StringFieldValue(NAME_ATTRIBUTE_CODE, name),
-                new StringFieldValue(STRING_ATTRIBUTE_CODE, text)
-        ));
+        return new LongRowValue(systemId,
+                asList(
+                        new IntegerFieldValue(ID_ATTRIBUTE_CODE, id),
+                        new StringFieldValue(NAME_ATTRIBUTE_CODE, name),
+                        new StringFieldValue(STRING_ATTRIBUTE_CODE, text)
+                ),
+                systemId != null ? HASH_VALUE_PREFIX + systemId.toString() : null);
     }
 }

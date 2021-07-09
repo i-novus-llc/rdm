@@ -240,7 +240,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 .collect(toList());
 
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, existRowValues);
+        pagedData.init(existRowValues.size(), existRowValues);
 
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
@@ -257,7 +257,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
 
         CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(1, refRowValues);
+        refPagedData.init(refRowValues.size(), refRowValues);
 
         List<RefBookConflictEntity> conflicts = Stream.of(2L, 4L)
                 .map(id -> id * REFERRER_SYSTEM_ID_MULTIPLIER)
@@ -294,15 +294,21 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
 
         ArgumentCaptor<List<RefBookConflictEntity>> toAddCaptor = ArgumentCaptor.forClass(List.class);
         verify(conflictRepository).saveAll(toAddCaptor.capture());
-        List<RefBookConflictEntity> toUpdate = toAddCaptor.getValue();
-        assertNotNull(toUpdate);
-        assertEquals(1, toUpdate.size());
+        List<RefBookConflictEntity> toAdd = toAddCaptor.getValue();
+        assertNotNull(toAdd);
+        assertEquals(1, toAdd.size());
+
+        Long expectedToAddId = REFERRER_SYSTEM_ID_MULTIPLIER; // 1L
+        assertEquals(expectedToAddId, toAdd.get(0).getRefRecordId());
 
         ArgumentCaptor<List<RefBookConflictEntity>> toDeleteCaptor = ArgumentCaptor.forClass(List.class);
         verify(conflictRepository).deleteAll(toDeleteCaptor.capture());
         List<RefBookConflictEntity> toDelete = toDeleteCaptor.getValue();
         assertNotNull(toDelete);
         assertEquals(1, toDelete.size());
+
+        Long expectedToDeleteId = 4L * REFERRER_SYSTEM_ID_MULTIPLIER; // 4L
+        assertEquals(expectedToDeleteId, toDelete.get(0).getRefRecordId());
 
         verifyNoMore();
     }

@@ -80,7 +80,7 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
                 .collect(toList());
 
         CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, addedRowValues);
+        pagedData.init(addedRowValues.size(), addedRowValues);
 
         // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
@@ -103,7 +103,7 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
                 });
 
         CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(1, refRowValues);
+        refPagedData.init(refRowValues.size(), refRowValues);
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer

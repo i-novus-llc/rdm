@@ -63,7 +63,7 @@ public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseSt
                 createReferrerRowValue(2L, 2)
         );
         CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(1, refRowValues);
+        refPagedData.init(refRowValues.size(), refRowValues);
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer

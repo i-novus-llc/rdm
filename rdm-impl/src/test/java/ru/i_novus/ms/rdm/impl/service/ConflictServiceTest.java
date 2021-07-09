@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +21,7 @@ import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
@@ -28,8 +31,10 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
@@ -45,8 +50,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -129,6 +133,8 @@ public class ConflictServiceTest {
             PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
     );
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @InjectMocks
     private ConflictServiceImpl conflictService;
 
@@ -141,6 +147,8 @@ public class ConflictServiceTest {
 
     @Mock
     private DraftDataService draftDataService;
+    @Mock
+    private SearchDataService searchDataService;
 
     @Mock
     private VersionValidation versionValidation;
@@ -155,6 +163,8 @@ public class ConflictServiceTest {
 
     @Before
     public void setUp() {
+
+        JsonUtil.jsonMapper = objectMapper;
 
         referrerVersion = createReferrerEntity(REFERRER_VERSION_ID, createReferrerStructure());
         referrerVersion.setStatus(RefBookVersionStatus.PUBLISHED);
@@ -270,8 +280,10 @@ public class ConflictServiceTest {
         Page<RefBookRowValue> referrerRowValues = createCalculateStructureConflictsReferrerRowValues();
         when(versionService.search(eq(referrerVersion.getId()), any(SearchDataCriteria.class))).thenReturn(referrerRowValues);
 
-        Page<RefBookRowValue> publishingRowValues = createCalculateStructureConflictsPublishedRowValues();
-        when(versionService.search(eq(publishingEntity.getId()), any(SearchDataCriteria.class))).thenReturn(publishingRowValues);
+        when(versionValidation.equalsPrimaries(anyList(), anyList())).thenReturn(true);
+
+        CollectionPage<RowValue> publishingRowValues = createCalculateStructureConflictsPublishedRowValues();
+        when(searchDataService.getPagedData(any(StorageDataCriteria.class))).thenReturn(publishingRowValues);
 
         List<RefBookConflictEntity> expectedList = new ArrayList<>(10 + 10);
         LongStream.range(1, 10).forEach(systemId -> {
@@ -412,18 +424,21 @@ public class ConflictServiceTest {
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
     }
 
-    private Page<RefBookRowValue> createCalculateStructureConflictsPublishedRowValues() {
+    private CollectionPage<RowValue> createCalculateStructureConflictsPublishedRowValues() {
 
-        List<RefBookRowValue> rowValues = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
+        List<RowValue> rowValues = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
 
         LongStream.range(1, 10).forEach(systemId -> {
             LongRowValue longRowValue = new LongRowValue(systemId, singletonList(
                     new StringFieldValue(PUBLISHED_ATTRIBUTE_CODE, getCalculateStructureConflictsPublishedPrimaryValue(systemId))
             ));
-            rowValues.add(new RefBookRowValue(longRowValue, referrerVersion.getId()));
+            rowValues.add(longRowValue);
         });
 
-        return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
+        CollectionPage<RowValue> pagedData = new CollectionPage<>();
+        pagedData.init(rowValues.size(), rowValues);
+
+        return pagedData;
     }
 
     private String getCalculateStructureConflictsReferrerPrimaryValue(Long systemId) {
@@ -713,6 +728,7 @@ public class ConflictServiceTest {
      * @param actualList   актуальный список
      */
     private void assertConflictEntities(List<RefBookConflictEntity> expectedList, List<RefBookConflictEntity> actualList) {
+
         assertNotNull(actualList);
         assertNotNull(expectedList);
         assertEquals(expectedList.size(), actualList.size());

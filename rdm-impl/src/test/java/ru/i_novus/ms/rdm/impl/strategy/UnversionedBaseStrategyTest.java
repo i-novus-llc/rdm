@@ -116,7 +116,14 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
 
     protected LongRowValue createReferrerRowValue(Long systemId, Integer referredId) {
 
-        Reference reference = new Reference(referredId.toString(), NAME_FIELD_VALUE_PREFIX + referredId);
+        Reference reference = null;
+        if (referredId != null) {
+            reference = new Reference(
+                    HASH_VALUE_PREFIX + referredId.toString(),
+                    referredId.toString(),
+                    NAME_FIELD_VALUE_PREFIX + referredId
+            );
+        }
 
         List<FieldValue> fieldValues = singletonList(
                 new ReferenceFieldValue(REFERRER_ATTRIBUTE_CODE, reference)
