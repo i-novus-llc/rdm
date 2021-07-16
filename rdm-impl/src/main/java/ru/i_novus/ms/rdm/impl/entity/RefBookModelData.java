@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * Данные для заполнения модели RefBook.
@@ -23,6 +24,14 @@ public class RefBookModelData {
     @ManyToOne
     @JoinColumn(name = "last_published_version_id")
     private RefBookVersionEntity lastPublishedVersion;
+
+    /** Удаляемость справочника. */
+    @Column(name = "removable")
+    private Boolean removable;
+
+    /** Наличие связанного справочника (т.е. ссылающегося на данный). */
+    @Column(name = "has_referrer_version")
+    private Boolean hasReferrer;
 
     /** Наличие конфликта данных. */
     @Column(name = "has_data_conflict")
@@ -72,6 +81,22 @@ public class RefBookModelData {
         this.lastPublishedVersion = lastPublishedVersion;
     }
 
+    public Boolean getRemovable() {
+        return removable;
+    }
+
+    public void setRemovable(Boolean removable) {
+        this.removable = removable;
+    }
+
+    public Boolean getHasReferrer() {
+        return hasReferrer;
+    }
+
+    public void setHasReferrer(Boolean hasReferrer) {
+        this.hasReferrer = hasReferrer;
+    }
+
     public Boolean getHasDataConflict() {
         return hasDataConflict;
     }
@@ -110,5 +135,30 @@ public class RefBookModelData {
 
     public void setLastHasConflict(Boolean lastHasConflict) {
         this.lastHasConflict = lastHasConflict;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RefBookModelData that = (RefBookModelData) o;
+        return Objects.equals(currentVersionId, that.currentVersionId) &&
+                Objects.equals(draftVersion, that.draftVersion) &&
+                Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
+                Objects.equals(removable, that.removable) &&
+                Objects.equals(hasReferrer, that.hasReferrer) &&
+                Objects.equals(hasDataConflict, that.hasDataConflict) &&
+                Objects.equals(hasUpdatedConflict, that.hasUpdatedConflict) &&
+                Objects.equals(hasAlteredConflict, that.hasAlteredConflict) &&
+                Objects.equals(hasStructureConflict, that.hasStructureConflict) &&
+                Objects.equals(lastHasConflict, that.lastHasConflict);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(currentVersionId, draftVersion, lastPublishedVersion, removable, hasReferrer,
+                hasDataConflict, hasUpdatedConflict, hasAlteredConflict, hasStructureConflict, lastHasConflict);
     }
 }

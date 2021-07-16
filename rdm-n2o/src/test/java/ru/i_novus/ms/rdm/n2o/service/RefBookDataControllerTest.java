@@ -361,7 +361,7 @@ public class RefBookDataControllerTest extends BaseTest {
                 new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + systemId),
                 new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + systemId),
                 new IntegerFieldValue(INTEGER_ATTRIBUTE_CODE, Math.toIntExact(systemId)),
-                new FloatFieldValue(FLOAT_ATTRIBUTE_CODE, systemId * 1.0 / 10),
+                new FloatFieldValue(FLOAT_ATTRIBUTE_CODE, BigDecimal.valueOf(systemId * 1.0 / 10)),
                 new BooleanFieldValue(BOOLEAN_ATTRIBUTE_CODE, systemId > 10),
                 new DateFieldValue(DATE_ATTRIBUTE_CODE, LocalDate.now(ZoneId.of("UTC"))),
                 new ReferenceFieldValue(REFERENCE_ATTRIBUTE_CODE,

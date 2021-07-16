@@ -166,6 +166,15 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
         }
     }
 
+    /**
+     * Получение записей по значениям ссылки.
+     *
+     * @param entity        новая версия исходного справочника
+     * @param primaries     первичные ключи исходного справочника
+     * @param referenceCode код атрибута-ссылки
+     * @param refRowValues  записи ссылочного справочника
+     * @return Записи исходного справочника
+     */
     private Collection<RowValue> findReferredRowValues(RefBookVersionEntity entity,
                                                        List<Structure.Attribute> primaries,
                                                        String referenceCode,
@@ -175,8 +184,11 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
         if (isEmpty(referenceValues))
             return emptyList();
 
+        // Нужны все поля для проверки изменения значения ссылки:
+        List<Structure.Attribute> fieldAttributes = entity.getStructure().getAttributes();
+
         StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
-                entity.getStorageCode(), entity.getStructure().getAttributes(), referenceValues);
+                entity.getStorageCode(), fieldAttributes, referenceValues); // Без учёта локализации
         return searchDataService.getPagedData(dataCriteria).getCollection();
     }
 }

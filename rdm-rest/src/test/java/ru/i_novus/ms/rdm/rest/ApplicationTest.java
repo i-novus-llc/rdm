@@ -10,6 +10,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,7 +96,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationTest.class);
 
     private static final int REF_BOOK_ID = 500;
     private static final int REMOVABLE_REF_BOOK_ID = 501;
@@ -853,9 +854,6 @@ public class ApplicationTest {
         systemId++; // for row3
         row3.setSystemId(systemId);
 
-        row1.getData().replace("reference", new Reference(null, null));
-        row2.getData().replace("reference", new Reference(null, null));
-        row3.getData().replace("reference", new Reference(null, null));
         List<RowValue> expectedRowValues = asList(
                 rowValue(row1, structure), rowValue(row2, structure), rowValue(row3, structure)
         );
@@ -2384,7 +2382,7 @@ public class ApplicationTest {
             compareService.compareData(new CompareDataCriteria(oldVersionId, newVersionId));
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.match", re.getMessage());
+            assertEquals("compare.versions.primaries.not.match", re.getMessage());
         }
     }
 
@@ -2579,7 +2577,7 @@ public class ApplicationTest {
             calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
-            assertEquals("compare.primaries.not.match", re.getMessage());
+            assertEquals("compare.versions.primaries.not.match", re.getMessage());
         }
     }
 
@@ -2753,18 +2751,51 @@ public class ApplicationTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private boolean equalsFieldValues(List<Field> fields, List<FieldValue> values1, List<FieldValue> values2) {
-        if (values1 == values2) return true;
-        if (values1 == null || values2 == null || values1.size() != values2.size()) return false;
+
+        if (values1 == values2)
+            return true;
+
+        if (values1 == null || values2 == null || values1.size() != values2.size())
+            return false;
 
         for (FieldValue val1 : values1) {
             boolean isPresent = values2.stream().anyMatch(val2 -> {
+
                 if (val2 == val1) return true;
+
                 if (val2.getField().equals(val1.getField())) {
-                    Field field = fields.stream().filter(f -> f.getName().equals(val2.getField())).findFirst().orElse(null);
+
+                    Field field = fields.stream()
+                            .filter(f -> Objects.equals(f.getName(), val2.getField()))
+                            .findFirst().orElse(null);
                     assertNotNull(field);
-                    //noinspection unchecked
-                    return field != null && field.valueOf(val2.getValue()).equals(val1);
+
+                    if (val1 instanceof ReferenceFieldValue) {
+                        Reference ref1 = ((ReferenceFieldValue) val1).getValue();
+                        if (ref1 != null && ref1.getValue() == null) {
+                            ref1 = null;
+                        }
+
+                        Reference ref2 = ((ReferenceFieldValue) val2).getValue();
+                        if (ref2 != null && ref2.getValue() == null) {
+                            ref2 = null;
+                        }
+
+                        return (ref1 == null && ref2 == null) ||
+                                (ref1 != null && ref2 != null
+                                        && Objects.equals(ref1.getValue(), ref2.getValue())
+                                        && Objects.equals(ref1.getDisplayValue(), ref2.getDisplayValue())
+                                );
+                    } else {
+                        // Нельзя использовать Objects.equals(val1, val2),
+                        // т.к. типы значений могут не совпадать.
+                        // Например, FloatFieldValue должно быть BigDecimal, а REST возвращает Double.
+
+                        FieldValue realVal2 = field.valueOf(val2.getValue());
+                        return Objects.equals(val1, realVal2);
+                    }
                 }
                 return false;
             });
@@ -2824,12 +2855,15 @@ public class ApplicationTest {
 
     @SuppressWarnings("unchecked")
     private void assertRows(List<Field> fields, List<RowValue> expectedRows, List<? extends RowValue> actualRows) {
+
         assertEquals("result size not equals", expectedRows.size(), actualRows.size());
+
         String expectedRowsStr = expectedRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
         String actualRowsStr = actualRows.stream().map(RowValue::toString).collect(Collectors.joining(", "));
+
         assertTrue(
-                "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr
-                , actualRows.stream().anyMatch(actualRow ->
+                "not equals actualRows: \n" + actualRowsStr + " \n and expected rows: \n" + expectedRowsStr,
+                actualRows.stream().anyMatch(actualRow ->
                         expectedRows.stream().anyMatch(expectedRow ->
                                 equalsFieldValues(fields, expectedRow.getFieldValues(), actualRow.getFieldValues())
                         )

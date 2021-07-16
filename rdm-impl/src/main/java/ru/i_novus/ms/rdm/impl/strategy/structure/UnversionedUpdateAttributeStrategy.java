@@ -20,9 +20,17 @@ public class UnversionedUpdateAttributeStrategy implements UpdateAttributeStrate
     @Override
     public Structure.Attribute update(RefBookVersionEntity entity, UpdateAttributeRequest request) {
 
+        boolean hasReferrers = unversionedChangeStructureStrategy.hasReferrerVersions(entity);
+        Structure oldStructure = hasReferrers ? new Structure(entity.getStructure()) : null;
+
         Structure.Attribute attribute = updateAttributeStrategy.update(entity, request);
 
-        unversionedChangeStructureStrategy.processReferrers(entity);
+        if (hasReferrers) {
+            unversionedChangeStructureStrategy.validatePrimariesEquality(
+                    entity.getRefBook().getCode(), oldStructure, entity.getStructure()
+            );
+            unversionedChangeStructureStrategy.processReferrers(entity);
+        }
 
         return attribute;
     }

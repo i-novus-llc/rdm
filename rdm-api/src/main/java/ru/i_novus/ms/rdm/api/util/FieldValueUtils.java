@@ -182,20 +182,6 @@ public class FieldValueUtils {
     }
 
     /**
-     * Проверка на наличие записи со значением поля.
-     *
-     * @param field     код поля
-     * @param value     значение поля
-     * @param rowValues список записей
-     * @return Наличие строки
-     */
-    public static boolean isFieldValueRow(String field, Object value, List<RefBookRowValue> rowValues) {
-
-        return rowValues.stream()
-                .anyMatch(rowValue -> Objects.equals(rowValue.getFieldValue(field).getValue(), value));
-    }
-
-    /**
      * Получение набора фильтров по атрибуту по ссылочным значениям.
      *
      * @param filterValues ссылочные значения

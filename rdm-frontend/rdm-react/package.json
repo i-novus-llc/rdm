@@ -17,8 +17,8 @@
     "release": "lerna publish from-package --yes --registry https://npm.i-novus.ru"
   },
   "dependencies": {
-    "n2o-auth": "7.16.5",
-    "n2o-framework": "7.16.5"
+    "n2o-auth": "7.16.7",
+    "n2o-framework": "7.16.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

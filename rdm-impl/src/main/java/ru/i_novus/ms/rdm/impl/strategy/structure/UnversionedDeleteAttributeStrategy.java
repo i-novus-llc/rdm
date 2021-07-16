@@ -20,9 +20,17 @@ public class UnversionedDeleteAttributeStrategy implements DeleteAttributeStrate
     @Override
     public Structure.Attribute delete(RefBookVersionEntity entity, DeleteAttributeRequest request) {
 
+        boolean hasReferrers = unversionedChangeStructureStrategy.hasReferrerVersions(entity);
+        Structure oldStructure = hasReferrers ? new Structure(entity.getStructure()) : null;
+
         Structure.Attribute attribute = deleteAttributeStrategy.delete(entity, request);
 
-        unversionedChangeStructureStrategy.processReferrers(entity);
+        if (hasReferrers) {
+            unversionedChangeStructureStrategy.validatePrimariesEquality(
+                    entity.getRefBook().getCode(), oldStructure, entity.getStructure()
+            );
+            unversionedChangeStructureStrategy.processReferrers(entity);
+        }
 
         return attribute;
     }
