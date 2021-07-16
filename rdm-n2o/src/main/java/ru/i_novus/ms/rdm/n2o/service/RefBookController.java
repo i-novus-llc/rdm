@@ -87,7 +87,7 @@ public class RefBookController {
         if (criteria.getExcludeDraft())
             refBook.setDraftVersionId(null);
 
-        return refBookAdapter.toUiRefBook(refBook);
+        return toUiRefBook(refBook);
     }
 
     /**
@@ -103,7 +103,7 @@ public class RefBookController {
         if (CollectionUtils.isEmpty(refBooks.getContent()))
             throw new UserException(REFBOOK_NOT_FOUND_EXCEPTION_CODE);
 
-        return refBookAdapter.toUiRefBook(refBooks.getContent().get(0));
+        return toUiRefBook(refBooks.getContent().get(0));
     }
 
     /**
@@ -127,8 +127,13 @@ public class RefBookController {
     private Page<UiRefBook> search(RefBookCriteria criteria) {
 
         Page<RefBook> refBooks = refBookService.search(criteria);
-        List<UiRefBook> list = refBooks.getContent().stream().map(refBookAdapter::toUiRefBook).collect(toList());
+        List<UiRefBook> list = refBooks.getContent().stream().map(this::toUiRefBook).collect(toList());
         return new RestPage<>(list, criteria, refBooks.getTotalElements());
+    }
+
+    private UiRefBook toUiRefBook(RefBook refBook) {
+
+        return refBook != null ? refBookAdapter.toUiRefBook(new RefBook(refBook)) : null;
     }
 
     /**
@@ -141,7 +146,7 @@ public class RefBookController {
 
         if (!criteria.getExcludeDraft()) {
             boolean excludeDraft = rdmPermission.excludeDraft();
-            if (excludeDraft) criteria.setExcludeDraft(excludeDraft);
+            if (excludeDraft) criteria.setExcludeDraft(true);
         }
 
         return criteria;
