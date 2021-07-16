@@ -53,6 +53,7 @@ public class VersionController {
     }
 
     private UiRefBook toUiRefBook(RefBookVersion version) {
-        return refBookAdapter.toUiRefBook(new RefBook(version));
+
+        return version != null ? refBookAdapter.toUiRefBook(new RefBook(version)) : null;
     }
 }
