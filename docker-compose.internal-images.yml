@@ -7,6 +7,9 @@ services:
   frontend:
     image: ${DOCKER_REGISTRY}/rdm/frontend:${TAG}
 
+  sync:
+    image: ${DOCKER_REGISTRY}/rdm/sync:${TAG}
+
   esnsi:
     image: ${DOCKER_REGISTRY}/rdm/esnsi:${TAG}
 
