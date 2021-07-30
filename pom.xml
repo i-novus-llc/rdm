@@ -245,6 +245,7 @@
             </activation>
 
             <modules>
+                <module>rdm-sync-service</module>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
                 <module>rdm-n2o-api</module>
@@ -262,6 +263,7 @@
             </activation>
 
             <modules>
+                <module>rdm-sync-service</module>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
                 <module>rdm-n2o-api</module>
