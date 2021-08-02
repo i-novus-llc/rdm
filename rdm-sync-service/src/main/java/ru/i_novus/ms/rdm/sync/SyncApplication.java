@@ -6,10 +6,10 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import(AppConfig.class)
-public class Application extends SpringBootServletInitializer {
+@Import(SyncAppConfig.class)
+public class SyncApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        SpringApplication.run(SyncApplication.class, args);
     }
 }
