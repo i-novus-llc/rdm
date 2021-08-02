@@ -14,8 +14,10 @@
         <backend.default.path>http://localhost:8081/rdm/api</backend.default.path>
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
+
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
+        <sonar.coverage.exclusions>**/*Application.java, **/SecurityConfig.java, **/SecurityContextUtils.java</sonar.coverage.exclusions>
 
         <rdm.l10n.support>false</rdm.l10n.support>
         <rdm.l10n.messages />

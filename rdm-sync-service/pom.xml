@@ -13,7 +13,7 @@
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/AppConfig.java, **/SyncConfiguration.java, **/SecurityConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/Application.java, **/AppConfig.java, **/SyncConfiguration.java, **/SecurityConfig.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
