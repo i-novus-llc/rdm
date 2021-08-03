@@ -11,6 +11,9 @@
     </parent>
 
     <properties>
+        <sync.default.port>8082</sync.default.port>
+        <rdm.backend.path>http://localhost:8081/rdm/api</rdm.backend.path>
+
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>**/SyncApplication.java, **/SyncAppConfig.java, **/SyncConfiguration.java, **/SecurityConfig.java</sonar.coverage.exclusions>
@@ -22,6 +25,36 @@
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-sync-spring-boot-starter</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-jaxrs-commons</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-ms</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-activemq</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
 
         <!-- test -->
@@ -47,6 +80,10 @@
     <profiles>
         <profile>
             <id>production</id>
+            <properties>
+                <sync.default.port>8080</sync.default.port>
+                <rdm.backend.path>http://backend:8080/rdm/api</rdm.backend.path>
+            </properties>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
