@@ -34,15 +34,22 @@ class QuartzConfigurer {
 
     @Transactional
     public void setupJobs() {
-        if (!clusterLockService.tryLock())
-            return;
+
+        if (scheduler == null) return;
+
+        if (!clusterLockService.tryLock()) return;
+
         String group = "RDM_SYNC_INTERNAL";
         try {
-            if (!scheduler.getMetaData().isJobStoreClustered())
+            if (!scheduler.getMetaData().isJobStoreClustered()) {
                 logger.warn("Scheduler configured in non clustered mode. There may be concurrency issues.");
+            }
+
             JobKey exportToRdmJobKey = JobKey.jobKey(group, RdmSyncExportDirtyRecordsToRdmJob.NAME);
             if (changeDataMode != null) {
-                TriggerKey exportToRdmTriggerKey = TriggerKey.triggerKey(exportToRdmJobKey.getName(), exportToRdmJobKey.getGroup());
+                TriggerKey exportToRdmTriggerKey = TriggerKey.triggerKey(
+                        exportToRdmJobKey.getName(), exportToRdmJobKey.getGroup()
+                );
                 Trigger exportToRdmExistingTrigger = scheduler.getTrigger(exportToRdmTriggerKey);
                 JobDetail exportToRdmJob = newJob(RdmSyncExportDirtyRecordsToRdmJob.class).
                         withIdentity(exportToRdmJobKey).
@@ -52,8 +59,10 @@ class QuartzConfigurer {
                         forJob(exportToRdmJob).
                         withSchedule(CronScheduleBuilder.cronSchedule(exportToRdmJobScanIntervalCron)).
                         build();
+
                 if (exportToRdmExistingTrigger == null) {
                     scheduler.scheduleJob(exportToRdmJob, exportToRdmTrigger);
+
                 } else {
                     if (exportToRdmExistingTrigger instanceof CronTrigger) {
                         CronTrigger ct = (CronTrigger) exportToRdmExistingTrigger;
