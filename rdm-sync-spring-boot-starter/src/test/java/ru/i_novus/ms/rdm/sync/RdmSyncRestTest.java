@@ -18,6 +18,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.sync.model.DataTypeEnum;
 import ru.i_novus.ms.rdm.sync.model.FieldMapping;
@@ -52,7 +53,7 @@ public class RdmSyncRestTest {
     @Mock
     private RefBookService refBookService;
     @Mock
-    private VersionService versionService;
+    private VersionRestService versionService;
     @Mock
     private CompareService compareService;
     @Mock

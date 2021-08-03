@@ -17,9 +17,9 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.ms.rdm.sync.criteria.LogCriteria;
 import ru.i_novus.ms.rdm.sync.model.*;
@@ -68,7 +68,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
     @Autowired
     private RefBookService refBookService;
     @Autowired
-    private VersionService versionService;
+    private VersionRestService versionService;
     @Autowired
     private CompareService compareService;
     @Autowired

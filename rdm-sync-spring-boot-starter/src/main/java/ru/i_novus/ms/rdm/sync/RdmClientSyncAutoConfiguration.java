@@ -7,10 +7,7 @@ import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import net.n2oapp.platform.jaxrs.autoconfigure.MissingGenericBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
@@ -21,9 +18,9 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.provider.*;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.sync.rest.LocalRdmDataService;
 import ru.i_novus.ms.rdm.sync.rest.RdmSyncRest;
@@ -44,7 +41,7 @@ import java.time.OffsetDateTime;
 @ConditionalOnClass(RdmSyncRestImpl.class)
 @EnableConfigurationProperties(RdmClientSyncProperties.class)
 @EnableJaxRsProxyClient(
-        classes = {RefBookService.class, VersionService.class, CompareService.class},
+        classes = {RefBookService.class, VersionRestService.class, CompareService.class},
         address = "${rdm.client.sync.url}"
 )
 @AutoConfigureAfter(LiquibaseAutoConfiguration.class)
