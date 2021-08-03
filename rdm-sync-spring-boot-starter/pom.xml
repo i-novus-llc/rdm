@@ -15,7 +15,7 @@
         <jaxb.api.version>2.3.1</jaxb.api.version>
 
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/RdmClientSyncConfig, **/RdmClientSyncProperties, **/RdmClientSyncAutoConfiguration, **/QuartzConfigurer</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/*SyncConfig.java, **/*SyncProperties.java, **/*SyncAutoConfiguration.java, **/*QuartzConfigurer.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
