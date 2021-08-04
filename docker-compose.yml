@@ -116,3 +116,17 @@ services:
 
 volumes:
   rdm-db-data:
+
+  activemq-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/share/n2oclouddemo/amq/data
+
+  activemq-log:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/share/n2oclouddemo/amq/logs
