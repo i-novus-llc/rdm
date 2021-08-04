@@ -16,7 +16,7 @@ import java.util.List;
  * @since 20.02.2019
  */
 
-@Path("rdm")
+@Path("/rdm")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "Синхронизация данных справочников НСИ")

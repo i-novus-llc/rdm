@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.Map;
 
-@Path("rdm/data")
+@Path("/rdm/data")
 @Produces(MediaType.APPLICATION_JSON)
 public interface LocalRdmDataService {
 
