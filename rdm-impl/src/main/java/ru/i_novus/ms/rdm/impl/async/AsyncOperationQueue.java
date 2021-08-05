@@ -24,9 +24,6 @@ public class AsyncOperationQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationQueue.class);
 
-    @Value("${rdm.asyncOperation.queue}")
-    private String queueId;
-
     @Autowired
     @Qualifier("queueJmsTemplate")
     private JmsTemplate jmsTemplate;
@@ -36,6 +33,9 @@ public class AsyncOperationQueue {
 
     @Autowired
     private UserAccessor userAccessor;
+
+    @Value("${rdm.asyncOperation.queue}")
+    private String queueId;
 
     @Transactional
     public UUID add(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
@@ -49,7 +49,7 @@ public class AsyncOperationQueue {
 
         final AsyncOperationMessage message = save(operationType, code, args);
 
-        logger.info("Sending message to internal async operation queue. Message: {}", message);
+        logger.info("Sending message to internal async operation queue '{}'. Message:\n{}", queueId, message);
         try {
             jmsTemplate.convertAndSend(queueId, message);
 
