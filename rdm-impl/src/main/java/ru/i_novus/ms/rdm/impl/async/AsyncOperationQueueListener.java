@@ -47,7 +47,7 @@ class AsyncOperationQueueListener {
     public AsyncOperationQueueListener(AsyncOperationLogEntryRepository repository,
                                        AsyncOperationHandler handler,
                                        Messages messages,
-                                       @Value("${rdm.asyncOperation.queue}")
+                                       @Value("${rdm.async.operation.queue}")
                                        String queueId) {
         this.repository = repository;
         this.handler = handler;
@@ -56,7 +56,7 @@ class AsyncOperationQueueListener {
         this.queueId = queueId;
     }
 
-    @JmsListener(destination = "${rdm.asyncOperation.queue}", containerFactory = "internalAsyncOperationContainerFactory")
+    @JmsListener(destination = "${rdm.async.operation.queue}", containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
         if (logger.isInfoEnabled()) {

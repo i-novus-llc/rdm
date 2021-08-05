@@ -34,7 +34,7 @@ public class AsyncOperationQueue {
     @Autowired
     private UserAccessor userAccessor;
 
-    @Value("${rdm.asyncOperation.queue}")
+    @Value("${rdm.async.operation.queue}")
     private String queueId;
 
     @Transactional
