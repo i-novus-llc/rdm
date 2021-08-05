@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,7 +30,8 @@ class AsyncOperationQueueListener {
 
     private static final String OPERATION_LOG_FORMAT = "id: %s, type: %s";
 
-    private static final String LOG_OPERATION_FROM_QUEUE_IS_RECEIVED = "Message for operation ({}) from internal async operation queue is received";
+    private static final String LOG_OPERATION_QUEUE_DESCRIPTION = "Internal async operation queue is '{}'";
+    private static final String LOG_OPERATION_FROM_QUEUE_IS_RECEIVED = "Message for operation ({}) from queue is received";
     private static final String LOG_OPERATION_HANDLING_ERROR = "Error while handling deferred operation (%s)";
     private static final String LOG_OPERATION_COMPLETED_WITH_STATUS = "Async operation ({}) is completed with status {}";
     private static final String LOG_OPERATION_FORCING_SAVE = "Async operation ({}) is not yet committed, forcing save.";
@@ -40,18 +42,25 @@ class AsyncOperationQueueListener {
 
     private final Messages messages;
 
+    private final String queueId;
+
     public AsyncOperationQueueListener(AsyncOperationLogEntryRepository repository,
                                        AsyncOperationHandler handler,
-                                       Messages messages) {
+                                       Messages messages,
+                                       @Value("${rdm.async.operation.queue}")
+                                       String queueId) {
         this.repository = repository;
         this.handler = handler;
         this.messages = messages;
+
+        this.queueId = queueId;
     }
 
-    @JmsListener(destination = "${rdm.asyncOperation.queue}", containerFactory = "internalAsyncOperationContainerFactory")
+    @JmsListener(destination = "${rdm.async.operation.queue}", containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
         if (logger.isInfoEnabled()) {
+            logger.info(LOG_OPERATION_QUEUE_DESCRIPTION, queueId);
             logger.info(LOG_OPERATION_FROM_QUEUE_IS_RECEIVED, toOperationLogText(message));
         }
 

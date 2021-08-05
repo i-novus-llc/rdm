@@ -32,6 +32,7 @@ services:
       JAVA_OPTS: -Xmx200m
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_ACTIVEMQ_BROKERURL: tcp://activemq:61616
     depends_on:
       - db
     restart: on-failure
@@ -75,6 +76,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  activemq:
+    volumes:
+      - activemq-data:/data/activemq
+      - activemq-log:/var/log/activemq
 
   sync:
     environment:
@@ -138,3 +144,17 @@ services:
 
 volumes:
   rdm-db-data:
+
+  activemq-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/share/n2oclouddemo/amq/data
+
+  activemq-log:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/share/n2oclouddemo/amq/logs
