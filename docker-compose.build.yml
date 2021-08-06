@@ -19,12 +19,6 @@ services:
       args:
         JAR_FILE: rdm-esnsi/target/rdm-esnsi.jar
 
-  sync:
-    build:
-      context: .
-      args:
-        JAR_FILE: rdm-sync-service/target/rdm-sync-service.jar
-
   db:
     build:
       context: db
