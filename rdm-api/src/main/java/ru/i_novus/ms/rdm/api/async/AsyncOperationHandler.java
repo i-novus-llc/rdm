@@ -6,9 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -20,6 +18,7 @@ public class AsyncOperationHandler {
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationHandler.class);
 
     private static final String LOG_OPERATION_HANDLING = "Handle operation: type: {}, code: {}";
+    private static final String LOG_OPERATION_HANDLING_ARGUMENTS = "Operation arguments:\n{}";
     private static final String LOG_OPERATION_TYPE_NOT_RESOLVED = "Operation type '%s' is not implemented";
 
     private final Collection<AsyncOperationResolver> resolvers;
@@ -32,6 +31,7 @@ public class AsyncOperationHandler {
     public Serializable handle(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
 
         logger.info(LOG_OPERATION_HANDLING, operationType, code);
+        if (logger.isInfoEnabled()) logger.info(LOG_OPERATION_HANDLING_ARGUMENTS, args != null ? Arrays.asList(args) : "");
 
         List<AsyncOperationResolver> satisfiedResolvers = resolvers.stream()
                 .filter(resolver -> resolver.isSatisfied(operationType))

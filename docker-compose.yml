@@ -32,6 +32,7 @@ services:
       JAVA_OPTS: -Xmx200m
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_ACTIVEMQ_BROKERURL: tcp://activemq:61616
     depends_on:
       - db
     restart: on-failure
@@ -76,6 +77,18 @@ services:
       retries: 3
       start_period: 40s
 
+  activemq:
+    image: "rmohr/activemq:5.15.9"
+    ports:
+      - 61616
+      - 8161
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+      restart_policy:
+        max_attempts: 3
+
   esnsi:
     environment:
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
@@ -110,3 +123,5 @@ services:
 
 volumes:
   rdm-db-data:
+
+

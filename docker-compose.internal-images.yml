@@ -12,3 +12,4 @@ services:
 
   db:
     image: ${DOCKER_REGISTRY}/rdm/db:${TAG}
+

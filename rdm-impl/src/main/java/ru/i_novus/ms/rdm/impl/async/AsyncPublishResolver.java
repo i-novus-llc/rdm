@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Component
 public class AsyncPublishResolver implements AsyncOperationResolver {
 
-    private static final String PUBLSH_REQUEST_IS_UNKNOWN = "Request for publication of '%s' is unknown (draft = %s, request: %s)";
+    private static final String PUBLISH_REQUEST_IS_UNKNOWN = "Request for publication of '%s' is unknown (draft = %s, request: %s)";
 
     private final PublishService publishService;
 
@@ -39,6 +39,6 @@ public class AsyncPublishResolver implements AsyncOperationResolver {
             return null;
         }
 
-        throw new IllegalArgumentException(String.format(PUBLSH_REQUEST_IS_UNKNOWN, code, draftId, argRequest));
+        throw new IllegalArgumentException(String.format(PUBLISH_REQUEST_IS_UNKNOWN, code, draftId, argRequest));
     }
 }
