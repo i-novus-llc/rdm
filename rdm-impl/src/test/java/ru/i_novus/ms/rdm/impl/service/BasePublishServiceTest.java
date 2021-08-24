@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
@@ -24,7 +23,6 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
@@ -57,8 +55,6 @@ public class BasePublishServiceTest {
     private static final String TEST_DRAFT_CODE_NEW = "test_draft_code_new";
     private static final String TEST_REF_BOOK = "test_ref_book";
     private static final int REFBOOK_ID = 2;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private BasePublishService basePublishService;
@@ -115,8 +111,6 @@ public class BasePublishServiceTest {
 
     @Before
     public void setUp() {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         reset(draftDataService, fileGeneratorFactory);
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);

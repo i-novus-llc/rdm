@@ -1,8 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.l10n.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -11,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
 
@@ -30,25 +27,16 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
-    private static final String TEST_REFBOOK_CODE = "L10N_TEST";
 
     private static final String TEST_LOCALE_CODE = "test";
 
     private static final String TEST_FIELD_CODE = "id";
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private L10nLocalizeVersionController controller;
 
     @Mock
     private L10nService l10nService;
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testLocalizeDataRecord() {
@@ -95,6 +83,7 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
         testLocalizeDataRecordFailed(row);
     }
 
+    @SuppressWarnings("java:S5778")
     private void testLocalizeDataRecordFailed(Row row) {
         try {
             controller.localizeDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, row);

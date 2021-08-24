@@ -1,9 +1,7 @@
 package ru.i_novus.ms.rdm.rest.loader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -16,7 +14,6 @@ import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import java.util.List;
@@ -26,10 +23,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes","java:S5778"})
 public class RefBookDataServerLoaderTest extends BaseTest {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String LOADED_SUBJECT = "test";
     private static final String LOADED_TARGET = "refBookData";
@@ -44,11 +39,6 @@ public class RefBookDataServerLoaderTest extends BaseTest {
 
     @Mock
     private PublishService publishService;
-
-    @Before
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testGetTarget() {

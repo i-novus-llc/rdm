@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
@@ -13,7 +12,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -24,7 +22,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.*;
@@ -54,11 +51,9 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.model.version.UpdateValue.of;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,8 +68,6 @@ public class DraftServiceTest {
     private static final String DRAFT_CODE = "draft_code";
     private static final String NEW_DRAFT_CODE = "new_draft_code";
     private static final int PUBLISHED_VERSION_ID = 3;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private DraftServiceImpl draftService;
@@ -165,8 +158,6 @@ public class DraftServiceTest {
 
     @Before
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         reset(draftDataService);
         when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);
@@ -307,293 +298,6 @@ public class DraftServiceTest {
         draftService.remove(draftEntity.getId());
 
         verify(versionRepository).deleteById(eq(draftEntity.getId()));
-    }
-
-    //@Test
-    public void testCreateAttribute() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        mockChangeStructure(draftEntity);
-        final Integer draftId = draftEntity.getId();
-
-        // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new DefaultRefBookEntity();
-        referredBook1.setCode("REF_801");
-        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
-        referredEntity1.setRefBook(referredBook1);
-        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
-
-        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
-        draftService.createAttribute(draftId, createIdAttribute);
-        Structure structure = versionService.getStructure(draftId);
-        assertTrue(structure.hasPrimary());
-        assertEquals(createIdAttribute.getAttribute(), structure.getPrimaries().get(0));
-        assertEquals(createIdAttribute.getReference(), structure.getReference(createIdAttribute.getAttribute().getCode()));
-
-        // -- Добавление атрибута с существующим кодом. Должна быть ошибка
-        failCreateAttribute(draftId, createIdAttribute, "attribute.with.code.already.exists", UserException.class);
-
-        // -- Корректное добавление
-        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
-        draftService.createAttribute(draftId, createRefAttribute);
-
-        structure = versionService.getStructure(draftId);
-        assertEquals(2, structure.getAttributes().size());
-        assertEquals(nameAttribute, structure.getAttribute(nameAttribute.getCode()));
-        assertEquals(nameReference, structure.getReference(nameAttribute.getCode()));
-
-        // Добавление нового первичного атрибута. Первичность предыдущего атрибута должна быть удалена
-        CreateAttributeRequest createPrimaryAttribute = new CreateAttributeRequest(null, copy(pkAttribute), copy(nullReference));
-        draftService.createAttribute(draftId, createPrimaryAttribute);
-
-        structure = versionService.getStructure(draftId);
-        List<Structure.Attribute> primaries = structure.getPrimaries();
-        assertEquals(1, primaries.size());
-        assertTrue(primaries.contains(pkAttribute));
-        assertFalse(primaries.contains(updateIdAttribute));
-    }
-
-    //@Test
-    public void testCreateAttributeFail() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        mockChangeStructure(draftEntity);
-        final Integer draftId = draftEntity.getId();
-
-        // Добавление ссылочного атрибута
-
-        // -- Добавление атрибута null. Должна быть ошибка
-        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, null, null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление ссылочного атрибута без ссылки. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление обычного атрибута со ссылкой. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, copy(idAttribute), copy(nameReference));
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление ссылочного атрибута с неверной привязкой к ссылке. Должна быть ошибка
-        createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(badNameReference));
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.reference.value", IllegalArgumentException.class);
-
-        // -- Добавление атрибута с неверным кодом. Должна быть ошибка
-        Structure.Attribute badCodeAttribute = copy(idAttribute);
-        badCodeAttribute.setCode("Код");
-        createRefAttribute = new CreateAttributeRequest(null, badCodeAttribute, null);
-        failCreateAttribute(draftId, createRefAttribute, "attribute.code.is.invalid", UserException.class);
-
-        // -- Добавление атрибута с кодом null. Должна быть ошибка
-        Structure.Attribute nullCodeAttribute = copy(nameAttribute);
-        nullCodeAttribute.setCode(null);
-        createRefAttribute = new CreateAttributeRequest(null, nullCodeAttribute, copy(nameReference));
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление атрибута с типом null. Должна быть ошибка
-        Structure.Attribute nullTypeAttribute = copy(nameAttribute);
-        nullTypeAttribute.setType(null);
-        createRefAttribute = new CreateAttributeRequest(null, nullTypeAttribute, copy(nameReference));
-        failCreateAttribute(draftId, createRefAttribute, "attribute.create.illegal.value", IllegalArgumentException.class);
-
-        // -- Добавление ссылочного атрибута - первичного ключа. Должна быть ошибка
-        Structure.Attribute primaryAttribute = copy(nameAttribute);
-        primaryAttribute.setIsPrimary(Boolean.TRUE);
-        createRefAttribute = new CreateAttributeRequest(null, primaryAttribute, copy(nameReference));
-        failCreateAttribute(draftId, createRefAttribute, "reference.attribute.cannot.be.primary.key", UserException.class);
-
-        // -- Добавление ссылочного атрибута в структуру без первичного ключа. Должна быть ошибка
-        Structure.Attribute nonPrimaryAttribute = copy(nameAttribute);
-        nonPrimaryAttribute.setIsPrimary(Boolean.FALSE);
-        createRefAttribute = new CreateAttributeRequest(null, nonPrimaryAttribute, nameReference);
-        failCreateAttribute(draftId, createRefAttribute, "reference.book.must.have.primary.key", UserException.class);
-    }
-
-    //@Test
-    public void testUpdateAttribute() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        mockChangeStructure(draftEntity);
-        final Integer draftId = draftEntity.getId();
-
-        // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new DefaultRefBookEntity();
-        referredBook1.setCode("REF_801");
-        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
-        referredEntity1.setRefBook(referredBook1);
-        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
-
-        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
-        draftService.createAttribute(draftId, createIdAttribute);
-
-        // -- Корректное добавление
-        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
-        draftService.createAttribute(draftId, createRefAttribute);
-
-        Structure structure = versionService.getStructure(draftId);
-
-        // Изменение ссылочного атрибута
-        RefBookEntity referredBook2 = new DefaultRefBookEntity();
-        referredBook2.setCode("REF_802");
-        RefBookVersionEntity referredEntity2 = new RefBookVersionEntity();
-        referredEntity2.setRefBook(referredBook2);
-        referredEntity2.setStructure(new Structure(singletonList(codeAttribute), null));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity2.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity2);
-
-        // -- Корректное изменение
-        when(draftDataService.isUnique(eq(DRAFT_CODE), anyList())).thenReturn(true);
-        UpdateAttributeRequest updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(nameReference));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
-        assertEquals(nameReference, structure.getReference(updateRefAttribute.getCode()));
-
-        // -- Изменение значений полей Reference
-        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
-
-        // -- Передача null. Значение не должно измениться
-        //UpdateAttributeRequest updateNullRefCode = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
-        String updateRefCode = updateRefAttribute.getCode();
-        updateRefAttribute.setReferenceCode(null);
-        // -- Изменение поля на null. Значение должно обновиться
-        updateRefAttribute.setDescription(null);
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertEquals(updateNameReference.getReferenceCode(), structure.getReference(updateRefAttribute.getCode()).getReferenceCode());
-        assertNull(structure.getAttribute(updateRefAttribute.getCode()).getDescription());
-
-        // -- Изменение кода атрибута на null. Должна быть ошибка
-        updateRefAttribute.setCode(null);
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.value", IllegalArgumentException.class);
-        updateRefAttribute.setCode(updateRefCode);
-
-        // -- Изменение типа атрибута на null. Должна быть ошибка
-        updateRefAttribute.setType(null);
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.value", IllegalArgumentException.class);
-        updateRefAttribute.setType(updateNameAttribute.getType());
-
-        // -- Изменение кода ссылки на null. Должна быть ошибка (случай Reference -> Reference)
-        updateRefAttribute.setReferenceCode(of(null));
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.reference.value", IllegalArgumentException.class);
-
-        // Изменение типа атрибута
-        // -- Изменение со ссылочного на строковый. Ссылка должна удалиться из структуры
-        updateNameAttribute.setType(FieldType.STRING);
-        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(nullReference));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertNull(structure.getReference(updateRefAttribute.getCode()));
-
-        // -- Изменение со строкового на ссылочный, не заполнены поля для ссылки. Должна быть ошибка
-        updateRefAttribute.setType(FieldType.REFERENCE);
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "attribute.update.illegal.reference.value", IllegalArgumentException.class);
-
-        // -- Изменение со ссылочного на строковый, все поля заполнены
-        updateNameAttribute.setType(FieldType.REFERENCE);
-        updateRefAttribute = new UpdateAttributeRequest(null, copy(updateNameAttribute), copy(updateNameReference));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertEquals(updateNameAttribute, structure.getAttribute(updateRefAttribute.getCode()));
-        assertEquals(updateNameReference, structure.getReference(updateRefAttribute.getCode()));
-
-        // -- Простановка первичности атрибута. Должна быть ошибка
-        updateRefAttribute.setIsPrimary(of(Boolean.TRUE));
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "reference.attribute.cannot.be.primary.key", UserException.class);
-        updateRefAttribute.setIsPrimary(of(updateNameAttribute.getIsPrimary()));
-
-        // -- Простановка выражения с несуществующим полем. Должна быть ошибка
-        updateRefAttribute.setDisplayExpression(of(toPlaceholder("unknown")));
-        failUpdateAttribute(draftId, updateRefAttribute, structure, updateRefCode, "reference.referred.attribute.not.found", NotFoundException.class);
-        // -- Простановка выражения без полей
-        updateRefAttribute.setDisplayExpression(of("text-only"));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        assertNotNull(structure.getReference(updateRefAttribute.getCode()));
-        assertEquals("text-only", structure.getReference(updateRefAttribute.getCode()).getDisplayExpression());
-        updateRefAttribute.setDisplayExpression(of(updateNameReference.getDisplayExpression()));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-
-        // Изменение первичного атрибута
-        UpdateAttributeRequest updatePrimaryAttribute = new UpdateAttributeRequest(null, copy(updateIdAttribute), null);
-        draftService.updateAttribute(draftId, updatePrimaryAttribute);
-        assertEquals(updateIdAttribute, structure.getAttribute(updatePrimaryAttribute.getCode()));
-        assertEquals(1, structure.getPrimaries().size());
-        assertEquals(updateIdAttribute, structure.getPrimaries().get(0));
-    }
-
-    //@Test
-    public void testDeleteAttribute() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        mockChangeStructure(draftEntity);
-        final Integer draftId = draftEntity.getId();
-
-        // Добавление ссылочного атрибута
-        RefBookEntity referredBook1 = new DefaultRefBookEntity();
-        referredBook1.setCode("REF_801");
-        RefBookVersionEntity referredEntity1 = new RefBookVersionEntity();
-        referredEntity1.setRefBook(referredBook1);
-        referredEntity1.setStructure(new Structure(singletonList(copy(idAttribute)), null));
-        when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq(referredEntity1.getRefBook().getCode()), eq(RefBookVersionStatus.PUBLISHED))).thenReturn(referredEntity1);
-
-        // -- Добавление первичного ключа для возможности добавления ссылочного атрибута
-        CreateAttributeRequest createIdAttribute = new CreateAttributeRequest(null, copy(idAttribute), null);
-        draftService.createAttribute(draftId, createIdAttribute);
-        Structure structure = versionService.getStructure(draftId);
-        assertNotNull(structure);
-
-        // -- Корректное добавление
-        CreateAttributeRequest createRefAttribute = new CreateAttributeRequest(null, copy(nameAttribute), copy(nameReference));
-        draftService.createAttribute(draftId, createRefAttribute);
-        structure = versionService.getStructure(draftId);
-
-        // Удаление атрибута
-
-        // -- Удаление первичного ключа при наличии ссылки. Должна быть ошибка
-        failDeleteAttribute(draftId, structure, createIdAttribute.getAttribute().getCode(), "reference.book.must.have.primary.key", UserException.class);
-
-        // Удаление атрибута-ссылки для удаления первичного ключа
-        DeleteAttributeRequest deleteAttributeRequest = new DeleteAttributeRequest(null, nameAttribute.getCode());
-        draftService.deleteAttribute(draftId, deleteAttributeRequest);
-
-        // Удаление первичности ключа. Не должно быть атрибутов - первичных ключей
-        assertTrue(structure.hasPrimary());
-        Structure.Attribute nonIdAttribute = copy(idAttribute);
-        nonIdAttribute.setIsPrimary(false);
-        UpdateAttributeRequest updateRefAttribute = new UpdateAttributeRequest(null, nonIdAttribute, copy(nullReference));
-        draftService.updateAttribute(draftId, updateRefAttribute);
-        structure = versionService.getStructure(draftId);
-        assertFalse(structure.hasPrimary());
-    }
-
-    //@Test
-    public void testCreateAttributeWhenData() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        final Integer draftId = draftEntity.getId();
-
-        String draftTable = draftEntity.getStorageCode();
-        String draftTableWithData = draftTable + "_with_data";
-        draftEntity.setStorageCode(draftTableWithData);
-
-        mockChangeStructure(draftEntity);
-
-        when(searchDataService.hasData(eq(draftTableWithData))).thenReturn(true);
-
-        doCallRealMethod().when(structureChangeValidator).validateCreateAttributeStorage(any(), any(), eq(draftTableWithData));
-
-        // -- Добавление обычного атрибута
-        Structure.Attribute firstAttribute = Structure.Attribute.build("first", "Первый", FieldType.STRING, "описание first");
-        CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(null, copy(firstAttribute), null);
-        draftService.createAttribute(draftId, createAttributeRequest);
-        Structure structure = versionService.getStructure(draftId);
-        assertFalse(structure.isEmpty());
-
-        // -- Добавление первичного ключа при наличии данных. Должна быть ошибка
-        Structure.Attribute secondAttribute = Structure.Attribute.buildPrimary("second", "Второй", FieldType.INTEGER, "описание second");
-        createAttributeRequest = new CreateAttributeRequest(null, copy(secondAttribute), null);
-        failCreateAttribute(draftId, createAttributeRequest, "validation.required.pk.err", UserException.class);
     }
 
     private void mockChangeStructure(RefBookVersionEntity draftEntity) {

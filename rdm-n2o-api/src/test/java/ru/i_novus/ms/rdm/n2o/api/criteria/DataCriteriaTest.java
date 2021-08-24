@@ -1,25 +1,14 @@
 package ru.i_novus.ms.rdm.n2o.api.criteria;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.Criteria;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.BaseTest;
 
 public class DataCriteriaTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testClass() {

@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.async;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +12,6 @@ import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
 import java.io.Serializable;
@@ -34,8 +32,6 @@ public class AsyncOperationQueueTest {
     private static final String TEST_REFBOOK_CODE = "ref-book";
     private static final Integer TEST_REFBOOK_ID = 10;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private AsyncOperationQueue queue;
 
@@ -51,8 +47,6 @@ public class AsyncOperationQueueTest {
     @Before
     @SuppressWarnings("java:S2696")
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         FieldSetter.setField(queue, AsyncOperationQueue.class.getDeclaredField("queueId"), TEST_QUEUE_ID);
     }

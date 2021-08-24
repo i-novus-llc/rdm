@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
@@ -133,8 +131,6 @@ public class ConflictServiceTest {
             PUBLISHED_ROW_SYS_ID_DELETED_REMOLDING
     );
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private ConflictServiceImpl conflictService;
 
@@ -163,8 +159,6 @@ public class ConflictServiceTest {
 
     @Before
     public void setUp() {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         referrerVersion = createReferrerEntity(REFERRER_VERSION_ID, createReferrerStructure());
         referrerVersion.setStatus(RefBookVersionStatus.PUBLISHED);
