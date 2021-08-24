@@ -55,10 +55,6 @@ import java.time.OffsetDateTime;
         matchIfMissing = true)
 public class RdmClientSyncAutoConfiguration {
 
-    @Autowired
-    @Qualifier("cxfObjectMapper")
-    private ObjectMapper objectMapper;
-
     @Bean
     @ConditionalOnMissingBean
     public RdmClientSyncConfig rdmClientSyncConfig(RdmClientSyncProperties properties) {
@@ -128,7 +124,11 @@ public class RdmClientSyncAutoConfiguration {
 
     @Bean
     @Conditional(MissingGenericBean.class)
-    public TypedParamConverter<AttributeFilter> attributeFilterConverter() {
+    public TypedParamConverter<AttributeFilter> attributeFilterConverter(
+            @Autowired
+            @Qualifier("cxfObjectMapper")
+            ObjectMapper objectMapper
+    ) {
         return new AttributeFilterConverter(objectMapper);
     }
 
