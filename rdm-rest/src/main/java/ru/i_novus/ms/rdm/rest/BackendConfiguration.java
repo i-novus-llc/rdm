@@ -47,7 +47,7 @@ public class BackendConfiguration {
 
     @Bean
     public AttributeFilterConverter attributeFilterConverter() {
-        return new AttributeFilterConverter();
+        return new AttributeFilterConverter(objectMapper);
     }
 
     @Bean
