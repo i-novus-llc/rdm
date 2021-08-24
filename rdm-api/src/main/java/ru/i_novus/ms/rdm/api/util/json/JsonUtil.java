@@ -5,35 +5,38 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
-@SuppressWarnings({"java:S1104", "java:S1444", "I-novus:ClassFinalVariablesRule"})
 public final class JsonUtil {
 
-    public static ObjectMapper jsonMapper; // all warnings here
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private JsonUtil() {
         throw new UnsupportedOperationException();
     }
 
+    public static ObjectMapper getMapper() {
+        return MAPPER;
+    }
+
     public static String toJsonString(Object o) {
-        return toJsonString(jsonMapper, o);
+        return toJsonString(getMapper(), o);
     }
 
     public static <T> T fromJsonString(String value, Class<T> clazz) {
-        return fromJsonString(jsonMapper, value, clazz);
+        return fromJsonString(getMapper(), value, clazz);
     }
 
-    public static String toJsonString(ObjectMapper jsonMapper, Object o) {
+    public static String toJsonString(ObjectMapper mapper, Object o) {
         try {
-            return jsonMapper.writeValueAsString(o);
+            return mapper.writeValueAsString(o);
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Cannot serialize json value.", e);
         }
     }
 
-    public static <T> T fromJsonString(ObjectMapper jsonMapper, String value, Class<T> clazz) {
+    public static <T> T fromJsonString(ObjectMapper mapper, String value, Class<T> clazz) {
         try {
-            return jsonMapper.readValue(value, clazz);
+            return mapper.readValue(value, clazz);
 
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot deserialize json value.", e);

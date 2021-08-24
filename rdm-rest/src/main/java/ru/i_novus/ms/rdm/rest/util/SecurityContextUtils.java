@@ -58,7 +58,7 @@ public class SecurityContextUtils {
 
         JsonNode jsonNode;
         try {
-            jsonNode = JsonUtil.jsonMapper.readTree(claims);
+            jsonNode = JsonUtil.getMapper().readTree(claims);
 
         } catch (IOException e) {
             logger.error(String.format("Error reading token value claims from%n%s", claims), e);

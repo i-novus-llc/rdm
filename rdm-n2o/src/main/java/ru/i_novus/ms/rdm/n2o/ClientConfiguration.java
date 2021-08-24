@@ -18,14 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.criteria.RestCriteriaConstructor;
 import ru.i_novus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
 import ru.i_novus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
 import ru.i_novus.ms.rdm.n2o.util.RdmPermissionImpl;
 import ru.i_novus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
-
-import javax.annotation.PostConstruct;
 
 @Configuration
 @EnableJaxRsProxyClient(
@@ -35,17 +32,17 @@ import javax.annotation.PostConstruct;
 @SuppressWarnings({"rawtypes","java:S3740"})
 public class ClientConfiguration {
 
-    @Autowired
-    @Qualifier("cxfObjectMapper")
-    private ObjectMapper objectMapper;
-
     @Bean
     public RdmPermission rdmPermission() {
         return new RdmPermissionImpl();
     }
 
     @Bean
-    public AttributeFilterConverter attributeFilterConverter() {
+    public AttributeFilterConverter attributeFilterConverter(
+            @Autowired
+            @Qualifier("cxfObjectMapper")
+            ObjectMapper objectMapper
+    ) {
         return new AttributeFilterConverter(objectMapper);
     }
 
@@ -87,12 +84,6 @@ public class ClientConfiguration {
     @Bean
     public SourceCacheOperation sourceCacheOperation(CacheManager cacheManager, MetadataRegister metadataRegister) {
         return new RdmSourceCacheOperation(new SyncCacheTemplate(cacheManager), metadataRegister);
-    }
-
-    @PostConstruct
-    @SuppressWarnings("java:S2696")
-    public void setUpObjectMapper() {
-        JsonUtil.jsonMapper = objectMapper;
     }
 }
 
