@@ -16,8 +16,3 @@ services:
   esnsi:
     ports:
       - "8184:8080"
-
-  activemq:
-    ports:
-      - "8213:61616"
-      - "8214:8161"

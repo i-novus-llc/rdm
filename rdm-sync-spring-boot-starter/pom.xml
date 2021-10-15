@@ -8,7 +8,7 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.2.3-SNAPSHOT</version>
+        <version>3.3.2-SNAPSHOT</version>
     </parent>
 
     <properties>
