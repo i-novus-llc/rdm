@@ -44,6 +44,7 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
         SimpleUrlAuthenticationSuccessHandler successHandler = new SimpleUrlAuthenticationSuccessHandler();
         successHandler.setAlwaysUseDefaultTargetUrl(true);
         ssoFilter.setAuthenticationSuccessHandler(successHandler);
+
         ssoFilter.setRestTemplate(this.getApplicationContext()
                 .getBean(UserInfoRestTemplateFactory.class).getUserInfoRestTemplate());
         ssoFilter.setTokenServices(this.getApplicationContext()
