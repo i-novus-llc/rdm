@@ -247,11 +247,16 @@
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
-                <module>rdm-n2o-api</module>
+
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
+
+                <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>
                 <module>rdm-frontend</module>
+
+                <module>rdm-web-autoconfigure</module>
+                <module>rdm-web-starter</module>
             </modules>
         </profile>
 
@@ -264,14 +269,19 @@
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
-                <module>rdm-n2o-api</module>
+
                 <module>rdm-impl</module>
                 <module>rdm-l10n-api</module>
                 <module>rdm-l10n-impl</module>
                 <module>rdm-rest</module>
+
+                <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
                 <module>rdm-frontend</module>
+
+                <module>rdm-web-autoconfigure</module>
+                <module>rdm-web-starter</module>
             </modules>
 
             <dependencyManagement>
