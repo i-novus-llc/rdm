@@ -13,6 +13,7 @@
 
     <properties>
         <jacoco.skip>false</jacoco.skip>
+        <sonar.coverage.exclusions>**/RdmWebAutoConfiguration.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
