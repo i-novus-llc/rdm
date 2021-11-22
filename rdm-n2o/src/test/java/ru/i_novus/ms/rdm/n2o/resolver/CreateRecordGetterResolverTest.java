@@ -1,14 +1,11 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -35,16 +32,8 @@ public class CreateRecordGetterResolverTest extends BaseTest {
 
     private static final long TEST_SYSTEM_ID = 51;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private CreateRecordGetterResolver resolver;
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testIsSatisfied() {

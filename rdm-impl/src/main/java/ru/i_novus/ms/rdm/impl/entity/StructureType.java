@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import static org.springframework.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.jsonMapper;
+import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getMapper;
 
 public class StructureType implements UserType {
 
@@ -49,7 +49,7 @@ public class StructureType implements UserType {
             return null;
 
         try {
-            JsonNode attributesJson = jsonMapper.readTree(cellContent).get("attributes");
+            JsonNode attributesJson = getMapper().readTree(cellContent).get("attributes");
             return jsonToStructure(attributesJson);
 
         } catch (IOException e) {
@@ -116,7 +116,7 @@ public class StructureType implements UserType {
 
         try {
             ObjectNode structure = structureToJson((Structure) value);
-            st.setObject(index, jsonMapper.writeValueAsString(structure), Types.OTHER);
+            st.setObject(index, getMapper().writeValueAsString(structure), Types.OTHER);
 
         } catch (IOException ex) {
             throw new PersistenceException("Failed to convert Invoice to String: " + ex.getMessage(), ex);
@@ -125,19 +125,19 @@ public class StructureType implements UserType {
 
     private ObjectNode structureToJson(Structure structure) {
 
-        ArrayNode attributesJson = jsonMapper.createArrayNode();
+        ArrayNode attributesJson = getMapper().createArrayNode();
         structure.getAttributes().forEach(attribute ->
                 attributesJson.add(createAttributeJson(attribute, structure.getReference(attribute.getCode())))
         );
 
-        ObjectNode structureJson = jsonMapper.createObjectNode();
+        ObjectNode structureJson = getMapper().createObjectNode();
         structureJson.set("attributes", attributesJson);
         return structureJson;
     }
 
     private ObjectNode createAttributeJson(Structure.Attribute attribute, Structure.Reference reference) {
 
-        ObjectNode attributeJson = jsonMapper.createObjectNode();
+        ObjectNode attributeJson = getMapper().createObjectNode();
         attributeJson.put("code", attribute.getCode());
         attributeJson.put("name", attribute.getName());
         attributeJson.put("type", attribute.getType().name());

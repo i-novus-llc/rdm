@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.async;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationHandler;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
@@ -35,8 +33,6 @@ public class AsyncOperationQueueListenerTest {
     private static final String TEST_REFBOOK_CODE = "ref-book";
     private static final Integer TEST_REFBOOK_ID = 10;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private AsyncOperationQueueListener listener;
 
@@ -52,8 +48,6 @@ public class AsyncOperationQueueListenerTest {
     @Before
     @SuppressWarnings("java:S2696")
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         FieldSetter.setField(listener, AsyncOperationQueueListener.class.getDeclaredField("queueId"), TEST_QUEUE_ID);
     }

@@ -1,8 +1,6 @@
 package ru.i_novus.ms.rdm.l10n.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,7 +9,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -43,6 +40,7 @@ import static ru.i_novus.ms.rdm.l10n.impl.utils.StructureTestConstants.*;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.toStorageCode;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("java:S5778")
 public class L10nServiceTest extends BaseTest {
 
     private static final int TEST_REFBOOK_VERSION_ID = -10;
@@ -56,8 +54,6 @@ public class L10nServiceTest extends BaseTest {
     private static final String TEST_STORAGE_NAME = TEST_REFBOOK_CODE + "_storage";
     private static final String DEFAULT_SCHEMA_NAME = StorageConstants.DATA_SCHEMA_NAME;
     private static final String BAD_SCHEMA_NAME = "#bad-schema^name";
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private L10nServiceImpl l10nService;
@@ -73,12 +69,6 @@ public class L10nServiceTest extends BaseTest {
 
     @Mock
     private VersionValidation versionValidation;
-
-    @Before
-    public void setUp() {
-
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testLocalizeData() {

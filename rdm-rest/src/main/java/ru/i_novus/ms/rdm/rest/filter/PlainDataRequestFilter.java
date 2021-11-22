@@ -1,9 +1,11 @@
 package ru.i_novus.ms.rdm.rest.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.cxf.jaxrs.impl.ContainerRequestContextImpl;
 import org.apache.cxf.message.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -13,8 +15,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -32,21 +34,30 @@ public class PlainDataRequestFilter implements ContainerRequestFilter {
     public static final String PLAIN_DATA_URL_PREFIX = "plainData";
     public static final String PLAIN_FILTER_QUERY_PARAM = "plainAttributeFilter";
 
+    @Autowired
+    @Qualifier("cxfObjectMapper")
+    private ObjectMapper objectMapper;
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (requestContext.getUriInfo().getPath().startsWith(PLAIN_DATA_URL_PREFIX)) {
-            Message message = ((ContainerRequestContextImpl) requestContext).getMessage();
 
-            Map<String, String> plainAttributeFilter = requestContext.getUriInfo().getQueryParameters().entrySet().stream()
-                    .filter(e -> e.getKey().startsWith(FILTER_PREFIX))
-                    .filter(e -> !isEmpty(e.getValue()) && isNotBlank(e.getValue().get(0)))
-                    .collect(Collectors.toMap(e -> e.getKey().replace(FILTER_PREFIX, ""), e -> e.getValue().get(0)));
+        if (!requestContext.getUriInfo().getPath().startsWith(PLAIN_DATA_URL_PREFIX))
+            return;
 
-            if (!isEmpty(plainAttributeFilter)) {
-                String s = (String) message.get(Message.QUERY_STRING);
-                s += "&" + PLAIN_FILTER_QUERY_PARAM + "=" + URLEncoder.encode(JsonUtil.jsonMapper.writeValueAsString(plainAttributeFilter), StandardCharsets.UTF_8);
-                message.put(Message.QUERY_STRING, s);
-            }
-        }
+        Map<String, String> attributeFilters = requestContext.getUriInfo().getQueryParameters().entrySet().stream()
+                .filter(e -> e.getKey().startsWith(FILTER_PREFIX))
+                .filter(e -> !isEmpty(e.getValue()) && isNotBlank(e.getValue().get(0)))
+                .collect(toMap(e -> e.getKey().replace(FILTER_PREFIX, ""), e -> e.getValue().get(0)));
+
+        if (isEmpty(attributeFilters))
+            return;
+
+        Message message = ((ContainerRequestContextImpl) requestContext).getMessage();
+        String plainAttributeFilter = objectMapper.writeValueAsString(attributeFilters);
+
+        String query = (String) message.get(Message.QUERY_STRING);
+        query += "&" + PLAIN_FILTER_QUERY_PARAM + "=" +
+                URLEncoder.encode(plainAttributeFilter, StandardCharsets.UTF_8);
+        message.put(Message.QUERY_STRING, query);
     }
 }
