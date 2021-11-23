@@ -1,8 +1,10 @@
-package ru.i_novus.ms.rdm.web;
+package ru.i_novus.ms.rdm.web.autoconfigure;
 
 import net.n2oapp.platform.i18n.Messages;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.*;
 import ru.i_novus.ms.rdm.api.provider.ExportFileProvider;
 import ru.i_novus.ms.rdm.api.provider.RdmMapperConfigurer;
@@ -21,6 +23,7 @@ import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
         "ru.i_novus.ms.rdm.n2o.transformer"
 })
 @Import({ ClientConfiguration.class, UiStrategyLocatorConfig.class })
+@AutoConfigureAfter({ WebMvcAutoConfiguration.class })
 public class RdmWebAutoConfiguration {
 
     @Bean
