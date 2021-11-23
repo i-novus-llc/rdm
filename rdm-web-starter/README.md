@@ -25,7 +25,7 @@
       ...
     }
     ```
-  Для зависимостей указываютсяя версии пакетов, используемых в RDM.
+  Для зависимостей указываются версии пакетов, используемых в RDM.
 
 
 * Настройте параметры в `application.properties` клиента:
@@ -33,7 +33,7 @@
   Добавьте параметр RDM для UI:
   - `rdm.backend.path` -- адрес REST-сервиса RDM.
     
-  Добавьте в параметр `spring.messages.basename` значение `messages.rdmui`.
+  Добавьте в параметр `spring.messages.basename` (через запятую) значение `messages.rdmui`.
 
   Добавьте параметры N2O для UI:
     ```properties
@@ -72,4 +72,4 @@
   Добавьте параметр RDM-L10N для UI:
   - `rdm.l10n.support` -- управление включением локализации на UI.
     
-  Добавьте в параметр `spring.messages.basename` значение `messages.rdm_n2o_l10n`.
+  Добавьте в параметр `spring.messages.basename` (через запятую) значение `messages.rdm_n2o_l10n`.
