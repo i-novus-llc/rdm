@@ -25,37 +25,8 @@
 
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-n2o-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-n2o</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.framework</groupId>
-            <artifactId>n2o-spring-boot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-web</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-ms</artifactId>
+            <artifactId>rdm-web-starter</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
