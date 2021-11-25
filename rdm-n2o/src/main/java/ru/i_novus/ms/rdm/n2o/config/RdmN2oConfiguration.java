@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o;
+package ru.i_novus.ms.rdm.n2o.config;
 
 import net.n2oapp.cache.template.SyncCacheTemplate;
 import net.n2oapp.framework.api.MetadataEnvironment;

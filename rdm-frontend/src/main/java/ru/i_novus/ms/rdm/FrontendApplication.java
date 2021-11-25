@@ -8,13 +8,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import ru.i_novus.ms.audit.client.UserAccessor;
-import ru.i_novus.ms.rdm.n2o.RdmWebConfiguration;
+import ru.i_novus.ms.rdm.n2o.config.RdmN2oConfiguration;
+import ru.i_novus.ms.rdm.n2o.config.RdmWebConfiguration;
 
 import static ru.i_novus.ms.rdm.SecurityContextUtils.DEFAULT_USER_ID;
 import static ru.i_novus.ms.rdm.SecurityContextUtils.DEFAULT_USER_NAME;
 
 @SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class })
-@Import({ RdmWebConfiguration.class })
+@Import({ RdmN2oConfiguration.class, RdmWebConfiguration.class })
 public class FrontendApplication {
 
     @Bean

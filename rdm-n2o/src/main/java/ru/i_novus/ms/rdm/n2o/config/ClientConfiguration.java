@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o;
+package ru.i_novus.ms.rdm.n2o.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
