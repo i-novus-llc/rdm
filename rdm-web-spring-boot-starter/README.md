@@ -8,7 +8,7 @@
     ```xml
     <dependency>
       <groupId>ru.i-novus.ms.rdm</groupId>
-        <artifactId>rdm-web-starter</artifactId>
+        <artifactId>rdm-web-spring-boot-starter</artifactId>
         <version>${rdm.version}</version>
     </dependency>
     ```

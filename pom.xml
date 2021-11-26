@@ -253,8 +253,8 @@
 
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>
-                <module>rdm-web-autoconfigure</module>
-                <module>rdm-web-starter</module>
+                <module>rdm-web-spring-boot-autoconfigure</module>
+                <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
             </modules>
         </profile>
@@ -277,8 +277,8 @@
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
-                <module>rdm-web-autoconfigure</module>
-                <module>rdm-web-starter</module>
+                <module>rdm-web-spring-boot-autoconfigure</module>
+                <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
             </modules>
 
