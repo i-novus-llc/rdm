@@ -10,9 +10,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
 /**
- * Проверяет значение атрибута size в методах GET
- * Значение не должно превышать 100
- * В случае превышения будет выброшена ошибка 400 (Bad Request)
+ * Проверяет значение атрибута size в методах GET.
+ * Значение не должно превышать SIZE_MAX_VALUE.
+ * В случае превышения будет выброшена ошибка 400 (Bad Request).
  */
 @PreMatching
 @Provider
@@ -20,7 +20,7 @@ import javax.ws.rs.ext.Provider;
 public class CriteriaSizeControlFilter implements ContainerRequestFilter {
 
     private static final String SIZE_QUERY_NAME = "size";
-    private static final Integer SIZE_MAX_VALUE = 100;
+    private static final Integer SIZE_MAX_VALUE = 1000;
 
     private static final String SIZE_MAX_VALUE_EXCEEDED_EXCEPTION_CODE = "size must be no greater than " + SIZE_MAX_VALUE;
 
@@ -29,7 +29,7 @@ public class CriteriaSizeControlFilter implements ContainerRequestFilter {
 
         if ("GET".equalsIgnoreCase(requestContext.getMethod())) {
             String size = requestContext.getUriInfo().getQueryParameters().getFirst(SIZE_QUERY_NAME);
-            if (size != null && Integer.valueOf(size) > SIZE_MAX_VALUE) {
+            if (size != null && Integer.parseInt(size) > SIZE_MAX_VALUE) {
                 requestContext.abortWith(Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(SIZE_MAX_VALUE_EXCEEDED_EXCEPTION_CODE)
@@ -38,5 +38,4 @@ public class CriteriaSizeControlFilter implements ContainerRequestFilter {
             }
         }
     }
-
 }
