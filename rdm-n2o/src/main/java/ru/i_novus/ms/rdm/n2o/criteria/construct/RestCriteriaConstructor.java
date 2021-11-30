@@ -1,58 +1,60 @@
 package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
-import net.n2oapp.criteria.api.Criteria;
-import net.n2oapp.criteria.api.Direction;
-import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.framework.api.data.CriteriaConstructor;
-import net.n2oapp.platform.jaxrs.RestCriteria;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RestCriteriaConstructor implements CriteriaConstructor, Serializable {
 
+    private final List<CriteriaConstructResolver> resolvers;
+
+    public RestCriteriaConstructor(Collection<CriteriaConstructResolver> resolvers) {
+
+        this.resolvers = new ArrayList<>(resolvers);
+        this.resolvers.sort(AnnotationAwareOrderComparator.INSTANCE); // Сортировка по @Order
+    }
 
     @Override
     public <T> T construct(N2oPreparedCriteria criteria, Class<T> criteriaClass) {
 
-        T instance;
-        try {
-            instance = criteriaClass.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-        }
-        if (instance instanceof RestCriteria) {
-            List<Order> sortings = new ArrayList<>();
-            for (Sorting sorting : criteria.getSortings()) {
-                sortings.add(toOrder(sorting));
-            }
-            ((RestCriteria) instance).setOrders(sortings);
-            ((RestCriteria) instance).setPageSize(criteria.getSize());
-            ((RestCriteria) instance).setPageNumber(criteria.getPage() - 1);
-        } else if (instance instanceof Criteria) {
-            ((Criteria) instance).setSorting(criteria.getSorting());
-            ((Criteria) instance).setPage(criteria.getPage());
-            ((Criteria) instance).setSize(criteria.getSize());
-        }
+        T instance = newInstance(criteriaClass);
+        prepareInstance(criteria, instance);
         return instance;
     }
 
-    private Order toOrder(Sorting sorting) {
-        Sort.Direction direction = null;
-        if (sorting.getDirection().equals(Direction.ASC))
-            direction = Sort.Direction.ASC;
-        if (sorting.getDirection().equals(Direction.DESC))
-            direction = Sort.Direction.DESC;
-        if (("name").equals(sorting.getField()))
-            return new Order(direction, "passport." + sorting.getField());
-        else if (("category.id").equals(sorting.getField()))
-            return new Order(direction, "category");
-        else
-            return new Order(direction, sorting.getField());
+    protected <T> T newInstance(Class<T> criteriaClass) {
+        try {
+            return criteriaClass.getDeclaredConstructor().newInstance();
+
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    protected <T> void prepareInstance(N2oPreparedCriteria criteria, T instance) {
+
+        CriteriaConstructResolver resolver = getSatisfiedResolver(instance);
+        if (resolver == null)
+            return;
+
+        resolver.resolve(instance, criteria);
+    }
+
+    private <T> CriteriaConstructResolver getSatisfiedResolver(T instance) {
+
+        if (isEmpty(resolvers))
+            return null;
+
+        return resolvers.stream()
+                .filter(resolver -> resolver.isSatisfied(instance))
+                .findFirst().orElse(null);
     }
 }
