@@ -25,20 +25,20 @@ public class RdmWebAutoConfiguration {
 
     @Configuration
     static class RdmClientConfiguration extends ClientConfiguration {
+    }
 
-        @Bean
-        public ExportFileProvider exportFileProvider() {
-            return new ExportFileProvider();
-        }
+    @Bean
+    public ExportFileProvider exportFileProvider() {
+        return new ExportFileProvider();
+    }
 
-        @Bean
-        public RdmMapperConfigurer rdmMapperConfigurer() {
-            return new RdmMapperConfigurer();
-        }
+    @Bean
+    public RdmMapperConfigurer rdmMapperConfigurer() {
+        return new RdmMapperConfigurer();
+    }
 
-        @Bean
-        public RefBookAdapter refBookAdapter(UiStrategyLocator strategyLocator, Messages messages) {
-            return new RefBookAdapter(strategyLocator, messages);
-        }
+    @Bean
+    public RefBookAdapter refBookAdapter(UiStrategyLocator strategyLocator, Messages messages) {
+        return new RefBookAdapter(strategyLocator, messages);
     }
 }
