@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.n2o.criteria;
+package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.criteria.api.Direction;
