@@ -7,8 +7,6 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 @Component
 @Order(1)
 public class RefBookCriteriaConstructResolver extends RestCriteriaConstructResolver {
@@ -32,11 +30,7 @@ public class RefBookCriteriaConstructResolver extends RestCriteriaConstructResol
     @Override
     protected String toSortProperty(String field) {
 
-        if (isEmpty(field))
-            return null;
-
         String result = FIELD_PROPERTY_MAP.get(field);
-
         return (result != null) ? result : super.toSortProperty(field);
     }
 }
