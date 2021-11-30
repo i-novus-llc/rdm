@@ -28,9 +28,9 @@ public class RestCriteriaConstructResolver implements CriteriaConstructResolver 
 
         RestCriteria result = ((RestCriteria) instance);
 
-        result.setOrders(toSortOrders(criteria));
         result.setPageNumber(criteria.getPage() - 1);
         result.setPageSize(criteria.getSize());
+        result.setOrders(toSortOrders(criteria));
     }
 
     private List<Sort.Order> toSortOrders(N2oPreparedCriteria criteria) {
