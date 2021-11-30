@@ -4,7 +4,6 @@ import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.framework.api.data.CriteriaConstructor;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +11,7 @@ import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-public class RestCriteriaConstructor implements CriteriaConstructor, Serializable {
+public class RestCriteriaConstructor implements CriteriaConstructor {
 
     private final List<CriteriaConstructResolver> resolvers;
 
