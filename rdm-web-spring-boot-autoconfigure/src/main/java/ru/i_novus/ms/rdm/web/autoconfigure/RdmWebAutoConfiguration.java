@@ -21,20 +21,24 @@ import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 })
 @Import(UiStrategyLocatorConfig.class)
 @AutoConfigureAfter({ WebMvcAutoConfiguration.class })
-public class RdmWebAutoConfiguration extends ClientConfiguration {
+public class RdmWebAutoConfiguration {
 
-    @Bean
-    public ExportFileProvider exportFileProvider() {
-        return new ExportFileProvider();
-    }
+    @Configuration
+    static class RdmClientConfiguration extends ClientConfiguration {
 
-    @Bean
-    public RdmMapperConfigurer rdmMapperConfigurer() {
-        return new RdmMapperConfigurer();
-    }
+        @Bean
+        public ExportFileProvider exportFileProvider() {
+            return new ExportFileProvider();
+        }
 
-    @Bean
-    public RefBookAdapter refBookAdapter(UiStrategyLocator strategyLocator, Messages messages) {
-        return new RefBookAdapter(strategyLocator, messages);
+        @Bean
+        public RdmMapperConfigurer rdmMapperConfigurer() {
+            return new RdmMapperConfigurer();
+        }
+
+        @Bean
+        public RefBookAdapter refBookAdapter(UiStrategyLocator strategyLocator, Messages messages) {
+            return new RefBookAdapter(strategyLocator, messages);
+        }
     }
 }
