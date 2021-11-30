@@ -4,7 +4,6 @@ import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.platform.jaxrs.RestCriteria;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -12,8 +11,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Базовый класс-резолвер для RestCriteria.
+ */
 @Component
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order()
 public class RestCriteriaConstructResolver implements CriteriaConstructResolver {
 
     @Override
