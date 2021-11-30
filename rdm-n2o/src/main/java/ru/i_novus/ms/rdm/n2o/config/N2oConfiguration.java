@@ -18,7 +18,7 @@ import ru.i_novus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
 
 @Configuration
 @SuppressWarnings({"rawtypes","java:S3740"})
-public class RdmN2oConfiguration {
+public class N2oConfiguration {
 
     @Bean
     public QueryProcessor queryProcessor(N2oInvocationFactory invocationFactory,

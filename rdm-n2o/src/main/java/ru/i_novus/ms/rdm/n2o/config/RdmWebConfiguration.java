@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 
 @Configuration
-@Import(value = { ClientConfiguration.class, RdmN2oConfiguration.class })
+@Import(value = { ClientConfiguration.class, N2oConfiguration.class })
 @ComponentScan(basePackages = "ru.i_novus.ms.rdm.n2o")
 public class RdmWebConfiguration {
 
