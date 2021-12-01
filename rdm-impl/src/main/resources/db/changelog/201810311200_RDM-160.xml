@@ -16,12 +16,9 @@
         </sql>
     </changeSet>
 
-    <changeSet id="201810311200_RDM-160" author="znurgaliev" dbms="postgresql">
-        <preConditions onFail="CONTINUE">
-            <and>
-                <tableExists tableName="ref_book" schemaName="n2o_rdm_management"/>
-                <tableExists tableName="ref_book_version" schemaName="n2o_rdm_management"/>
-            </and>
+    <changeSet id="201810311200_RDM-160.bfx1" author="tnurdinov" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select count(*) from n2o_rdm_management.ref_book where code = 'CAT'</sqlCheck>
         </preConditions>
         <comment>Добавление справочника категорий</comment>
         <sql>
@@ -50,7 +47,7 @@
                         "isRequired": false,
                         "description": "code"
                     }]}' :: JSONB,
-                '1.0', null, 'PUBLISHED', now(), null, now(), now(), '8de3a08c-1bb4-40e7-8ac6-474e79cf791d');
+                '1.0', null, 'PUBLISHED', (now() at time zone 'utc'), null, (now() at time zone 'utc'), (now() at time zone 'utc'), '8de3a08c-1bb4-40e7-8ac6-474e79cf791d');
 
             CREATE TABLE data."8de3a08c-1bb4-40e7-8ac6-474e79cf791d"
                 (

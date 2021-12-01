@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,7 +13,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -60,8 +57,6 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     private static final String TEST_LOCALE_CODE = "test";
     private static final String TEST_LOCALE_NAME = "Тест";
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private L10nLocalizeRecordGetterResolver resolver;
 
@@ -70,12 +65,6 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
     @Mock
     private VersionLocaleService versionLocaleService;
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testIsSatisfied() {
@@ -103,6 +92,7 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     }
 
     @Test
+    @SuppressWarnings("java:S5778")
     public void testCreateRegularValuesFailed() {
 
         DataRecordCriteria criteria = createCriteria();

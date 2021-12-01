@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>3.3.1-SNAPSHOT</version>
+        <version>3.3.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -15,7 +15,7 @@
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/ClientConfiguration.java, **/RdmWebConfiguration.java, **/UiStrategyLocatorConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java, **/UiStrategyLocatorConfig.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

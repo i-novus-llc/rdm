@@ -72,7 +72,7 @@
             <column text-field-id="lastPublishedVersionFromDate" label="Последняя публикация">
                 <text format="date DD.MM.YYYY"/>
             </column>
-<!--            вывод tooltip-сообщения пока не работает-->
+
             <column text-field-id="lastHasConflict" label="" type="icon" tooltip-field-id="lastHasConflictMsg">
                 <icon>
                     <switch value-field-id="lastHasConflict">

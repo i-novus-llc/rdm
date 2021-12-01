@@ -1,12 +1,9 @@
 package ru.i_novus.ms.rdm.api.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.BaseTest;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.List;
@@ -18,14 +15,6 @@ import static ru.i_novus.ms.rdm.api.util.StructureTestConstants.*;
 
 @SuppressWarnings("java:S5778")
 public class StructureTest extends BaseTest {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testEmpty() {

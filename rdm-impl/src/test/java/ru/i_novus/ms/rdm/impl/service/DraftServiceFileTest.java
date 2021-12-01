@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
@@ -23,7 +22,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateFromFileRequest;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.util.row.RowMapper;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.impl.entity.*;
@@ -64,8 +62,6 @@ public class DraftServiceFileTest {
     private static final String DRAFT_CODE = "draft_code";
     private static final String NEW_DRAFT_CODE = "new_draft_code";
     private static final int PUBLISHED_VERSION_ID = 3;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private DraftServiceImpl draftService;
@@ -121,8 +117,6 @@ public class DraftServiceFileTest {
 
     @Before
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         reset(draftDataService);
         when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);

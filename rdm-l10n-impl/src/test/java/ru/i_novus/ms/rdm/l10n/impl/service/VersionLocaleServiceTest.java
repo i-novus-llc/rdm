@@ -1,9 +1,7 @@
 package ru.i_novus.ms.rdm.l10n.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -12,7 +10,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
@@ -55,8 +52,6 @@ public class VersionLocaleServiceTest extends BaseTest {
             new L10nLocaleInfo("jap", "Японский", "日本語")
     );
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private VersionLocaleServiceImpl versionLocaleService;
 
@@ -71,12 +66,6 @@ public class VersionLocaleServiceTest extends BaseTest {
 
     @Mock
     private RefBookVersionRepository versionRepository;
-
-    @Before
-    public void setUp() {
-
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testFindRefBookLocales() {

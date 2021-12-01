@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +17,6 @@ import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
@@ -45,8 +43,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 public class RefBookServiceTest {
 
     private static final String ERROR_WAITING = "Ожидается ошибка: ";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private RefBookServiceImpl refBookService;
@@ -96,8 +92,6 @@ public class RefBookServiceTest {
 
     @Before
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
         FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);

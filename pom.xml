@@ -4,7 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>3.3.1-SNAPSHOT</version>
+    <version>3.3.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -246,10 +246,14 @@
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
-                <module>rdm-n2o-api</module>
+
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
+
+                <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>
+                <module>rdm-web-spring-boot-autoconfigure</module>
+                <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
             </modules>
         </profile>
@@ -263,13 +267,17 @@
             <modules>
                 <module>rdm-esnsi</module>
                 <module>rdm-loader-client-starter</module>
-                <module>rdm-n2o-api</module>
+
                 <module>rdm-impl</module>
                 <module>rdm-l10n-api</module>
                 <module>rdm-l10n-impl</module>
                 <module>rdm-rest</module>
+
+                <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
+                <module>rdm-web-spring-boot-autoconfigure</module>
+                <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
             </modules>
 

@@ -1,13 +1,10 @@
 package ru.i_novus.ms.rdm.impl.strategy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
@@ -45,14 +42,6 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
     protected static final String TEXT_FIELD_VALUE_PREFIX = "text with id = ";
 
     protected static final String HASH_VALUE_PREFIX = "hash-";
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     protected RefBookVersionEntity createDraftEntity() {
 

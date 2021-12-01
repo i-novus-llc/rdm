@@ -1,12 +1,10 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -24,7 +22,6 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
@@ -65,8 +62,6 @@ public class RefBookDataControllerTest extends BaseTest {
 
     private static final String TEST_LOCALE_CODE = "test";
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private RefBookDataController controller;
 
@@ -81,12 +76,6 @@ public class RefBookDataControllerTest extends BaseTest {
 
     @Mock
     private RefBookDataDecorator refBookDataDecorator;
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testGetList() {
