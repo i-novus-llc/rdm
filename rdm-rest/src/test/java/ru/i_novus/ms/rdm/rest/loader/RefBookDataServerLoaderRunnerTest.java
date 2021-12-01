@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.rest.loader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
@@ -17,7 +16,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import javax.activation.DataSource;
@@ -38,10 +36,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes","java:S5778"})
 public class RefBookDataServerLoaderRunnerTest extends BaseTest {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String LOADED_SUBJECT = "test";
     private static final String LOADED_TARGET = "refBookData";
@@ -75,8 +71,6 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
 
     @Before
     public void setUp() throws NoSuchFieldException {
-
-        JsonUtil.jsonMapper = objectMapper;
 
         FieldSetter.setField(runner, RefBookDataServerLoaderRunner.class.getDeclaredField("loaderEnabled"), true);
     }

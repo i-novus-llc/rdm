@@ -2,11 +2,9 @@ package ru.i_novus.ms.rdm.api.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.BaseTest;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.List;
 
@@ -17,12 +15,6 @@ import static org.junit.Assert.assertNotNull;
 public class AbstractCriteriaTest extends BaseTest {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testClass() {

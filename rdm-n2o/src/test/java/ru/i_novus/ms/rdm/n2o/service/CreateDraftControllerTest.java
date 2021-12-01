@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +21,6 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
@@ -65,8 +63,6 @@ public class CreateDraftControllerTest extends BaseTest {
     private static final long TEST_SYSTEM_ID = 51;
     private static final String TEST_ROW_VALUE_HASH = "HASH";
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     @InjectMocks
     private CreateDraftController controller;
 
@@ -88,7 +84,6 @@ public class CreateDraftControllerTest extends BaseTest {
     @Before
     @SuppressWarnings("java:S2696")
     public void setUp() throws NoSuchFieldException {
-        JsonUtil.jsonMapper = objectMapper;
 
         final UiStrategyLocator strategyLocator = new BaseUiStrategyLocator(getStrategies());
         FieldSetter.setField(controller, CreateDraftController.class.getDeclaredField("strategyLocator"), strategyLocator);

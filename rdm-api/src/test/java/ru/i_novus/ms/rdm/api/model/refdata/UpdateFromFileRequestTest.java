@@ -1,26 +1,15 @@
 package ru.i_novus.ms.rdm.api.model.refdata;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.BaseTest;
 import ru.i_novus.ms.rdm.api.model.FileModel;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UpdateFromFileRequestTest extends BaseTest {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Before
-    @SuppressWarnings("java:S2696")
-    public void setUp() {
-        JsonUtil.jsonMapper = objectMapper;
-    }
 
     @Test
     public void testClass() {

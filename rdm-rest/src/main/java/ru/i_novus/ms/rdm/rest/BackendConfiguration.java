@@ -16,14 +16,12 @@ import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.provider.*;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.i_novus.ms.rdm.rest.service.PublishListener;
 import ru.i_novus.ms.rdm.rest.util.SecurityContextUtils;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
-import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
 
 @Configuration
@@ -36,18 +34,18 @@ public class BackendConfiguration {
     @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
 
-    @Autowired
-    @Qualifier("cxfObjectMapper")
-    private ObjectMapper objectMapper;
-
     @Bean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
         return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
     }
 
     @Bean
-    public AttributeFilterConverter attributeFilterConverter() {
-        return new AttributeFilterConverter();
+    public AttributeFilterConverter attributeFilterConverter(
+            @Autowired
+            @Qualifier("cxfObjectMapper")
+            ObjectMapper objectMapper
+    ) {
+        return new AttributeFilterConverter(objectMapper);
     }
 
     @Bean
@@ -152,11 +150,5 @@ public class BackendConfiguration {
     @Value("${rdm.audit.application.name}")
     public SourceApplicationAccessor applicationAccessor(String appName) {
         return () -> appName;
-    }
-
-    @PostConstruct
-    @SuppressWarnings("java:S2696")
-    public void setUpObjectMapper() {
-        JsonUtil.jsonMapper = objectMapper;
     }
 }
