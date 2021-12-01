@@ -18,7 +18,7 @@ public class RdmPermissionImpl implements RdmPermission {
     @Value("${rdm.permissions.draft.version}")
     private List<String> rdmPermissionsDraftVersion;
 
-    private UserContext userContext;
+    private final UserContext userContext;
 
     @Autowired
     private PermissionApi permissionApi;
