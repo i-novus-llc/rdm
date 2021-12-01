@@ -35,17 +35,6 @@
     
   Добавьте в параметр `spring.messages.basename` (через запятую) значение `messages.rdmui`.
 
-  Добавьте параметры N2O для UI:
-    ```properties
-    # all objects are accessible
-    n2o.access.deny_objects=false
-    # all pages are accessible
-    n2o.access.deny_pages=false
-    # all urls are accessible
-    n2o.access.deny_urls=false
-    ```
-
-
 ## Подключение RDM с локализацией справочников
 
 Для такого подключения необходимо также выполнить следующие действия.
