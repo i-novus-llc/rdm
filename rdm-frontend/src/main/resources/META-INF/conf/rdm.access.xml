@@ -8,6 +8,7 @@
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
+        <object-access object-id="refBookTypeList"/>
 
         <object-access object-id="refBookVersion"/>
         <object-access object-id="versionList"/>
