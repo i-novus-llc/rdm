@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.strategy.publish;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
@@ -29,6 +29,8 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.service.AuditLogService;
+import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -42,8 +44,8 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
-@Service
-class BasePublishService {
+@Component
+public class DefaultBasePublishStrategy implements BasePublishStrategy {
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
@@ -80,13 +82,15 @@ class BasePublishService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public BasePublishService(RefBookVersionRepository versionRepository,
-                              DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
-                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
-                              VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, AsyncOperationQueue asyncQueue,
-                              @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
+    public DefaultBasePublishStrategy(
+            RefBookVersionRepository versionRepository,
+            DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
+            RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
+            VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
+            VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
+            AuditLogService auditLogService, AsyncOperationQueue asyncQueue,
+            @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate
+    ) {
         this.versionRepository = versionRepository;
 
         this.draftDataService = draftDataService;
@@ -108,13 +112,7 @@ class BasePublishService {
         this.jmsTemplate = jmsTemplate;
     }
 
-    /**
-     * Публикация черновика справочника.
-     *
-     * @param entity  публикуемая версия
-     * @param request параметры публикации
-     * @return результат публикации
-     */
+    @Override
     @Transactional
     public PublishResponse publish(RefBookVersionEntity entity, PublishRequest request) {
 
