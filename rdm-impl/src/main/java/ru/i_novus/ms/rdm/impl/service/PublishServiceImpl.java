@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -32,15 +35,17 @@ public class PublishServiceImpl implements PublishService {
     private static final String LOG_ERROR_REFRESHING_CONFLICTING_REFERRERS = "Error refreshing conflicting referrers";
     private static final String LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS = "Error publishing nonconflict referrers";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookConflictRepository conflictRepository;
+    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
 
-    private BasePublishService basePublishService;
-    private ReferenceService referenceService;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookConflictRepository conflictRepository;
 
-    private AuditLogService auditLogService;
+    private final BasePublishService basePublishService;
+    private final ReferenceService referenceService;
 
-    private AsyncOperationQueue asyncQueue;
+    private final AuditLogService auditLogService;
+
+    private final AsyncOperationQueue asyncQueue;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -68,7 +73,8 @@ public class PublishServiceImpl implements PublishService {
     @Override
     public void publish(Integer draftId, PublishRequest request) {
 
-        PublishResponse response = basePublishService.publish(draftId, request);
+        RefBookVersionEntity entity = getVersionOrThrow(draftId);
+        PublishResponse response = basePublishService.publish(entity, request);
         if (response == null)
             return;
 
@@ -86,6 +92,12 @@ public class PublishServiceImpl implements PublishService {
 
         String code = versionRepository.getOne(draftId).getRefBook().getCode();
         return asyncQueue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
+    }
+
+    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
+
+        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
+        return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
     }
 
     /**

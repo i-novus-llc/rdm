@@ -35,7 +35,9 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -45,7 +47,6 @@ class BasePublishService {
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
-    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
@@ -110,29 +111,28 @@ class BasePublishService {
     /**
      * Публикация черновика справочника.
      *
+     * @param entity  публикуемая версия
      * @param request параметры публикации
      * @return результат публикации
      */
     @Transactional
-    public PublishResponse publish(Integer draftId, PublishRequest request) {
+    public PublishResponse publish(RefBookVersionEntity entity, PublishRequest request) {
 
-        // Получение версии-черновика и Предварительная валидация
-        RefBookVersionEntity draftEntity = getVersionOrThrow(draftId);
-        if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
-            return null; // Почему не в валидации?
+        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
+            return null;
 
-        validatePublishingDraft(draftEntity);
+        validatePublishingDraft(entity);
 
         // Предварительное заполнение значений
         PublishResponse result = new PublishResponse();
 
-        Integer refBookId = draftEntity.getRefBook().getId();
-        String oldStorageCode = draftEntity.getStorageCode();
+        Integer refBookId = entity.getRefBook().getId();
+        String oldStorageCode = entity.getStorageCode();
         String newStorageCode = null;
 
         refBookLockService.setRefBookPublishing(refBookId);
         try {
-            versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
+            versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
 
             // Дополнительное заполнение значений с валидацией
             // NB: Получение versionName должно быть в одной транзации с сохранением в версии.
@@ -148,28 +148,28 @@ class BasePublishService {
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
             // Получение старой версии
-            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
+            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(entity);
 
             // Создание и заполнение хранилища новой версии на основе старой версии и версии-черновика
             String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
             newStorageCode = draftDataService.applyDraft(lastStorageCode, oldStorageCode, fromDate, toDate);
 
             // Смена версии-черновика на опубликованную версию
-            draftEntity.setStorageCode(newStorageCode);
-            draftEntity.setVersion(versionName);
-            draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
-            draftEntity.setFromDate(fromDate);
-            draftEntity.setToDate(toDate);
+            entity.setStorageCode(newStorageCode);
+            entity.setVersion(versionName);
+            entity.setStatus(RefBookVersionStatus.PUBLISHED);
+            entity.setFromDate(fromDate);
+            entity.setToDate(toDate);
 
-            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
+            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, entity.getId());
 
-            draftEntity.refreshLastActionDate();
-            versionRepository.save(draftEntity);
+            entity.refreshLastActionDate();
+            versionRepository.save(entity);
 
             // Заполнение результата публикации
-            result.setRefBookCode(draftEntity.getRefBook().getCode());
+            result.setRefBookCode(entity.getRefBook().getCode());
             result.setOldId(lastPublishedEntity != null ? lastPublishedEntity.getId() : null);
-            result.setNewId(draftId);
+            result.setNewId(entity.getId());
 
             // Обнаружение конфликтов
             // NB: Обнаружение должно быть до удаления хранилища oldStorageCode.
@@ -185,7 +185,7 @@ class BasePublishService {
             droppedDataStorages.add(oldStorageCode);
 
             if (lastPublishedEntity != null && lastStorageCode != null
-                    && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
+                    && entity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
 
                 replaceStorageCode(lastStorageCode, newStorageCode);
@@ -193,11 +193,11 @@ class BasePublishService {
             dropDataService.drop(droppedDataStorages);
 
             // Генерация файлов для опубликованной версии
-            saveVersionToFiles(draftId);
+            saveVersionToFiles(entity.getId());
 
             // Выполнение действий после публикации
             PostPublishRequest postRequest = new PostPublishRequest(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
-            postPublish(draftEntity.getRefBook().getCode(), postRequest);
+            postPublish(entity.getRefBook().getCode(), postRequest);
 
         } catch (Exception e) {
             // Откат создания хранилища
@@ -211,18 +211,12 @@ class BasePublishService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        auditLogService.addAction(AuditAction.PUBLICATION, () -> draftEntity);
+        auditLogService.addAction(AuditAction.PUBLICATION, () -> entity);
         if (enablePublishTopic) {
-            jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
+            jmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
         }
 
         return result;
-    }
-
-    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
-
-        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
-        return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
     }
 
     /** Проверка черновика на возможность публикации. */
