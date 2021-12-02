@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.strategy.publish;
 
 import com.querydsl.core.types.Predicate;
 import net.n2oapp.platform.i18n.UserException;
@@ -31,6 +31,8 @@ import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.service.AuditLogService;
+import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.service.*;
@@ -43,11 +45,12 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BasePublishServiceTest {
+public class DefaultBasePublishStrategyTest {
 
     private static final int REFBOOK_ID = 2;
     private static final String TEST_REF_BOOK = "test_ref_book";
@@ -56,7 +59,7 @@ public class BasePublishServiceTest {
     private static final String TEST_STORAGE_CODE = "test_storage_code";
 
     @InjectMocks
-    private BasePublishService basePublishService;
+    private DefaultBasePublishStrategy strategy;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -335,6 +338,6 @@ public class BasePublishServiceTest {
         request.setToDate(toDate);
         request.setResolveConflicts(resolveConflicts);
 
-        basePublishService.publish(entity, request);
+        strategy.publish(entity, request);
     }
 }
