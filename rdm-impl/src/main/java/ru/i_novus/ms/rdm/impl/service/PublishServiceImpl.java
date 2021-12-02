@@ -16,9 +16,13 @@ import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.Strategy;
+import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.io.Serializable;
@@ -40,10 +44,11 @@ public class PublishServiceImpl implements PublishService {
     private final RefBookVersionRepository versionRepository;
     private final RefBookConflictRepository conflictRepository;
 
-    private final BasePublishService basePublishService;
     private final ReferenceService referenceService;
 
     private final AuditLogService auditLogService;
+
+    private final StrategyLocator strategyLocator;
 
     private final AsyncOperationQueue asyncQueue;
 
@@ -51,17 +56,19 @@ public class PublishServiceImpl implements PublishService {
     @SuppressWarnings("squid:S00107")
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               RefBookConflictRepository conflictRepository,
-                              BasePublishService basePublishService,
                               ReferenceService referenceService,
                               AuditLogService auditLogService,
+                              StrategyLocator strategyLocator,
                               AsyncOperationQueue asyncQueue) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
-        this.basePublishService = basePublishService;
         this.referenceService = referenceService;
 
         this.auditLogService = auditLogService;
+
+        this.strategyLocator = strategyLocator;
+
         this.asyncQueue = asyncQueue;
     }
 
@@ -74,7 +81,7 @@ public class PublishServiceImpl implements PublishService {
     public void publish(Integer draftId, PublishRequest request) {
 
         RefBookVersionEntity entity = getVersionOrThrow(draftId);
-        PublishResponse response = basePublishService.publish(entity, request);
+        PublishResponse response = getStrategy(entity, BasePublishStrategy.class).publish(entity, request);
         if (response == null)
             return;
 
@@ -98,6 +105,12 @@ public class PublishServiceImpl implements PublishService {
 
         Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
         return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
+    }
+
+    private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
+
+        RefBookEntity refBookEntity = entity != null ? entity.getRefBook() : null;
+        return strategyLocator.getStrategy(refBookEntity != null ? refBookEntity.getType() : null, strategy);
     }
 
     /**
