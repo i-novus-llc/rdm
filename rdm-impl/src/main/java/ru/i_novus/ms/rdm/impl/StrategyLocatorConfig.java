@@ -11,6 +11,9 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
+import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.publish.DefaultBasePublishStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.publish.UnversionedBasePublishStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.structure.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
@@ -35,6 +38,8 @@ public class StrategyLocatorConfig {
     private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
     @Autowired @Lazy
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
+    @Autowired @Lazy
+    private DefaultBasePublishStrategy defaultBasePublishStrategy;
 
     // Version + Draft:
     @Autowired @Lazy
@@ -80,6 +85,8 @@ public class StrategyLocatorConfig {
     private UnversionedCreateRefBookEntityStrategy unversionedCreateRefBookEntityStrategy;
     @Autowired @Lazy
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
+    @Autowired @Lazy
+    private UnversionedBasePublishStrategy unversionedBasePublishStrategy;
 
     // Version + Draft:
     @Autowired @Lazy
@@ -137,6 +144,7 @@ public class StrategyLocatorConfig {
         result.put(CreateRefBookEntityStrategy.class, defaultCreateRefBookEntityStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
+        result.put(BasePublishStrategy.class, defaultBasePublishStrategy);
 
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
@@ -170,6 +178,7 @@ public class StrategyLocatorConfig {
         // RefBook:
         result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
+        result.put(BasePublishStrategy.class, unversionedBasePublishStrategy);
 
         // Version + Draft:
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
