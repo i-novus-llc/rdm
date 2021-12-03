@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 
 @Component
 public class DefaultAfterPublishStrategy implements AfterPublishStrategy {
+
+    private final RefBookVersionRepository versionRepository;
 
     private final AuditLogService auditLogService;
 
@@ -25,9 +28,12 @@ public class DefaultAfterPublishStrategy implements AfterPublishStrategy {
 
     @Autowired
     public DefaultAfterPublishStrategy(
+            RefBookVersionRepository versionRepository,
             AuditLogService auditLogService,
             @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate
     ) {
+        this.versionRepository = versionRepository;
+
         this.auditLogService = auditLogService;
         this.jmsTemplate = jmsTemplate;
     }
@@ -35,7 +41,9 @@ public class DefaultAfterPublishStrategy implements AfterPublishStrategy {
     @Override
     public void apply(RefBookVersionEntity entity, PublishResponse response) {
 
-        auditLogService.addAction(AuditAction.PUBLICATION, () -> entity);
+        // В аудите подтягиваются значения паспорта справочника (а у них lazy-инициализация),
+        // поэтому нужна транзакция (которой в этом методе нет) для их получения.
+        auditLogService.addAction(AuditAction.PUBLICATION, () -> versionRepository.findById(entity.getId()).orElse(null));
 
         if (enablePublishTopic) {
             jmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
