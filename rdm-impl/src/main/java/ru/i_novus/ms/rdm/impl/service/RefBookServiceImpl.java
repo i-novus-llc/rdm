@@ -380,7 +380,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (lastPublishedVersion != null) {
             model.setLastPublishedVersionId(lastPublishedVersion.getId());
             model.setLastPublishedVersion(lastPublishedVersion.getVersion());
-            model.setLastPublishedDate(lastPublishedVersion.getFromDate());
+            model.setLastPublishedDate(lastPublishedVersion.getPublishedDate());
         }
 
         final boolean hasReferrer = Boolean.TRUE.equals(modelData.getHasReferrer());

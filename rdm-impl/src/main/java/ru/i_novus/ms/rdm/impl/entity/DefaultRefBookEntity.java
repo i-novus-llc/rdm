@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import java.time.LocalDateTime;
 
 @Entity
 @DiscriminatorValue(RefBookTypeEnum.VALUES.DEFAULT)
@@ -29,5 +30,11 @@ public class DefaultRefBookEntity extends RefBookEntity {
 
         return version != null &&
                 RefBookVersionStatus.DRAFT.equals(version.getStatus());
+    }
+
+    @Override
+    public LocalDateTime getPublishedDate(RefBookVersionEntity publishedVersion) {
+
+        return publishedVersion != null ? publishedVersion.getFromDate() : null;
     }
 }

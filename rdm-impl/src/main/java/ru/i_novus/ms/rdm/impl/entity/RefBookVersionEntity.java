@@ -198,6 +198,15 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
+     * Получение даты публикации версии.
+     *
+     * @return Дата публикации
+     */
+    public LocalDateTime getPublishedDate() {
+        return refBook != null ? refBook.getPublishedDate(this) : null;
+    }
+
+    /**
      * Проверка отсутствия структуры.
      *
      * @return Результат проверки
