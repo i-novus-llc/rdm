@@ -161,7 +161,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
 
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, entity.getId());
 
-            entity.refreshLastActionDate();
+            entity.setLastActionDate(fromDate);
             versionRepository.save(entity);
 
             // Заполнение результата публикации

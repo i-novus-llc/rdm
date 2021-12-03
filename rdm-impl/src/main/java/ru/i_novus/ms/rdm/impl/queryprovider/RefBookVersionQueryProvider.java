@@ -250,15 +250,19 @@ public class RefBookVersionQueryProvider {
 
     private ComparableExpressionBase getLastPublishDateOrder(JPAQuery<RefBookVersionEntity> jpaQuery) {
 
-        QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_from_date");
+        QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_published_date");
         QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_max_version");
 
         jpaQuery.leftJoin(qSortFromDateVersion)
                 .on(QRefBookVersionEntity.refBookVersionEntity.refBook.eq(qSortFromDateVersion.refBook)
-                        .and(qSortFromDateVersion.fromDate.eq(JPAExpressions
-                                .select(whereVersion.fromDate.max()).from(whereVersion)
-                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)))));
-        return qSortFromDateVersion.fromDate;
+                        .and(qSortFromDateVersion.lastActionDate.eq(JPAExpressions
+                                .select(whereVersion.lastActionDate.max()).from(whereVersion)
+                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
+                                        .and(whereVersion.fromDate.isNotNull())
+                                )
+                        ))
+                );
+        return qSortFromDateVersion.lastActionDate;
     }
 
     /**
