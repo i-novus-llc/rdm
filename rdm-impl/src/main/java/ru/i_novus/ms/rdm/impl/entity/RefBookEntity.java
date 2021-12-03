@@ -4,7 +4,6 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,8 +102,6 @@ public abstract class RefBookEntity implements Serializable {
     public abstract RefBookVersionEntity createChangeableVersion();
 
     public abstract boolean isChangeableVersion(RefBookVersionEntity version);
-
-    public abstract LocalDateTime getPublishedDate(RefBookVersionEntity publishedVersion);
 
     @Override
     @SuppressWarnings("squid:S1067")

@@ -198,15 +198,6 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
-     * Получение даты публикации версии.
-     *
-     * @return Дата публикации
-     */
-    public LocalDateTime getPublishedDate() {
-        return refBook != null ? refBook.getPublishedDate(this) : null;
-    }
-
-    /**
      * Проверка отсутствия структуры.
      *
      * @return Результат проверки
@@ -231,6 +222,15 @@ public class RefBookVersionEntity implements Serializable {
      */
     public String getVersionNumber() {
         return isDraft() ? DRAFT_VERSION : getVersion();
+    }
+
+    /**
+     * Получение даты публикации версии.
+     *
+     * @return Дата публикации
+     */
+    public LocalDateTime getPublishedDate() {
+        return fromDate != null ? lastActionDate : null;
     }
 
     public void refreshLastActionDate() {
