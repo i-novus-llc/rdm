@@ -1,9 +1,7 @@
 package ru.i_novus.ms.rdm.api.async;
 
-import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.BaseTest;
-import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,15 +25,9 @@ public class AsyncOperationHandlerTest extends BaseTest {
 
         AsyncOperationHandler handler = new AsyncOperationHandler(emptyResolverList);
 
-        try {
-            handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REFBOOK_CODE,
-                    new Serializable[]{TEST_REFBOOK_VERSION_ID});
-            fail(getFailedMessage(NotFoundException.class));
-
-        } catch (UserException e) {
-            assertEquals(NotFoundException.class, e.getClass());
-            assertNotNull(getExceptionMessage(e));
-        }
+        Serializable result = handler.handle(AsyncOperationTypeEnum.L10N_PUBLICATION, TEST_REFBOOK_CODE,
+                new Serializable[]{TEST_REFBOOK_VERSION_ID});
+        assertNull(result);
     }
 
     @Test
