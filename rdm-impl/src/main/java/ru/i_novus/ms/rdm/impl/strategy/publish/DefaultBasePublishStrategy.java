@@ -4,8 +4,6 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,12 +22,10 @@ import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
-import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
-import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
@@ -68,17 +64,9 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     private final VersionValidation versionValidation;
     private final VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-    private final AuditLogService auditLogService;
-
     private final AsyncOperationQueue asyncQueue;
 
-    private final JmsTemplate jmsTemplate;
-
-    @Value("${rdm.publish.topic:publish_topic}")
-    private String publishTopic;
-
-    @Value("${rdm.enable.publish.topic:false}")
-    private boolean enablePublishTopic;
+    private final AfterPublishStrategy afterPublishStrategy;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -88,8 +76,8 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
             VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
             VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-            AuditLogService auditLogService, AsyncOperationQueue asyncQueue,
-            @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate
+            AsyncOperationQueue asyncQueue,
+            @Qualifier("defaultAfterPublishStrategy") AfterPublishStrategy afterPublishStrategy
     ) {
         this.versionRepository = versionRepository;
 
@@ -107,9 +95,9 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
         this.versionValidation = versionValidation;
         this.versionPeriodPublishValidation = versionPeriodPublishValidation;
 
-        this.auditLogService = auditLogService;
         this.asyncQueue = asyncQueue;
-        this.jmsTemplate = jmsTemplate;
+
+        this.afterPublishStrategy = afterPublishStrategy;
     }
 
     @Override
@@ -210,18 +198,9 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        afterPublish(entity);
+        afterPublishStrategy.apply(entity, result);
 
         return result;
-    }
-
-    private void afterPublish(RefBookVersionEntity entity) {
-
-        auditLogService.addAction(AuditAction.PUBLICATION, () -> entity);
-
-        if (enablePublishTopic) {
-            jmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
-        }
     }
 
     /** Проверка черновика на возможность публикации. */
