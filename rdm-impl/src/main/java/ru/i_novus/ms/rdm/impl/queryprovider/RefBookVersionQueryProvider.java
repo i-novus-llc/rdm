@@ -255,14 +255,12 @@ public class RefBookVersionQueryProvider {
 
         jpaQuery.leftJoin(qSortPublishedDateVersion)
                 .on(QRefBookVersionEntity.refBookVersionEntity.refBook.eq(qSortPublishedDateVersion.refBook)
-                        .and(qSortPublishedDateVersion.lastActionDate.eq(JPAExpressions
-                                .select(whereVersion.lastActionDate.max()).from(whereVersion)
-                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)
-                                        .and(whereVersion.fromDate.isNotNull()) // только опубликованные
-                                )
+                        .and(qSortPublishedDateVersion.fromDate.eq(JPAExpressions
+                                .select(whereVersion.fromDate.max()).from(whereVersion)
+                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))
                         ))
                 );
-        return qSortPublishedDateVersion.lastActionDate;
+        return qSortPublishedDateVersion.fromDate;
     }
 
     /**

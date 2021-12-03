@@ -116,6 +116,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     @Transactional
     public PublishResponse publish(RefBookVersionEntity entity, PublishRequest request) {
 
+        // Проверка черновика на возможность публикации
         if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
             return null;
 
@@ -161,7 +162,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
 
             resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, entity.getId());
 
-            entity.setLastActionDate(fromDate);
+            entity.refreshLastActionDate();
             versionRepository.save(entity);
 
             // Заполнение результата публикации
@@ -209,12 +210,18 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
+        afterPublish(entity);
+
+        return result;
+    }
+
+    private void afterPublish(RefBookVersionEntity entity) {
+
         auditLogService.addAction(AuditAction.PUBLICATION, () -> entity);
+
         if (enablePublishTopic) {
             jmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
         }
-
-        return result;
     }
 
     /** Проверка черновика на возможность публикации. */

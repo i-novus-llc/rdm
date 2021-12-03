@@ -224,15 +224,6 @@ public class RefBookVersionEntity implements Serializable {
         return isDraft() ? DRAFT_VERSION : getVersion();
     }
 
-    /**
-     * Получение даты публикации версии.
-     *
-     * @return Дата публикации
-     */
-    public LocalDateTime getPublishedDate() {
-        return fromDate != null ? lastActionDate : null;
-    }
-
     public void refreshLastActionDate() {
         setLastActionDate(TimeUtils.now());
     }
