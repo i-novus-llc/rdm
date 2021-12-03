@@ -11,9 +11,7 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.file.*;
-import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.publish.DefaultBasePublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.publish.UnversionedBasePublishStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.publish.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.structure.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.DefaultValidateVersionNotArchivedStrategy;
@@ -38,8 +36,6 @@ public class StrategyLocatorConfig {
     private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
     @Autowired @Lazy
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
-    @Autowired @Lazy
-    private DefaultBasePublishStrategy defaultBasePublishStrategy;
 
     // Version + Draft:
     @Autowired @Lazy
@@ -51,6 +47,12 @@ public class StrategyLocatorConfig {
     private DefaultCreateDraftEntityStrategy defaultCreateDraftEntityStrategy;
     @Autowired @Lazy
     private DefaultCreateDraftStorageStrategy defaultCreateDraftStorageStrategy;
+
+    // Publish:
+    @Autowired @Lazy
+    private DefaultBasePublishStrategy defaultBasePublishStrategy;
+    @Autowired @Lazy
+    private DefaultAfterPublishStrategy defaultAfterPublishStrategy;
 
     // Data:
     @Autowired @Lazy
@@ -85,14 +87,16 @@ public class StrategyLocatorConfig {
     private UnversionedCreateRefBookEntityStrategy unversionedCreateRefBookEntityStrategy;
     @Autowired @Lazy
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
-    @Autowired @Lazy
-    private UnversionedBasePublishStrategy unversionedBasePublishStrategy;
 
     // Version + Draft:
     @Autowired @Lazy
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
     @Autowired @Lazy
     private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
+
+    // Publish:
+    @Autowired @Lazy
+    private UnversionedBasePublishStrategy unversionedBasePublishStrategy;
 
     // Data:
     @Autowired @Lazy
@@ -144,13 +148,16 @@ public class StrategyLocatorConfig {
         result.put(CreateRefBookEntityStrategy.class, defaultCreateRefBookEntityStrategy);
         result.put(CreateFirstVersionStrategy.class, defaultCreateFirstVersionStrategy);
         result.put(CreateFirstStorageStrategy.class, defaultCreateFirstStorageStrategy);
-        result.put(BasePublishStrategy.class, defaultBasePublishStrategy);
 
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, defaultValidateVersionNotArchivedStrategy);
         result.put(FindDraftEntityStrategy.class, defaultFindDraftEntityStrategy);
         result.put(CreateDraftEntityStrategy.class, defaultCreateDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, defaultCreateDraftStorageStrategy);
+
+        // Publish:
+        result.put(BasePublishStrategy.class, defaultBasePublishStrategy);
+        result.put(AfterPublishStrategy.class, defaultAfterPublishStrategy);
 
         // Data:
         result.put(AddRowValuesStrategy.class, defaultAddRowValuesStrategy);
@@ -178,11 +185,13 @@ public class StrategyLocatorConfig {
         // RefBook:
         result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, unversionedCreateFirstStorageStrategy);
-        result.put(BasePublishStrategy.class, unversionedBasePublishStrategy);
 
         // Version + Draft:
         result.put(FindDraftEntityStrategy.class, unversionedFindDraftEntityStrategy);
         result.put(CreateDraftStorageStrategy.class, unversionedCreateDraftStorageStrategy);
+
+        // Publish:
+        result.put(BasePublishStrategy.class, unversionedBasePublishStrategy);
 
         // Data:
         result.put(AddRowValuesStrategy.class, unversionedAddRowValuesStrategy);
