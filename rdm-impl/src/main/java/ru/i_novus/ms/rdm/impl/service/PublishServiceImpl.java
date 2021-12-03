@@ -14,6 +14,7 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
@@ -46,6 +47,8 @@ public class PublishServiceImpl implements PublishService {
 
     private final ReferenceService referenceService;
 
+    private final VersionValidation versionValidation;
+
     private final AuditLogService auditLogService;
 
     private final StrategyLocator strategyLocator;
@@ -57,6 +60,7 @@ public class PublishServiceImpl implements PublishService {
     public PublishServiceImpl(RefBookVersionRepository versionRepository,
                               RefBookConflictRepository conflictRepository,
                               ReferenceService referenceService,
+                              VersionValidation versionValidation,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator,
                               AsyncOperationQueue asyncQueue) {
@@ -64,6 +68,8 @@ public class PublishServiceImpl implements PublishService {
         this.conflictRepository = conflictRepository;
 
         this.referenceService = referenceService;
+
+        this.versionValidation = versionValidation;
 
         this.auditLogService = auditLogService;
 
@@ -79,6 +85,8 @@ public class PublishServiceImpl implements PublishService {
      */
     @Override
     public void publish(Integer draftId, PublishRequest request) {
+
+        versionValidation.validateDraftNotArchived(draftId);
 
         RefBookVersionEntity entity = getVersionOrThrow(draftId);
         PublishResponse response = getStrategy(entity, BasePublishStrategy.class).publish(entity, request);

@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
+import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
@@ -38,6 +39,9 @@ public class PublishServiceTest {
 
     @Mock
     private ReferenceService referenceService;
+
+    @Mock
+    private VersionValidation versionValidation;
 
     @Mock
     private AuditLogService auditLogService;

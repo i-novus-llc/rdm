@@ -220,8 +220,6 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     /** Проверка черновика на возможность публикации. */
     private void validatePublishingDraft(RefBookVersionEntity draftEntity) {
 
-        versionValidation.validateDraftNotArchived(draftEntity.getId());
-
         if (draftEntity.hasEmptyStructure())
             throw new UserException(new Message(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, draftEntity.getRefBook().getCode()));
 
