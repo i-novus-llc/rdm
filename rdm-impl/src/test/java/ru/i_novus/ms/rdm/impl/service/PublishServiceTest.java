@@ -52,7 +52,7 @@ public class PublishServiceTest {
     public void setUp() throws NoSuchFieldException {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(service, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        FieldSetter.setField(service, PublishServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test
