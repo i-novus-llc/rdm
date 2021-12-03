@@ -29,8 +29,8 @@ public class RefBook extends RefBookVersion {
     @ApiModelProperty("Последняя опубликованная версия")
     private String lastPublishedVersion;
 
-    @ApiModelProperty("Дата публикации последней версии")
-    private LocalDateTime lastPublishedVersionFromDate;
+    @ApiModelProperty("Дата последней публикации")
+    private LocalDateTime lastPublishedDate;
 
     @ApiModelProperty("Наличие первичного ключа")
     private Boolean hasPrimaryAttribute;
@@ -69,7 +69,7 @@ public class RefBook extends RefBookVersion {
         this.draftVersionId = refBook.draftVersionId;
         this.lastPublishedVersionId = refBook.lastPublishedVersionId;
         this.lastPublishedVersion = refBook.lastPublishedVersion;
-        this.lastPublishedVersionFromDate = refBook.lastPublishedVersionFromDate;
+        this.lastPublishedDate = refBook.lastPublishedDate;
 
         this.hasPrimaryAttribute = refBook.hasPrimaryAttribute;
         this.hasReferrer = refBook.hasReferrer;
@@ -123,12 +123,12 @@ public class RefBook extends RefBookVersion {
         this.lastPublishedVersion = lastPublishedVersion;
     }
 
-    public LocalDateTime getLastPublishedVersionFromDate() {
-        return lastPublishedVersionFromDate;
+    public LocalDateTime getLastPublishedDate() {
+        return lastPublishedDate;
     }
 
-    public void setLastPublishedVersionFromDate(LocalDateTime lastPublishedVersionFromDate) {
-        this.lastPublishedVersionFromDate = lastPublishedVersionFromDate;
+    public void setLastPublishedDate(LocalDateTime lastPublishedDate) {
+        this.lastPublishedDate = lastPublishedDate;
     }
 
     public Boolean getHasPrimaryAttribute() {
@@ -199,7 +199,7 @@ public class RefBook extends RefBookVersion {
                 Objects.equals(draftVersionId, that.draftVersionId) &&
                 Objects.equals(lastPublishedVersionId, that.lastPublishedVersionId) &&
                 Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
-                Objects.equals(lastPublishedVersionFromDate, that.lastPublishedVersionFromDate) &&
+                Objects.equals(lastPublishedDate, that.lastPublishedDate) &&
                 Objects.equals(hasPrimaryAttribute, that.hasPrimaryAttribute) &&
                 Objects.equals(hasReferrer, that.hasReferrer) &&
                 Objects.equals(hasDataConflict, that.hasDataConflict) &&
@@ -214,7 +214,7 @@ public class RefBook extends RefBookVersion {
         return Objects.hash(super.hashCode(),
                 currentOperation, removable,
                 draftVersionId, lastPublishedVersionId,
-                lastPublishedVersion, lastPublishedVersionFromDate,
+                lastPublishedVersion, lastPublishedDate,
                 hasPrimaryAttribute, hasReferrer,
                 hasDataConflict,
                 hasUpdatedConflict, hasAlteredConflict, hasStructureConflict,

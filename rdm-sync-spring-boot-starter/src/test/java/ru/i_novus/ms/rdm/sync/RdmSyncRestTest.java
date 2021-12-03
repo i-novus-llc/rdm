@@ -95,7 +95,7 @@ public class RdmSyncRestTest {
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(0), true);
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1), true);
-        verify(dao).updateVersionMapping(versionMapping.getId(), firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate());
+        verify(dao).updateVersionMapping(versionMapping.getId(), firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedDate());
     }
 
     /**
@@ -106,7 +106,7 @@ public class RdmSyncRestTest {
     public void testUpdate() {
         RefBook firstVersion = createFirstRdmVersion();
         RefBook secondVersion = createSecondRdmVersion();
-        VersionMapping versionMapping = new VersionMapping(1, "TEST", firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null);
+        VersionMapping versionMapping = new VersionMapping(1, "TEST", firstVersion.getLastPublishedVersion(), firstVersion.getLastPublishedDate(), "test_table", "id", "is_deleted", null, null);
         List<FieldMapping> fieldMappings = createFieldMappings();
         Page<RefBookRowValue> data = createSecondRdmData();
         List<Map<String, Object>> dataMap = createSecondVerifyDataMap();
@@ -127,7 +127,7 @@ public class RdmSyncRestTest {
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), true, true);
         verify(dao).insertRow(versionMapping.getTable(), dataMap.get(1), true);
-        verify(dao).updateVersionMapping(versionMapping.getId(), secondVersion.getLastPublishedVersion(), secondVersion.getLastPublishedVersionFromDate());
+        verify(dao).updateVersionMapping(versionMapping.getId(), secondVersion.getLastPublishedVersion(), secondVersion.getLastPublishedDate());
     }
 
     /**
@@ -138,7 +138,7 @@ public class RdmSyncRestTest {
     public void testInsert() {
         RefBook oldVersion = createSecondRdmVersion();
         RefBook newVersion = createThirdRdmVersion();
-        VersionMapping versionMapping = new VersionMapping(1, "TEST", oldVersion.getLastPublishedVersion(), oldVersion.getLastPublishedVersionFromDate(), "test_table", "id", "is_deleted", null, null);
+        VersionMapping versionMapping = new VersionMapping(1, "TEST", oldVersion.getLastPublishedVersion(), oldVersion.getLastPublishedDate(), "test_table", "id", "is_deleted", null, null);
         List<FieldMapping> fieldMappings = createFieldMappings();
         Page<RefBookRowValue> data = createThirdRdmData();
         List<Map<String, Object>> dataMap = createThirdVerifyDataMap();
@@ -156,7 +156,7 @@ public class RdmSyncRestTest {
         rdmSyncRest.update(versionMapping.getCode());
         verify(dao).markDeleted(versionMapping.getTable(), versionMapping.getPrimaryField(), versionMapping.getDeletedField(), BigInteger.valueOf(1L), false, true);
         verify(dao).updateRow(versionMapping.getTable(), versionMapping.getPrimaryField(), dataMap.get(2), true);
-        verify(dao).updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+        verify(dao).updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedDate());
     }
 
     @Test
@@ -181,7 +181,7 @@ public class RdmSyncRestTest {
         RefBook lastPublished = new RefBook();
         lastPublished.setId(1);
         lastPublished.setVersion("1.0");
-        lastPublished.setLastPublishedVersionFromDate(version1Publication.atDate(date));
+        lastPublished.setLastPublishedDate(version1Publication.atDate(date));
         lastPublished.setCode(code);
         lastPublished.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary(primaryField, primaryField, FieldType.INTEGER, "")), emptyList()));
         VersionMapping vm = new VersionMapping(1, code, null, null, table, primaryField, deletedField, LocalDateTime.MIN, LocalDateTime.MIN);
@@ -217,7 +217,7 @@ public class RdmSyncRestTest {
         List<Structure.Attribute> newStructure = new ArrayList<>(lastPublished.getStructure().getAttributes());
         newStructure.add(addedAttr);
         lastPublished.setStructure(new Structure(newStructure, emptyList()));
-        lastPublished.setLastPublishedVersionFromDate(version2Publication.atDate(date));
+        lastPublished.setLastPublishedDate(version2Publication.atDate(date));
         String addedVal1 = "ABRA";
         String addedVal2 = "CADABRA";
         row1version1.put(addedField, addedVal1);
@@ -262,7 +262,7 @@ public class RdmSyncRestTest {
         refBook.setId(1);
         refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.0");
-        refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
+        refBook.setLastPublishedDate(LocalDateTime.of(2019, Month.FEBRUARY, 26, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
         idAttribute.setIsPrimary(true);
@@ -275,7 +275,7 @@ public class RdmSyncRestTest {
         refBook.setId(2);
         refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.1");
-        refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
+        refBook.setLastPublishedDate(LocalDateTime.of(2019, Month.FEBRUARY, 27, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
         idAttribute.setIsPrimary(true);
@@ -288,7 +288,7 @@ public class RdmSyncRestTest {
         refBook.setId(3);
         refBook.setCode("TEST");
         refBook.setLastPublishedVersion("1.2");
-        refBook.setLastPublishedVersionFromDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
+        refBook.setLastPublishedDate(LocalDateTime.of(2019, Month.MARCH, 7, 10, 0));
         Structure.Attribute idAttribute = Structure.Attribute.build("id", null, FieldType.INTEGER, null);
         Structure.Attribute nameAttribute = Structure.Attribute.build("name", null, FieldType.STRING, null);
         idAttribute.setIsPrimary(true);

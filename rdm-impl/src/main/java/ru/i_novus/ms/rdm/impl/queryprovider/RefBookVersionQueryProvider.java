@@ -41,7 +41,7 @@ public class RefBookVersionQueryProvider {
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refBookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
     private static final String REF_BOOK_DISPLAY_CODE_SORT_PROPERTY = "displayCode";
-    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedVersionFromDate";
+    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedDate";
     public static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 

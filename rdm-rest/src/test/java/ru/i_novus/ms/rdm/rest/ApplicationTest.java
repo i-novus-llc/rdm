@@ -439,7 +439,7 @@ public class ApplicationTest {
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(r -> {
             assertFalse(r.getArchived());
-            assertNotNull(r.getLastPublishedVersionFromDate());
+            assertNotNull(r.getLastPublishedDate());
             assertFalse(r.getRemovable());
         });
     }
@@ -460,10 +460,10 @@ public class ApplicationTest {
         search = refBookService.search(fromDateCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(refBook -> {
-            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateBegin)
-                    || refBook.getLastPublishedVersionFromDate().isAfter(fromDateBegin));
-            assertTrue(refBook.getLastPublishedVersionFromDate().equals(fromDateEnd)
-                    || refBook.getLastPublishedVersionFromDate().isBefore(fromDateEnd));
+            assertTrue(refBook.getLastPublishedDate().equals(fromDateBegin)
+                    || refBook.getLastPublishedDate().isAfter(fromDateBegin));
+            assertTrue(refBook.getLastPublishedDate().equals(fromDateEnd)
+                    || refBook.getLastPublishedDate().isBefore(fromDateEnd));
         });
 
         // Поиск по дате последней публикации
@@ -480,8 +480,8 @@ public class ApplicationTest {
         search = refBookService.search(onlyFromDateBeginCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(refBook ->
-                assertTrue(refBook.getLastPublishedVersionFromDate().equals(onlyFromDateBegin)
-                        || refBook.getLastPublishedVersionFromDate().isAfter(onlyFromDateBegin))
+                assertTrue(refBook.getLastPublishedDate().equals(onlyFromDateBegin)
+                        || refBook.getLastPublishedDate().isAfter(onlyFromDateBegin))
         );
     }
 
@@ -2818,7 +2818,7 @@ public class ApplicationTest {
         assertEquals(expected.getRemovable(), actual.getRemovable());
         assertEquals(expected.getArchived(), actual.getArchived());
         assertEquals(expected.getFromDate(), actual.getFromDate());
-        assertEquals(expected.getLastPublishedVersionFromDate(), actual.getLastPublishedVersionFromDate());
+        assertEquals(expected.getLastPublishedDate(), actual.getLastPublishedDate());
     }
 
     private void assertPassportEqual(Map<String, String> expected, Map<String, String> actual) {

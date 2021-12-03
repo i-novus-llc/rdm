@@ -140,11 +140,11 @@
             </filters>
         </field>
 
-        <field id="lastPublishedVersionFromDate" domain="date">
+        <field id="lastPublishedDate" domain="date">
             <select/>
             <filters>
-                <more filter-id="lastPublishedVersionFromDateInterval.begin" mapping="fromDateBegin"/>
-                <less filter-id="lastPublishedVersionFromDateInterval.end" mapping="fromDateEnd"/>
+                <more filter-id="lastPublishedDateInterval.begin" mapping="fromDateBegin"/>
+                <less filter-id="lastPublishedDateInterval.end" mapping="fromDateEnd"/>
             </filters>
             <sorting/>
         </field>

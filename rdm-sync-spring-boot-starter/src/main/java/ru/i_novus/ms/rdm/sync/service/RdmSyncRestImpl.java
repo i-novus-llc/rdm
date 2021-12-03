@@ -142,7 +142,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
                 uploadNew(versionMapping, newVersion);
             }
             //обновляем версию в таблице версий клиента
-            dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedVersionFromDate());
+            dao.updateVersionMapping(versionMapping.getId(), newVersion.getLastPublishedVersion(), newVersion.getLastPublishedDate());
         } finally {
             dao.enableInternalLocalRowStateUpdateTrigger(versionMapping.getTable());
         }
@@ -159,7 +159,7 @@ public class RdmSyncRestImpl implements RdmSyncRest {
 
     private boolean isNewVersionPublished(RefBook newVersion, VersionMapping versionMapping) {
         return !versionMapping.getVersion().equals(newVersion.getLastPublishedVersion())
-                && !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedVersionFromDate());
+                && !versionMapping.getPublicationDate().equals(newVersion.getLastPublishedDate());
     }
 
     private boolean isMappingChanged(VersionMapping versionMapping) {
