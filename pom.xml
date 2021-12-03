@@ -4,7 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>3.3.2-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -61,7 +61,6 @@
 
     <modules>
         <module>rdm-api</module>
-        <module>rdm-sync-spring-boot-starter</module>
     </modules>
 
     <dependencies>
