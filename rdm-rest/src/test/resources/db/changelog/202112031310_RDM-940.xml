@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202112031310_RDM-940_1_0" author="arahmatullin" dbms="postgresql">
+        <comment>Простановка даты последнего изменения для опубликованных версий</comment>
+        <sql>
+            UPDATE n2o_rdm_management.ref_book_version v
+               SET last_action_date = v.from_date
+             WHERE v.from_date is not null;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
