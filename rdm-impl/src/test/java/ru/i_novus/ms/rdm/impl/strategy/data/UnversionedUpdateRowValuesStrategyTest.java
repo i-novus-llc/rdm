@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -53,6 +54,9 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
 
     @Mock
     private UpdateRowValuesStrategy updateRowValuesStrategy;
+
+    @Mock
+    private EditPublishStrategy editPublishStrategy;
 
     @Mock
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
@@ -133,10 +137,12 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
 
         // .update
         strategy.update(entity, oldRowValues, newRowValues);
+
         verify(updateRowValuesStrategy).update(eq(entity),
                 eq(oldRowValues.subList(0, oldRowValues.size())),
                 eq(newRowValues.subList(0, newRowValues.size()))
         );
+        verify(editPublishStrategy).publish(entity);
 
         verifyFindReferrers(versionRepository);
 
@@ -169,7 +175,8 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
                         eq(oldRowValues.subList(oldRowValues.size() - 1, oldRowValues.size()))
                 );
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, draftDataService, searchDataService,
+        verifyNoMoreInteractions(versionRepository, conflictRepository,
+                draftDataService, searchDataService, editPublishStrategy,
                 unversionedAddRowValuesStrategy, unversionedDeleteRowValuesStrategy);
     }
 
