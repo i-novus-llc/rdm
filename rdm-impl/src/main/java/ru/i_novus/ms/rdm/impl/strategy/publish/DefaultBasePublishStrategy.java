@@ -237,9 +237,12 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
 
         entities.forEach(entity -> {
             if (fromDate.isAfter(entity.getFromDate())) {
+                // Опубликованные ранее версии закрываем:
                 entity.setToDate(fromDate);
                 versionRepository.save(entity);
+
             } else {
+                // Опубликованные поздее - удаляем:
                 versionRepository.deleteById(entity.getId());
             }
         });
