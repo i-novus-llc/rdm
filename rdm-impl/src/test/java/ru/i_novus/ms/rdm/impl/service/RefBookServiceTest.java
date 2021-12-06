@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
@@ -89,6 +90,8 @@ public class RefBookServiceTest {
     private CreateFirstVersionStrategy createFirstVersionStrategy;
     @Mock
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
+    @Mock
+    private EditPublishStrategy editPublishStrategy;
 
     @Before
     public void setUp() throws NoSuchFieldException {
@@ -410,8 +413,12 @@ public class RefBookServiceTest {
         result.put(CreateRefBookEntityStrategy.class, createRefBookEntityStrategy);
         result.put(CreateFirstStorageStrategy.class, createFirstStorageStrategy);
         result.put(CreateFirstVersionStrategy.class, createFirstVersionStrategy);
+
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
+
+        // Publish:
+        result.put(EditPublishStrategy.class, editPublishStrategy);
 
         return result;
     }
