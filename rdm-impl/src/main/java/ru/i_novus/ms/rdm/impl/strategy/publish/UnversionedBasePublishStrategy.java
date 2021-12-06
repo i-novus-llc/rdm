@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.strategy.publish;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -27,6 +28,7 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
     private VersionValidation versionValidation;
 
     @Autowired
+    @Qualifier("defaultAfterPublishStrategy")
     private AfterPublishStrategy afterPublishStrategy;
 
     @Override

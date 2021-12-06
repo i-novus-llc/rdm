@@ -16,7 +16,7 @@ public class UnversionedEditPublishStrategy implements EditPublishStrategy {
 
     @Autowired
     @Qualifier("unversionedBasePublishStrategy")
-    private BasePublishStrategy unversionedBasePublishStrategy;
+    private BasePublishStrategy basePublishStrategy;
 
     @Override
     @Transactional
@@ -25,6 +25,6 @@ public class UnversionedEditPublishStrategy implements EditPublishStrategy {
         PublishRequest request = new PublishRequest();
         request.setOptLockValue(entity.getOptLockValue());
 
-        return unversionedBasePublishStrategy.publish(entity, request);
+        return basePublishStrategy.publish(entity, request);
     }
 }
