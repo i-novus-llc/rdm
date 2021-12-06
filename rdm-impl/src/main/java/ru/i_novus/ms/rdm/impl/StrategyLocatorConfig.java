@@ -53,6 +53,8 @@ public class StrategyLocatorConfig {
     private DefaultBasePublishStrategy defaultBasePublishStrategy;
     @Autowired @Lazy
     private DefaultAfterPublishStrategy defaultAfterPublishStrategy;
+    @Autowired @Lazy
+    private DefaultEditPublishStrategy defaultEditPublishStrategy;
 
     // Data:
     @Autowired @Lazy
@@ -97,6 +99,8 @@ public class StrategyLocatorConfig {
     // Publish:
     @Autowired @Lazy
     private UnversionedBasePublishStrategy unversionedBasePublishStrategy;
+    @Autowired @Lazy
+    private UnversionedEditPublishStrategy unversionedEditPublishStrategy;
 
     // Data:
     @Autowired @Lazy
@@ -158,6 +162,7 @@ public class StrategyLocatorConfig {
         // Publish:
         result.put(BasePublishStrategy.class, defaultBasePublishStrategy);
         result.put(AfterPublishStrategy.class, defaultAfterPublishStrategy);
+        result.put(EditPublishStrategy.class, defaultEditPublishStrategy);
 
         // Data:
         result.put(AddRowValuesStrategy.class, defaultAddRowValuesStrategy);
@@ -192,6 +197,7 @@ public class StrategyLocatorConfig {
 
         // Publish:
         result.put(BasePublishStrategy.class, unversionedBasePublishStrategy);
+        result.put(EditPublishStrategy.class, unversionedEditPublishStrategy);
 
         // Data:
         result.put(AddRowValuesStrategy.class, unversionedAddRowValuesStrategy);
