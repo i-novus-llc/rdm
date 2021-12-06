@@ -79,8 +79,8 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     private AsyncOperationQueue asyncQueue;
 
     @Autowired
-    @Qualifier("defaultAfterPublishStrategy")
-    private AfterPublishStrategy afterPublishStrategy;
+    @Qualifier("defaultPublishEndStrategy")
+    private PublishEndStrategy publishEndStrategy;
 
     @Override
     @Transactional
@@ -180,7 +180,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        afterPublishStrategy.apply(entity, result);
+        publishEndStrategy.apply(entity, result);
 
         return result;
     }

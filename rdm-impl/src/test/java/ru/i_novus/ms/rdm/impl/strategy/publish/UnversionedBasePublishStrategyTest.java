@@ -45,7 +45,7 @@ public class UnversionedBasePublishStrategyTest {
     private VersionValidation versionValidation;
 
     @Mock
-    private AfterPublishStrategy afterPublishStrategy;
+    private PublishEndStrategy publishEndStrategy;
 
     @Test
     public void testPublish() {

@@ -12,7 +12,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 
 @Component
-public class DefaultAfterPublishStrategy implements AfterPublishStrategy {
+public class DefaultPublishEndStrategy implements PublishEndStrategy {
 
     private final RefBookVersionRepository versionRepository;
 
@@ -27,7 +27,7 @@ public class DefaultAfterPublishStrategy implements AfterPublishStrategy {
     private boolean enablePublishTopic;
 
     @Autowired
-    public DefaultAfterPublishStrategy(
+    public DefaultPublishEndStrategy(
             RefBookVersionRepository versionRepository,
             AuditLogService auditLogService,
             @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate

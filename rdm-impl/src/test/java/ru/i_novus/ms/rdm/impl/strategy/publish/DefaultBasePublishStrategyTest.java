@@ -102,7 +102,7 @@ public class DefaultBasePublishStrategyTest {
     private AsyncOperationQueue asyncQueue;
 
     @Mock
-    private AfterPublishStrategy afterPublishStrategy;
+    private PublishEndStrategy publishEndStrategy;
 
     @Before
     public void setUp() {

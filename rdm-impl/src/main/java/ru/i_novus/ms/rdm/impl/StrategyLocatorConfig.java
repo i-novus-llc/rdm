@@ -52,7 +52,7 @@ public class StrategyLocatorConfig {
     @Autowired @Lazy
     private DefaultBasePublishStrategy defaultBasePublishStrategy;
     @Autowired @Lazy
-    private DefaultAfterPublishStrategy defaultAfterPublishStrategy;
+    private DefaultPublishEndStrategy defaultAfterPublishStrategy;
     @Autowired @Lazy
     private DefaultEditPublishStrategy defaultEditPublishStrategy;
 
@@ -161,7 +161,7 @@ public class StrategyLocatorConfig {
 
         // Publish:
         result.put(BasePublishStrategy.class, defaultBasePublishStrategy);
-        result.put(AfterPublishStrategy.class, defaultAfterPublishStrategy);
+        result.put(PublishEndStrategy.class, defaultAfterPublishStrategy);
         result.put(EditPublishStrategy.class, defaultEditPublishStrategy);
 
         // Data:

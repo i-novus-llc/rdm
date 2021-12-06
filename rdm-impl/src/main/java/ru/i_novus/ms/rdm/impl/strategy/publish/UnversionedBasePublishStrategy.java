@@ -27,8 +27,8 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
     private VersionValidation versionValidation;
 
     @Autowired
-    @Qualifier("defaultAfterPublishStrategy")
-    private AfterPublishStrategy afterPublishStrategy;
+    @Qualifier("defaultPublishEndStrategy")
+    private PublishEndStrategy publishEndStrategy;
 
     @Override
     @Transactional
@@ -61,7 +61,7 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        afterPublishStrategy.apply(entity, result);
+        publishEndStrategy.apply(entity, result);
 
         // Запрет разрешения конфликтов
         // (до реализации стратегий разрешения после публикации).
