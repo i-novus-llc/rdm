@@ -7,6 +7,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -19,6 +20,9 @@ public class UnversionedDeleteAttributeStrategyTest extends UnversionedBaseStrat
 
     @Mock
     private DeleteAttributeStrategy deleteAttributeStrategy;
+
+    @Mock
+    private EditPublishStrategy editPublishStrategy;
 
     @Mock
     private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
@@ -42,6 +46,7 @@ public class UnversionedDeleteAttributeStrategyTest extends UnversionedBaseStrat
         assertEquals(oldAttribute, attribute); // Удалённый атрибут
 
         verify(deleteAttributeStrategy).delete(entity, request);
+        verify(editPublishStrategy).publish(entity);
 
         verify(unversionedChangeStructureStrategy).hasReferrerVersions(entity);
         verify(unversionedChangeStructureStrategy).validatePrimariesEquality(
@@ -49,6 +54,6 @@ public class UnversionedDeleteAttributeStrategyTest extends UnversionedBaseStrat
         );
         verify(unversionedChangeStructureStrategy).processReferrers(entity);
 
-        verifyNoMoreInteractions(deleteAttributeStrategy, unversionedChangeStructureStrategy);
+        verifyNoMoreInteractions(deleteAttributeStrategy, editPublishStrategy, unversionedChangeStructureStrategy);
     }
 }
