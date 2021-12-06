@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
@@ -34,10 +33,6 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
     @Override
     @Transactional
     public PublishResponse publish(RefBookVersionEntity entity, PublishRequest request) {
-
-        // Проверка черновика на возможность публикации
-        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
-            return null;
 
         // Предварительное заполнение значений
         PublishResponse result = new PublishResponse();
