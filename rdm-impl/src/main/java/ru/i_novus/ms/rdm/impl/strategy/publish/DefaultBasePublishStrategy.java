@@ -48,57 +48,39 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
-    private final RefBookVersionRepository versionRepository;
-
-    private final DraftDataService draftDataService;
-    private final SearchDataService searchDataService;
-    private final DropDataService dropDataService;
-
-    private final RefBookLockService refBookLockService;
-    private final VersionService versionService;
-    private final ConflictService conflictService;
-
-    private final VersionFileService versionFileService;
-    private final VersionNumberStrategy versionNumberStrategy;
-
-    private final VersionValidation versionValidation;
-    private final VersionPeriodPublishValidation versionPeriodPublishValidation;
-
-    private final AsyncOperationQueue asyncQueue;
-
-    private final AfterPublishStrategy afterPublishStrategy;
+    @Autowired
+    private RefBookVersionRepository versionRepository;
 
     @Autowired
-    @SuppressWarnings("squid:S00107")
-    public DefaultBasePublishStrategy(
-            RefBookVersionRepository versionRepository,
-            DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
-            RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
-            VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-            VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-            AsyncOperationQueue asyncQueue,
-            @Qualifier("defaultAfterPublishStrategy") AfterPublishStrategy afterPublishStrategy
-    ) {
-        this.versionRepository = versionRepository;
+    private DraftDataService draftDataService;
+    @Autowired
+    private SearchDataService searchDataService;
+    @Autowired
+    private DropDataService dropDataService;
 
-        this.draftDataService = draftDataService;
-        this.searchDataService = searchDataService;
-        this.dropDataService = dropDataService;
+    @Autowired
+    private RefBookLockService refBookLockService;
+    @Autowired
+    private VersionService versionService;
+    @Autowired
+    private ConflictService conflictService;
 
-        this.refBookLockService = refBookLockService;
-        this.versionService = versionService;
-        this.conflictService = conflictService;
+    @Autowired
+    private VersionFileService versionFileService;
+    @Autowired
+    private VersionNumberStrategy versionNumberStrategy;
 
-        this.versionFileService = versionFileService;
-        this.versionNumberStrategy = versionNumberStrategy;
+    @Autowired
+    private VersionValidation versionValidation;
+    @Autowired
+    private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-        this.versionValidation = versionValidation;
-        this.versionPeriodPublishValidation = versionPeriodPublishValidation;
+    @Autowired
+    private AsyncOperationQueue asyncQueue;
 
-        this.asyncQueue = asyncQueue;
-
-        this.afterPublishStrategy = afterPublishStrategy;
-    }
+    @Autowired
+    @Qualifier("defaultAfterPublishStrategy")
+    private AfterPublishStrategy afterPublishStrategy;
 
     @Override
     @Transactional

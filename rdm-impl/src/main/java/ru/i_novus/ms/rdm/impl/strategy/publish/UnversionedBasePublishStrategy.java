@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.publish;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -17,28 +17,17 @@ import java.time.LocalDateTime;
 @Component
 public class UnversionedBasePublishStrategy implements BasePublishStrategy {
 
-    private final RefBookVersionRepository versionRepository;
+    @Autowired
+    private RefBookVersionRepository versionRepository;
 
-    private final RefBookLockService refBookLockService;
+    @Autowired
+    private RefBookLockService refBookLockService;
 
-    private final VersionValidation versionValidation;
+    @Autowired
+    private VersionValidation versionValidation;
 
-    private final AfterPublishStrategy afterPublishStrategy;
-
-    public UnversionedBasePublishStrategy(
-            RefBookVersionRepository versionRepository,
-            RefBookLockService refBookLockService,
-            VersionValidation versionValidation,
-            @Qualifier("defaultAfterPublishStrategy") AfterPublishStrategy afterPublishStrategy
-    ) {
-        this.versionRepository = versionRepository;
-
-        this.refBookLockService = refBookLockService;
-
-        this.versionValidation = versionValidation;
-
-        this.afterPublishStrategy = afterPublishStrategy;
-    }
+    @Autowired
+    private AfterPublishStrategy afterPublishStrategy;
 
     @Override
     @Transactional
