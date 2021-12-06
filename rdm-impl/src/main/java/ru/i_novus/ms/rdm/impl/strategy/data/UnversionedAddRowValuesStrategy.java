@@ -13,6 +13,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -45,10 +46,15 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
     @Qualifier("defaultAddRowValuesStrategy")
     private AddRowValuesStrategy addRowValuesStrategy;
 
+    @Autowired
+    @Qualifier("unversionedEditPublishStrategy")
+    private EditPublishStrategy editPublishStrategy;
+
     @Override
     public void add(RefBookVersionEntity entity, List<RowValue> rowValues) {
 
         addRowValuesStrategy.add(entity, rowValues);
+        editPublishStrategy.publish(entity);
 
         processReferrers(entity, rowValues);
     }
