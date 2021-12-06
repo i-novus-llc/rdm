@@ -4,6 +4,9 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
+/**
+ * Стратегия для действий после публикации справочника.
+ */
 public interface AfterPublishStrategy extends Strategy {
 
     /**

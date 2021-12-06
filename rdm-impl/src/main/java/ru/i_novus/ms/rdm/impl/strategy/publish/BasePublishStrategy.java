@@ -5,6 +5,9 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
+/**
+ * Базовая стратегия публикации справочника.
+ */
 public interface BasePublishStrategy extends Strategy {
 
     /**
