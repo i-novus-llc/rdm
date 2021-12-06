@@ -12,7 +12,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -31,7 +30,6 @@ import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
-import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -103,13 +101,10 @@ public class DefaultBasePublishStrategyTest {
     private FieldFactory fieldFactory;
 
     @Mock
-    private AuditLogService auditLogService;
-
-    @Mock
-    private JmsTemplate jmsTemplate;
-
-    @Mock
     private AsyncOperationQueue queue;
+
+    @Mock
+    private AfterPublishStrategy afterPublishStrategy;
 
     @Before
     public void setUp() {
