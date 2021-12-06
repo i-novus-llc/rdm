@@ -63,6 +63,10 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
 
         afterPublishStrategy.apply(entity, result);
 
+        // Запрет разрешения конфликтов
+        // (до реализации стратегий разрешения после публикации).
+        request.setResolveConflicts(false);
+
         return result;
     }
 }
