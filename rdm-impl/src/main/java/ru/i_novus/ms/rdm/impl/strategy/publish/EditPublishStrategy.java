@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.publish;
 
+import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 
@@ -8,5 +9,5 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
  */
 public interface EditPublishStrategy extends Strategy {
 
-    void publish(RefBookVersionEntity entity);
+    PublishResponse publish(RefBookVersionEntity entity);
 }
