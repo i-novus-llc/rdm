@@ -9,9 +9,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -37,15 +35,14 @@ import ru.i_novus.platform.datastorage.temporal.service.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultBasePublishStrategyTest {
@@ -101,15 +98,13 @@ public class DefaultBasePublishStrategyTest {
     private FieldFactory fieldFactory;
 
     @Mock
-    private AsyncOperationQueue queue;
+    private AsyncOperationQueue asyncQueue;
 
     @Mock
     private AfterPublishStrategy afterPublishStrategy;
 
     @Before
     public void setUp() {
-
-        reset(draftDataService, fileGeneratorFactory);
 
         when(draftDataService.applyDraft(any(), any(), any(), any())).thenReturn(TEST_STORAGE_CODE);
         when(searchDataService.hasData(any())).thenReturn(true);
@@ -129,18 +124,12 @@ public class DefaultBasePublishStrategyTest {
         LocalDateTime now = LocalDateTime.now();
         expectedVersionEntity.setFromDate(now);
 
-        when(versionRepository.getOne(eq(draftEntity.getId()))).thenReturn(draftEntity);
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(Page.empty());
-
         RefBookVersion draftVersion = ModelGenerator.versionModel(draftEntity);
         when(versionService.getById(eq(draftEntity.getId()))).thenReturn(draftVersion);
         when(versionNumberStrategy.next(eq(REFBOOK_ID))).thenReturn("1.1");
         when(versionNumberStrategy.check(eq("1.1"), eq(REFBOOK_ID))).thenReturn(false);
 
-        when(versionRepository.exists(hasVersionId(draftEntity.getId()).and(isDraft()))).thenReturn(true);
-
-        //invalid versionName
-        when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+        // Invalid versionName
         try {
             publish(draftEntity, "1.1", now, null, false);
             fail();
@@ -150,8 +139,7 @@ public class DefaultBasePublishStrategyTest {
             assertEquals("1.1", e.getArgs()[0]);
         }
 
-        //invalid version period
-        when(versionRepository.exists(eq(isVersionOfRefBook(REFBOOK_ID)))).thenReturn(true);
+        // Invalid version period
         try {
             publish(draftEntity, null, now, LocalDateTime.MIN, false);
             fail();
@@ -160,7 +148,7 @@ public class DefaultBasePublishStrategyTest {
             assertEquals("invalid.version.period", e.getCode());
         }
 
-        //valid publishing, null version name
+        // Without version name
         publish(draftEntity, null, now, null, false);
         assertEquals("1.1", draftEntity.getVersion());
 
@@ -168,12 +156,11 @@ public class DefaultBasePublishStrategyTest {
 
         ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(versionRepository).save(savedCaptor.capture());
+
         expectedVersionEntity.setLastActionDate(savedCaptor.getValue().getLastActionDate());
         assertEquals(expectedVersionEntity, savedCaptor.getValue());
 
         verify(versionFileService, times(2)).save(eq(draftVersion), any(FileType.class), eq(null));
-        //verify(fileStorage, times(2)).saveContent(any(InputStream.class), anyString());
-        reset(versionRepository);
     }
 
     @Test
@@ -197,22 +184,19 @@ public class DefaultBasePublishStrategyTest {
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(anyInt(), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(versionEntity);
 
-        when(versionService.getById(eq(draftEntity.getId())))
-                .thenReturn(ModelGenerator.versionModel(draftEntity));
+        when(versionService.getById(eq(draftEntity.getId()))).thenReturn(ModelGenerator.versionModel(draftEntity));
         when(versionNumberStrategy.check("2.2", REFBOOK_ID)).thenReturn(true);
-        when(versionRepository.exists(hasVersionId(draftEntity.getId()).and(isDraft()))).thenReturn(true);
 
         publish(draftEntity, expectedVersionEntity.getVersion(), now, null, false);
 
         verify(draftDataService)
-                .applyDraft(eq(versionEntity.getStorageCode()), eq(expectedDraftStorageCode), eq(now), any());
+                .applyDraft(versionEntity.getStorageCode(), expectedDraftStorageCode, now, null);
 
         ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(versionRepository).save(savedCaptor.capture());
+
         expectedVersionEntity.setLastActionDate(savedCaptor.getValue().getLastActionDate());
         assertEquals(expectedVersionEntity, savedCaptor.getValue());
-
-        reset(versionRepository);
     }
 
     @Test
@@ -224,31 +208,40 @@ public class DefaultBasePublishStrategyTest {
         RefBookVersionEntity draftEntity = createTestDraftVersionEntity();
 
         when(versionRepository.findAll(any(Predicate.class))).thenReturn(new PageImpl<>(actual));
-        when(versionRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(new PageImpl<>(actual));
-        when(versionService.getById(eq(draftEntity.getId())))
-                .thenReturn(ModelGenerator.versionModel(draftEntity));
+
+        when(versionService.getById(eq(draftEntity.getId()))).thenReturn(ModelGenerator.versionModel(draftEntity));
         when(versionNumberStrategy.check(eq("2.4"), eq(REFBOOK_ID))).thenReturn(true);
         doAnswer(invocation -> actual.removeIf(e -> e.getId().equals((invocation.getArguments()[0]))))
                 .when(versionRepository).deleteById(anyInt());
-        when(versionRepository.exists(eq(hasVersionId(draftEntity.getId()).and(isDraft())))).thenReturn(true);
 
-        publish(draftEntity, "2.4", LocalDateTime.of(2017, 1, 4, 1, 1), LocalDateTime.of(2017, 1, 9, 1, 1), false);
+        publish(draftEntity, "2.4",
+                LocalDateTime.of(2017, 1, 4, 1, 1),
+                LocalDateTime.of(2017, 1, 9, 1, 1),
+                false);
         assertEquals(expected, actual);
-        reset(versionRepository, versionService, versionNumberStrategy);
-
     }
 
     private List<RefBookVersionEntity> getVersionsForOverlappingPublish() {
+
         return new ArrayList<>(asList(
-                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 3, 1, 1), LocalDateTime.of(2017, 1, 5, 1, 1)),
-                createVersionEntity(REFBOOK_ID, 3, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 6, 1, 1), LocalDateTime.of(2017, 1, 7, 1, 1)),
-                createVersionEntity(REFBOOK_ID, 4, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 8, 1, 1), LocalDateTime.of(2017, 1, 10, 1, 1))
+                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED,
+                        LocalDateTime.of(2017, 1, 3, 1, 1),
+                        LocalDateTime.of(2017, 1, 5, 1, 1)),
+                createVersionEntity(REFBOOK_ID, 3, RefBookVersionStatus.PUBLISHED,
+                        LocalDateTime.of(2017, 1, 6, 1, 1),
+                        LocalDateTime.of(2017, 1, 7, 1, 1)),
+                createVersionEntity(REFBOOK_ID, 4, RefBookVersionStatus.PUBLISHED,
+                        LocalDateTime.of(2017, 1, 8, 1, 1),
+                        LocalDateTime.of(2017, 1, 10, 1, 1))
         ));
     }
 
     private List<RefBookVersionEntity> getExpectedAfterOverlappingPublish() {
-        return Collections.singletonList(
-                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED, LocalDateTime.of(2017, 1, 3, 1, 1), LocalDateTime.of(2017, 1, 4, 1, 1))
+
+        return singletonList(
+                createVersionEntity(REFBOOK_ID, 2, RefBookVersionStatus.PUBLISHED,
+                        LocalDateTime.of(2017, 1, 3, 1, 1),
+                        LocalDateTime.of(2017, 1, 4, 1, 1))
         );
     }
 
@@ -269,6 +262,7 @@ public class DefaultBasePublishStrategyTest {
     }
 
     private void setTestStructure(Structure structure) {
+
         structure.setAttributes(asList(
                 Structure.Attribute.build("Kod", "Kod", FieldType.STRING, "Kod"),
                 Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
