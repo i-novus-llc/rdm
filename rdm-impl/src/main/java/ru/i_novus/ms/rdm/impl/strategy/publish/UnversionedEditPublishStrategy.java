@@ -24,6 +24,7 @@ public class UnversionedEditPublishStrategy implements EditPublishStrategy {
 
         PublishRequest request = new PublishRequest();
         request.setOptLockValue(entity.getOptLockValue());
+        request.setResolveConflicts(false);
 
         return basePublishStrategy.publish(entity, request);
     }
