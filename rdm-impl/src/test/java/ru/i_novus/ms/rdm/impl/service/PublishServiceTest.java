@@ -9,11 +9,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
+import ru.i_novus.ms.rdm.api.model.version.ReferrerVersionCriteria;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
@@ -28,11 +33,11 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -44,6 +49,16 @@ public class PublishServiceTest {
 
     private static final int DRAFT_ID = 1;
     private static final String DRAFT_STORAGE_CODE = "draft-storage-code";
+
+    private static final int REFERRER_ID = 12;
+    private static final String REFERRER_CODE = "referrer_code";
+
+    private static final int REFERRER_VERSION_ID = 11;
+    private static final String REFERRER_STORAGE_CODE = "referrer-storage-code";
+
+    private static final RefBookStatusType FIND_REFERRERS_STATUS = RefBookStatusType.USED;
+    private static final RefBookSourceType FIND_REFERRERS_SOURCE = RefBookSourceType.DRAFT;
+    private static final ReferrerVersionCriteria FIND_REFERRERS_CRITERIA = new ReferrerVersionCriteria(REFBOOK_CODE, FIND_REFERRERS_STATUS, FIND_REFERRERS_SOURCE);
 
     @InjectMocks
     private PublishServiceImpl service;
@@ -88,7 +103,47 @@ public class PublishServiceTest {
 
         service.publish(DRAFT_ID, request);
 
-        mockBasePublish(draftEntity, request);
+        verifyBasePublish(draftEntity, request);
+
+        verifyNoMoreInteractions(basePublishStrategy);
+    }
+
+    @Test
+    public void testPublishWithRefresh() {
+
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.findById(DRAFT_ID)).thenReturn(Optional.of(draftEntity));
+
+        PublishRequest request = new PublishRequest(draftEntity.getOptLockValue());
+        request.setResolveConflicts(true);
+        PublishResponse result = createPublishResponse();
+
+        when(basePublishStrategy.publish(draftEntity, request)).thenReturn(result);
+
+        RefBookVersionEntity referrer = createReferrerVersionEntity();
+        List<RefBookVersionEntity> referrers = singletonList(referrer);
+        when(versionRepository.findReferrerVersions(
+                eq(REFBOOK_CODE),
+                eq(FIND_REFERRERS_STATUS.name()),
+                eq(FIND_REFERRERS_SOURCE.name()),
+                any(PageRequest.class))
+        )
+                .thenReturn(new PageImpl<>(referrers, FIND_REFERRERS_CRITERIA, 1)) // referrers
+                .thenReturn(new PageImpl<>(emptyList(), FIND_REFERRERS_CRITERIA, 1)); // stop
+
+        when(conflictRepository.existsByReferrerVersionIdAndPublishedVersionId(REFERRER_VERSION_ID, DRAFT_ID))
+                .thenReturn(false);
+
+        when(versionRepository.findById(REFERRER_VERSION_ID)).thenReturn(Optional.of(referrer));
+
+        when(basePublishStrategy.publish(eq(referrer), any(PublishRequest.class))).thenReturn(null);
+
+        service.publish(DRAFT_ID, request);
+
+        verifyBasePublish(draftEntity, request);
+        verify(basePublishStrategy).publish(eq(referrer), any(PublishRequest.class));
+
+        verify(referenceService).refreshLastReferrers(REFBOOK_CODE);
 
         verifyNoMoreInteractions(basePublishStrategy);
     }
@@ -117,12 +172,12 @@ public class PublishServiceTest {
         PublishRequest request = new PublishRequest(draftEntity.getOptLockValue());
         service.publish(DRAFT_ID, request);
 
-        mockBasePublish(draftEntity, request);
+        verifyBasePublish(draftEntity, request);
 
         verifyNoMoreInteractions(basePublishStrategy);
     }
 
-    private void mockBasePublish(RefBookVersionEntity entity, PublishRequest request) {
+    private void verifyBasePublish(RefBookVersionEntity entity, PublishRequest request) {
 
         ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         verify(basePublishStrategy).publish(captor.capture(), eq(request));
@@ -169,6 +224,26 @@ public class PublishServiceTest {
         result.setNewId(DRAFT_ID);
 
         return result;
+    }
+
+    private RefBookEntity createReferrerEntity() {
+
+        RefBookEntity entity = new DefaultRefBookEntity();
+        entity.setId(REFERRER_ID);
+        entity.setCode(REFERRER_CODE);
+
+        return entity;
+    }
+
+    private RefBookVersionEntity createReferrerVersionEntity() {
+
+        RefBookVersionEntity entity = new RefBookVersionEntity();
+        entity.setId(REFERRER_VERSION_ID);
+        entity.setStorageCode(REFERRER_STORAGE_CODE);
+        entity.setRefBook(createReferrerEntity());
+        entity.setStatus(RefBookVersionStatus.PUBLISHED);
+
+        return entity;
     }
 
     private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
