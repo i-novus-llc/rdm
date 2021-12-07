@@ -11,6 +11,7 @@ import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -33,6 +34,7 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -175,6 +177,29 @@ public class PublishServiceTest {
         verifyBasePublish(draftEntity, request);
 
         verifyNoMoreInteractions(basePublishStrategy);
+    }
+
+    @Test
+    public void testPublishAsync() {
+
+        RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.getOne(DRAFT_ID)).thenReturn(draftEntity);
+
+        UUID operationId = UUID.randomUUID();
+        when(asyncQueue.send(eq(AsyncOperationTypeEnum.PUBLICATION), eq(REFBOOK_CODE), any(Serializable[].class)))
+                .thenReturn(operationId);
+
+        PublishRequest request = new PublishRequest(draftEntity.getOptLockValue());
+        UUID result = service.publishAsync(DRAFT_ID, request);
+        assertSame(operationId, result);
+
+        ArgumentCaptor<Serializable> argsCaptor = ArgumentCaptor.forClass(Serializable.class);
+        verify(asyncQueue).send(eq(AsyncOperationTypeEnum.PUBLICATION), eq(REFBOOK_CODE), (Serializable[]) argsCaptor.capture());
+
+        Serializable[] args = (Serializable[]) argsCaptor.getValue();
+        assertEquals(2, args.length);
+        assertEquals(DRAFT_ID, args[0]);
+        assertEquals(request, args[1]);
     }
 
     private void verifyBasePublish(RefBookVersionEntity entity, PublishRequest request) {
