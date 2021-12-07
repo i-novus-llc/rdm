@@ -14,29 +14,21 @@ import ru.i_novus.ms.rdm.impl.service.AuditLogService;
 @Component
 public class DefaultPublishEndStrategy implements PublishEndStrategy {
 
-    private final RefBookVersionRepository versionRepository;
+    @Autowired
+    private RefBookVersionRepository versionRepository;
 
-    private final AuditLogService auditLogService;
+    @Autowired
+    private AuditLogService auditLogService;
 
-    private final JmsTemplate jmsTemplate;
+    @Autowired(required = false)
+    @Qualifier("topicJmsTemplate")
+    private JmsTemplate jmsTemplate;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
 
     @Value("${rdm.enable.publish.topic:false}")
     private boolean enablePublishTopic;
-
-    @Autowired
-    public DefaultPublishEndStrategy(
-            RefBookVersionRepository versionRepository,
-            AuditLogService auditLogService,
-            @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate
-    ) {
-        this.versionRepository = versionRepository;
-
-        this.auditLogService = auditLogService;
-        this.jmsTemplate = jmsTemplate;
-    }
 
     @Override
     public void apply(RefBookVersionEntity entity, PublishResponse response) {
