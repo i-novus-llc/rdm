@@ -27,7 +27,6 @@ import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
 import java.io.Serializable;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -93,12 +92,7 @@ public class PublishServiceImpl implements PublishService {
         if (response == null)
             return;
 
-        if (request.getResolveConflicts()) {
-            if (!refreshConflictingReferrers(response))
-                return;
-
-            publishNonConflictReferrers(response);
-        }
+        resolveConflicts(request, response);
     }
 
     @Override
@@ -111,14 +105,31 @@ public class PublishServiceImpl implements PublishService {
 
     private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
 
-        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
-        return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
+        return versionRepository.findById(versionId)
+                .orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
     }
 
     private <T extends Strategy> T getStrategy(RefBookVersionEntity entity, Class<T> strategy) {
 
         RefBookEntity refBookEntity = entity != null ? entity.getRefBook() : null;
         return strategyLocator.getStrategy(refBookEntity != null ? refBookEntity.getType() : null, strategy);
+    }
+
+    /**
+     * Разрешение конфликтов после публикации справочника.
+     *
+     * @param request  запрос на публикацию
+     * @param response результат публикации
+     */
+    private void resolveConflicts(PublishRequest request, PublishResponse response) {
+
+        if (!request.getResolveConflicts())
+            return;
+
+        if (!refreshConflictingReferrers(response))
+            return;
+
+        publishNonConflictReferrers(response);
     }
 
     /**
