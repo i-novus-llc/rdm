@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.api.async;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,7 +39,7 @@ public class AsyncOperationHandler {
         if (isEmpty(satisfiedResolvers)) {
             String error = String.format(LOG_OPERATION_TYPE_NOT_RESOLVED, operationType);
             logger.error(error);
-            throw new NotFoundException(error);
+            return null;
         }
 
         if (satisfiedResolvers.size() == 1) {

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 
 @Component
 public class UnversionedCreateAttributeStrategy implements CreateAttributeStrategy {
@@ -13,6 +14,10 @@ public class UnversionedCreateAttributeStrategy implements CreateAttributeStrate
     @Autowired
     @Qualifier("defaultCreateAttributeStrategy")
     private CreateAttributeStrategy createAttributeStrategy;
+
+    @Autowired
+    @Qualifier("unversionedEditPublishStrategy")
+    private EditPublishStrategy editPublishStrategy;
 
     @Autowired
     private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
@@ -24,7 +29,8 @@ public class UnversionedCreateAttributeStrategy implements CreateAttributeStrate
         Structure oldStructure = hasReferrers ? new Structure(entity.getStructure()) : null;
 
         Structure.Attribute attribute = createAttributeStrategy.create(entity, request);
-        
+        editPublishStrategy.publish(entity);
+
         if (hasReferrers) {
             unversionedChangeStructureStrategy.validatePrimariesEquality(
                     entity.getRefBook().getCode(), oldStructure, entity.getStructure()

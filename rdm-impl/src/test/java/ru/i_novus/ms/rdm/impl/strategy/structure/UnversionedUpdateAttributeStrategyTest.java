@@ -7,6 +7,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -19,6 +20,9 @@ public class UnversionedUpdateAttributeStrategyTest extends UnversionedBaseStrat
 
     @Mock
     private UpdateAttributeStrategy updateAttributeStrategy;
+
+    @Mock
+    private EditPublishStrategy editPublishStrategy;
 
     @Mock
     private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
@@ -44,6 +48,7 @@ public class UnversionedUpdateAttributeStrategyTest extends UnversionedBaseStrat
         assertEquals(newAttribute, attribute); // Изменённый атрибут
 
         verify(updateAttributeStrategy).update(entity, request);
+        verify(editPublishStrategy).publish(entity);
 
         verify(unversionedChangeStructureStrategy).hasReferrerVersions(entity);
         verify(unversionedChangeStructureStrategy).validatePrimariesEquality(
@@ -51,6 +56,6 @@ public class UnversionedUpdateAttributeStrategyTest extends UnversionedBaseStrat
         );
         verify(unversionedChangeStructureStrategy).processReferrers(entity);
 
-        verifyNoMoreInteractions(updateAttributeStrategy, unversionedChangeStructureStrategy);
+        verifyNoMoreInteractions(updateAttributeStrategy, editPublishStrategy, unversionedChangeStructureStrategy);
     }
 }

@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -44,6 +45,7 @@ class AsyncOperationQueueListener {
 
     private final String queueId;
 
+    @Autowired
     public AsyncOperationQueueListener(AsyncOperationLogEntryRepository repository,
                                        AsyncOperationHandler handler,
                                        Messages messages,

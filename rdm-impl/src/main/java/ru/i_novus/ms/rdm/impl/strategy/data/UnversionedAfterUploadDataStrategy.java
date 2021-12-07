@@ -14,6 +14,7 @@ import ru.i_novus.ms.rdm.impl.model.refdata.ReferredDataCriteria;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.UnversionedChangeStructureStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
@@ -46,12 +47,17 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
     private AfterUploadDataStrategy afterUploadDataStrategy;
 
     @Autowired
+    @Qualifier("unversionedEditPublishStrategy")
+    private EditPublishStrategy editPublishStrategy;
+
+    @Autowired
     private UnversionedChangeStructureStrategy unversionedChangeStructureStrategy;
 
     @Override
     public void apply(RefBookVersionEntity entity) {
 
         afterUploadDataStrategy.apply(entity);
+        editPublishStrategy.publish(entity);
 
         processReferrers(entity);
 

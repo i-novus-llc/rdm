@@ -1,12 +1,10 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.strategy.publish;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
@@ -24,115 +22,86 @@ import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
-import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
-@Service
-class BasePublishService {
+@Component
+public class DefaultBasePublishStrategy implements BasePublishStrategy {
 
     private static final String INVALID_VERSION_NAME_EXCEPTION_CODE = "invalid.version.name";
     private static final String INVALID_VERSION_PERIOD_EXCEPTION_CODE = "invalid.version.period";
-    private static final String DRAFT_NOT_FOUND_EXCEPTION_CODE = "draft.not.found";
     private static final String PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.structure.not.found";
     private static final String PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE = "publishing.draft.data.not.found";
 
-    private final RefBookVersionRepository versionRepository;
-
-    private final DraftDataService draftDataService;
-    private final SearchDataService searchDataService;
-    private final DropDataService dropDataService;
-
-    private final RefBookLockService refBookLockService;
-    private final VersionService versionService;
-    private final ConflictService conflictService;
-
-    private final VersionFileService versionFileService;
-    private final VersionNumberStrategy versionNumberStrategy;
-
-    private final VersionValidation versionValidation;
-    private final VersionPeriodPublishValidation versionPeriodPublishValidation;
-
-    private final AuditLogService auditLogService;
-
-    private final AsyncOperationQueue asyncQueue;
-
-    private final JmsTemplate jmsTemplate;
-
-    @Value("${rdm.publish.topic:publish_topic}")
-    private String publishTopic;
-
-    @Value("${rdm.enable.publish.topic:false}")
-    private boolean enablePublishTopic;
+    @Autowired
+    private RefBookVersionRepository versionRepository;
 
     @Autowired
-    @SuppressWarnings("squid:S00107")
-    public BasePublishService(RefBookVersionRepository versionRepository,
-                              DraftDataService draftDataService, SearchDataService searchDataService, DropDataService dropDataService,
-                              RefBookLockService refBookLockService, VersionService versionService, ConflictService conflictService,
-                              VersionFileService versionFileService, VersionNumberStrategy versionNumberStrategy,
-                              VersionValidation versionValidation, VersionPeriodPublishValidation versionPeriodPublishValidation,
-                              AuditLogService auditLogService, AsyncOperationQueue asyncQueue,
-                              @Qualifier("topicJmsTemplate") @Autowired(required = false) JmsTemplate jmsTemplate) {
-        this.versionRepository = versionRepository;
+    private DraftDataService draftDataService;
+    @Autowired
+    private SearchDataService searchDataService;
+    @Autowired
+    private DropDataService dropDataService;
 
-        this.draftDataService = draftDataService;
-        this.searchDataService = searchDataService;
-        this.dropDataService = dropDataService;
+    @Autowired
+    private RefBookLockService refBookLockService;
+    @Autowired
+    private VersionService versionService;
+    @Autowired
+    private ConflictService conflictService;
 
-        this.refBookLockService = refBookLockService;
-        this.versionService = versionService;
-        this.conflictService = conflictService;
+    @Autowired
+    private VersionFileService versionFileService;
+    @Autowired
+    private VersionNumberStrategy versionNumberStrategy;
 
-        this.versionFileService = versionFileService;
-        this.versionNumberStrategy = versionNumberStrategy;
+    @Autowired
+    private VersionValidation versionValidation;
+    @Autowired
+    private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
-        this.versionValidation = versionValidation;
-        this.versionPeriodPublishValidation = versionPeriodPublishValidation;
+    @Autowired
+    private AsyncOperationQueue asyncQueue;
 
-        this.auditLogService = auditLogService;
-        this.asyncQueue = asyncQueue;
-        this.jmsTemplate = jmsTemplate;
-    }
+    @Autowired
+    @Qualifier("defaultPublishEndStrategy")
+    private PublishEndStrategy publishEndStrategy;
 
-    /**
-     * Публикация черновика справочника.
-     *
-     * @param request параметры публикации
-     * @return результат публикации
-     */
+    @Override
     @Transactional
-    public PublishResponse publish(Integer draftId, PublishRequest request) {
+    public PublishResponse publish(RefBookVersionEntity entity, PublishRequest request) {
 
-        // Получение версии-черновика и Предварительная валидация
-        RefBookVersionEntity draftEntity = getVersionOrThrow(draftId);
-        if (RefBookVersionStatus.PUBLISHED.equals(draftEntity.getStatus()))
-            return null; // Почему не в валидации?
+        // Проверка черновика на возможность публикации
+        if (RefBookVersionStatus.PUBLISHED.equals(entity.getStatus()))
+            return null;
 
-        validatePublishingDraft(draftEntity);
+        validatePublishingDraft(entity);
 
         // Предварительное заполнение значений
         PublishResponse result = new PublishResponse();
 
-        Integer refBookId = draftEntity.getRefBook().getId();
-        String oldStorageCode = draftEntity.getStorageCode();
+        Integer refBookId = entity.getRefBook().getId();
+        String oldStorageCode = entity.getStorageCode();
         String newStorageCode = null;
 
         refBookLockService.setRefBookPublishing(refBookId);
         try {
-            versionValidation.validateOptLockValue(draftEntity.getId(), draftEntity.getOptLockValue(), request.getOptLockValue());
+            versionValidation.validateOptLockValue(entity.getId(), entity.getOptLockValue(), request.getOptLockValue());
 
             // Дополнительное заполнение значений с валидацией
             // NB: Получение versionName должно быть в одной транзации с сохранением в версии.
@@ -148,28 +117,28 @@ class BasePublishService {
             versionPeriodPublishValidation.validate(fromDate, toDate, refBookId);
 
             // Получение старой версии
-            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(draftEntity);
+            RefBookVersionEntity lastPublishedEntity = getLastPublishedVersionEntity(entity);
 
             // Создание и заполнение хранилища новой версии на основе старой версии и версии-черновика
             String lastStorageCode = lastPublishedEntity != null ? lastPublishedEntity.getStorageCode() : null;
             newStorageCode = draftDataService.applyDraft(lastStorageCode, oldStorageCode, fromDate, toDate);
 
             // Смена версии-черновика на опубликованную версию
-            draftEntity.setStorageCode(newStorageCode);
-            draftEntity.setVersion(versionName);
-            draftEntity.setStatus(RefBookVersionStatus.PUBLISHED);
-            draftEntity.setFromDate(fromDate);
-            draftEntity.setToDate(toDate);
+            entity.setStorageCode(newStorageCode);
+            entity.setVersion(versionName);
+            entity.setStatus(RefBookVersionStatus.PUBLISHED);
+            entity.setFromDate(fromDate);
+            entity.setToDate(toDate);
 
-            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, draftEntity.getId());
+            resolveOverlappingPeriodsInFuture(fromDate, toDate, refBookId, entity.getId());
 
-            draftEntity.refreshLastActionDate();
-            versionRepository.save(draftEntity);
+            entity.refreshLastActionDate();
+            versionRepository.save(entity);
 
             // Заполнение результата публикации
-            result.setRefBookCode(draftEntity.getRefBook().getCode());
+            result.setRefBookCode(entity.getRefBook().getCode());
             result.setOldId(lastPublishedEntity != null ? lastPublishedEntity.getId() : null);
-            result.setNewId(draftId);
+            result.setNewId(entity.getId());
 
             // Обнаружение конфликтов
             // NB: Обнаружение должно быть до удаления хранилища oldStorageCode.
@@ -185,7 +154,7 @@ class BasePublishService {
             droppedDataStorages.add(oldStorageCode);
 
             if (lastPublishedEntity != null && lastStorageCode != null
-                    && draftEntity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
+                    && entity.getStructure().storageEquals(lastPublishedEntity.getStructure())) {
                 droppedDataStorages.add(lastStorageCode);
 
                 replaceStorageCode(lastStorageCode, newStorageCode);
@@ -193,11 +162,11 @@ class BasePublishService {
             dropDataService.drop(droppedDataStorages);
 
             // Генерация файлов для опубликованной версии
-            saveVersionToFiles(draftId);
+            saveVersionToFiles(entity.getId());
 
             // Выполнение действий после публикации
             PostPublishRequest postRequest = new PostPublishRequest(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
-            postPublish(draftEntity.getRefBook().getCode(), postRequest);
+            postPublish(entity.getRefBook().getCode(), postRequest);
 
         } catch (Exception e) {
             // Откат создания хранилища
@@ -211,24 +180,13 @@ class BasePublishService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        auditLogService.addAction(AuditAction.PUBLICATION, () -> draftEntity);
-        if (enablePublishTopic) {
-            jmsTemplate.convertAndSend(publishTopic, draftEntity.getRefBook().getCode());
-        }
+        publishEndStrategy.apply(entity, result);
 
         return result;
     }
 
-    private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
-
-        Optional<RefBookVersionEntity> draftEntityOptional = versionRepository.findById(versionId);
-        return draftEntityOptional.orElseThrow(() -> new UserException(new Message(DRAFT_NOT_FOUND_EXCEPTION_CODE, versionId)));
-    }
-
     /** Проверка черновика на возможность публикации. */
     private void validatePublishingDraft(RefBookVersionEntity draftEntity) {
-
-        versionValidation.validateDraftNotArchived(draftEntity.getId());
 
         if (draftEntity.hasEmptyStructure())
             throw new UserException(new Message(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE, draftEntity.getRefBook().getCode()));
@@ -279,9 +237,12 @@ class BasePublishService {
 
         entities.forEach(entity -> {
             if (fromDate.isAfter(entity.getFromDate())) {
+                // Опубликованные ранее версии закрываем:
                 entity.setToDate(fromDate);
                 versionRepository.save(entity);
+
             } else {
+                // Опубликованные поздее - удаляем:
                 versionRepository.deleteById(entity.getId());
             }
         });

@@ -37,6 +37,15 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
     private static final RefBookSourceType FIND_REFERRERS_SOURCE = RefBookSourceType.ALL;
     private static final ReferrerVersionCriteria FIND_REFERRERS_CRITERIA = new ReferrerVersionCriteria(REFBOOK_CODE, FIND_REFERRERS_STATUS, FIND_REFERRERS_SOURCE);
 
+    protected RefBookEntity createUnversionedRefBookEntity() {
+
+        RefBookEntity entity = new UnversionedRefBookEntity();
+        entity.setId(REFBOOK_ID);
+        entity.setCode(REFBOOK_CODE);
+
+        return entity;
+    }
+
     protected RefBookVersionEntity createUnversionedEntity() {
 
         RefBookEntity refBookEntity = createUnversionedRefBookEntity();
@@ -46,15 +55,6 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
         entity.setRefBook(createUnversionedRefBookEntity());
         entity.setStructure(createStructure());
         entity.setStorageCode(DRAFT_CODE);
-
-        return entity;
-    }
-
-    protected RefBookEntity createUnversionedRefBookEntity() {
-
-        RefBookEntity entity = new UnversionedRefBookEntity();
-        entity.setId(REFBOOK_ID);
-        entity.setCode(REFBOOK_CODE);
 
         return entity;
     }
@@ -81,6 +81,15 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
         );
     }
 
+    protected RefBookEntity createReferrerEntity() {
+
+        RefBookEntity entity = new DefaultRefBookEntity();
+        entity.setId(REFERRER_ID);
+        entity.setCode(REFERRER_CODE);
+
+        return entity;
+    }
+
     protected RefBookVersionEntity createReferrerVersionEntity() {
 
         RefBookVersionEntity entity = new RefBookVersionEntity();
@@ -89,15 +98,6 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
         entity.setStructure(createReferrerStructure());
         entity.setStorageCode(REFERRER_VERSION_CODE);
         entity.setStatus(RefBookVersionStatus.PUBLISHED);
-
-        return entity;
-    }
-
-    protected RefBookEntity createReferrerEntity() {
-
-        RefBookEntity entity = new DefaultRefBookEntity();
-        entity.setId(REFERRER_ID);
-        entity.setCode(REFERRER_CODE);
 
         return entity;
     }

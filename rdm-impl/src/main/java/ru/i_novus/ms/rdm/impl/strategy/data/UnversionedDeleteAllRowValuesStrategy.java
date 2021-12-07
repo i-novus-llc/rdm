@@ -12,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.model.refdata.ReferrerDataCriteria;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -44,12 +45,17 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
     @Qualifier("defaultDeleteAllRowValuesStrategy")
     private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
+    @Autowired
+    @Qualifier("unversionedEditPublishStrategy")
+    private EditPublishStrategy editPublishStrategy;
+
     @Override
     public void deleteAll(RefBookVersionEntity entity) {
 
         processReferrers(entity);
 
         deleteAllRowValuesStrategy.deleteAll(entity);
+        editPublishStrategy.publish(entity);
     }
 
     private void processReferrers(RefBookVersionEntity entity) {

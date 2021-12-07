@@ -31,6 +31,7 @@ import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
@@ -249,6 +250,8 @@ public class RefBookServiceImpl implements RefBookService {
         updateVersionFromPassport(versionEntity, request.getPassport());
         versionEntity.setComment(request.getComment());
 
+        getStrategy(versionEntity, EditPublishStrategy.class).publish(versionEntity);
+
         forceUpdateOptLockValue(versionEntity);
 
         auditLogService.addAction(AuditAction.EDIT_PASSPORT, () -> versionEntity, Map.of("newPassport", request.getPassport()));
@@ -380,7 +383,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (lastPublishedVersion != null) {
             model.setLastPublishedVersionId(lastPublishedVersion.getId());
             model.setLastPublishedVersion(lastPublishedVersion.getVersion());
-            model.setLastPublishedVersionFromDate(lastPublishedVersion.getFromDate());
+            model.setLastPublishedDate(lastPublishedVersion.getFromDate());
         }
 
         final boolean hasReferrer = Boolean.TRUE.equals(modelData.getHasReferrer());

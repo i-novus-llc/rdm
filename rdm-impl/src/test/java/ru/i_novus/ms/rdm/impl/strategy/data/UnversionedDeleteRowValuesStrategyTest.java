@@ -10,6 +10,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -44,6 +45,9 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
     @Mock
     private DeleteRowValuesStrategy deleteRowValuesStrategy;
 
+    @Mock
+    private EditPublishStrategy editPublishStrategy;
+
     @Test
     @SuppressWarnings("unchecked")
     public void testDelete() {
@@ -75,7 +79,9 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
 
         // .delete
         strategy.delete(entity, systemIds);
+
         verify(deleteRowValuesStrategy).delete(eq(entity), eq(systemIds));
+        verify(editPublishStrategy).publish(entity);
 
         verifyFindReferrers(versionRepository);
 
@@ -93,6 +99,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
         assertNotNull(toSave);
         assertEquals(1, toSave.size());
 
-        verifyNoMoreInteractions(versionRepository, conflictRepository, draftDataService, searchDataService);
+        verifyNoMoreInteractions(versionRepository, conflictRepository,
+                draftDataService, searchDataService, editPublishStrategy);
     }
 }

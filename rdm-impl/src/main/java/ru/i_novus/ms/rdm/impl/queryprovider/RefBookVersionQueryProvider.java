@@ -41,7 +41,7 @@ public class RefBookVersionQueryProvider {
     private static final String REF_BOOK_ID_SORT_PROPERTY = "refBookId";
     private static final String REF_BOOK_CODE_SORT_PROPERTY = "code";
     private static final String REF_BOOK_DISPLAY_CODE_SORT_PROPERTY = "displayCode";
-    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedVersionFromDate";
+    private static final String REF_BOOK_LAST_PUBLISH_DATE_SORT_PROPERTY = "lastPublishedDate";
     public static final String REF_BOOK_FROM_DATE_SORT_PROPERTY = "fromDate";
     private static final String REF_BOOK_CATEGORY_SORT_PROPERTY = "category";
 
@@ -250,15 +250,17 @@ public class RefBookVersionQueryProvider {
 
     private ComparableExpressionBase getLastPublishDateOrder(JPAQuery<RefBookVersionEntity> jpaQuery) {
 
-        QRefBookVersionEntity qSortFromDateVersion = new QRefBookVersionEntity("sort_from_date");
-        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_max_version");
+        QRefBookVersionEntity qSortPublishedDateVersion = new QRefBookVersionEntity("sort_published_date");
+        QRefBookVersionEntity whereVersion = new QRefBookVersionEntity("sort_published_date_max_version");
 
-        jpaQuery.leftJoin(qSortFromDateVersion)
-                .on(QRefBookVersionEntity.refBookVersionEntity.refBook.eq(qSortFromDateVersion.refBook)
-                        .and(qSortFromDateVersion.fromDate.eq(JPAExpressions
+        jpaQuery.leftJoin(qSortPublishedDateVersion)
+                .on(QRefBookVersionEntity.refBookVersionEntity.refBook.eq(qSortPublishedDateVersion.refBook)
+                        .and(qSortPublishedDateVersion.fromDate.eq(JPAExpressions
                                 .select(whereVersion.fromDate.max()).from(whereVersion)
-                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook)))));
-        return qSortFromDateVersion.fromDate;
+                                .where(whereVersion.refBook.eq(QRefBookVersionEntity.refBookVersionEntity.refBook))
+                        ))
+                );
+        return qSortPublishedDateVersion.fromDate;
     }
 
     /**

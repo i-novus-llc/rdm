@@ -671,8 +671,8 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        // Нельзя просто передать draftEntity, так как в аудите подтягиваются значения паспорта справочника
-        // (а у них lazy-инициализация), поэтому нужна транзакция (которой в этом методе нет).
+        // В аудите подтягиваются значения паспорта справочника (а у них lazy-инициализация),
+        // поэтому нужна транзакция (которой в этом методе нет) для их получения.
         auditLogService.addAction(AuditAction.UPLOAD_DATA, () -> versionRepository.findById(draftId).orElse(null));
     }
 
