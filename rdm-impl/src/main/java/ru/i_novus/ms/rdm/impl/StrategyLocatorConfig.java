@@ -3,14 +3,12 @@ package ru.i_novus.ms.rdm.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.data.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
-import ru.i_novus.ms.rdm.impl.strategy.file.*;
 import ru.i_novus.ms.rdm.impl.strategy.publish.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
 import ru.i_novus.ms.rdm.impl.strategy.structure.*;
@@ -21,114 +19,102 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration @Lazy
+@Configuration
 public class StrategyLocatorConfig {
 
     /* Default Strategies: */
 
     // RefBook:
-    @Autowired @Lazy
+    @Autowired
     private DefaultRefBookCreateValidationStrategy defaultRefBookCreateValidationStrategy;
 
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateRefBookEntityStrategy defaultCreateRefBookEntityStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateFirstVersionStrategy defaultCreateFirstVersionStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateFirstStorageStrategy defaultCreateFirstStorageStrategy;
 
     // Version + Draft:
-    @Autowired @Lazy
+    @Autowired
     private DefaultValidateVersionNotArchivedStrategy defaultValidateVersionNotArchivedStrategy;
 
-    @Autowired @Lazy
+    @Autowired
     private DefaultFindDraftEntityStrategy defaultFindDraftEntityStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateDraftEntityStrategy defaultCreateDraftEntityStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateDraftStorageStrategy defaultCreateDraftStorageStrategy;
 
     // Publish:
-    @Autowired @Lazy
+    @Autowired
     private DefaultBasePublishStrategy defaultBasePublishStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultPublishEndStrategy defaultAfterPublishStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultEditPublishStrategy defaultEditPublishStrategy;
 
     // Data:
-    @Autowired @Lazy
+    @Autowired
     private DefaultAddRowValuesStrategy defaultAddRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultUpdateRowValuesStrategy defaultUpdateRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultDeleteRowValuesStrategy defaultDeleteRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultDeleteAllRowValuesStrategy defaultDeleteAllRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
 
     // Structure:
-    @Autowired @Lazy
+    @Autowired
     private DefaultCreateAttributeStrategy defaultCreateAttributeStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultUpdateAttributeStrategy defaultUpdateAttributeStrategy;
-    @Autowired @Lazy
+    @Autowired
     private DefaultDeleteAttributeStrategy defaultDeleteAttributeStrategy;
-
-    // File:
-    @Autowired @Lazy
-    private DefaultAllowStoreVersionFileStrategy defaultAllowStoreVersionFileStrategy;
-    @Autowired @Lazy
-    private DefaultGenerateFileNameStrategy defaultGenerateFileNameStrategy;
 
     /* Unversioned Strategies: */
 
     // RefBook:
-    @Autowired @Lazy
+    @Autowired
     private UnversionedCreateRefBookEntityStrategy unversionedCreateRefBookEntityStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedCreateFirstStorageStrategy unversionedCreateFirstStorageStrategy;
 
     // Version + Draft:
-    @Autowired @Lazy
+    @Autowired
     private UnversionedFindDraftEntityStrategy unversionedFindDraftEntityStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedCreateDraftStorageStrategy unversionedCreateDraftStorageStrategy;
 
     // Publish:
-    @Autowired @Lazy
+    @Autowired
     private UnversionedBasePublishStrategy unversionedBasePublishStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedEditPublishStrategy unversionedEditPublishStrategy;
 
     // Data:
-    @Autowired @Lazy
+    @Autowired
     private UnversionedAddRowValuesStrategy unversionedAddRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedUpdateRowValuesStrategy unversionedUpdateRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedDeleteRowValuesStrategy unversionedDeleteRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedDeleteAllRowValuesStrategy unversionedDeleteAllRowValuesStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
 
     // Structure:
-    @Autowired @Lazy
+    @Autowired
     private UnversionedCreateAttributeStrategy unversionedCreateAttributeStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedUpdateAttributeStrategy unversionedUpdateAttributeStrategy;
-    @Autowired @Lazy
+    @Autowired
     private UnversionedDeleteAttributeStrategy unversionedDeleteAttributeStrategy;
 
-    // File:
-    @Autowired @Lazy
-    private UnversionedAllowStoreVersionFileStrategy unversionedAllowStoreVersionFileStrategy;
-    @Autowired @Lazy
-    private UnversionedGenerateFileNameStrategy unversionedGenerateFileNameStrategy;
-
-    @Bean @Lazy
+    @Bean
     @SuppressWarnings("unused")
     public StrategyLocator strategyLocator() {
         return new BaseStrategyLocator(getStrategiesMap());
@@ -176,10 +162,6 @@ public class StrategyLocatorConfig {
         result.put(UpdateAttributeStrategy.class, defaultUpdateAttributeStrategy);
         result.put(DeleteAttributeStrategy.class, defaultDeleteAttributeStrategy);
 
-        // File:
-        result.put(AllowStoreVersionFileStrategy.class, defaultAllowStoreVersionFileStrategy);
-        result.put(GenerateFileNameStrategy.class, defaultGenerateFileNameStrategy);
-
         return result;
     }
 
@@ -210,10 +192,6 @@ public class StrategyLocatorConfig {
         result.put(CreateAttributeStrategy.class, unversionedCreateAttributeStrategy);
         result.put(UpdateAttributeStrategy.class, unversionedUpdateAttributeStrategy);
         result.put(DeleteAttributeStrategy.class, unversionedDeleteAttributeStrategy);
-
-        // File:
-        result.put(AllowStoreVersionFileStrategy.class, unversionedAllowStoreVersionFileStrategy);
-        result.put(GenerateFileNameStrategy.class, unversionedGenerateFileNameStrategy);
 
         return result;
     }

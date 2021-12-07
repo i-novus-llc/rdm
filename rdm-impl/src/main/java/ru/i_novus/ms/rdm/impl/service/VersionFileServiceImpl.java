@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -65,7 +66,7 @@ public class VersionFileServiceImpl implements VersionFileService {
                                   FileStorage fileStorage,
                                   PerRowFileGeneratorFactory fileGeneratorFactory,
                                   PassportValueRepository passportValueRepository,
-                                  StrategyLocator strategyLocator) {
+                                  @Qualifier("fileStrategyLocator") StrategyLocator strategyLocator) {
         this.versionRepository = versionRepository;
         this.versionFileRepository = versionFileRepository;
 
