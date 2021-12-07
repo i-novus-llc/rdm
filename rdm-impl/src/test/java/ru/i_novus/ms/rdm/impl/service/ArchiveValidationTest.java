@@ -35,7 +35,6 @@ import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.service.*;
@@ -81,9 +80,6 @@ public class ArchiveValidationTest extends BaseTest {
     private FileStorage fileStorage;
 
     @Mock
-    private GenerateFileNameStrategy generateFileNameStrategy;
-
-    @Mock
     private VersionFileRepository versionFileRepository;
     @Mock
     private VersionNumberStrategy versionNumberStrategy;
@@ -100,6 +96,7 @@ public class ArchiveValidationTest extends BaseTest {
     public void setUp() throws NoSuchFieldException {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
+
         FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
         FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
