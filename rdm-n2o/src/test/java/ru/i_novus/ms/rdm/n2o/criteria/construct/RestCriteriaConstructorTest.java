@@ -10,6 +10,8 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
 
+import java.lang.reflect.InvocationTargetException;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
@@ -24,9 +26,7 @@ public class RestCriteriaConstructorTest {
         RestCriteriaConstructor constructor = new RestCriteriaConstructor(emptyList());
 
         N2oPreparedCriteria criteria = createN2oPreparedCriteria();
-        Criteria result = constructor.construct(criteria, Criteria.class);
-        assertNotNull(result);
-
+        Criteria result = construct(constructor, criteria, Criteria.class);
         assertNotEquals(criteria.getPage(), result.getPage());
         assertNotEquals(criteria.getSize(), result.getSize());
         assertNull(result.getSorting());
@@ -39,7 +39,7 @@ public class RestCriteriaConstructorTest {
         RestCriteriaConstructor constructor = new RestCriteriaConstructor(singletonList(testResolver));
 
         N2oPreparedCriteria criteria = createN2oPreparedCriteria();
-        Criteria result = constructor.construct(criteria, Criteria.class);
+        Criteria result = construct(constructor, criteria, Criteria.class);
         assertCriteriaEquals(criteria, result);
     }
 
@@ -66,7 +66,7 @@ public class RestCriteriaConstructorTest {
         RestCriteriaConstructor constructor = new RestCriteriaConstructor(singletonList(testResolver));
 
         N2oPreparedCriteria criteria = createN2oPreparedCriteria();
-        RestCriteria result = constructor.construct(criteria, VersionCriteria.class);
+        RestCriteria result = construct(constructor, criteria, VersionCriteria.class);
         assertCriteriaEquals(criteria, result);
     }
 
@@ -79,7 +79,7 @@ public class RestCriteriaConstructorTest {
         N2oPreparedCriteria criteria = createN2oPreparedCriteria();
         criteria.getSorting().setField("name");
 
-        RefBookCriteria result = constructor.construct(criteria, RefBookCriteria.class);
+        RefBookCriteria result = construct(constructor, criteria, RefBookCriteria.class);
         assertNotNull(result);
         assertNotNull(result.getSort());
 
@@ -118,5 +118,29 @@ public class RestCriteriaConstructorTest {
         criteria.setSorting(new Sorting(SORTED_FIELD, Direction.ASC));
 
         return criteria;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T construct(RestCriteriaConstructor constructor,
+                            N2oPreparedCriteria criteria,
+                            Class<T> criteriaClass) {
+
+        T instance = newInstance(criteriaClass);
+        assertTrue(criteriaClass.isInstance(instance));
+
+        Object result = constructor.construct(criteria, instance);
+        assertNotNull(result);
+        assertTrue(criteriaClass.isInstance(result));
+
+        return (T) result; // unchecked
+    }
+
+    private <T> T newInstance(Class<T> criteriaClass) {
+        try {
+            return criteriaClass.getDeclaredConstructor().newInstance();
+
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
