@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>4.4.0</version>
+        <version>4.5.0</version>
     </parent>
 
     <properties>
@@ -252,6 +252,7 @@
 
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>
+
                 <module>rdm-web-spring-boot-autoconfigure</module>
                 <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
@@ -276,6 +277,7 @@
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
+
                 <module>rdm-web-spring-boot-autoconfigure</module>
                 <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
