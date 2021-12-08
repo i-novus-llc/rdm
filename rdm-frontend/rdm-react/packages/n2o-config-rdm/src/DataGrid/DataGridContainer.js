@@ -4,9 +4,9 @@ import { compose, withHandlers, withState, lifecycle } from 'recompose';
 import widgetContainer from 'n2o-framework/lib/components/widgets/WidgetContainer';
 import DataGrid from "./DataGrid";
 
-import { setModel } from 'n2o-framework/lib/actions/models';
-import { makeGetFilterModelSelector } from 'n2o-framework/lib/selectors/models';
-import { PREFIXES } from 'n2o-framework/lib/constants/models';
+import { setModel } from 'n2o-framework/lib/ducks/models/store';
+import { makeGetFilterModelSelector } from 'n2o-framework/lib/ducks/models/selectors';
+import { PREFIXES } from 'n2o-framework/lib/ducks/models/constants';
 import columnHOC from 'n2o-framework/lib/components/widgets/Table/withColumn';
 import TableCell from 'n2o-framework/lib/components/widgets/Table/TableCell';
 import factoryResolver from 'n2o-framework/lib/core/factory/factoryResolver';
