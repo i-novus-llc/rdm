@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Справочник НСИ">
+<page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+      name="Справочник НСИ">
+
     <regions>
         <form id="version_select" query-id="refBookVersion">
 
@@ -48,6 +50,7 @@
 
             <toolbar place="bottomLeft">
                 <sub-menu label="Действия">
+
                     <menu-item label="Опубликовать"
                                visible="{version.status=='DRAFT' &amp;&amp; !version.hasConflict}">
                         <show-modal page-id="publish" upload="defaults">
@@ -74,8 +77,8 @@
                             <query-param name="versionId" value="{version.id}"/>
                         </show-modal>
                     </menu-item>
-                </sub-menu>
 
+                </sub-menu>
             </toolbar>
         </form>
 
@@ -85,7 +88,7 @@
                       depends-on="version_select" fetch-on-init="true"
                       master-field-id="id" detail-field-id="version.id" object-id="refBook">
                     <toolbar place="bottomRight">
-                        <!-- '.*_r$' паттерн названия кнопки, при котором обновляется виджет version_select -->
+                        <!-- '.*_r$' - паттерн названия кнопки, при котором обновляется виджет version_select -->
                         <!--см. RefreshTransformer-->
                         <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
                         <button label="Изменить" id="editPassport_r">
@@ -101,6 +104,7 @@
                        upload="query" depends-on="version_select" fetch-on-init="true"
                        master-field-id="id" detail-field-id="versionId">
                     <toolbar place="bottomRight">
+
                         <button label="Добавить" id="createAttribute_r"
                                 widget-id="version_select" model="resolve">
                             <show-modal page-id="attribute" upload="defaults"
@@ -109,6 +113,7 @@
                                 <query-param name="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
                             </show-modal>
                         </button>
+
                         <button label="Изменить" id="editAttribute_r">
                             <show-modal page-id="attribute" submit-model="resolve"
                                         submit-operation-id="updateAttribute" refresh-widget-id="version_select">
@@ -117,6 +122,7 @@
                                 <query-param name="code" value="{code}"/>
                             </show-modal>
                         </button>
+
                         <button label="Удалить" id="deleteAttribute_r" color="danger" icon="fa fa-trash"
                                 enabling-condition="!(isPrimary &amp;&amp; (isReferrer || hasReferrer))">
                             <invoke operation-id="deleteAttribute" close-after-success="false" refresh-widget-id="version_select"/>
@@ -189,6 +195,7 @@
                 <form id="locale_select" depends-on="version_select"
                       visible="{${rdm.l10n.support} &amp;&amp; version.isLocalizable}">
                     <fields>
+
                         <set field-label-location="left">
                             <output-text id="id">
                                 <dependencies>
@@ -208,6 +215,7 @@
                                 <visibility>return ${rdm.l10n.support}</visibility>
                             </dependencies>
                         </select>
+                        
                     </fields>
                 </form>
 
@@ -221,6 +229,7 @@
                     </pre-filters>
 
                     <toolbar place="topRight">
+
                         <button id="localizeRecord_r" label="Задать перевод" icon="fa fa-pencil"
                                 widget-id="locale_select" model="resolve">
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
@@ -252,6 +261,7 @@
                     </pre-filters>
 
                     <toolbar place="topRight">
+                        
                         <button id="updateConflictedRecord_r" label="Исправить" icon="fa fa-pencil"
                                 widget-id="version_select" model="resolve">
                             <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
@@ -274,4 +284,5 @@
         </tabs>
 
     </regions>
+    
 </page>

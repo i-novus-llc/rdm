@@ -7,12 +7,14 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+        
         <field id="id" domain="integer">
             <select mapping="id"/>
         </field>
@@ -32,14 +34,14 @@
         <field id="refBookId" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="refBookId" mapping="refBookId"/>
+                <eq filter-id="refBookId" mapping="['criteria'].refBookId"/>
             </filters>
         </field>
 
         <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="version.id" mapping="[0]" domain="integer"/>
+                <eq filter-id="version.id" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
@@ -57,7 +59,7 @@
 
         <field id="excludeDraft" domain="boolean">
             <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
             </filters>
         </field>
 

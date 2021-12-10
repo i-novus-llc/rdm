@@ -3,6 +3,7 @@
         name="Публикация справочника">
 
     <operations>
+
         <operation id="publishDraft" submit-label="Опубликовать" confirm="false">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
@@ -10,15 +11,15 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="draftId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument name="draftId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="version.id" mapping="[0]" domain="integer"/>
-                <field id="version.optLockValue" mapping="[1]" domain="integer"/>
+                <field id="version.id" mapping="['draftId']" domain="integer"/>
+                <field id="version.optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
 
             <out>
@@ -33,21 +34,22 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="draftId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument name="draftId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="version.id" mapping="[0]" domain="integer"/>
-                <field id="version.optLockValue" mapping="[1]" domain="integer"/>
+                <field id="version.id" mapping="['draftId']" domain="integer"/>
+                <field id="version.optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
 
             <out>
                 <field id="opId" mapping="toString()" domain="string"/>
             </out>
         </operation>
+
     </operations>
 
 </object>

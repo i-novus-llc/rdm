@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Публикация справочника">
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+             name="Публикация справочника">
+
     <form object-id="publish" default-values-query-id="publish">
 
         <pre-filters>
@@ -8,6 +10,7 @@
         </pre-filters>
 
         <fields>
+            
             <row>
                 <output-text id="version.id" label="id" visible="false"/>
                 <output-text id="version.optLockValue" label="optLockValue" visible="false"/>
@@ -58,6 +61,7 @@
         </fields>
 
         <toolbar place="bottomRight">
+
             <button id="publishDraft" label="Опубликовать"
                     color="primary" visible="{isPublishable}">
                 <invoke operation-id="publishDraft" close-after-success="true" message-on-success="false"
@@ -77,4 +81,5 @@
         </toolbar>
 
     </form>
+
 </simple-page>

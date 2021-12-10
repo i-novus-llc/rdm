@@ -5,17 +5,20 @@
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="searchReferenceRefBooks">
             <spring/>
+
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </list>
 
     <fields>
+
         <field id="id" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="id" mapping="refBookId"/>
+                <eq filter-id="id" mapping="['criteria'].refBookId"/>
             </filters>
         </field>
 
@@ -26,7 +29,7 @@
         <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="versionId" mapping="versionId"/>
+                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
@@ -40,14 +43,14 @@
 
         <field id="excludeByVersionId" domain="integer">
             <filters>
-                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+                <eq filter-id="excludeByVersionId" mapping="['criteria'].excludeByVersionId"/>
             </filters>
         </field>
 
         <field id="hasPublished" domain="boolean">
             <select mapping="lastPublishedVersionId != null"/>
             <filters>
-                <eq filter-id="hasPublished" mapping="hasPublished"/>
+                <eq filter-id="hasPublished" mapping="['criteria'].hasPublished"/>
             </filters>
         </field>
 
@@ -66,9 +69,10 @@
                     (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
                 "/>
             <filters>
-                <eq filter-id="displayCode" mapping="displayCode"/>
+                <eq filter-id="displayCode" mapping="['criteria'].displayCode"/>
             </filters>
         </field>
 
     </fields>
+
 </query>

@@ -6,24 +6,27 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+
         <field id="id"/>
 
         <field id="versionId" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="id" mapping="id" domain="integer"/>
+                <eq filter-id="id" mapping="['criteria'].id"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <select/>
         </field>
+        
     </fields>
 
 </query>

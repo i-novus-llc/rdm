@@ -5,8 +5,10 @@
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookDataController"
               method="getList">
             <spring/>
+
             <arguments>
-                <argument type="criteria" name="criteria" class="ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria"/>
             </arguments>
         </java>
     </list>
@@ -18,19 +20,19 @@
 
         <field id="versionId" domain="integer">
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <filters>
-                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+                <eq filter-id="optLockValue" mapping="['criteria'].optLockValue"/>
             </filters>
         </field>
 
         <field id="localeCode" domain="string">
             <filters>
-                <eq filter-id="localeCode" mapping="localeCode" domain="string"/>
+                <eq filter-id="localeCode" mapping="['criteria'].localeCode"/>
             </filters>
         </field>
 
@@ -44,13 +46,13 @@
 
         <field id="filter">
             <filters>
-                <eq filter-id="filter" mapping="filter" domain="object"/>
+                <eq filter-id="filter" mapping="['criteria'].filter" domain="object"/>
             </filters>
         </field>
 
         <field id="hasDataConflict" domain="boolean">
             <filters>
-                <eq filter-id="hasDataConflict" mapping="hasDataConflict" domain="boolean"/>
+                <eq filter-id="hasDataConflict" mapping="['criteria'].hasDataConflict"/>
             </filters>
         </field>
 

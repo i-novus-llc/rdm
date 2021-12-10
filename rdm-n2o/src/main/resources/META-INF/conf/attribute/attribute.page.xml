@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Структура">
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+             name="Структура">
+
     <form default-values-query-id="attributeDefault" query-id="attribute" object-id="attribute">
 
         <pre-filters>
@@ -9,6 +11,7 @@
         </pre-filters>
 
         <fields>
+
             <row>
                 <output-text id="versionId" visible="false"/>
                 <output-text id="optLockValue" visible="false"/>
@@ -22,6 +25,7 @@
                             (typeof id == 'undefined' || id == null)
                         </enabling>
                     </dependencies>
+
                     <validations>
                         <condition id="checkCode" severity="danger"
                                    message="Код должен содержать только латинские символы и цифры и начинаться с символа">
@@ -80,6 +84,10 @@
 
             <input-select id="referenceRefBook" label="Выбор справочника"
                           query-id="referenceRefBook" label-field-id="displayCode">
+                <pre-filters>
+                    <eq field-id="excludeByVersionId" value="{versionId}"/>
+                </pre-filters>
+
                 <dependencies>
                     <visibility on="attrType">
                         attrType?.id == 'REFERENCE'
@@ -91,9 +99,7 @@
                         attrType?.id == 'REFERENCE'
                     </requiring>
                 </dependencies>
-                <pre-filters>
-                    <eq field-id="excludeByVersionId" value="{versionId}"/>
-                </pre-filters>
+
                 <validations>
                     <condition id="hasRefBook" severity="danger"
                                message="Справочник не выбран">
@@ -113,6 +119,7 @@
                     <pre-filters>
                         <eq field-id="versionId" value="{referenceRefBook.version.id}" />
                     </pre-filters>
+
                     <dependencies>
                         <visibility on="attrType,referenceRefBook">
                             (attrType?.id == 'REFERENCE' &amp;&amp; referenceRefBook != null)
@@ -121,6 +128,7 @@
                             if (attrType?.id != 'REFERENCE') return null;
                         </set-value>
                     </dependencies>
+
                     <validations>
                         <condition id="hasAttribute" severity="danger"
                                    message="Атрибут не выбран">
@@ -144,6 +152,7 @@
                             attrType?.id == 'REFERENCE'
                         </requiring>
                     </dependencies>
+
                     <validations>
                         <condition id="hasExpression" severity="danger"
                                    message="Поле не заполнено">
@@ -304,5 +313,7 @@
             <!-- / Пользовательские проверки -->
 
         </fields>
+
     </form>
+
 </simple-page>

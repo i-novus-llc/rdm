@@ -6,7 +6,8 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria"/>
             </arguments>
         </java>
     </list>
@@ -16,37 +17,39 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+        
         <field id="id" domain="string">
             <select mapping="code"/>
             <filters>
-                <eq filter-id="id" mapping="code" domain="string"/>
+                <eq filter-id="id" mapping="['criteria'].code"/>
             </filters>
         </field>
 
         <field id="code" domain="string" name="Код">
             <select mapping="code"/>
             <filters>
-                <eq filter-id="code" mapping="code" domain="string"/>
+                <eq filter-id="code" mapping="['criteria'].code"/>
             </filters>
         </field>
 
         <field id="versionId" domain="integer">
             <select mapping="versionId"/>
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer"/>
+                <eq filter-id="optLockValue" mapping="['criteria'].optLockValue"/>
             </filters>
         </field>
 
@@ -61,7 +64,7 @@
         <field id="name" domain="string" name="Наименование">
             <select/>
             <filters>
-                <eq filter-id="name" mapping="name"/>
+                <eq filter-id="name" mapping="['criteria'].name"/>
             </filters>
         </field>
 
@@ -189,4 +192,5 @@
         <!-- / Пользовательские проверки -->
 
     </fields>
+    
 </query>

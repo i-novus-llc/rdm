@@ -7,7 +7,8 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria" name="criteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.model.AttributeCriteria"/>
             </arguments>
         </java>
     </unique>
@@ -20,21 +21,21 @@
         <field id="code" domain="string">
             <select mapping="code"/>
             <filters>
-                <eq filter-id="code" mapping="code" domain="string"/>
+                <eq filter-id="code" mapping="['criteria'].code"/>
             </filters>
         </field>
 
         <field id="versionId" domain="integer">
             <select mapping="versionId"/>
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="optLockValue" mapping="optLockValue" domain="integer" default-value="0"/>
+                <eq filter-id="optLockValue" mapping="['criteria'].optLockValue" default-value="0"/>
             </filters>
         </field>
 
