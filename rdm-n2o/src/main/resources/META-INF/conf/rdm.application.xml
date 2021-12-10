@@ -5,17 +5,9 @@
     <header title="НСИ"
             class="inverse">
 
-        <!--<nav ref-id="rdm"/>-->
-
         <nav>
-            <menu-item name="Реестр справочников"><a href="/#"/></menu-item>
-            <!--<menu-item name="Журнал операций"><a href="/asyncLog"/></menu-item>-->
-
-            <!--<menu-item name="Реестр справочников"><open-page page-id="refBookList"/></menu-item>-->
-
-            <!--<page page-id="refBookList" label="Реестр справочников"/>-->
-            <!--<page page-id="refBookList" route="/#" label="Реестр справочников"/>-->
-            <!--<page page-id="asyncLogList" label="Журнал операций"/>-->
+            <menu-item name="Реестр справочников"><open-page page-id="refBookList" route="/main"/></menu-item>
+            <menu-item name="Журнал операций"><open-page page-id="asyncLogList" route="/asyncLog"/></menu-item>
         </nav>
 
         <!--<extra-menu ref-id="user"/>-->
