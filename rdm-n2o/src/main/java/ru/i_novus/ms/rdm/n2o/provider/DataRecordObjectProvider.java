@@ -76,50 +76,44 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         N2oObject.Operation operation = resolver.createOperation(request);
         operation.setInFields(Stream.concat(
                 resolver.createRegularParams(request).stream(),
-                createDynamicParams(request, resolver.getRecordMappingIndex(request)).stream())
+                createDynamicParams(request).stream())
                 .toArray(AbstractParameter[]::new));
 
         return operation;
     }
 
-    private List<AbstractParameter> createDynamicParams(DataRecordRequest request, int mappingIndex) {
+    private List<AbstractParameter> createDynamicParams(DataRecordRequest request) {
 
         Structure structure = request.getStructure();
         if (structure.isEmpty())
             return emptyList();
 
-        return structure.getAttributes().stream()
-                .map(attribute ->  createParam(attribute, mappingIndex))
-                .collect(toList());
+        return structure.getAttributes().stream().map(this::createParam).collect(toList());
     }
 
-    private AbstractParameter createParam(Structure.Attribute attribute, int mappingIndex) {
+    private AbstractParameter createParam(Structure.Attribute attribute) {
 
-        final String mappingArgumentFormat = "[%1$d].data['%2$s']";
+        final String mappingArgumentFormat = "['row'].data['%s']";
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
         ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setMapping(String.format(mappingArgumentFormat, mappingIndex, attribute.getCode()));
+        parameter.setMapping(String.format(mappingArgumentFormat, attribute.getCode()));
 
         switch (attribute.getType()) {
-            case STRING:
-            case INTEGER:
-            case FLOAT:
-            case DATE:
-            case BOOLEAN:
+
+            case STRING, INTEGER, FLOAT, DATE, BOOLEAN -> {
                 parameter.setId(codeWithPrefix);
                 parameter.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
                 enrichParam(parameter, attribute);
-                break;
+            }
 
-            case REFERENCE:
+            case REFERENCE -> {
                 parameter.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
                 parameter.setDomain(N2oDomain.STRING);
-                break;
+            }
 
-            default:
-                throw new IllegalArgumentException("attribute type not supported");
+            default -> throw new IllegalArgumentException("attribute type not supported");
         }
 
         return parameter;
@@ -129,16 +123,18 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     private void enrichParam(ObjectSimpleField parameter, Structure.Attribute attribute) {
 
         switch (attribute.getType()) {
-            case DATE:
+
+            case DATE -> {
                 parameter.setNormalize("T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
-                break;
+            }
 
-            case BOOLEAN:
+            case BOOLEAN -> {
                 parameter.setDefaultValue("false");
-                break;
+            }
 
-            default:
-                break;
+            default -> {
+                // Nothing to do.
+            }
         }
     }
 

@@ -66,13 +66,4 @@ public class UpdateRecordObjectResolverTest {
         assertNotNull(parameters);
         assertEquals(TEST_PARAMETER_COUNT - 1, parameters.size());
     }
-
-    @Test
-    public void testGetRecordMappingIndex() {
-
-        DataRecordRequest request = new DataRecordRequest();
-
-        int index = resolver.getRecordMappingIndex(request);
-        assertEquals(TEST_ARGUMENT_COUNT - 1, index);
-    }
 }

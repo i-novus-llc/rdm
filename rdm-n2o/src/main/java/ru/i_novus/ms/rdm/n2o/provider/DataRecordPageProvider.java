@@ -166,34 +166,35 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         N2oStandardField n2oField;
 
         switch (attribute.getType()) {
-            case INTEGER:
+
+            case INTEGER -> {
                 N2oInputText integerField = new N2oInputText();
                 integerField.setDomain(N2oDomain.INTEGER);
                 integerField.setStep("1");
                 n2oField = integerField;
-                break;
+            }
 
-            case FLOAT:
+            case FLOAT -> {
                 N2oInputText floatField = new N2oInputText();
                 floatField.setDomain(N2oDomain.FLOAT);
                 floatField.setStep("0.0001");
                 n2oField = floatField;
-                break;
+            }
 
-            case DATE:
+            case DATE -> {
                 N2oDatePicker dateField = new N2oDatePicker();
                 dateField.setDateFormat("DD.MM.YYYY");
                 n2oField = dateField;
-                break;
+            }
 
-            case BOOLEAN:
+            case BOOLEAN -> {
                 n2oField = new N2oCheckbox();
                 n2oField.setNoLabelBlock(Boolean.TRUE);
-                break;
+            }
 
-            default:
+            default -> {
                 n2oField = new N2oInputText();
-                break;
+            }
         }
 
         n2oField.setId(addPrefix(attribute.getCode()));
