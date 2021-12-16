@@ -10,8 +10,13 @@ import { PREFIXES } from 'n2o-framework/lib/ducks/models/constants';
 import columnHOC from 'n2o-framework/lib/components/widgets/Table/withColumn';
 import TableCell from 'n2o-framework/lib/components/widgets/Table/TableCell';
 import factoryResolver from 'n2o-framework/lib/core/factory/factoryResolver';
-
-import { map, get, isEqual, omit, isObject, isEmpty, isNil } from 'lodash';
+import map from 'lodash/map';
+import get from 'lodash/get';
+import isEqual from 'lodash/isEqual';
+import omit from 'lodash/omit';
+import isObject from 'lodash/isObject';
+import isEmpty from 'lodash/isEmpty';
+import isNil from 'lodash/isNil'
 
 const ReduxCell = columnHOC(TableCell);
 
@@ -36,9 +41,9 @@ function DataGridContainer({
 }
 
 const mapStateToProps = (state, props) => {
-    return {
-        filtersFromRedux: makeGetFilterModelSelector(props.widgetId)(state, props),
-    };
+  return {
+    filtersFromRedux: makeGetFilterModelSelector(props.widgetId)(state, props),
+  };
 };
 
 export default compose(
@@ -48,6 +53,7 @@ export default compose(
             onSetFilter: (model) => {
                 props.dispatch(setModel(PREFIXES.filter, props.widgetId, model))
             },
+            models: props.models,
             actions: props.actions,
             widgetId: props.widgetId,
             minHeight: props.minHeight,
@@ -65,14 +71,15 @@ export default compose(
     withState('rows', 'setRows', []),
     withState('filters', 'setFilters', {}),
     withHandlers({
-        prepareColumns: ({ datasource, widgetId, sorting, onSort }) => () => {
+        prepareColumns: ({ models, widgetId, sorting, onSort }) => () => {
+            const datasource = get(models, `datasource.${widgetId}`, []);
             const columns = get(datasource, '[0].columns', null);
 
             if (!columns) {
                 return null;
             }
 
-            return map(columns, (item, index) => {
+            return map(columns, (item) => {
                 let newItem = Object.assign({}, item);
                 newItem = {
                   ...newItem,
@@ -110,7 +117,10 @@ export default compose(
                 };
             });
         },
-        getData: ({ datasource }) => () => datasource && datasource.length > 1 ? map(datasource.slice(1), item => item.row) : [],
+        getData: ({ models, widgetId }) => () => {
+          const datasource = get(models, `datasource.${widgetId}`, []);
+          return datasource && datasource.length > 1 ? map(datasource.slice(1), item => item.row) : [];
+        },
         onSetFilter: ({ onSetFilter, filters, filtersFromRedux, setFilters, onFetch }) => filter => {
             const filterModel = {
                 ...filtersFromRedux,
@@ -133,20 +143,20 @@ export default compose(
             const {
                 setColumns,
                 prepareColumns,
-                datasource,
+                models,
                 setRows,
                 getData,
                 onResolve,
             } = this.props;
-            if (!isEqual(prevProps.datasource, datasource)) {
+            if (!isEqual(prevProps.models, models)) {
                 setColumns(prepareColumns());
             }
 
-            if (!isEqual(prevProps.datasource, datasource)) {
+            if (!isEqual(prevProps.models, models)) {
                 setRows(getData());
             }
 
-            if ((isEmpty(prevProps.datasource) || isNil(prevProps.datasource)) && !isEmpty(getData())) {
+            if ((isEmpty(prevProps.models) || isNil(prevProps.models)) && !isEmpty(getData())) {
               onResolve(getData()[0]);
             }
         }
