@@ -11,6 +11,7 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.Collection;
 import java.util.List;
@@ -97,45 +98,56 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setMapping(String.format(mappingArgumentFormat, attribute.getCode()));
+        ObjectSimpleField parameter = switch (attribute.getType()) {
 
-        switch (attribute.getType()) {
+            case STRING, INTEGER, FLOAT, DATE, BOOLEAN ->
+                createParam(codeWithPrefix, attribute.getType());
 
-            case STRING, INTEGER, FLOAT, DATE, BOOLEAN -> {
-                parameter.setId(codeWithPrefix);
-                parameter.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
-                enrichParam(parameter, attribute);
-            }
-
-            case REFERENCE -> {
-                parameter.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
-                parameter.setDomain(N2oDomain.STRING);
-            }
+            case REFERENCE ->
+                createReferenceParam(codeWithPrefix);
 
             default -> throw new IllegalArgumentException("attribute type not supported");
-        }
+        };
+
+        parameter.setMapping(String.format(mappingArgumentFormat, attribute.getCode()));
 
         return parameter;
     }
 
-    /** Заполнение дополнительных полей параметра в зависимости от типа атрибута. */
-    private void enrichParam(ObjectSimpleField parameter, Structure.Attribute attribute) {
+    /** Заполнение полей примитивного параметра. */
+    @SuppressWarnings("java:S1199")
+    private ObjectSimpleField createParam(String codeWithPrefix, FieldType type) {
 
-        switch (attribute.getType()) {
+        ObjectSimpleField parameter = new ObjectSimpleField();
 
-            case DATE -> {
+        parameter.setId(codeWithPrefix);
+        parameter.setDomain(N2oDomain.fieldTypeToDomain(type));
+
+        switch (type) {
+
+            case DATE ->
                 parameter.setNormalize("T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
-            }
 
-            case BOOLEAN -> {
+            case BOOLEAN ->
                 parameter.setDefaultValue("false");
-            }
 
             default -> {
                 // Nothing to do.
             }
         }
+
+        return parameter;
+    }
+
+    /** Заполнение полей параметра-ссылки. */
+    private ObjectSimpleField createReferenceParam(String codeWithPrefix) {
+
+        ObjectSimpleField parameter = new ObjectSimpleField();
+
+        parameter.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
+        parameter.setDomain(N2oDomain.STRING);
+
+        return parameter;
     }
 
     private Stream<DataRecordObjectResolver> getSatisfiedResolvers(String dataAction) {

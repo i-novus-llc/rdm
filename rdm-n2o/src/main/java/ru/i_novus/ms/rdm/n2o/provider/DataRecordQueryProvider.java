@@ -179,17 +179,14 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
             switch (attribute.getType()) {
 
-                case STRING, INTEGER, FLOAT, DATE, BOOLEAN -> {
+                case STRING, INTEGER, FLOAT, DATE, BOOLEAN ->
                     list.add(createField(attribute));
-                }
 
-                case REFERENCE -> {
+                case REFERENCE ->
                     list.addAll(createReferenceFields(attribute));
-                }
 
-                default -> {
+                default ->
                     throw new IllegalArgumentException("attribute type is not supported");
-                }
             }
         }
         return list;

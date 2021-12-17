@@ -6,9 +6,6 @@ import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
-import net.n2oapp.framework.api.metadata.control.plain.N2oCheckbox;
-import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
-import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
@@ -163,39 +160,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oStandardField createField(Structure.Attribute attribute) {
 
-        N2oStandardField n2oField;
-
-        switch (attribute.getType()) {
-
-            case INTEGER -> {
-                N2oInputText integerField = new N2oInputText();
-                integerField.setDomain(N2oDomain.INTEGER);
-                integerField.setStep("1");
-                n2oField = integerField;
-            }
-
-            case FLOAT -> {
-                N2oInputText floatField = new N2oInputText();
-                floatField.setDomain(N2oDomain.FLOAT);
-                floatField.setStep("0.0001");
-                n2oField = floatField;
-            }
-
-            case DATE -> {
-                N2oDatePicker dateField = new N2oDatePicker();
-                dateField.setDateFormat("DD.MM.YYYY");
-                n2oField = dateField;
-            }
-
-            case BOOLEAN -> {
-                n2oField = new N2oCheckbox();
-                n2oField.setNoLabelBlock(Boolean.TRUE);
-            }
-
-            default -> {
-                n2oField = new N2oInputText();
-            }
-        }
+        N2oStandardField n2oField = DataRecordPageUtils.createField(attribute.getType());
 
         n2oField.setId(addPrefix(attribute.getCode()));
         n2oField.setLabel(attribute.getName());
