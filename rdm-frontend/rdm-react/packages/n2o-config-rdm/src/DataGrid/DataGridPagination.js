@@ -11,7 +11,7 @@ import {
   makeWidgetPageSelector,
 } from 'n2o-framework/lib/ducks/widgets/selectors';
 import { makeGetModelByPrefixSelector, makeGetFilterModelSelector } from 'n2o-framework/lib/ducks/models/selectors';
-import { dataRequestWidget } from 'n2o-framework/lib/ducks/models/store';
+import { dataRequestWidget } from 'n2o-framework/lib/ducks/widgets/store';
 import { PREFIXES } from 'n2o-framework/lib/ducks/models/constants';
 
 /**
@@ -111,7 +111,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {
     onChangePage: (page, filters) => {
       dispatch(
-        dataRequestWidget(ownProps.widgetId, {
+        dataRequestWidget(ownProps.widgetId, ownProps.modelId, {
           page,
           ...filters
         })
