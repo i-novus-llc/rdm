@@ -10,7 +10,10 @@
             <menu-item name="Журнал операций"><open-page page-id="asyncLogList" route="/asyncLog"/></menu-item>
         </nav>
 
-        <!--<extra-menu ref-id="user"/>-->
+        <!--<extra-menu src="user"/>-->
     </header>
+
+    <footer left-text="N2O ${n2o.version} © ${n2o.version.copyright.text}"
+            class="inverse"/>
 
 </application>
