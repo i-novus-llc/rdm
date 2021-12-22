@@ -7,7 +7,7 @@ import DataGridContainer from "./DataGridContainer";
 import {connect} from "react-redux";
 
 function DataGridWidget({
-    id: widgetId,
+    id,
     disabled,
     actions,
     getWidgetProps,
@@ -20,9 +20,10 @@ function DataGridWidget({
       <StandardWidget
         toolbar={toolbar}
         disabled={disabled}
-        widgetId={widgetId}
+        widgetId={id}
+        modelId={id}
         actions={actions}
-        bottomLeft={paging && <DataGridPagination widgetId={widgetId}/>}
+        bottomLeft={paging && <DataGridPagination widgetId={id}/>}
       >
         <DataGridContainer {...getWidgetProps()} models={models}/>
       </StandardWidget>
@@ -39,8 +40,9 @@ const mapStateToProps = (state) => {
 export default compose(
   dependency,
   withHandlers({
-    getWidgetProps: ({id: widgetId, table, ...rest}) => () => ({
-      widgetId,
+    getWidgetProps: ({id, table, ...rest}) => () => ({
+      widgetId: id,
+      modelId: id,
       table,
       ...table,
       ...rest

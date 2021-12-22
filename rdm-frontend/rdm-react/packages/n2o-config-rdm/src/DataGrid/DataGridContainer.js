@@ -71,8 +71,8 @@ export default compose(
     withState('rows', 'setRows', []),
     withState('filters', 'setFilters', {}),
     withHandlers({
-        prepareColumns: ({ models, widgetId, sorting, onSort }) => () => {
-            const datasource = get(models, `datasource.${widgetId}`, []);
+        prepareColumns: ({ models, widgetId, modelId, sorting, onSort }) => () => {
+            const datasource = get(models, `datasource.${modelId}`, []);
             const columns = get(datasource, '[0].columns', null);
 
             if (!columns) {
