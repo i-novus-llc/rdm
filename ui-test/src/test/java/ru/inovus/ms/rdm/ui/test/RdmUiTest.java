@@ -425,7 +425,7 @@ public class RdmUiTest {
             N2oInputSelect refBookInput = structureForm.refBookInput();
             refBookInput.shouldBeEmpty();
             refBookInput.val(refBookField.getReferredBook().getCode());
-            refBookInput.expandPopUpOptions();
+            refBookInput.expand();
             refBookInput.select(Condition.text(refBookField.getReferredBook().getCode()));
             refBookInput.shouldSelected(refBookField.getReferredBook().getCode());
 
@@ -454,7 +454,7 @@ public class RdmUiTest {
             N2oInputSelect typeInput = refBookCreateFormWidget.typeInput();
             typeInput.shouldBeEmpty();
             typeInput.val(refBook.getType());
-            typeInput.expandPopUpOptions();
+            typeInput.expand();
             typeInput.select(Condition.text(refBook.getType()));
             typeInput.shouldSelected(refBook.getType());
         }
@@ -507,7 +507,7 @@ public class RdmUiTest {
             throw new IllegalArgumentException("control is not check box");
 
         N2oInputSelect control = (N2oInputSelect) referenceInput;
-        control.expandPopUpOptions();
+        control.expand();
         control.select((int) value);
     }
 
