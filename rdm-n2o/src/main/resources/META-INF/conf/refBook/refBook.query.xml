@@ -52,7 +52,7 @@
         <field id="code" domain="string">
             <select/>
             <filters>
-                <eq filter-id="code" mapping="code"/>
+                <eq filter-id="code" mapping="['criteria'].code"/>
             </filters>
             <sorting/>
         </field>
