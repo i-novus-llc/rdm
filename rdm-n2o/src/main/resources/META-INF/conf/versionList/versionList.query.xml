@@ -7,7 +7,8 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </list>
@@ -18,16 +19,18 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.api.model.version.VersionCriteria"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+
         <field id="id" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="id" mapping="id" domain="integer"/>
+                <eq filter-id="id" mapping="['criteria'].id"/>
             </filters>
         </field>
 
@@ -46,7 +49,7 @@
         <field id="refBookId" domain="integer">
             <select/>
             <filters>
-                <eq filter-id="refBookId" mapping="refBookId" domain="integer"/>
+                <eq filter-id="refBookId" mapping="['criteria'].refBookId"/>
             </filters>
         </field>
 
@@ -57,7 +60,7 @@
         <field id="name" domain="string">
             <select mapping="passport['name']"/>
             <filters>
-                <eq filter-id="name" mapping="passport['name']"/>
+                <eq filter-id="name" mapping="['criteria'].passport['name']"/>
             </filters>
         </field>
 
@@ -96,8 +99,9 @@
 
         <field id="excludeDraft" domain="boolean">
             <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>
+                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft" default-value="false"/>
             </filters>
         </field>
+        
     </fields>
 </query>

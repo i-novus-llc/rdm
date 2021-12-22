@@ -6,19 +6,21 @@
             <spring bean="versionRestServiceJaxRsProxyClient"/>
             
             <arguments>
-                <argument type="primitive" name="versionId" class="java.lang.Integer"/>
+                <argument name="versionId" type="primitive" class="java.lang.Integer"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+        
         <field id="id"/>
 
         <field id="versionId" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="versionId" mapping="[0]" domain="integer"/>
+                <eq filter-id="versionId" mapping="['versionId']" domain="integer"/>
             </filters>
         </field>
+
     </fields>
 </query>

@@ -21,8 +21,6 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.DATA_ACTIO
 @Component
 public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolver {
 
-    private static final int ROW_ARGUMENT_INDEX = 3;
-
     private static final String CONTROLLER_CLASS_NAME = L10nLocalizeVersionController.class.getName();
     private static final String CONTROLLER_CLASS_METHOD = "localizeDataRecord";
 
@@ -48,13 +46,8 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
                 createVersionIdParameter(request.getVersionId()),
                 createOptLockValueParameter(),
                 createLocaleCodeParameter(),
-                createSystemIdParameter(getRecordMappingIndex(request))
+                createSystemIdParameter()
         );
-    }
-
-    @Override
-    public int getRecordMappingIndex(DataRecordRequest request) {
-        return ROW_ARGUMENT_INDEX;
     }
 
     protected N2oJavaDataProvider createInvocation() {
@@ -97,7 +90,7 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
         ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
-        parameter.setMapping("[0]");
+        parameter.setMapping("['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
         return parameter;
@@ -107,7 +100,7 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
         ObjectSimpleField optLockValueParameter = new ObjectSimpleField();
         optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
-        optLockValueParameter.setMapping("[1]");
+        optLockValueParameter.setMapping("['optLockValue']");
         optLockValueParameter.setDomain(N2oDomain.INTEGER);
         optLockValueParameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         return optLockValueParameter;
@@ -117,18 +110,18 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
         ObjectSimpleField localeCodeParameter = new ObjectSimpleField();
         localeCodeParameter.setId(FIELD_LOCALE_CODE);
-        localeCodeParameter.setMapping("[2]");
+        localeCodeParameter.setMapping("['localeCode']");
         localeCodeParameter.setDomain(N2oDomain.STRING);
         localeCodeParameter.setDefaultValue(DEFAULT_LOCALE_CODE);
         return localeCodeParameter;
     }
 
-    private AbstractParameter createSystemIdParameter(int index) {
+    private AbstractParameter createSystemIdParameter() {
 
         ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setMapping(String.format("[%d].systemId", index));
+        parameter.setMapping("['row'].systemId");
         return parameter;
     }
 }

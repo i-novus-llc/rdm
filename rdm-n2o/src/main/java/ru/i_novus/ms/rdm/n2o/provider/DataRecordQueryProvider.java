@@ -41,6 +41,9 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private static final String CONTROLLER_METHOD = "getRow";
     private static final String CRITERIA_CLASS_NAME = DataRecordCriteria.class.getName();
 
+    private static final String CRITERIA_NAME = "criteria";
+    private static final String MAPPING_CRITERIA_PREFIX = "['" + CRITERIA_NAME + "'].";
+
     @Autowired
     private Collection<DataRecordQueryResolver> resolvers;
 
@@ -79,6 +82,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         provider.setSpringProvider(new SpringProvider());
 
         Argument criteriaArgument = new Argument();
+        criteriaArgument.setName(CRITERIA_NAME);
         criteriaArgument.setType(Argument.Type.CRITERIA);
         criteriaArgument.setClassName(CRITERIA_CLASS_NAME);
         provider.setArguments(new Argument[]{ criteriaArgument });
@@ -106,7 +110,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         N2oQuery.Filter idFilter = new N2oQuery.Filter();
         idFilter.setType(FilterType.eq);
         idFilter.setFilterField(FIELD_SYSTEM_ID);
-        idFilter.setMapping(FIELD_SYSTEM_ID);
+        idFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_SYSTEM_ID);
         idFilter.setDomain(N2oDomain.INTEGER);
         idField.setFilterList(new N2oQuery.Filter[]{ idFilter });
 
@@ -116,7 +120,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         N2oQuery.Filter versionIdFilter = new N2oQuery.Filter();
         versionIdFilter.setType(FilterType.eq);
         versionIdFilter.setFilterField(FIELD_VERSION_ID);
-        versionIdFilter.setMapping(FIELD_VERSION_ID);
+        versionIdFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_VERSION_ID);
         versionIdFilter.setDomain(N2oDomain.INTEGER);
         versionIdFilter.setDefaultValue(String.valueOf(request.getVersionId()));
         versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
@@ -127,7 +131,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter();
         optLockValueFilter.setType(FilterType.eq);
         optLockValueFilter.setFilterField(FIELD_OPT_LOCK_VALUE);
-        optLockValueFilter.setMapping(FIELD_OPT_LOCK_VALUE);
+        optLockValueFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_OPT_LOCK_VALUE);
         optLockValueFilter.setDomain(N2oDomain.INTEGER);
         optLockValueFilter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         optLockValueField.setFilterList(new N2oQuery.Filter[]{ optLockValueFilter });
@@ -138,7 +142,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         N2oQuery.Filter localeCodeFilter = new N2oQuery.Filter();
         localeCodeFilter.setType(FilterType.eq);
         localeCodeFilter.setFilterField(FIELD_LOCALE_CODE);
-        localeCodeFilter.setMapping(FIELD_LOCALE_CODE);
+        localeCodeFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_LOCALE_CODE);
         localeCodeFilter.setDomain(N2oDomain.STRING);
         localeCodeFilter.setDefaultValue(DEFAULT_LOCALE_CODE);
         localeCodeField.setFilterList(new N2oQuery.Filter[]{ localeCodeFilter });
@@ -149,7 +153,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         N2oQuery.Filter dataActionFilter = new N2oQuery.Filter();
         dataActionFilter.setType(FilterType.eq);
         dataActionFilter.setFilterField(FIELD_DATA_ACTION);
-        dataActionFilter.setMapping(FIELD_DATA_ACTION);
+        dataActionFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_DATA_ACTION);
         dataActionFilter.setDomain(N2oDomain.STRING);
         dataActionField.setFilterList(new N2oQuery.Filter[]{ dataActionFilter });
 
@@ -174,19 +178,14 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             switch (attribute.getType()) {
-                case STRING:
-                case INTEGER:
-                case FLOAT:
-                case DATE:
-                case BOOLEAN:
+
+                case STRING, INTEGER, FLOAT, DATE, BOOLEAN ->
                     list.add(createField(attribute));
-                    break;
 
-                case REFERENCE:
+                case REFERENCE ->
                     list.addAll(createReferenceFields(attribute));
-                    break;
 
-                default:
+                default ->
                     throw new IllegalArgumentException("attribute type is not supported");
             }
         }

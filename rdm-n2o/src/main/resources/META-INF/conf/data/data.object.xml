@@ -3,6 +3,7 @@
         name="Запись справочника">
 
     <operations>
+        
         <operation id="deleteRecord" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
             <invocation>
@@ -11,17 +12,17 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="primitive" name="id" class="java.lang.Long"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
+                        <argument name="id" type="primitive" class="java.lang.Long"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="versionId" mapping="[0]" domain="integer"/>
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
-                <field id="id" mapping="[2]" domain="long"/>
+                <field id="versionId" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
+                <field id="id" mapping="['id']" domain="long"/>
             </in>
         </operation>
 
@@ -33,17 +34,18 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="versionId" mapping="[0]" domain="integer" />
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="versionId" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
+
     </operations>
 
 </object>

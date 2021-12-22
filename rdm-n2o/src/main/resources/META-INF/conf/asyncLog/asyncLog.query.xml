@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" name="Типы операций">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0"
+       name="Журнал операций">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <rest method="GET" filters-separator="&amp;">${rdm.backend.path}/asynclog?{filters}&amp;page={page}</rest>
@@ -10,10 +11,12 @@
     </unique>
 
     <fields>
+
         <field id="id" domain="string">
             <select mapping="['id']"/>
             <filters>
-                <eq filter-id="id" normalize="T(ru.i_novus.ms.rdm.api.util.StringUtils).toUuid(#this)">id={id}</eq>
+                <eq filter-id="id"
+                    normalize="T(ru.i_novus.ms.rdm.api.util.StringUtils).toUuid(#this)">id={id}</eq>
             </filters>
         </field>
 
@@ -21,7 +24,8 @@
         <field id="uuid" domain="string">
             <select mapping="['id']"/>
             <filters>
-                <eq filter-id="uuid" mapping="[0]" domain="string" normalize="T(java.util.UUID).fromString(#this)"/>
+                <eq filter-id="uuid" mapping="[0]" domain="string"
+                    normalize="T(java.util.UUID).fromString(#this)"/>
             </filters>
         </field>
 
@@ -79,5 +83,7 @@
         <field id="error" domain="string">
             <select mapping="['error']"/>
         </field>
+
     </fields>
+
 </query>

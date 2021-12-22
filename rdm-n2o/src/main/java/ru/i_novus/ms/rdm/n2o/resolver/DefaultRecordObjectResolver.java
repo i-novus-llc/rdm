@@ -7,7 +7,6 @@ import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
-import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
 import ru.i_novus.ms.rdm.n2o.service.CreateDraftController;
 
@@ -15,15 +14,8 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 
 public abstract class DefaultRecordObjectResolver implements DataRecordObjectResolver {
 
-    private static final int ROW_ARGUMENT_INDEX = 2;
-
     private static final String CONTROLLER_CLASS_NAME = CreateDraftController.class.getName();
     private static final String CONTROLLER_CLASS_METHOD = "updateDataRecord";
-
-    @Override
-    public int getRecordMappingIndex(DataRecordRequest request) {
-        return ROW_ARGUMENT_INDEX;
-    }
 
     protected N2oJavaDataProvider createInvocation() {
 
@@ -60,7 +52,7 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
         ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
-        parameter.setMapping("[0]");
+        parameter.setMapping("['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
         return parameter;
@@ -70,7 +62,7 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
         ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_OPT_LOCK_VALUE);
-        parameter.setMapping("[1]");
+        parameter.setMapping("['optLockValue']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         return parameter;

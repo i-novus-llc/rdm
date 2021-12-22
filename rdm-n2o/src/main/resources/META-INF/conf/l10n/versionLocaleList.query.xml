@@ -10,6 +10,7 @@
     </unique>
 
     <fields>
+
         <field id="id" domain="string">
             <select mapping="['localeCode']"/>
             <filters>
@@ -33,8 +34,10 @@
         </field>
 
         <field id="fullName" domain="string">
-            <select
-                mapping="['localeSelfName']?.length() == 0 ? ['localeName'] : ['localeName'] + '(' + ['localeSelfName'] + ')'"/>
+            <select mapping="
+                ['localeSelfName']?.length() == 0 ? ['localeName'] : ['localeName'] + '(' + ['localeSelfName'] + ')'
+                "/>
         </field>
+
     </fields>
 </query>

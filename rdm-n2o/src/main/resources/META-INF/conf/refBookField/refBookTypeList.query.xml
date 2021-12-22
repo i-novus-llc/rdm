@@ -2,7 +2,8 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBookTypeList">
 
     <list result-mapping="content" count-mapping="totalElements">
-        <java method="getTypeList" class="ru.i_novus.ms.rdm.n2o.service.RefBookController">
+        <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
+              method="getTypeList">
             <spring/>
         </java>
     </list>
@@ -12,24 +13,27 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria" name="criteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+
         <field id="id" domain="string">
             <select/>
             <filters>
-                <eq filter-id="id" mapping="id"/>
+                <eq filter-id="id" mapping="['criteria'].id"/>
             </filters>
         </field>
 
         <field id="name" domain="string">
             <select/>
             <filters>
-                <eq filter-id="name" mapping="name"/>
+                <eq filter-id="name" mapping="['criteria'].name"/>
             </filters>
         </field>
+
     </fields>
 </query>

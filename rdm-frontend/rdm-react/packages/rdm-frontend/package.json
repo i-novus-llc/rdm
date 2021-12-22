@@ -1,6 +1,6 @@
 {
   "name": "rdm-frontend",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "private": true,
   "homepage": ".",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "http-proxy-middleware": "^0.20.0",
-    "n2o-config-rdm": "^2.0.4"
+    "n2o-config-rdm": "^2.0.5"
   },
   "peerDependencies": {
     "n2o-auth": "*",

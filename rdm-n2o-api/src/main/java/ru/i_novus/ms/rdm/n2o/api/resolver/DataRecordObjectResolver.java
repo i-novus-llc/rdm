@@ -16,6 +16,4 @@ public interface DataRecordObjectResolver {
     N2oObject.Operation createOperation(DataRecordRequest request);
 
     List<AbstractParameter> createRegularParams(DataRecordRequest request);
-
-    int getRecordMappingIndex(DataRecordRequest request);
 }

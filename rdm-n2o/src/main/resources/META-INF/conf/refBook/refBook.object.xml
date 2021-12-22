@@ -3,6 +3,7 @@
         name="Справочник">
 
     <operations>
+        
         <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook</rest>
@@ -28,21 +29,23 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="class" name="uiPassport" class="ru.i_novus.ms.rdm.n2o.model.UiPassport"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
+                        <argument name="uiPassport" type="class"
+                                  class="ru.i_novus.ms.rdm.n2o.model.UiPassport"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="version.id" mapping="[0]" domain="integer"/>
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
-                <field id="code" mapping="[2].code" domain="string"/>
-                <field id="category.id" mapping="[2].category" domain="string"/>
-                <field id="name" mapping="[2].name" domain="string"/>
-                <field id="shortName" mapping="[2].shortName" domain="string"/>
-                <field id="description" mapping="[2].description" domain="string"/>
+                <field id="version.id" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
+
+                <field id="code" mapping="['uiPassport'].code" domain="string"/>
+                <field id="category.id" mapping="['uiPassport'].category" domain="string"/>
+                <field id="name" mapping="['uiPassport'].name" domain="string"/>
+                <field id="shortName" mapping="['uiPassport'].shortName" domain="string"/>
+                <field id="description" mapping="['uiPassport'].description" domain="string"/>
             </in>
 
             <out>
@@ -52,7 +55,8 @@
 
         <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
         <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
-                   confirm="true" confirm-text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?">
+                   confirm="true"
+                   confirm-text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?">
             <invocation>
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
@@ -62,7 +66,8 @@
             </in>
         </operation>
 
-        <operation id="refreshReferrer" submit-label="Обновить ссылки" success-text="Обновлены ссылки по первичным ключам"
+        <operation id="refreshReferrer" submit-label="Обновить ссылки"
+                   success-text="Обновлены ссылки по первичным ключам"
                    confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.ConflictController"
@@ -70,15 +75,15 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="version.id" mapping="[0]" domain="integer"/>
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="version.id" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
 
@@ -89,14 +94,15 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
+                        <argument name="fileModel" type="class"
+                                  class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="file.path" mapping="[0].path" domain="string"/>
-                <field id="file.name" mapping="[0].name" domain="string"/>
+                <field id="file.path" mapping="['fileModel'].path" domain="string"/>
+                <field id="file.name" mapping="['fileModel'].name" domain="string"/>
             </in>
 
             <out>
@@ -112,16 +118,18 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="fileModel" type="class"
+                                  class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="versionId" mapping="[0]" domain="integer"/>
-                <field id="file.path" mapping="[1].path" domain="string"/>
-                <field id="file.name" mapping="[1].name" domain="string"/>
+                <field id="versionId" mapping="['versionId']" domain="integer"/>
+
+                <field id="file.path" mapping="['fileModel'].path" domain="string"/>
+                <field id="file.name" mapping="['fileModel'].name" domain="string"/>
             </in>
 
             <out>
@@ -136,18 +144,20 @@
                     <spring/>
 
                     <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                        <argument type="class" name="fileModel" class="ru.i_novus.ms.rdm.api.model.FileModel"/>
+                        <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                        <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
+                        <argument name="fileModel" type="class"
+                                  class="ru.i_novus.ms.rdm.api.model.FileModel"/>
                     </arguments>
                 </java>
             </invocation>
 
             <in>
-                <field id="versionId" mapping="[0]" domain="integer"/>
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
-                <field id="file.path" mapping="[2].path" domain="string"/>
-                <field id="file.name" mapping="[2].name" domain="string"/>
+                <field id="versionId" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
+
+                <field id="file.path" mapping="['fileModel'].path" domain="string"/>
+                <field id="file.name" mapping="['fileModel'].name" domain="string"/>
             </in>
 
             <out>
@@ -191,10 +201,11 @@
             </invocation>
 
             <in>
-                <field id="versionId" mapping="[0]" domain="integer"/>
-                <field id="optLockValue" mapping="[1]" domain="integer"/>
+                <field id="versionId" mapping="['versionId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
+
     </operations>
 
 </object>

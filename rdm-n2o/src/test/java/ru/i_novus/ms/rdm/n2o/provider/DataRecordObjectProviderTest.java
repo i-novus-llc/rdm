@@ -118,7 +118,6 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
     private static class TestRecordObjectResolver implements DataRecordObjectResolver {
 
         private static final String TEST_OPERATION = "trialize";
-        private static final int ROW_ARGUMENT_INDEX = 0;
 
         @Override
         public boolean isSatisfied(String dataAction) {
@@ -138,11 +137,6 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
         @Override
         public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
             return emptyList();
-        }
-
-        @Override
-        public int getRecordMappingIndex(DataRecordRequest request) {
-            return ROW_ARGUMENT_INDEX;
         }
     }
 }

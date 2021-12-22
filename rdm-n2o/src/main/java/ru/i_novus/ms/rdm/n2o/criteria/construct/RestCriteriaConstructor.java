@@ -4,7 +4,6 @@ import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.framework.api.data.CriteriaConstructor;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,20 +21,10 @@ public class RestCriteriaConstructor implements CriteriaConstructor {
     }
 
     @Override
-    public <T> T construct(N2oPreparedCriteria criteria, Class<T> criteriaClass) {
+    public Object construct(N2oPreparedCriteria criteria, Object instance) {
 
-        T instance = newInstance(criteriaClass);
         prepareInstance(criteria, instance);
         return instance;
-    }
-
-    protected <T> T newInstance(Class<T> criteriaClass) {
-        try {
-            return criteriaClass.getDeclaredConstructor().newInstance();
-
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 
     protected <T> void prepareInstance(N2oPreparedCriteria criteria, T instance) {

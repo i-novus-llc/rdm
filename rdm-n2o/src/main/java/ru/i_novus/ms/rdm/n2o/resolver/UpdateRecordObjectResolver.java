@@ -51,16 +51,16 @@ public class UpdateRecordObjectResolver extends DefaultRecordObjectResolver {
         return List.of(
                 createVersionIdParameter(request.getVersionId()),
                 createOptLockValueParameter(),
-                createSystemIdParameter(getRecordMappingIndex(request))
+                createSystemIdParameter()
         );
     }
 
-    private AbstractParameter createSystemIdParameter(int index) {
+    private AbstractParameter createSystemIdParameter() {
 
         ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setMapping(String.format("[%d].systemId", index));
+        parameter.setMapping("['row'].systemId");
         return parameter;
     }
 

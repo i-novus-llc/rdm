@@ -7,7 +7,8 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </list>
@@ -18,16 +19,18 @@
             <spring/>
 
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
             </arguments>
         </java>
     </unique>
 
     <fields>
+        
         <field id="id" domain="integer">
             <select mapping="refBookId"/>
             <filters>
-                <eq filter-id="id" mapping="refBookId"/>
+                <eq filter-id="id" mapping="['criteria'].refBookId"/>
             </filters>
         </field>
 
@@ -38,7 +41,7 @@
         <field id="version.id" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="versionId" mapping="versionId"/>
+                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
             </filters>
         </field>
 
@@ -49,7 +52,7 @@
         <field id="code" domain="string">
             <select/>
             <filters>
-                <eq filter-id="code" mapping="code"/>
+                <eq filter-id="code" mapping="['criteria'].code"/>
             </filters>
             <sorting/>
         </field>
@@ -60,21 +63,21 @@
 
         <field id="status" domain="string">
             <filters>
-                <eq filter-id="status.id" mapping="status" domain="string"/>
+                <eq filter-id="status.id" mapping="['criteria'].status" domain="string"/>
             </filters>
         </field>
 
         <field id="archived" domain="boolean">
             <select mapping="archived"/>
             <filters>
-                <eq filter-id="isArchived" mapping="isArchived"/>
+                <eq filter-id="isArchived" mapping="['criteria'].isArchived"/>
             </filters>
         </field>
 
         <field id="nonArchived" domain="boolean">
             <select mapping="!archived"/>
             <filters>
-                <eq filter-id="nonArchived" mapping="nonArchived"/>
+                <eq filter-id="nonArchived" mapping="['criteria'].nonArchived"/>
             </filters>
         </field>
 
@@ -82,7 +85,7 @@
         <field id="name" domain="string">
             <select mapping="passport['name']"/>
             <filters>
-                <eq filter-id="name" mapping="passport['name']"/>
+                <eq filter-id="name" mapping="['criteria'].passport['name']"/>
             </filters>
             <sorting/>
         </field>
@@ -99,7 +102,7 @@
         <field id="category.id" domain="string" name="Категория">
             <select mapping="category"/>
             <filters>
-                <eq filter-id="category.id" mapping="category" domain="string"/>
+                <eq filter-id="category.id" mapping="['criteria'].category"/>
             </filters>
             <sorting/>
         </field>
@@ -107,13 +110,13 @@
         <field id="excludeDraft" domain="boolean">
             <select mapping="draftVersionId == null"/>
             <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft" default-value="false"/>
+                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft" default-value="false"/>
             </filters>
         </field>
 
         <field id="excludeByVersionId" domain="integer">
             <filters>
-                <eq filter-id="excludeByVersionId" mapping="excludeByVersionId"/>
+                <eq filter-id="excludeByVersionId" mapping="['criteria'].excludeByVersionId"/>
             </filters>
         </field>
 
@@ -136,15 +139,15 @@
         <field id="hasPublished" domain="boolean">
             <select mapping="lastPublishedVersionId != null"/>
             <filters>
-                <eq filter-id="hasPublished" mapping="hasPublished"/>
+                <eq filter-id="hasPublished" mapping="['criteria'].hasPublished"/>
             </filters>
         </field>
 
         <field id="lastPublishedDate" domain="date">
             <select/>
             <filters>
-                <more filter-id="lastPublishedDateInterval.begin" mapping="fromDateBegin"/>
-                <less filter-id="lastPublishedDateInterval.end" mapping="fromDateEnd"/>
+                <more filter-id="lastPublishedDateInterval.begin" mapping="['criteria'].fromDateBegin"/>
+                <less filter-id="lastPublishedDateInterval.end" mapping="['criteria'].fromDateEnd"/>
             </filters>
             <sorting/>
         </field>
@@ -152,7 +155,7 @@
         <field id="hasPrimaryAttribute" domain="boolean">
             <select/>
             <filters>
-                <eq filter-id="hasPrimaryAttribute" mapping="hasPrimaryAttribute"/>
+                <eq filter-id="hasPrimaryAttribute" mapping="['criteria'].hasPrimaryAttribute"/>
             </filters>
         </field>
 

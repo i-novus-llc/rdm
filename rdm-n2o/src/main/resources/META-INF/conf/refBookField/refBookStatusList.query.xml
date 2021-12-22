@@ -4,13 +4,16 @@
     <list result-mapping="content" count-mapping="totalElements">
         <java method="getStatusList" class="ru.i_novus.ms.rdm.n2o.service.RefBookController">
             <spring/>
+
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria"/>
+                <argument name="criteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria"/>
             </arguments>
         </java>
     </list>
 
     <fields>
+
         <field id="id" domain="string">
             <select/>
         </field>
@@ -21,14 +24,15 @@
 
         <field id="nonArchived" domain="boolean">
             <filters>
-                <eq filter-id="nonArchived" mapping="nonArchived"/>
+                <eq filter-id="nonArchived" mapping="['criteria'].nonArchived"/>
             </filters>
         </field>
 
         <field id="excludeDraft" domain="boolean">
             <filters>
-                <eq filter-id="excludeDraft" mapping="excludeDraft"/>
+                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
             </filters>
         </field>
+        
     </fields>
 </query>

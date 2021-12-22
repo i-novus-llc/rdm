@@ -24,6 +24,7 @@ public class DataRecordBaseProvider {
     public void setVersionService(VersionRestService versionService) {
         this.versionService = versionService;
     }
+
     /**
      * Получение запроса из контекста провайдера.
      *
@@ -48,6 +49,12 @@ public class DataRecordBaseProvider {
         return request;
     }
 
+    /**
+     * Получение структуры по идентификатору версии без исключения.
+     *
+     * @param versionId идентификатор версии
+     * @return Структура версии или пустая структура
+     */
     protected Structure getStructureOrEmpty(Integer versionId) {
         try {
             return versionService.getStructure(versionId);

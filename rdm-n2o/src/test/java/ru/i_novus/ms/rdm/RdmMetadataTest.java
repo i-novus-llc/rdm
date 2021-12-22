@@ -46,7 +46,7 @@ public class RdmMetadataTest extends N2oTestBase {
 
         customProperties(builder);
         builder.loaders(new XmlMetadataLoader(builder.getEnvironment().getNamespaceReaderFactory()));
-        builder.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oHeaderPack());
+        builder.packs(new N2oAllDataPack(), new N2oAllPagesPack(), new N2oAllValidatorsPack(), new N2oApplicationPack());
         builder.scanners(new XmlInfoScanner());
         builder.scan();
 
@@ -55,7 +55,9 @@ public class RdmMetadataTest extends N2oTestBase {
 
     @Test
     public void validate() {
-        builder.getEnvironment().getMetadataRegister().find(i -> true).forEach(i -> {
+        builder.getEnvironment().getMetadataRegister()
+                .find(i -> !"rdm".equals(i.getId()))
+                .forEach(i -> {
             try {
                 builder.read().validate().get(i.getId(), i.getBaseSourceClass());
             } catch (Exception e) {

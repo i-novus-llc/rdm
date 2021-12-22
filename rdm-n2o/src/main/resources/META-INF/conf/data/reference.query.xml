@@ -4,13 +4,16 @@
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java method="getList" class="ru.i_novus.ms.rdm.n2o.service.ReferenceController">
             <spring/>
+
             <arguments>
-                <argument type="criteria" class="ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria" name="referenceCriteria"/>
+                <argument name="referenceCriteria" type="criteria"
+                          class="ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria"/>
             </arguments>
         </java>
     </list>
 
     <fields>
+        
         <field id="id">
             <select mapping="value"/>
         </field>
@@ -18,26 +21,26 @@
         <field id="value" domain="string">
             <select/>
             <filters>
-                <eq filter-id="value" mapping="value" domain="string"/>
+                <eq filter-id="value" mapping="['referenceCriteria'].value"/>
             </filters>
         </field>
 
         <field id="displayValue" domain="string">
             <select/>
             <filters>
-                <eq filter-id="displayValue" mapping="displayValue" domain="string"/>
+                <eq filter-id="displayValue" mapping="['referenceCriteria'].displayValue"/>
             </filters>
         </field>
 
         <field id="versionId" domain="integer">
             <filters>
-                <eq filter-id="versionId" mapping="versionId" domain="integer"/>
+                <eq filter-id="versionId" mapping="['referenceCriteria'].versionId"/>
             </filters>
         </field>
 
         <field id="reference" domain="string">
             <filters>
-                <eq filter-id="reference" mapping="reference" domain="string"/>
+                <eq filter-id="reference" mapping="['referenceCriteria'].reference"/>
             </filters>
         </field>
 

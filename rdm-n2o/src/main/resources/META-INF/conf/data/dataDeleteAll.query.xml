@@ -7,8 +7,8 @@
             <spring/>
 
             <arguments>
-                <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
+                <argument name="versionId" type="primitive" class="java.lang.Integer"/>
+                <argument name="optLockValue" type="primitive" class="java.lang.Integer"/>
             </arguments>
         </java>
     </unique>
@@ -21,20 +21,22 @@
         <field id="versionId" domain="integer">
             <select mapping="id"/>
             <filters>
-                <eq filter-id="versionId" mapping="[0]" domain="integer"/>
+                <eq filter-id="versionId" mapping="['versionId']"/>
             </filters>
         </field>
 
         <field id="optLockValue" domain="integer">
             <select mapping="['optLockValue']"/>
             <filters>
-                <eq filter-id="optLockValue" mapping="[1]" domain="integer" default-value="0"/>
+                <eq filter-id="optLockValue" mapping="['optLockValue']" default-value="0"/>
             </filters>
         </field>
 
         <field id="message" domain="string">
-            <select mapping="'Вы точно хотите удалить все записи из справочника &quot;' + passport['name'] + '&quot; [' + code + ']?'"/>
-        </field>                                                                                         +
+            <select mapping="
+                'Вы точно хотите удалить все записи из справочника &quot;' + passport['name'] + '&quot; [' + code + ']?'
+                "/>
+        </field>
 
     </fields>
 </query>

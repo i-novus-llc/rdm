@@ -22,7 +22,7 @@ import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 })
 @Import(UiStrategyLocatorConfig.class)
 @AutoConfigureAfter({ WebMvcAutoConfiguration.class })
-@SuppressWarnings({"rawtypes","java:S3740"})
+@SuppressWarnings({"java:S3740"})
 public class RdmWebAutoConfiguration {
 
     @Bean

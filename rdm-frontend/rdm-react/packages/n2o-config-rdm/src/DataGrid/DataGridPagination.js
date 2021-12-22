@@ -9,14 +9,14 @@ import {
   makeWidgetCountSelector,
   makeWidgetSizeSelector,
   makeWidgetPageSelector,
-} from 'n2o-framework/lib/selectors/widgets';
-import { makeGetModelByPrefixSelector, makeGetFilterModelSelector } from 'n2o-framework/lib/selectors/models';
-import { dataRequestWidget } from 'n2o-framework/lib/actions/widgets';
-import { PREFIXES } from 'n2o-framework/lib/constants/models';
+} from 'n2o-framework/lib/ducks/widgets/selectors';
+import { makeGetModelByPrefixSelector, makeGetFilterModelSelector } from 'n2o-framework/lib/ducks/models/selectors';
+import { dataRequestWidget } from 'n2o-framework/lib/ducks/widgets/store';
+import { PREFIXES } from 'n2o-framework/lib/ducks/models/constants';
 
 /**
- * Компонент табличной пейджинации. По `widgetId` автоматически определяет все свойства для `Paging`
- * @reactProps {string} widgetId - уникальный индефикатор виджета
+ * Компонент табличной пагинации. По `widgetId` автоматически определяет все свойства для `Paging`
+ * @reactProps {string} widgetId - уникальный идентификатор виджета
  * @reactProps {number} count
  * @reactProps {number} size
  * @reactProps {number} activePage
@@ -111,7 +111,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   return {
     onChangePage: (page, filters) => {
       dispatch(
-        dataRequestWidget(ownProps.widgetId, {
+        dataRequestWidget(ownProps.widgetId, ownProps.modelId, {
           page,
           ...filters
         })

@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>4.4.0</version>
+        <version>4.5.0</version>
     </parent>
 
     <properties>
@@ -20,9 +20,9 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.16.10</n2o.version>
-        <vds.version>3.14</vds.version>
-        <l10n.vds.version>3.16</l10n.vds.version>
+        <n2o.version>7.20.3</n2o.version>
+        <vds.version>3.16</vds.version>
+        <l10n.vds.version>3.18</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
@@ -252,6 +252,7 @@
 
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>
+
                 <module>rdm-web-spring-boot-autoconfigure</module>
                 <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
@@ -276,6 +277,7 @@
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
                 <module>rdm-n2o</module>
+
                 <module>rdm-web-spring-boot-autoconfigure</module>
                 <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
