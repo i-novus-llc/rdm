@@ -12,8 +12,6 @@
         </nav>
 
         <extra-menu>
-            <menu-item name="Войти"><a href="/login" sec:anonymous="true"/></menu-item>
-
             <dropdown-menu id="usermenu" name="#{username}" icon="fa fa-user">
                 <menu-item name="Профиль"><open-page page-id="profile" route="/profile" sec:authenticated="true"/></menu-item>
                 <menu-item name="Выход"><a href="logout" sec:authenticated="true"/></menu-item>
