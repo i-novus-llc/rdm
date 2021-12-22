@@ -19,8 +19,8 @@
     ```json
     {
       "dependencies": {
-        "n2o-config-rdm": "^2.0.1",
-        "n2o-framework": "7.16.10",
+        "n2o-config-rdm": "^2.0.5",
+        "n2o-framework": "7.20.3",
       },
       ...
     }
