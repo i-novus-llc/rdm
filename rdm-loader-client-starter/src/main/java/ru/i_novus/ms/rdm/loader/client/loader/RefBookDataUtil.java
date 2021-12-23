@@ -42,7 +42,7 @@ public class RefBookDataUtil {
 
     private static JsonNode fromFile(Resource file) {
         try {
-            return jsonMapper.readTree(file.getFile());
+            return jsonMapper.readTree(file.getInputStream());
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Cannot deserialize json from file.", e);
