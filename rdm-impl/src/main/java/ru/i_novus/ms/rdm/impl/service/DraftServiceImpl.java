@@ -142,7 +142,7 @@ public class DraftServiceImpl implements DraftService {
         this.strategyLocator = strategyLocator;
     }
 
-    @Value("${rdm.validation-errors-count}")
+    @Value("${rdm.validation-errors-count:99}")
     @SuppressWarnings("unused")
     public void setErrorCountLimit(int errorCountLimit) {
         this.errorCountLimit = errorCountLimit;

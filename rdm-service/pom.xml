@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>rdm-service</artifactId>
+
+    <parent>
+        <groupId>ru.i-novus.ms.rdm</groupId>
+        <artifactId>rdm</artifactId>
+        <version>4.3.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <backend.default.port>8081</backend.default.port>
+        <commons.fileupload.version>1.4</commons.fileupload.version>
+
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <jacoco.skip>false</jacoco.skip>
+        <sonar.coverage.exclusions>**/Application.java, **/AppConfig.java, **/BackendConfiguration.java, **/SecurityConfig.java</sonar.coverage.exclusions>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-rest-spring-boot-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-kahadb-store</artifactId>
+            <version>5.15.13</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>rdm-service</finalName>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>production</id>
+            <properties>
+                <backend.default.port>8080</backend.default.port>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>true</executable>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>external-tracing-tool</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
+
+</project>

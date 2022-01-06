@@ -88,6 +88,24 @@
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-rest-spring-boot-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-rest-spring-boot-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -249,6 +267,9 @@
 
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
+                <module>rdm-rest-spring-boot-autoconfigure</module>
+                <module>rdm-rest-spring-boot-starter</module>
+                <module>rdm-service</module>
 
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o</module>

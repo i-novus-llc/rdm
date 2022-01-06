@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<refBook>
+    <code>LOADED_DATA_1</code>
+
+    <passport>
+        <name>Тестовый справочник 1 для загрузки по REST</name>
+        <shortName>Тестовый справочник 1 для загрузки</shortName>
+        <description>Тестовый справочник 1 для загрузки по REST loader</description>
+
+    </passport>
+
+    <structure>
+        <row>
+            <code>LOAD_CODE</code>
+            <name>Код</name>
+            <type>STRING</type>
+            <description>Некоторый код</description>
+            <primary>true</primary>
+        </row>
+        <row>
+            <code>LOAD_NUMB</code>
+            <name>Номер</name>
+            <type>INTEGER</type>
+            <description>Числовой номер</description>
+            <primary>false</primary>
+            <validation>
+                <type>INT_RANGE</type>
+                <value>1;100</value>
+            </validation>
+        </row>
+        <row>
+            <code>LOAD_CHAR</code>
+            <name>Строка</name>
+            <type>STRING</type>
+            <description>Строковое значение</description>
+            <primary>false</primary>
+        </row>
+
+    </structure>
+
+    <data>
+        <row>
+            <LOAD_CODE>LOAD_1</LOAD_CODE>
+            <LOAD_NUMB>10</LOAD_NUMB>
+            <LOAD_CHAR>A</LOAD_CHAR>
+        </row>
+        <row>
+            <LOAD_CODE>LOAD_2</LOAD_CODE>
+            <LOAD_NUMB>20</LOAD_NUMB>
+            <LOAD_CHAR>B</LOAD_CHAR>
+        </row>
+        <row>
+            <LOAD_CODE>LOAD_3</LOAD_CODE>
+            <LOAD_NUMB>30</LOAD_NUMB>
+            <LOAD_CHAR>C</LOAD_CHAR>
+        </row>
+
+    </data>
+</refBook>

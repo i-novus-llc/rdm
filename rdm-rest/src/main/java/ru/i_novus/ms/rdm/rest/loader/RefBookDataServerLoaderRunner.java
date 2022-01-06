@@ -33,7 +33,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
     @Autowired
     private FileStorageService fileStorageService;
 
-    @Value("${rdm.loader.enabled}")
+    @Value("${rdm.loader.enabled:true}")
     private boolean loaderEnabled;
 
     public RefBookDataServerLoaderRunner(List<ServerLoader> loaders) {
