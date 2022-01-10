@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest;
+package ru.i_novus.ms.rdm.service;
 
 import net.n2oapp.platform.security.autoconfigure.N2oPlatformResourceServerConfigurerAdapter;
 import org.springframework.context.annotation.Configuration;

@@ -78,12 +78,12 @@ public class VersionFileServiceImpl implements VersionFileService {
         this.strategyLocator = strategyLocator;
     }
 
-    @Value("${rdm.download.passport.head}")
+    @Value("${rdm.download.passport.head:fullName}")
     public void setPassportFileHead(String passportFileHead) {
         this.passportFileHead = passportFileHead;
     }
 
-    @Value("${rdm.download.passport-enable}")
+    @Value("${rdm.download.passport-enable:true}")
     public void setIncludePassport(boolean includePassport) {
         this.includePassport = includePassport;
     }

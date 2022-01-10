@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest;
+package ru.i_novus.ms.rdm.rest.autoconfigure;
 
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.List;
 @SuppressWarnings({"unused", "rawtypes", "java:S3740"})
 public class AppConfig {
 
-    @Value("${rdm.loader.max.file-size:20000000}")
+    @Value("${rdm.loader.max.file-size:50000000}")
     private long maxFileSize;
 
     @Bean

@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest;
+package ru.i_novus.ms.rdm.rest.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
@@ -147,7 +147,7 @@ public class BackendConfiguration {
     }
 
     @Bean
-    @Value("${rdm.audit.application.name}")
+    @Value("${rdm.audit.application.name:rdm}")
     public SourceApplicationAccessor applicationAccessor(String appName) {
         return () -> appName;
     }
