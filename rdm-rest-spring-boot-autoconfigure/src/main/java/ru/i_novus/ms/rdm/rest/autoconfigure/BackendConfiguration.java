@@ -31,9 +31,6 @@ public class BackendConfiguration {
     @Autowired
     private FieldFactory fieldFactory;
 
-    @Value("${spring.activemq.broker-url}")
-    private String brokerUrl;
-
     @Bean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
         return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
