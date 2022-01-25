@@ -16,7 +16,6 @@ import java.util.Objects;
 /**
  * Если fieldType = REFERENCE, то в value = Reference.getValue
  */
-//@JsonSerialize(using = AttributeFilterSerializer.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AttributeFilter implements Serializable {
 
