@@ -59,11 +59,14 @@ public class RefBookDataUtils {
         if (value instanceof BigDecimal)
             return (BigDecimal) value;
 
-        if (value instanceof Integer)
-            return BigDecimal.valueOf((Integer) value);
-
         if (value instanceof Double)
             return BigDecimal.valueOf((Double) value);
+
+        if (value instanceof BigInteger)
+            return new BigDecimal((BigInteger) value);
+
+        if (value instanceof Integer)
+            return BigDecimal.valueOf((Integer) value);
 
         return parseFloat((String) value);
     }
