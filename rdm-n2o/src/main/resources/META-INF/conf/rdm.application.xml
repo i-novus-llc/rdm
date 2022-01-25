@@ -7,7 +7,7 @@
             class="inverse">
 
         <nav>
-            <menu-item name="Реестр справочников"><open-page page-id="refBookList" route="/main"/></menu-item>
+            <menu-item name="Реестр справочников"><open-page page-id="refBookList" route="/"/></menu-item>
             <menu-item name="Журнал операций"><open-page page-id="asyncLogList" route="/asyncLog"/></menu-item>
         </nav>
 
