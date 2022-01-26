@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.metadata.control.N2oField;
@@ -32,6 +31,7 @@ import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
+import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -40,11 +40,8 @@ import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
@@ -66,17 +63,11 @@ public class RefBookDataController {
 
     private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
     private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
-    private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
 
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
 
     private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
-
-    private static final String BOOL_TRUE_REGEX = "true|t|y|yes|yeah|д|да|истина|правда";
-    private static final Pattern BOOL_TRUE_PATTERN = Pattern.compile(BOOL_TRUE_REGEX);
-    private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
-    private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
     static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
@@ -225,51 +216,13 @@ public class RefBookDataController {
         if (attribute == null || attribute.getType() == null)
             throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
 
-        Serializable attributeValue = castFilterValue(attribute, filterValue);
+        Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
         AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
         attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
         return attributeFilter;
-    }
-
-    private static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
-
-        return switch (attribute.getType()) {
-            case INTEGER -> parseInteger((String) value);
-            case FLOAT -> parseFloat((String) value);
-            case DATE -> parseDate((String) value);
-            case BOOLEAN -> parseBoolean((String) value);
-            default -> value;
-        };
-    }
-
-    private static BigInteger parseInteger(String value) {
-        return new BigInteger(value);
-    }
-
-    private static BigDecimal parseFloat(String value) {
-        return new BigDecimal(value.replace(",", ".").trim());
-    }
-
-    private static LocalDate parseDate(String value) {
-        return LocalDate.parse(value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
-    }
-
-    private static Serializable parseBoolean(String value) {
-
-        String stringValue = value.toLowerCase();
-        if (isEmpty(stringValue))
-            return null;
-
-        if (BOOL_TRUE_PATTERN.matcher(stringValue).matches())
-            return true;
-
-        if (BOOL_FALSE_PATTERN.matcher(stringValue).matches())
-            return false;
-
-        throw new IllegalArgumentException(DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE);
     }
 
     private static Sort.Order toSortOrder(Sorting sorting) {
@@ -441,8 +394,8 @@ public class RefBookDataController {
     @SuppressWarnings("unchecked")
     private static Map<String, String>[] getBooleanValues() {
         return new Map[]{
-                ImmutableMap.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                ImmutableMap.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
+                Map.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
+                Map.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
         };
     }
 

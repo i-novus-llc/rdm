@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.api.model.version;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -15,22 +16,28 @@ import java.util.Objects;
 /**
  * Если fieldType = REFERENCE, то в value = Reference.getValue
  */
-public class AttributeFilter {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AttributeFilter implements Serializable {
 
     @QueryParam("attribute")
     private String attributeName;
 
+    @QueryParam("fieldType")
+    private FieldType fieldType;
+
     @QueryParam("value")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
+            include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
+            property = "fieldType", visible = true)
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE"),
+            @JsonSubTypes.Type(value = String.class, name = "STRING"),
             @JsonSubTypes.Type(value = BigInteger.class, name = "INTEGER"),
-            @JsonSubTypes.Type(value = BigDecimal.class, name = "FLOAT")
+            @JsonSubTypes.Type(value = BigDecimal.class, name = "FLOAT"),
+            @JsonSubTypes.Type(value = LocalDate.class, name = "DATE"),
+            @JsonSubTypes.Type(value = Boolean.class, name = "BOOLEAN"),
+            @JsonSubTypes.Type(value = String.class, name = "REFERENCE")
     })
     private Serializable value;
-
-    @QueryParam("type")
-    private FieldType fieldType;
 
     @QueryParam("searchType")
     private SearchTypeEnum searchType;
@@ -60,20 +67,20 @@ public class AttributeFilter {
         this.attributeName = attributeName;
     }
 
-    public Serializable getValue() {
-        return value;
-    }
-
-    public void setValue(Serializable value) {
-        this.value = value;
-    }
-
     public FieldType getFieldType() {
         return fieldType;
     }
 
     public void setFieldType(FieldType fieldType) {
         this.fieldType = fieldType;
+    }
+
+    public Serializable getValue() {
+        return value;
+    }
+
+    public void setValue(Serializable value) {
+        this.value = value;
     }
 
     public SearchTypeEnum getSearchType() {
@@ -99,13 +106,13 @@ public class AttributeFilter {
 
         AttributeFilter that = (AttributeFilter) o;
         return Objects.equals(attributeName, that.attributeName) &&
+                (fieldType == that.fieldType) &&
                 Objects.equals(value, that.value) &&
-                Objects.equals(fieldType, that.fieldType) &&
                 (searchType == that.searchType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(attributeName, value, fieldType, searchType);
+        return Objects.hash(attributeName, fieldType, value, searchType);
     }
 }
