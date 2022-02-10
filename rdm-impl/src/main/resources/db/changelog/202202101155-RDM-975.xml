@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202202101155-RDM-975_1.0" author="arahmatullin" dbms="postgresql">
+        <comment>Исправление типа системного id в таблицах справочника CAT</comment>
+        <sql splitStatements="false">
+            <![CDATA[
+do
+$$
+
+declare
+    storageCode varchar;
+
+begin
+    for storageCode in
+        SELECT DISTINCT v.storage_code
+          FROM n2o_rdm_management.ref_book b
+         INNER JOIN n2o_rdm_management.ref_book_version v
+            ON v.ref_book_id  = b.id
+         INNER JOIN information_schema."columns" is_c
+            ON is_c.table_schema = 'data'
+           AND is_c.table_name = v.storage_code
+           AND is_c.column_name = 'SYS_RECORDID'
+           AND is_c.data_type = 'integer'
+        WHERE b.code = 'CAT'
+
+    loop
+        execute 'DROP TRIGGER IF EXISTS hash_tg ON data."' || storageCode || '"';
+        execute 'DROP TRIGGER IF EXISTS fts_vector_tg ON data."' || storageCode || '"';
+
+        execute 'ALTER SEQUENCE IF EXISTS data."' || storageCode || '_SYS_RECORDID_seq"' || chr(10) ||
+                '      AS bigint MAXVALUE 9223372036854775807';
+
+        execute 'ALTER TABLE data."' || storageCode || '"' || chr(10) ||
+                '      ALTER COLUMN "SYS_RECORDID" SET DATA TYPE bigint';
+
+        execute 'CREATE TRIGGER hash_tg' || chr(10) ||
+                '  BEFORE INSERT OR UPDATE OF ' || chr(10) ||
+                '  "SYS_RECORDID", code, name, "FTS", "SYS_HASH", "SYS_PUBLISHTIME", "SYS_CLOSETIME"' || chr(10) ||
+                '  ON data."' || storageCode || '"' || chr(10) ||
+                '  FOR EACH ROW' || chr(10) ||
+                '  EXECUTE PROCEDURE data."' || storageCode || '_hash_tf"()';
+
+        execute 'CREATE TRIGGER fts_vector_tg' || chr(10) ||
+                '  BEFORE INSERT OR UPDATE OF ' || chr(10) ||
+                '  "SYS_RECORDID", code, name, "FTS", "SYS_HASH", "SYS_PUBLISHTIME", "SYS_CLOSETIME"' || chr(10) ||
+                '  ON data."' || storageCode || '"' || chr(10) ||
+                '  FOR EACH ROW' || chr(10) ||
+                '  EXECUTE PROCEDURE data."' || storageCode || '_fts_vector_tf"()';
+    end loop;
+end;
+
+$$ language plpgsql;
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
