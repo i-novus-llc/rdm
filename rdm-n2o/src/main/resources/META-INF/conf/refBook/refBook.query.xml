@@ -143,11 +143,13 @@
             </filters>
         </field>
 
-        <field id="lastPublishedDate" domain="date">
+        <field id="lastPublishedDate" domain="localdatetime">
             <select/>
             <filters>
-                <more filter-id="lastPublishedDateInterval.begin" mapping="['criteria'].fromDateBegin"/>
-                <less filter-id="lastPublishedDateInterval.end" mapping="['criteria'].fromDateEnd"/>
+                <more filter-id="lastPublishedDateInterval.begin" mapping="['criteria'].fromDateBegin"
+                      normalize="#this.withHour(0).withMinute(0).withSecond(0)"/>
+                <less filter-id="lastPublishedDateInterval.end" mapping="['criteria'].fromDateEnd"
+                      normalize="#this.withHour(23).withMinute(59).withSecond(59)"/>
             </filters>
             <sorting/>
         </field>
