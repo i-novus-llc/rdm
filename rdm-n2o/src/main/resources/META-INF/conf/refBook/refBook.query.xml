@@ -200,6 +200,10 @@
             <select/>
         </field>
 
+        <field id="displayStatus" domain="string">
+            <select/>
+        </field>
+
         <field id="displayVersion" domain="string">
             <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
         </field>
