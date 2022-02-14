@@ -67,7 +67,7 @@
             </filters>
         </field>
 
-        <field id="archived" domain="boolean">
+        <field id="isArchived" domain="boolean">
             <select mapping="archived"/>
             <filters>
                 <eq filter-id="isArchived" mapping="['criteria'].isArchived"/>
