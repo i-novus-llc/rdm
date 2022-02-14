@@ -6,9 +6,9 @@ import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
 import static java.util.Collections.singletonList;
 
 /**
- * Критерий поиска справочников с конвертацией даты.
+ * Критерий поиска справочников для UI.
  */
-public class RefBookCriteriaDateAndStatus extends RefBookCriteria {
+public class UiRefBookCriteria extends RefBookCriteria {
 
     public void setRefBookId(Integer refBookId) {
         super.setRefBookIds(singletonList(refBookId));

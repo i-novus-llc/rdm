@@ -8,7 +8,7 @@
 
             <arguments>
                 <argument name="criteria" type="criteria"
-                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                          class="ru.i_novus.ms.rdm.n2o.criteria.UiRefBookCriteria"/>
             </arguments>
         </java>
     </list>
@@ -20,7 +20,7 @@
 
             <arguments>
                 <argument name="criteria" type="criteria"
-                          class="ru.i_novus.ms.rdm.n2o.criteria.RefBookCriteriaDateAndStatus"/>
+                          class="ru.i_novus.ms.rdm.n2o.criteria.UiRefBookCriteria"/>
             </arguments>
         </java>
     </unique>
@@ -35,7 +35,7 @@
         </field>
 
         <field id="refBookId" domain="integer">
-            <select mapping="refBookId"/>
+            <select/>
         </field>
 
         <field id="version.id" domain="integer">
@@ -67,7 +67,7 @@
             </filters>
         </field>
 
-        <field id="archived" domain="boolean">
+        <field id="isArchived" domain="boolean">
             <select mapping="archived"/>
             <filters>
                 <eq filter-id="isArchived" mapping="['criteria'].isArchived"/>
@@ -133,7 +133,7 @@
         </field>
 
         <field id="lastPublishedVersion" domain="string">
-            <select mapping="lastPublishedVersion"/>
+            <select/>
         </field>
 
         <field id="hasPublished" domain="boolean">
@@ -197,6 +197,10 @@
 
 
         <field id="editDate" domain="date">
+            <select/>
+        </field>
+
+        <field id="displayStatus" domain="string">
             <select/>
         </field>
 
