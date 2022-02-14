@@ -35,7 +35,7 @@
         </field>
 
         <field id="refBookId" domain="integer">
-            <select mapping="refBookId"/>
+            <select/>
         </field>
 
         <field id="version.id" domain="integer">
@@ -133,7 +133,7 @@
         </field>
 
         <field id="lastPublishedVersion" domain="string">
-            <select mapping="lastPublishedVersion"/>
+            <select/>
         </field>
 
         <field id="hasPublished" domain="boolean">
