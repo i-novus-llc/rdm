@@ -14,7 +14,10 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
+import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -37,12 +40,16 @@ import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.Serializable;
@@ -627,13 +634,14 @@ public class ConflictServiceImpl implements ConflictService {
                     Serializable value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
                     return refFromAttributes.stream()
-                            .map(attribute -> singletonList(toFieldSearchCriteria(attribute, value)));
+                            .map(attribute -> singletonList(toDiffFieldSearchCriteria(attribute, value)));
                 }).collect(toSet());
     }
 
-    private FieldSearchCriteria toFieldSearchCriteria(Structure.Attribute attribute, Serializable value) {
+    private FieldSearchCriteria toDiffFieldSearchCriteria(Structure.Attribute attribute, Serializable value) {
 
-        return new FieldSearchCriteria(ConverterUtil.field(attribute), SearchTypeEnum.EXACT, singletonList(value));
+        SearchTypeEnum searchType = (attribute.getType() != FieldType.REFERENCE) ? SearchTypeEnum.EXACT : SearchTypeEnum.REFERENCE;
+        return new FieldSearchCriteria(ConverterUtil.field(attribute), searchType, singletonList(value));
     }
 
     /**
