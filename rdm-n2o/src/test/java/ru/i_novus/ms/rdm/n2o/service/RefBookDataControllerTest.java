@@ -21,12 +21,14 @@ import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
+import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
 import java.io.Serializable;
@@ -48,7 +50,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.service.RefBookDataController.EMPTY_SEARCH_DATA_CRITERIA;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
-import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
 
@@ -59,6 +60,8 @@ public class RefBookDataControllerTest extends BaseTest {
     private static final int TEST_REFBOOK_VERSION_ID = -10;
     private static final int TEST_OPT_LOCK_VALUE = 10;
     private static final int NEW_OPT_LOCK_VALUE = TEST_OPT_LOCK_VALUE + 1;
+
+    private final List<FieldType> LIKE_FIELD_TYPES = List.of(FieldType.STRING, FieldType.REFERENCE);
 
     private static final String TEST_LOCALE_CODE = "test";
 
@@ -273,39 +276,17 @@ public class RefBookDataControllerTest extends BaseTest {
             return null;
 
         Structure.Attribute attribute = structure.getAttribute(filterName);
-        Serializable attributeValue = castFilterValue(attribute, filterValue);
+        Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
         AttributeFilter attributeFilter = new AttributeFilter(filterName, attributeValue, attribute.getType());
-        attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
+        attributeFilter.setSearchType(toSearchType(attribute));
         return attributeFilter;
     }
 
-    private Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
-
-        switch (attribute.getType()) {
-            case INTEGER:
-                return new BigInteger((String) value);
-
-            case FLOAT:
-                return new BigDecimal(((String) value).replace(",", ".").trim());
-
-            case DATE:
-                return LocalDate.parse((String) value, TimeUtils.DATE_TIME_PATTERN_EUROPEAN_FORMATTER);
-
-            case BOOLEAN:
-                if (value == null) return null;
-
-                if ("true".equals(value)) return true;
-
-                if ("false".equals(value)) return false;
-
-                throw new IllegalArgumentException();
-
-            default:
-                return value;
-        }
+    private SearchTypeEnum toSearchType(Structure.Attribute attribute) {
+        return LIKE_FIELD_TYPES.contains(attribute.getType()) ? LIKE : EXACT;
     }
 
     private RefBookVersion createRefBookVersion() {
