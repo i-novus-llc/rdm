@@ -16,24 +16,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
-import ru.i_novus.ms.rdm.api.enumeration.*;
+import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
+import ru.i_novus.ms.rdm.api.enumeration.FileType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
+import ru.i_novus.ms.rdm.api.model.conflict.Conflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.field.CommonField;
-import ru.i_novus.ms.rdm.api.model.refbook.*;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
@@ -55,7 +67,10 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -1184,10 +1199,13 @@ public class ApplicationTest {
 
         List<AttributeFilter> attributeFilters = new ArrayList<>();
         structure.getAttributes().forEach(attribute -> {
-            Serializable searchValue = FieldType.REFERENCE.equals(attribute.getType())
+
+            boolean isReference = FieldType.REFERENCE.equals(attribute.getType());
+            Serializable searchValue = isReference
                     ? ((Reference) row1.getData().get(attribute.getCode())).getValue()
                     : (Serializable) row1.getData().get(attribute.getCode());
-            attributeFilters.add(new AttributeFilter(attribute.getCode(), searchValue, attribute.getType()));
+            SearchTypeEnum searchType = isReference ? SearchTypeEnum.REFERENCE : null;
+            attributeFilters.add(new AttributeFilter(attribute.getCode(), searchValue, attribute.getType(), searchType));
         });
 
         attributeFilters.forEach(attributeFilter -> {
@@ -3122,7 +3140,8 @@ public class ApplicationTest {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
 
-        AttributeFilter filter = new AttributeFilter(attribute.getCode(), attributeValue, attribute.getType(), SearchTypeEnum.EXACT);
+        SearchTypeEnum searchType = (attribute.getType() != FieldType.REFERENCE) ? SearchTypeEnum.EXACT : SearchTypeEnum.REFERENCE;
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), attributeValue, attribute.getType(), searchType);
         criteria.addAttributeFilterList(singletonList(filter));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
