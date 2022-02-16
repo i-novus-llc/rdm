@@ -13,7 +13,10 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -231,7 +234,7 @@ public class ConverterUtil {
         references.forEach(reference -> {
 
             FieldSearchCriteria criteria = ConverterUtil.toFieldSearchCriteria(reference.getAttribute(),
-                    FieldType.REFERENCE, SearchTypeEnum.EXACT, primaryValues);
+                    FieldType.REFERENCE, SearchTypeEnum.REFERENCE, primaryValues);
             fieldSearchCriterias.add(singletonList(criteria));
         });
 
