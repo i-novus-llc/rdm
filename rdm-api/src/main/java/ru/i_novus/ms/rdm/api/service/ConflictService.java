@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.api.service;
 import io.swagger.annotations.*;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
-import ru.i_novus.ms.rdm.api.model.conflict.CalculateConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
@@ -18,39 +17,6 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы работы с конфликтами", hidden = true)
 public interface ConflictService {
-
-    // NB: Published for ApplicationTest only.
-    @GET
-    @Path("/calculate")
-    @ApiOperation("Вычисление конфликтов по параметрам критерия")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    List<RefBookConflict> calculateDataConflicts(@BeanParam CalculateConflictCriteria criteria);
-
-
-    @GET
-    @Path("/check")
-    @ApiOperation("Проверка на наличие конфликта для двух версий")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
-                           @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
-                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId,
-                           @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
-
-    @GET
-    @Path("/check/{versionId}/referrer")
-    @ApiOperation("Получение конфликтующих версий справочников для неопубликованной версии")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Успех"),
-            @ApiResponse(code = 404, message = "Нет ресурса")
-    })
-    List<RefBookVersion> getConflictingReferrers(@ApiParam("Идентификатор проверяемой версии") @PathParam("versionId") Integer versionId,
-                                                 @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
 
     @GET
     @ApiOperation("Поиск конфликтов по параметрам критерия")
@@ -101,13 +67,35 @@ public interface ConflictService {
 
     @GET
     @Path("/find/all/{versionId}")
-    @ApiOperation("Получение конфликтных идентификаторов из идентификаторов записей для версии, которая ссылается")
+    @ApiOperation("Получение идентификаторов конфликтов из идентификаторов записей для версии, которая ссылается")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Успех"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
     List<Long> getReferrerConflictedIds(@ApiParam("Идентификатор версии, которая ссылается") @PathParam("versionId") Integer referrerVersionId,
                                         @ApiParam("Список системных идентификаторов записей") @QueryParam("refRecordIds") List<Long> refRecordIds);
+
+    @GET
+    @Path("/check/{versionId}/referrer")
+    @ApiOperation("Получение конфликтующих версий справочников для неопубликованной версии")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    List<RefBookVersion> getConflictingReferrers(@ApiParam("Идентификатор проверяемой версии") @PathParam("versionId") Integer versionId,
+                                                 @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
+
+    @GET
+    @Path("/check")
+    @ApiOperation("Проверка на наличие конфликта для двух версий")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Успех"),
+            @ApiResponse(code = 404, message = "Нет ресурса")
+    })
+    Boolean checkConflicts(@ApiParam("Идентификатор версии, которая ссылается") @QueryParam("refFromId") Integer refFromId,
+                           @ApiParam("Идентификатор старой версии, на которую ссылаются") @QueryParam("oldRefToId") Integer oldRefToId,
+                           @ApiParam("Идентификатор новой версии, на которую будут ссылаться") @QueryParam("newRefToId") Integer newRefToId,
+                           @ApiParam("Тип конфликта") @QueryParam("type") ConflictType conflictType);
 
     @POST
     @Path("/discover/{oldVersionId}-{newVersionId}")
