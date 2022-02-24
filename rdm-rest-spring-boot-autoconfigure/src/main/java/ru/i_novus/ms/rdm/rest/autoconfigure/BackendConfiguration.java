@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.rest.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
+import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,43 +52,43 @@ public class BackendConfiguration {
     }
 
     @Bean
-    LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
+    public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
-    ExportFileProvider exportFileProvider(){
+    public ExportFileProvider exportFileProvider(){
         return new ExportFileProvider();
     }
 
     @Bean
-    RdmMapperConfigurer rdmMapperConfigurer(){
+    public RdmMapperConfigurer rdmMapperConfigurer(){
         return new RdmMapperConfigurer();
     }
 
     @Bean
     @ConditionalOnClass(Messages.class)
-    NotFoundExceptionMapper notFoundExceptionMapper(Messages messages) {
+    public NotFoundExceptionMapper notFoundExceptionMapper(Messages messages) {
         return new NotFoundExceptionMapper(messages);
     }
 
     @Bean
     @ConditionalOnClass(Messages.class)
-    IllegalArgumentExceptionMapper illegalArgumentExceptionMapper(Messages messages) {
+    public IllegalArgumentExceptionMapper illegalArgumentExceptionMapper(Messages messages) {
         return new IllegalArgumentExceptionMapper(messages);
     }
 
     @Bean
     @ConditionalOnClass(Messages.class)
-    StaleStateExceptionMapper staleStateExceptionMapper(Messages messages) {
+    public StaleStateExceptionMapper staleStateExceptionMapper(Messages messages) {
         return new StaleStateExceptionMapper(messages);
     }
 
     @Bean
     @Primary
     @ConditionalOnClass(Messages.class)
-    UserExceptionMapper userExceptionMapper(Messages messages) {
-        return new UserExceptionMapper(messages);
+    public MessageExceptionMapper messageExceptionMapper(Messages messages) {
+        return new MessageExceptionMapper(messages);
     }
 
     @Bean
