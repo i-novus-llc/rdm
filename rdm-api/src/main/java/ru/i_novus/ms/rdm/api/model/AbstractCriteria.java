@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
+/**
+ * Абстрактный критерий - обёртка над RestCriteria.
+ */
 public class AbstractCriteria extends RestCriteria {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
@@ -24,8 +28,19 @@ public class AbstractCriteria extends RestCriteria {
         super(pageNumber, pageSize);
     }
 
-    public AbstractCriteria(RestCriteria criteria) {
+    public AbstractCriteria(int pageNumber, int pageSize, Sort sort) {
+        super(pageNumber, pageSize, sort);
+    }
+
+    public AbstractCriteria(AbstractCriteria criteria) {
         this(criteria.getPageNumber(), criteria.getPageSize());
+
+        // Установка только при наличии реальных значений порядка сортировки.
+        // Необходимо, т.к. getSort также использует getDefaultOrders().
+        List<Sort.Order> orders = criteria.getOrders();
+        if (!isEmptyOrders(orders, criteria.getDefaultOrders())) {
+            this.setOrders(orders);
+        }
     }
 
     @Override
@@ -55,11 +70,19 @@ public class AbstractCriteria extends RestCriteria {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), getPageNumber(), getPageSize(), getSort());
+        return Objects.hash(getPageNumber(), getPageSize(), getSort());
     }
 
     @Override
     public String toString() {
         return JsonUtil.toJsonString(this);
+    }
+
+    public static boolean isEmptyOrders(List<Sort.Order> orders, List<Sort.Order> defaultOrders) {
+
+        if (isEmpty(orders) && isEmpty(defaultOrders))
+            return true;
+
+        return orders.size() == defaultOrders.size() && defaultOrders.containsAll(orders);
     }
 }
