@@ -1,17 +1,17 @@
 package ru.i_novus.ms.rdm.n2o.criteria;
 
+import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 
-import net.n2oapp.criteria.api.Criteria;
+import javax.ws.rs.QueryParam;
 
-public class CategoryCriteria extends Criteria {
+/**
+ * Критерий поиска категорий.
+ */
+public class CategoryCriteria extends AbstractCriteria {
+
+    /** Наименование. */
+    @QueryParam("name")
     private String name;
-
-    public CategoryCriteria() {
-    }
-
-    public CategoryCriteria(String name) {
-        this.name = name;
-    }
 
     public String getName() {
         return name;

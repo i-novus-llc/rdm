@@ -46,7 +46,7 @@ public class CategoryController {
 
     private static SearchDataCriteria toSearchDataCriteria(CategoryCriteria categoryCriteria) {
 
-        SearchDataCriteria criteria = new SearchDataCriteria(categoryCriteria.getPage() - 1, categoryCriteria.getSize());
+        SearchDataCriteria criteria = new SearchDataCriteria(categoryCriteria.getPageNumber(), categoryCriteria.getPageSize());
 
         if (isNotBlank(categoryCriteria.getName())) {
             AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
