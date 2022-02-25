@@ -8,21 +8,43 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class DataCriteriaTest extends BaseTest {
 
     private static final int REFBOOK_VERSION_ID = -10;
     private static final int OPT_LOCK_VALUE = 10;
 
     @Test
-    public void testClass() {
+    public void testEmptyClass() {
 
         DataRecordCriteria superCriteria = new DataRecordCriteria();
 
         DataCriteria emptyCriteria = new DataCriteria();
+        assertSpecialEquals(emptyCriteria);
         assertObjects(Assert::assertNotEquals, superCriteria, emptyCriteria);
+    }
+
+    @Test
+    public void testNewClass() {
+
+        DataCriteria criteria = new DataCriteria();
+
+        DataCriteria newCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        assertObjects(Assert::assertEquals, criteria, newCriteria);
+
+        newCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
+        assertObjects(Assert::assertEquals, criteria, newCriteria);
+    }
+
+    @Test
+    public void testClass() {
+
+        DataCriteria emptyCriteria = new DataCriteria();
 
         DataCriteria newCriteria = createCriteria();
-        assertObjects(Assert::assertNotEquals, superCriteria, emptyCriteria);
+        assertObjects(Assert::assertNotEquals, emptyCriteria, newCriteria);
 
         DataCriteria sameCriteria = createCriteria();
         assertObjects(Assert::assertEquals, newCriteria, sameCriteria);
@@ -35,6 +57,33 @@ public class DataCriteriaTest extends BaseTest {
 
         DataCriteria copyCriteria = copyCriteria(newCriteria);
         assertObjects(Assert::assertEquals, newCriteria, copyCriteria);
+    }
+
+    @Test
+    public void testHasDataConflict() {
+
+        // without localeCode:
+        // -- null
+        DataCriteria criteria = new DataCriteria();
+        assertFalse(criteria.isHasDataConflict());
+
+        // -- false
+        criteria.setHasDataConflict(Boolean.FALSE);
+        assertFalse(criteria.isHasDataConflict());
+
+        // with localeCode:
+        // -- false
+        criteria.setLocaleCode("test");
+        assertFalse(criteria.isHasDataConflict());
+
+        // -- true
+        criteria.setHasDataConflict(Boolean.TRUE);
+        assertFalse(criteria.isHasDataConflict());
+
+        // without localeCode:
+        // -- true
+        criteria.setLocaleCode(null);
+        assertTrue(criteria.isHasDataConflict());
     }
 
     private DataCriteria createCriteria() {
