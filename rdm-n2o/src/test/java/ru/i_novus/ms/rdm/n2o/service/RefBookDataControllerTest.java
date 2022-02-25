@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -270,7 +269,6 @@ public class RefBookDataControllerTest extends BaseTest {
         return filter;
     }
 
-    @NotNull
     private List<Sort.Order> createSortOrders() {
 
         Sort.Order order = new Sort.Order(Sort.Direction.ASC, DataRecordUtils.addPrefix(ID_ATTRIBUTE_CODE));
