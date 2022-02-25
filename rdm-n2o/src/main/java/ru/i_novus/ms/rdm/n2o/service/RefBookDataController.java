@@ -76,17 +76,25 @@ public class RefBookDataController {
     private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
 
-    @Autowired
-    private DataFieldFilterProvider dataFieldFilterProvider;
+    private final VersionRestService versionService;
+
+    private final ConflictService conflictService;
+
+    private final DataFieldFilterProvider dataFieldFilterProvider;
+
+    private final RefBookDataDecorator refBookDataDecorator;
 
     @Autowired
-    private VersionRestService versionService;
+    public RefBookDataController(VersionRestService versionService,
+                                 ConflictService conflictService,
+                                 DataFieldFilterProvider dataFieldFilterProvider,
+                                 RefBookDataDecorator refBookDataDecorator) {
+        this.versionService = versionService;
+        this.conflictService = conflictService;
 
-    @Autowired
-    private ConflictService conflictService;
-
-    @Autowired
-    private RefBookDataDecorator refBookDataDecorator;
+        this.dataFieldFilterProvider = dataFieldFilterProvider;
+        this.refBookDataDecorator = refBookDataDecorator;
+    }
 
     /**
      * Поиск записей версии справочника по критерию.
