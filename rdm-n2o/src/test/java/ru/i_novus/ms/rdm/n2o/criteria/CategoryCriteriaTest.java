@@ -30,5 +30,8 @@ public class CategoryCriteriaTest extends BaseTest {
 
         criteria.setName(CATEGORY_VALUE);
         assertEquals(CATEGORY_VALUE, criteria.getName());
+
+        CategoryCriteria emptyCriteria = new CategoryCriteria();
+        assertObjects(Assert::assertNotEquals, criteria, emptyCriteria);
     }
 }
