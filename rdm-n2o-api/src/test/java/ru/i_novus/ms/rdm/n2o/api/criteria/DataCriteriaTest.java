@@ -17,7 +17,7 @@ public class DataCriteriaTest extends BaseTest {
     private static final int OPT_LOCK_VALUE = 10;
 
     @Test
-    public void testEmptyClass() {
+    public void testEmpty() {
 
         DataRecordCriteria superCriteria = new DataRecordCriteria();
 
@@ -27,36 +27,33 @@ public class DataCriteriaTest extends BaseTest {
     }
 
     @Test
-    public void testNewClass() {
+    public void testSameEmpty() {
 
         DataCriteria criteria = new DataCriteria();
 
-        DataCriteria newCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize());
-        assertObjects(Assert::assertEquals, criteria, newCriteria);
+        DataCriteria sameCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
 
-        newCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
-        assertObjects(Assert::assertEquals, criteria, newCriteria);
+        sameCriteria = new DataCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
     }
 
     @Test
     public void testClass() {
 
-        DataCriteria emptyCriteria = new DataCriteria();
-
-        DataCriteria newCriteria = createCriteria();
-        assertObjects(Assert::assertNotEquals, emptyCriteria, newCriteria);
+        DataCriteria criteria = createCriteria();
 
         DataCriteria sameCriteria = createCriteria();
-        assertObjects(Assert::assertEquals, newCriteria, sameCriteria);
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
 
-        DataCriteria cloneCriteria = new DataCriteria(newCriteria);
-        assertObjects(Assert::assertEquals, newCriteria, cloneCriteria);
+        DataCriteria cloneCriteria = new DataCriteria(criteria);
+        assertObjects(Assert::assertEquals, criteria, cloneCriteria);
 
-        cloneCriteria = cloneCriteria(newCriteria);
-        assertObjects(Assert::assertEquals, newCriteria, cloneCriteria);
+        cloneCriteria = cloneCriteria(criteria);
+        assertObjects(Assert::assertEquals, criteria, cloneCriteria);
 
-        DataCriteria copyCriteria = copyCriteria(newCriteria);
-        assertObjects(Assert::assertEquals, newCriteria, copyCriteria);
+        DataCriteria copyCriteria = copyCriteria(criteria);
+        assertObjects(Assert::assertEquals, criteria, copyCriteria);
     }
 
     @Test

@@ -7,20 +7,28 @@ import ru.i_novus.ms.rdm.api.BaseTest;
 
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.*;
+import static ru.i_novus.ms.rdm.api.model.AbstractCriteria.isEmptyOrders;
 
 public class AbstractCriteriaTest extends BaseTest {
 
     @Test
-    public void testClass() {
+    public void testEmptyClass() {
+
+        AbstractCriteria emptyCriteria = new AbstractCriteria();
+        assertSpecialEquals(emptyCriteria);
+    }
+
+    @Test
+    public void testSameEmpty() {
 
         AbstractCriteria criteria = new AbstractCriteria();
-        assertNotNull(criteria);
-        assertSpecialEquals(criteria);
 
         AbstractCriteria sameCriteria = new AbstractCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
+
+        sameCriteria = new AbstractCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
         assertObjects(Assert::assertEquals, criteria, sameCriteria);
     }
 
@@ -63,6 +71,23 @@ public class AbstractCriteriaTest extends BaseTest {
         testClone(createSortedCriteria(orders));
     }
 
+    @Test
+    public void testIsEmptyOrders() {
+
+        assertTrue(isEmptyOrders(emptyList(), emptyList()));
+
+        List<Sort.Order> sortOrders = createSortOrders();
+        assertEquals(2, sortOrders.size());
+
+        assertFalse(isEmptyOrders(emptyList(), sortOrders));
+        assertFalse(isEmptyOrders(sortOrders, emptyList()));
+
+        assertTrue(isEmptyOrders(sortOrders, sortOrders));
+
+        List<Sort.Order> reversedOrders = List.of(sortOrders.get(1), sortOrders.get(0));
+        assertTrue(isEmptyOrders(reversedOrders, sortOrders));
+    }
+
     private void testClone(AbstractCriteria criteria) {
 
         AbstractCriteria cloneCriteria = new AbstractCriteria(criteria);
@@ -80,7 +105,9 @@ public class AbstractCriteriaTest extends BaseTest {
     private List<Sort.Order> createSortOrders() {
 
         Sort.Order idOrder = new Sort.Order(Sort.Direction.ASC, "id");
-        return singletonList(idOrder);
+        Sort.Order nameOrder = new Sort.Order(Sort.Direction.DESC, "name");
+
+        return List.of(idOrder, nameOrder);
     }
 
     private AbstractCriteria createSortedCriteria(List<Sort.Order> orders) {

@@ -12,7 +12,7 @@ public class DataRecordCriteriaTest extends BaseTest {
     private static final int OPT_LOCK_VALUE = 10;
 
     @Test
-    public void testEmptyClass() {
+    public void testEmpty() {
 
         AbstractCriteria superCriteria = new AbstractCriteria();
 
@@ -22,24 +22,21 @@ public class DataRecordCriteriaTest extends BaseTest {
     }
 
     @Test
-    public void testNewClass() {
+    public void testSameEmpty() {
 
         DataRecordCriteria criteria = new DataRecordCriteria();
 
-        DataRecordCriteria newCriteria = new DataRecordCriteria(criteria.getPageNumber(), criteria.getPageSize());
-        assertObjects(Assert::assertEquals, criteria, newCriteria);
+        DataRecordCriteria sameCriteria = new DataRecordCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
 
-        newCriteria = new DataRecordCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
-        assertObjects(Assert::assertEquals, criteria, newCriteria);
+        sameCriteria = new DataRecordCriteria(criteria.getPageNumber(), criteria.getPageSize(), criteria.getSort());
+        assertObjects(Assert::assertEquals, criteria, sameCriteria);
     }
 
     @Test
     public void testClass() {
 
-        DataRecordCriteria emptyCriteria = new DataRecordCriteria();
-
         DataRecordCriteria criteria = createCriteria();
-        assertObjects(Assert::assertNotEquals, emptyCriteria, criteria);
 
         DataRecordCriteria sameCriteria = createCriteria();
         assertObjects(Assert::assertEquals, criteria, sameCriteria);
