@@ -33,10 +33,7 @@ public class DataRecordUtils {
      */
     public static String deletePrefix(String fieldName) {
 
-        if (hasPrefix(fieldName)) {
-            fieldName = fieldName.replace(FIELD_PREFIX, "");
-        }
-        return fieldName;
+        return hasPrefix(fieldName) ? fieldName.substring(FIELD_PREFIX.length()): fieldName;
     }
 
     /**
