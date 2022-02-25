@@ -1,9 +1,8 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import net.n2oapp.criteria.api.Direction;
-import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +23,7 @@ import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
+import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -88,9 +88,9 @@ public class RefBookDataControllerTest extends BaseTest {
 
         DataCriteria criteria = createCriteria(false);
         criteria.setFilter(createCriteriaFilter());
-        criteria.setSorting(new Sorting(ID_ATTRIBUTE_CODE, Direction.ASC));
+        criteria.setOrders(createSortOrders());
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
+        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
 
         List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
                 .map(e -> toAttributeFilter(version.getStructure(), e.getKey(), e.getValue()))
@@ -130,7 +130,7 @@ public class RefBookDataControllerTest extends BaseTest {
         criteria.setLocaleCode(TEST_LOCALE_CODE);
         criteria.setFilter(createCriteriaFilter());
 
-        SearchDataCriteria localeDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
+        SearchDataCriteria localeDataCriteria = createSearchDataCriteria(criteria);
         localeDataCriteria.setLocaleCode(TEST_LOCALE_CODE);
 
         List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
@@ -139,7 +139,7 @@ public class RefBookDataControllerTest extends BaseTest {
                 .collect(toList());
         localeDataCriteria.addAttributeFilterList(filters);
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
+        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         searchDataCriteria.setLocaleCode(TEST_LOCALE_CODE);
         searchDataCriteria.addAttributeFilterList(filters);
 
@@ -200,7 +200,7 @@ public class RefBookDataControllerTest extends BaseTest {
                 .thenReturn(new PageImpl<>(conflictedRowIds, conflictCriteria, 1));
 
         DataCriteria criteria = createCriteria(true);
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
+        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         searchDataCriteria.addAttributeFilterList(emptyList());
         searchDataCriteria.setRowSystemIds(conflictedRowIds);
 
@@ -268,6 +268,18 @@ public class RefBookDataControllerTest extends BaseTest {
         filter.put(SELF_REFER_ATTRIBUTE_CODE, "SELF_1");
 
         return filter;
+    }
+
+    @NotNull
+    private List<Sort.Order> createSortOrders() {
+
+        Sort.Order order = new Sort.Order(Sort.Direction.ASC, DataRecordUtils.addPrefix(ID_ATTRIBUTE_CODE));
+        return singletonList(order);
+    }
+
+    private SearchDataCriteria createSearchDataCriteria(DataCriteria criteria) {
+
+        return new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
     }
 
     private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {

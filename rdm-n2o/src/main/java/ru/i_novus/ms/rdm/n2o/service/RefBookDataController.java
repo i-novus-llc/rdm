@@ -1,14 +1,13 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import net.n2oapp.criteria.api.Direction;
-import net.n2oapp.criteria.api.Sorting;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
+import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -29,7 +30,6 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
-import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -47,15 +47,12 @@ import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.REFERENCE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
@@ -66,6 +63,8 @@ public class RefBookDataController {
 
     private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
     private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
+    private static final String DATA_SORT_IS_INVALID_EXCEPTION_CODE = "data.sort.is.invalid";
+    private static final String DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.sort.field.not.found";
 
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
@@ -184,18 +183,21 @@ public class RefBookDataController {
     private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure,
                                                     List<Long> conflictedRowIds) {
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
+        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
         searchDataCriteria.setLocaleCode(criteria.getLocaleCode());
 
         List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
         searchDataCriteria.addAttributeFilterList(filters);
 
-        List<Sort.Order> orders = criteria.getSorting() == null ? emptyList() : singletonList(toSortOrder(criteria.getSorting()));
-        searchDataCriteria.setOrders(orders);
+        List<Sort.Order> orders = toSortOrders(criteria.getOrders(), structure);
+        if (!isEmpty(orders)) {
+            searchDataCriteria.setOrders(orders);
+        }
 
         if (criteria.isHasDataConflict()) {
             searchDataCriteria.setRowSystemIds(conflictedRowIds);
         }
+
         return searchDataCriteria;
     }
 
@@ -213,6 +215,9 @@ public class RefBookDataController {
                     .filter(Objects::nonNull)
                     .collect(toList());
 
+        } catch (UserException e) {
+            throw e;
+
         } catch (Exception e) {
             throw new UserException(DATA_FILTER_IS_INVALID_EXCEPTION_CODE, e);
         }
@@ -220,13 +225,13 @@ public class RefBookDataController {
 
     private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {
 
-        if (filterValue == null || isEmpty(filterName))
+        if (filterValue == null || StringUtils.isEmpty(filterName))
             return null;
 
-        String attributeCode = DataRecordUtils.deletePrefix(filterName);
+        String attributeCode = deletePrefix(filterName);
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
-            throw new IllegalArgumentException(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE);
+            throw new NotFoundException(new Message(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, filterName));
 
         Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
         if (attributeValue == null)
@@ -241,9 +246,30 @@ public class RefBookDataController {
         return LIKE_FIELD_TYPES.contains(attribute.getType()) ? LIKE : EXACT;
     }
 
+    private List<Sort.Order> toSortOrders(List<Sort.Order> orders, Structure structure) {
 
-    private static Sort.Order toSortOrder(Sorting sorting) {
-        return new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField());
+        try {
+            return isEmpty(orders) ? emptyList() : orders.stream()
+                    .map(order -> toSortOrder(structure, order))
+                    .collect(toList());
+
+        } catch (UserException e) {
+            throw e;
+
+        } catch (Exception e) {
+            throw new UserException(DATA_SORT_IS_INVALID_EXCEPTION_CODE, e);
+        }
+    }
+
+    private Sort.Order toSortOrder(Structure structure, Sort.Order order) {
+
+        String orderName = order.getProperty();
+        String attributeCode = deletePrefix(orderName);
+        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        if (attribute == null || attribute.getType() == null)
+            throw new NotFoundException(new Message(DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, orderName));
+
+        return new Sort.Order(order.getDirection(), attributeCode);
     }
 
     private Page<RefBookRowValue> searchRowValues(Integer versionId, SearchDataCriteria searchDataCriteria) {
