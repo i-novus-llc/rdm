@@ -20,50 +20,52 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Controller
-@SuppressWarnings({"rawtypes", "java:S3740"})
 public class CategoryController {
 
     private static final String CATEGORY_REFBOOK_CODE = "CAT";
+    private static final String CATEGORY_CODE_FIELD_CODE = "code";
     private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
     @Autowired
-    VersionRestService versionService;
+    private VersionRestService versionService;
 
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)
      */
     @SuppressWarnings("unused")
-    public Page<Category> getCategories(CategoryCriteria categoryCriteria) {
+    public Page<Category> getCategories(CategoryCriteria criteria) {
 
-        SearchDataCriteria criteria = toSearchDataCriteria(categoryCriteria);
+        SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria);
 
-        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(CATEGORY_REFBOOK_CODE, searchDataCriteria);
 
-        return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
+        return new RestPage<>(rowValues.getContent(), searchDataCriteria, rowValues.getTotalElements())
                 .map(CategoryController::toCategory);
 
     }
 
-    private static SearchDataCriteria toSearchDataCriteria(CategoryCriteria categoryCriteria) {
+    private static SearchDataCriteria toSearchDataCriteria(CategoryCriteria criteria) {
 
-        SearchDataCriteria criteria = new SearchDataCriteria(categoryCriteria.getPageNumber(), categoryCriteria.getPageSize());
+        SearchDataCriteria result = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
 
-        if (isNotBlank(categoryCriteria.getName())) {
+        if (isNotBlank(criteria.getName())) {
             AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
-                    categoryCriteria.getName(), FieldType.STRING, SearchTypeEnum.LIKE);
-            criteria.addAttributeFilterList(singletonList(filter));
+                    criteria.getName(), FieldType.STRING, SearchTypeEnum.LIKE);
+            result.addAttributeFilterList(singletonList(filter));
         }
 
-        return criteria;
+        return result;
     }
 
     private static Category toCategory(RowValue rowValue) {
+
         return new Category(
-                ofNullable(rowValue.getFieldValue("code"))
+                ofNullable(rowValue.getFieldValue(CATEGORY_CODE_FIELD_CODE))
                         .map(FieldValue::getValue)
                         .map(String::valueOf).orElse(null),
                 ofNullable(rowValue.getFieldValue(CATEGORY_NAME_FIELD_CODE))
                         .map(FieldValue::getValue)
-                        .map(String::valueOf).orElse(null));
+                        .map(String::valueOf).orElse(null)
+        );
     }
 }
