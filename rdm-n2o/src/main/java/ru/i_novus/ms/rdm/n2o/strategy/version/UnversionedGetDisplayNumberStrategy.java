@@ -8,6 +8,8 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 @Component
 public class UnversionedGetDisplayNumberStrategy implements GetDisplayNumberStrategy {
 
+    private static final String USED_VERSION = "-1.0";
+
     private static final String REFBOOK_DISPLAY_NUMBER_UNVERSIONED = "refbook.display.number.unversioned";
 
     @Autowired
@@ -15,6 +17,8 @@ public class UnversionedGetDisplayNumberStrategy implements GetDisplayNumberStra
 
     @Override
     public String get(RefBook refBook) {
-        return messages.getMessage(REFBOOK_DISPLAY_NUMBER_UNVERSIONED);
+
+        String version = refBook.getVersion();
+        return USED_VERSION.equals(version) ? messages.getMessage(REFBOOK_DISPLAY_NUMBER_UNVERSIONED) : version;
     }
 }
