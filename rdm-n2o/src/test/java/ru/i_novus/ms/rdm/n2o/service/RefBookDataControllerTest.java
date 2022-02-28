@@ -37,8 +37,7 @@ import java.util.*;
 import java.util.stream.LongStream;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -198,7 +197,7 @@ public class RefBookDataControllerTest  {
 
         DataCriteria criteria = createCriteria(true);
         SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
-        searchDataCriteria.addAttributeFilterList(emptyList());
+        searchDataCriteria.setAttributeFilters(emptySet());
         searchDataCriteria.setRowSystemIds(conflictedRowIds);
 
         List<RefBookRowValue> conflictedRowValues = List.of(rowValues.get(0));

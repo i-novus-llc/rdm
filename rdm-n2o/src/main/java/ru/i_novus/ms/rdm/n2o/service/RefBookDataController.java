@@ -31,7 +31,6 @@ import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
-import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -47,12 +46,14 @@ import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
+import static ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils.castFilterValue;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.REFERENCE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
@@ -186,8 +187,8 @@ public class RefBookDataController {
         SearchDataCriteria result = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
         result.setLocaleCode(criteria.getLocaleCode());
 
-        List<AttributeFilter> filters = toAttributeFilters(criteria, structure);
-        result.addAttributeFilterList(filters);
+        Set<List<AttributeFilter>> filters = toAttributeFilters(criteria, structure);
+        result.setAttributeFilters(filters);
 
         List<Sort.Order> orders = toSortOrders(criteria.getOrders(), structure);
         if (!isEmpty(orders)) {
@@ -201,12 +202,24 @@ public class RefBookDataController {
         return result;
     }
 
-    private List<AttributeFilter> toAttributeFilters(DataCriteria criteria, Structure structure) {
+    protected Set<List<AttributeFilter>> toAttributeFilters(DataCriteria criteria, Structure structure) {
+
+        List<AttributeFilter> list = toAttributeFilterList(criteria, structure);
+        if (isEmpty(list))
+            return emptySet();
+
+        Set<List<AttributeFilter>> set = new HashSet<>(1);
+        set.add(list);
+
+        return set;
+    }
+
+    private List<AttributeFilter> toAttributeFilterList(DataCriteria criteria, Structure structure) {
 
         final Map<String, Serializable> filterMap = criteria.getFilter();
 
         if (isEmpty(filterMap))
-            return new ArrayList<>();
+            return emptyList();
 
         try {
             return filterMap.entrySet().stream()
@@ -233,7 +246,7 @@ public class RefBookDataController {
         if (attribute == null || attribute.getType() == null)
             throw new NotFoundException(new Message(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, filterName));
 
-        Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
+        Serializable attributeValue = castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
@@ -363,13 +376,13 @@ public class RefBookDataController {
         Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
 
         if (fieldValue instanceof ReferenceFieldValue) {
-            return valueOptional.filter(o -> o instanceof Reference).map(o -> (Reference)o)
+            return valueOptional.filter(Reference.class::isInstance).map(o -> (Reference)o)
                     .map(RefBookDataController::referenceToString).orElse(null);
 
         }
 
         if (fieldValue instanceof DateFieldValue) {
-            return valueOptional.filter(o -> o instanceof LocalDate).map(o -> (LocalDate)o)
+            return valueOptional.filter(LocalDate.class::isInstance).map(o -> (LocalDate)o)
                     .map(RefBookDataController::dateToString).orElse(null);
         }
 
