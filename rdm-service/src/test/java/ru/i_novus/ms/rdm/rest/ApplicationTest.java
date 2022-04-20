@@ -2446,7 +2446,6 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME);
 
         // Версия ссылающегося справочника.
         RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl"));
@@ -2467,6 +2466,7 @@ public class ApplicationTest {
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         // Проверка появляющихся конфликтов.
+        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME);
         publish(refToDraftId, "2.0", LocalDateTime.now(), null, false);
 
         List<RefBookConflict> expectedConflicts = asList(
@@ -2516,7 +2516,6 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME);
 
         // Версия ссылающегося справочника.
         RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc"));
@@ -2538,13 +2537,15 @@ public class ApplicationTest {
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
+        // Проверка появляющихся конфликтов.
+        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME);
+
         Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
         draftService.createAttribute(refToDraftId, new CreateAttributeRequest(null, insertedAttribute, null));
         Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
         draftService.updateAttribute(refToDraftId, new UpdateAttributeRequest(null, updatedAttribute, null));
         draftService.deleteAttribute(refToDraftId, new DeleteAttributeRequest(null, deletedAttr.getCode()));
 
-        // Проверка появляющихся конфликтов.
         publish(refToDraftId, "2.0", LocalDateTime.now(), null, false);
 
         List<RefBookConflict> expectedConflicts = asList(
