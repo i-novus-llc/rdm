@@ -2446,6 +2446,7 @@ public class ApplicationTest {
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
+        logger.info("Версия-черновик справочника, на который будут ссылаться: {}", refToDraftId);
 
         // Версия ссылающегося справочника.
         RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl"));
@@ -2466,7 +2467,9 @@ public class ApplicationTest {
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
         // Проверка появляющихся конфликтов.
+        logger.info("Обновление данных версии-черновика из файла: {}", refToDraftId);
         updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME);
+        logger.info("Публикация версии-черновика: {}", refToDraftId);
         publish(refToDraftId, "2.0", LocalDateTime.now(), null, false);
 
         List<RefBookConflict> expectedConflicts = asList(
