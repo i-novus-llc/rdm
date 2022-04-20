@@ -71,7 +71,7 @@ public class RefBookDataController {
     private static final String BOOL_FIELD_NAME = "name";
 
     static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
-    private final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
+    private static final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
 
     private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
