@@ -21,7 +21,10 @@ import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
@@ -167,64 +170,6 @@ public class ConflictServiceTest {
         publishedVersion.setStatus(RefBookVersionStatus.PUBLISHED);
     }
 
-    private Structure createReferrerStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.buildPrimary(REFERRER_ATTRIBUTE_CODE, "string", FieldType.STRING, "строка"),
-                        Structure.Attribute.build(REFERRER_ATTRIBUTE_REFERENCE, "reference", FieldType.REFERENCE, "ссылка")
-                ),
-                singletonList(
-                        new Structure.Reference(REFERRER_ATTRIBUTE_REFERENCE, PUBLISHED_REF_BOOK_CODE, REFERRER_REFERENCE_DISPLAY_EXPRESSION)
-                )
-        );
-    }
-
-    private RefBookVersionEntity createReferrerEntity(Integer versionId, Structure structure) {
-
-        RefBookEntity refBookEntity = new DefaultRefBookEntity();
-        refBookEntity.setId(REFERRER_REF_BOOK_ID);
-        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
-
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setId(versionId);
-        versionEntity.setRefBook(refBookEntity);
-        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
-        versionEntity.setStructure(structure);
-
-        return versionEntity;
-    }
-
-    private Structure createPublishingStructure() {
-        return new Structure(
-                asList(
-                        Structure.Attribute.buildPrimary(PUBLISHED_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
-                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
-                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),
-                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_TEXT, "Текст", FieldType.STRING, "текстовое описание")
-                ),
-                emptyList()
-        );
-    }
-
-    private RefBookVersionEntity createPublishingEntity(Integer versionId, Structure structure) {
-
-        RefBookEntity refBookEntity = new DefaultRefBookEntity();
-        refBookEntity.setId(PUBLISHED_REF_BOOK_ID);
-        refBookEntity.setCode(PUBLISHED_REF_BOOK_CODE);
-
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
-        versionEntity.setId(versionId);
-        versionEntity.setRefBook(refBookEntity);
-        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
-        versionEntity.setStructure(structure);
-
-        return versionEntity;
-    }
-
-    //@Test
-    //public void testCalculateDataConflicts() {
-    //}
-
     @Test
     public void testCalculateDamagedConflicts() {
 
@@ -325,6 +270,60 @@ public class ConflictServiceTest {
         });
 
         return list;
+    }
+
+    private Structure createReferrerStructure() {
+        return new Structure(
+                asList(
+                        Structure.Attribute.buildPrimary(REFERRER_ATTRIBUTE_CODE, "string", FieldType.STRING, "строка"),
+                        Structure.Attribute.build(REFERRER_ATTRIBUTE_REFERENCE, "reference", FieldType.REFERENCE, "ссылка")
+                ),
+                singletonList(
+                        new Structure.Reference(REFERRER_ATTRIBUTE_REFERENCE, PUBLISHED_REF_BOOK_CODE, REFERRER_REFERENCE_DISPLAY_EXPRESSION)
+                )
+        );
+    }
+
+    private RefBookVersionEntity createReferrerEntity(Integer versionId, Structure structure) {
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setId(REFERRER_REF_BOOK_ID);
+        refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(versionId);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
+        versionEntity.setStructure(structure);
+
+        return versionEntity;
+    }
+
+    private Structure createPublishingStructure() {
+        return new Structure(
+                asList(
+                        Structure.Attribute.buildPrimary(PUBLISHED_ATTRIBUTE_CODE, "Код", FieldType.STRING, "строковый код"),
+                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_NAME, "Название", FieldType.STRING, "наименование"),
+                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_AMOUNT, "Количество", FieldType.INTEGER, "количество единиц"),
+                        Structure.Attribute.build(PUBLISHED_ATTRIBUTE_TEXT, "Текст", FieldType.STRING, "текстовое описание")
+                ),
+                emptyList()
+        );
+    }
+
+    private RefBookVersionEntity createPublishingEntity(Integer versionId, Structure structure) {
+
+        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        refBookEntity.setId(PUBLISHED_REF_BOOK_ID);
+        refBookEntity.setCode(PUBLISHED_REF_BOOK_CODE);
+
+        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        versionEntity.setId(versionId);
+        versionEntity.setRefBook(refBookEntity);
+        versionEntity.setStatus(RefBookVersionStatus.DRAFT);
+        versionEntity.setStructure(structure);
+
+        return versionEntity;
     }
 
     private Structure createCalculateStructureConflictsReferrerStructure() {

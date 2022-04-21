@@ -32,9 +32,11 @@ import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.DateFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -54,6 +56,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
+import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.REFERENCE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -67,9 +70,10 @@ public class RefBookDataController {
     private static final String BOOL_FIELD_ID = "id";
     private static final String BOOL_FIELD_NAME = "name";
 
-    private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
-
     static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
+    private static final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
+
+    private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
 
     @Autowired
@@ -221,9 +225,14 @@ public class RefBookDataController {
             return null;
 
         AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
-        attributeFilter.setSearchType(attribute.getType() == STRING ? LIKE : EXACT);
+        attributeFilter.setSearchType(toSearchType(attribute));
         return attributeFilter;
     }
+
+    private SearchTypeEnum toSearchType(Structure.Attribute attribute) {
+        return LIKE_FIELD_TYPES.contains(attribute.getType()) ? LIKE : EXACT;
+    }
+
 
     private static Sort.Order toSortOrder(Sorting sorting) {
         return new Sort.Order(Direction.ASC.equals(sorting.getDirection()) ? ASC : DESC, sorting.getField());

@@ -5,14 +5,14 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
 import javax.ws.rs.QueryParam;
 import java.io.Serializable;
 import java.util.List;
 
-@ApiModel(value = "Вычисленный конфликт версии, которая ссылаются")
+@ApiModel(value = "Вычисленный конфликт версии, которая ссылается")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Conflict implements Serializable {
 

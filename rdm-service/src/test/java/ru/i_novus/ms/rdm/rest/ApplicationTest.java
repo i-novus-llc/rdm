@@ -16,30 +16,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
-import ru.i_novus.ms.rdm.api.enumeration.*;
+import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
+import ru.i_novus.ms.rdm.api.enumeration.FileType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
+import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.conflict.Conflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookAttributeDiff;
 import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.field.CommonField;
-import ru.i_novus.ms.rdm.api.model.refbook.*;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
+import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
-import ru.i_novus.ms.rdm.api.util.FieldValueUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
 import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
@@ -55,7 +65,10 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
 import javax.sql.DataSource;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -1184,10 +1197,13 @@ public class ApplicationTest {
 
         List<AttributeFilter> attributeFilters = new ArrayList<>();
         structure.getAttributes().forEach(attribute -> {
-            Serializable searchValue = FieldType.REFERENCE.equals(attribute.getType())
+
+            boolean isReference = FieldType.REFERENCE.equals(attribute.getType());
+            Serializable searchValue = isReference
                     ? ((Reference) row1.getData().get(attribute.getCode())).getValue()
                     : (Serializable) row1.getData().get(attribute.getCode());
-            attributeFilters.add(new AttributeFilter(attribute.getCode(), searchValue, attribute.getType()));
+            SearchTypeEnum searchType = isReference ? SearchTypeEnum.REFERENCE : null;
+            attributeFilters.add(new AttributeFilter(attribute.getCode(), searchValue, attribute.getType(), searchType));
         });
 
         attributeFilters.forEach(attributeFilter -> {
@@ -2405,16 +2421,17 @@ public class ApplicationTest {
      * only for the rows, which were referenced by refFromRefBook
      */
     @Test
-    public void testCalculateConflictWhenConflictsExist() {
+    public void testCalculateConflictWhenDataChanged() {
+
         final String OLD_FILE_NAME = "oldRefToData.xlsx";
         final String NEW_FILE_NAME = "newRefToData.xlsx";
         final String REF_FILE_NAME = "refData.xlsx";
 
         Structure.Attribute id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         Structure.Attribute code = Structure.Attribute.build("CODE", "code", FieldType.STRING, "code");
-
         Structure structure = new Structure(asList(id, code), emptyList());
 
+        // Публикуемая версия справочника, на который ссылаются.
         RefBook refToRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_confl"));
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(refToVersionId, new CreateAttributeRequest(null, id, null));
@@ -2423,12 +2440,16 @@ public class ApplicationTest {
         updateFromFile(refToVersionId, null, OLD_FILE_NAME, "testConflicts/" + OLD_FILE_NAME);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
+        // Версия-черновик справочника, на который будут ссылаться.
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME);
+
+        // Версия ссылающегося справочника.
+        RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl"));
+        Integer refFromVersionId = refFromRefBook.getId();
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_id_1 = Structure.Attribute.build("REF_ID_1", "ref_id_1", FieldType.REFERENCE, "ref_id_1");
@@ -2436,8 +2457,6 @@ public class ApplicationTest {
         Structure.Reference ref_id_1_ref = new Structure.Reference(ref_id_1.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
         Structure.Reference ref_id_2_ref = new Structure.Reference(ref_id_2.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(id.getCode()));
 
-        RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_confl"));
-        Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, id_id, null));
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, ref_id_1, ref_id_1_ref));
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, ref_id_2, ref_id_2_ref));
@@ -2446,24 +2465,29 @@ public class ApplicationTest {
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
-        List<Conflict> expectedConflicts = asList(
-                new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
-                new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
-                new Conflict(ref_id_1.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
-                new Conflict(ref_id_2.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
+        // Проверка появляющихся конфликтов.
+        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/" + NEW_FILE_NAME);
+        publish(refToDraftId, "2.0", LocalDateTime.now(), null, false);
+
+        List<RefBookConflict> expectedConflicts = asList(
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        1L, ref_id_1.getCode(), ConflictType.DELETED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        1L, ref_id_2.getCode(), ConflictType.UPDATED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        3L, ref_id_1.getCode(), ConflictType.DELETED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        4L, ref_id_2.getCode(), ConflictType.UPDATED, null)
         );
 
-        // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
-        assertConflicts(expectedConflicts, actualConflicts);
+        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria(refFromVersionId, refToDraftId);
+        Page<RefBookConflict> actualConflicts = conflictService.search(conflictCriteria);
+        assertRefBookConflicts(expectedConflicts, actualConflicts.getContent());
     }
 
     @Test
     public void testCalculateConflictWhenStructureChanged() {
+
         final String OLD_FILE_NAME = "oldRefToData.xlsx";
         final String NEW_FILE_NAME = "newRefToData.xlsx";
         final String REF_FILE_NAME = "refData.xlsx";
@@ -2475,6 +2499,7 @@ public class ApplicationTest {
 
         Structure structure = new Structure(asList(id, fixedAttr, updatedAttr, deletedAttr), emptyList());
 
+        // Публикуемая версия справочника, на который ссылаются.
         RefBook refToRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_to_struc"));
         Integer refToVersionId = refToRefBook.getId();
         draftService.createAttribute(refToVersionId, new CreateAttributeRequest(null, id, null));
@@ -2485,12 +2510,16 @@ public class ApplicationTest {
         updateFromFile(refToVersionId, null, OLD_FILE_NAME, "testConflicts/structured/" + OLD_FILE_NAME);
         publish(refToVersionId, "1.0", LocalDateTime.now(), null, false);
 
+        // Версия-черновик справочника, на который будут ссылаться.
         Integer refToDraftId = draftService.create(
                 new CreateDraftRequest(
                         refToRefBook.getRefBookId(),
                         structure))
                 .getId();
-        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME);
+
+        // Версия ссылающегося справочника.
+        RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc"));
+        Integer refFromVersionId = refFromRefBook.getId();
 
         Structure.Attribute id_id = Structure.Attribute.buildPrimary("ID_ID", "id_id", FieldType.INTEGER, "id_id");
         Structure.Attribute ref_fix = Structure.Attribute.build("REF_FIX", "ref_fix", FieldType.REFERENCE, "ref to fixed attr");
@@ -2500,8 +2529,6 @@ public class ApplicationTest {
         Structure.Reference ref_upd_ref = new Structure.Reference(ref_upd.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(updatedAttr.getCode()));
         Structure.Reference ref_del_ref = new Structure.Reference(ref_del.getCode(), refToRefBook.getCode(), DisplayExpression.toPlaceholder(deletedAttr.getCode()));
 
-        RefBook refFromRefBook = refBookService.create(createRefBookCreateRequest(CONFLICTS_REF_BOOK_CODE + "_from_struc"));
-        Integer refFromVersionId = refFromRefBook.getId();
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, id_id, null));
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, ref_fix, ref_fix_ref));
         draftService.createAttribute(refFromVersionId, new CreateAttributeRequest(null, ref_upd, ref_upd_ref));
@@ -2510,34 +2537,45 @@ public class ApplicationTest {
         updateFromFile(refFromVersionId, null, REF_FILE_NAME, "testConflicts/structured/" + REF_FILE_NAME);
         publish(refFromVersionId, "1.0", LocalDateTime.now(), null, false);
 
+        // Проверка появляющихся конфликтов.
+        updateFromFile(refToDraftId, null, NEW_FILE_NAME, "testConflicts/structured/" + NEW_FILE_NAME);
+
         Structure.Attribute insertedAttribute = Structure.Attribute.build("INS_ATTR", "ins-attr", FieldType.INTEGER, "inserted attribute");
         draftService.createAttribute(refToDraftId, new CreateAttributeRequest(null, insertedAttribute, null));
         Structure.Attribute updatedAttribute = Structure.Attribute.build("UPD_ATTR", "upd-attr", FieldType.INTEGER, "updated attribute");
         draftService.updateAttribute(refToDraftId, new UpdateAttributeRequest(null, updatedAttribute, null));
         draftService.deleteAttribute(refToDraftId, new DeleteAttributeRequest(null, deletedAttr.getCode()));
 
-        List<Conflict> expectedConflicts = asList(
-                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
-                new Conflict(ref_fix.getCode(), ConflictType.DELETED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
+        publish(refToDraftId, "2.0", LocalDateTime.now(), null, false);
 
-                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
-                new Conflict(ref_upd.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L)))),
+        List<RefBookConflict> expectedConflicts = asList(
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        2L, ref_fix.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        4L, ref_fix.getCode(), ConflictType.ALTERED, null),
 
-                new Conflict(ref_del.getCode(), ConflictType.DELETED, singletonList(
-                    new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(1L)))),
-                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(3L)))),
-                new Conflict(ref_del.getCode(), ConflictType.UPDATED, singletonList(
-                        new IntegerFieldValue(id_id.getCode(), BigInteger.valueOf(4L))))
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        1L, ref_upd.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        2L, ref_upd.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        3L, ref_upd.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        4L, ref_upd.getCode(), ConflictType.ALTERED, null),
+
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        2L, ref_del.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        3L, ref_del.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        4L, ref_del.getCode(), ConflictType.ALTERED, null),
+                new RefBookConflict(refFromVersionId,  refToDraftId,
+                        null, ref_del.getCode(), ConflictType.DISPLAY_DAMAGED, null)
         );
 
-        // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-        List<Conflict> actualConflicts = calculateDataConflicts(refFromVersionId, refToVersionId, refToDraftId);
-        assertConflicts(expectedConflicts, actualConflicts);
+        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria(refFromVersionId, refToDraftId);
+        Page<RefBookConflict> actualConflicts = conflictService.search(conflictCriteria);
+        assertRefBookConflicts(expectedConflicts, actualConflicts.getContent());
     }
 
     /*
@@ -2576,7 +2614,6 @@ public class ApplicationTest {
 
         try {
             // NB: Use createCalculatedDataConflicts + load conflicts from DB.
-            calculateDataConflicts(refFromVersionId, refToVersionId, draft.getId());
             fail();
         } catch (RestException re) {
             assertEquals("compare.versions.primaries.not.match", re.getMessage());
@@ -2641,27 +2678,6 @@ public class ApplicationTest {
 
         List<RefBookVersion> deletedReferrers = conflictService.getConflictingReferrers(refToDraftId, ConflictType.DELETED);
         assertEquals(1, deletedReferrers.size());
-    }
-
-    private List<Conflict> calculateDataConflicts(Integer refFromId, Integer oldRefToId, Integer newRefToId) {
-
-        RefBookVersion refFromVersion = versionService.getById(refFromId);
-
-        CalculateConflictCriteria criteria = new CalculateConflictCriteria(refFromId, oldRefToId, newRefToId);
-        List<RefBookConflict> conflicts = conflictService.calculateDataConflicts(criteria);
-
-        return conflicts.stream()
-                .map(conflict -> {
-                    RefBookRowValue rowValue = getSystemRowValue(refFromId, conflict.getRefRecordId());
-                    if (Objects.isNull(rowValue))
-                        return null;
-
-                    List<FieldValue> primaryValues = FieldValueUtils.getRowPrimaryValues(rowValue, refFromVersion.getStructure());
-                    return new Conflict(conflict.getRefFieldCode(), conflict.getConflictType(), primaryValues);
-
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
     }
 
     /**
@@ -2929,6 +2945,31 @@ public class ApplicationTest {
         });
     }
 
+    /**
+     * Проверка на совпадение списка конфликтов.
+     *
+     * @param expectedList ожидаемый список
+     * @param actualList   актуальный список
+     */
+    private void assertRefBookConflicts(List<RefBookConflict> expectedList, List<RefBookConflict> actualList) {
+
+        assertNotNull(actualList);
+        assertNotNull(expectedList);
+        assertEquals(expectedList.size(), actualList.size());
+
+        expectedList.forEach(expected -> {
+            if (actualList.stream()
+                    .noneMatch(actual ->
+                            Objects.equals(expected.getReferrerVersionId(), actual.getReferrerVersionId())
+                                    && Objects.equals(expected.getPublishedVersionId(), actual.getPublishedVersionId())
+                                    && Objects.equals(expected.getRefRecordId(), actual.getRefRecordId())
+                                    && Objects.equals(expected.getRefFieldCode(), actual.getRefFieldCode())
+                                    && expected.getConflictType() == actual.getConflictType()
+                    ))
+                fail();
+        });
+    }
+
     private void validateUpdateTypeWithoutException(Integer draftId, String attributeName,
                                                     Structure structure, FieldType newType,
                                                     Structure.Reference reference) {
@@ -3122,7 +3163,8 @@ public class ApplicationTest {
 
         SearchDataCriteria criteria = new SearchDataCriteria();
 
-        AttributeFilter filter = new AttributeFilter(attribute.getCode(), attributeValue, attribute.getType(), SearchTypeEnum.EXACT);
+        SearchTypeEnum searchType = (attribute.getType() != FieldType.REFERENCE) ? SearchTypeEnum.EXACT : SearchTypeEnum.REFERENCE;
+        AttributeFilter filter = new AttributeFilter(attribute.getCode(), attributeValue, attribute.getType(), searchType);
         criteria.addAttributeFilterList(singletonList(filter));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);

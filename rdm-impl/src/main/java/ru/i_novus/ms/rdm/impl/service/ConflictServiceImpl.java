@@ -14,7 +14,9 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
-import ru.i_novus.ms.rdm.api.model.conflict.*;
+import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
+import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -37,12 +39,16 @@ import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.Serializable;
@@ -86,9 +92,12 @@ public class ConflictServiceImpl implements ConflictService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public ConflictServiceImpl(RefBookVersionRepository versionRepository,
-                               RefBookConflictRepository conflictRepository, RefBookConflictQueryProvider conflictQueryProvider,
-                               CompareService compareService, SearchDataService searchDataService,
-                               VersionService versionService, VersionValidation versionValidation) {
+                               RefBookConflictRepository conflictRepository,
+                               RefBookConflictQueryProvider conflictQueryProvider,
+                               CompareService compareService,
+                               SearchDataService searchDataService,
+                               VersionService versionService,
+                               VersionValidation versionValidation) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
         this.conflictQueryProvider = conflictQueryProvider;
@@ -101,65 +110,88 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Вычисление конфликтов справочников по критерию.
+     * Поиск конфликтов по критерию.
      *
-     * @param criteria критерий вычисления
-     * @return Список конфликтов
+     * @param criteria критерий поиска
+     * @return Страница конфликтов
      */
     @Override
-    @Transactional(readOnly = true)
-    // NB: for ApplicationTest only.
-    public List<RefBookConflict> calculateDataConflicts(CalculateConflictCriteria criteria) {
+    public Page<RefBookConflict> search(RefBookConflictCriteria criteria) {
+        Page<RefBookConflictEntity> entities = conflictQueryProvider.search(criteria);
+        return entities.map(this::refBookConflictModel);
+    }
 
-        List<RefBookConflictEntity> list = new ArrayList<>();
+    @Override
+    public Long countConflictedRowIds(RefBookConflictCriteria criteria) {
+        return conflictQueryProvider.countConflictedRowIds(criteria);
+    }
 
-        RefBookVersionEntity refFromEntity = versionRepository.getOne(criteria.getReferrerVersionId());
-        RefBookVersionEntity oldRefToEntity = versionRepository.getOne(criteria.getOldVersionId());
-        RefBookVersionEntity newRefToEntity = versionRepository.getOne(criteria.getNewVersionId());
+    @Override
+    public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
+        return conflictQueryProvider.searchConflictedRowIds(criteria);
+    }
 
-        CompareDataCriteria compareCriteria = new CompareDataCriteria(criteria.getOldVersionId(), criteria.getNewVersionId());
-        compareCriteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_DIFF_CONFLICT_PAGE_SIZE);
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        conflictRepository.deleteById(id);
+    }
 
-        PageIterator<DiffRowValue, CompareDataCriteria> pageIterator = new PageIterator<>(
-                pageCriteria -> compareService.compareData(pageCriteria).getRows(),
-                compareCriteria, true);
-        pageIterator.forEachRemaining(page -> {
-            List<RefBookConflictEntity> entities = calculateDataDiffConflicts(refFromEntity,
-                    oldRefToEntity, newRefToEntity, getDataDiffContent(page, criteria.getStructureAltered()));
-            list.addAll(entities);
-        });
-
-        return list.stream().map(this::refBookConflictModel).collect(toList());
+    @Override
+    @Transactional
+    public void delete(DeleteRefBookConflictCriteria criteria) {
+        conflictQueryProvider.delete(criteria);
     }
 
     /**
-     * Вычисление конфликтов справочников по diff-записям.
+     * Получение идентификаторов конфликтов для версии, которая ссылается,
+     * с любыми справочниками по указанным системным идентификаторам записей.
      *
-     * @param refFromEntity  версия, которая ссылается
-     * @param oldRefToEntity версия, на которую ссылаются
-     * @param diffRowValues  diff-записи
-     * @return Список конфликтов для версии, которая ссылается
-     * @see #checkDataDiffConflicts
+     * @param referrerVersionId идентификатор версии справочника, который ссылается
+     * @param refRecordIds      список системных идентификаторов записей версии
+     * @return Список конфликтных идентификаторов
      */
-    private List<RefBookConflictEntity> calculateDataDiffConflicts(RefBookVersionEntity refFromEntity,
-                                                                   RefBookVersionEntity oldRefToEntity,
-                                                                   RefBookVersionEntity newRefToEntity,
-                                                                   List<DiffRowValue> diffRowValues) {
+    @Override
+    public List<Long> getReferrerConflictedIds(Integer referrerVersionId, List<Long> refRecordIds) {
 
-        List<Structure.Attribute> refToPrimaries = oldRefToEntity.getStructure().getPrimaries();
-        List<Structure.Attribute> refFromAttributes = refFromEntity.getStructure().getRefCodeAttributes(oldRefToEntity.getRefBook().getCode());
-        List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues, refToPrimaries, refFromAttributes);
+        versionValidation.validateVersionExists(referrerVersionId);
 
-        return refFromAttributes.stream().flatMap(refFromAttribute ->
-                diffRowValues.stream().flatMap(diffRowValue -> {
-                    List<RefBookRowValue> rowValues =
-                            findRefBookRowValues(refToPrimaries, refFromAttribute, diffRowValue, refFromRowValues);
-                    return rowValues.stream()
-                            .map(rowValue ->
-                                    new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                                            rowValue.getSystemId(), refFromAttribute.getCode(), diffStatusToConflictType(diffRowValue.getStatus())));
-                })
-        ).collect(toList());
+        if (isEmpty(refRecordIds))
+            return emptyList();
+
+        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds, RefBookVersionStatus.PUBLISHED);
+    }
+
+    /**
+     * Получение справочников, имеющих конфликты
+     * с неопубликованной версией проверяемого справочника.
+     *
+     * @param versionId    идентификатор неопубликованной версии справочника
+     * @param conflictType тип конфликта
+     * @return Список справочников
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<RefBookVersion> getConflictingReferrers(Integer versionId, ConflictType conflictType) {
+
+        versionValidation.validateVersionExists(versionId);
+
+        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        String refBookCode = versionEntity.getRefBook().getCode();
+        RefBookVersionEntity lastPublishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
+        if (lastPublishedEntity == null)
+            return emptyList();
+
+        Integer lastPublishedId = lastPublishedEntity.getId();
+        List<RefBookVersionEntity> conflictedReferrers = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
+        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
+                .iterate().forEachRemaining(referrers -> {
+                    List<RefBookVersionEntity> list = referrers.getContent().stream()
+                            .filter(referrer -> checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType))
+                            .collect(toList());
+                    conflictedReferrers.addAll(list);
+                });
+        return conflictedReferrers.stream().map(ModelGenerator::versionModel).collect(toList());
     }
 
     /**
@@ -232,219 +264,6 @@ public class ConflictServiceImpl implements ConflictService {
                                         findRefBookRowValue(refToPrimaries, refFromAttribute, diffRowValue, refFromRowValues) != null
                                 )
                 );
-    }
-
-    /**
-     * Получение справочников, имеющих конфликты
-     * с неопубликованной версией проверяемого справочника.
-     *
-     * @param versionId    идентификатор неопубликованной версии справочника
-     * @param conflictType тип конфликта
-     * @return Список справочников
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<RefBookVersion> getConflictingReferrers(Integer versionId, ConflictType conflictType) {
-
-        versionValidation.validateVersionExists(versionId);
-
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
-        String refBookCode = versionEntity.getRefBook().getCode();
-        RefBookVersionEntity lastPublishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
-        if (lastPublishedEntity == null)
-            return emptyList();
-
-        Integer lastPublishedId = lastPublishedEntity.getId();
-        List<RefBookVersionEntity> conflictedReferrers = new ArrayList<>(REF_BOOK_VERSION_PAGE_SIZE);
-        new ReferrerEntityIteratorProvider(versionRepository, refBookCode, RefBookSourceType.LAST_VERSION)
-                .iterate().forEachRemaining(referrers -> {
-            List<RefBookVersionEntity> list = referrers.getContent().stream()
-                    .filter(referrer -> checkConflicts(referrer.getId(), lastPublishedId, versionId, conflictType))
-                    .collect(toList());
-            conflictedReferrers.addAll(list);
-        });
-        return conflictedReferrers.stream().map(ModelGenerator::versionModel).collect(toList());
-    }
-
-    /**
-     * Поиск конфликтов по критерию.
-     *
-     * @param criteria критерий поиска
-     * @return Страница конфликтов
-     */
-    @Override
-    public Page<RefBookConflict> search(RefBookConflictCriteria criteria) {
-        Page<RefBookConflictEntity> entities = conflictQueryProvider.search(criteria);
-        return entities.map(this::refBookConflictModel);
-    }
-
-    @Override
-    public Long countConflictedRowIds(RefBookConflictCriteria criteria) {
-        return conflictQueryProvider.countConflictedRowIds(criteria);
-    }
-
-    @Override
-    public Page<Long> searchConflictedRowIds(RefBookConflictCriteria criteria) {
-        return conflictQueryProvider.searchConflictedRowIds(criteria);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Integer id) {
-        conflictRepository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public void delete(DeleteRefBookConflictCriteria criteria) {
-        conflictQueryProvider.delete(criteria);
-    }
-
-    /**
-     * Получение конфликтных идентификаторов для версии, которая ссылается,
-     * с любыми справочниками по указанным системным идентификаторам записей.
-     *
-     * @param referrerVersionId идентификатор версии справочника, который ссылается
-     * @param refRecordIds      список системных идентификаторов записей версии
-     * @return Список конфликтных идентификаторов
-     */
-    @Override
-    public List<Long> getReferrerConflictedIds(Integer referrerVersionId, List<Long> refRecordIds) {
-
-        versionValidation.validateVersionExists(referrerVersionId);
-
-        if (isEmpty(refRecordIds))
-            return emptyList();
-
-        return conflictRepository.findReferrerConflictedIds(referrerVersionId, refRecordIds, RefBookVersionStatus.PUBLISHED);
-    }
-
-    /**
-     * Перевычисление существующих конфликтов данных для справочника.
-     *
-     * @param refFromEntity  версия справочника, которая ссылается
-     * @param oldRefToEntity старая версия справочника, на которую ссылались
-     * @param newRefToEntity новая версия, на которую будут ссылаться
-     * @param conflicts      страничный список конфликтов
-     * @param isAltered      наличие изменения структуры
-     * @return Список перевычисленных конфликтов данных для версии, которая ссылается
-     */
-    @SuppressWarnings("WeakerAccess")
-    public List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity refFromEntity,
-                                                                RefBookVersionEntity oldRefToEntity,
-                                                                RefBookVersionEntity newRefToEntity,
-                                                                List<? extends RefBookConflictEntity> conflicts,
-                                                                boolean isAltered) {
-        List<Long> refFromSystemIds = conflicts.stream()
-                .map(RefBookConflictEntity::getRefRecordId)
-                .filter(Objects::nonNull)
-                .collect(toList());
-        if (isEmpty(refFromSystemIds))
-            return emptyList();
-
-        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromEntity.getId(), refFromSystemIds);
-        List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, oldRefToEntity, conflicts, refFromRowValues);
-        List<DiffRowValue> diffRowValues = toDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
-
-        List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
-                // Если структура не изменена, то для перевычисления нужны все конфликты.
-                // Если же структура изменена, то все строки с заполненными ссылками помечаются как ALTERED-конфликтные,
-                // поэтому для перевычисления достаточно отработать только удалённые конфликты
-                // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
-                .filter(conflict -> !isAltered || ALTERED_RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType()))
-                .collect(toList());
-
-        return recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, filteredConflicts, refFromRowValues, diffRowValues);
-    }
-
-    /**
-     * Перевычисление существующих конфликтов данных для справочника.
-     *
-     * @param refFromEntity    версия справочника, которая ссылается
-     * @param oldRefToEntity   старая версия справочника, на которую ссылались
-     * @param newRefToEntity   новая версия, на которую будут ссылаться
-     * @param conflicts        список конфликтов
-     * @param refFromRowValues список записей версии справочника, которая ссылается
-     * @param diffRowValues    список различий версий справочника, на которую ссылаются
-     * @return Список конфликтов
-     */
-    private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity refFromEntity,
-                                                                 RefBookVersionEntity oldRefToEntity,
-                                                                 RefBookVersionEntity newRefToEntity,
-                                                                 List<RefBookConflictEntity> conflicts,
-                                                                 List<RefBookRowValue> refFromRowValues,
-                                                                 List<DiffRowValue> diffRowValues) {
-        return conflicts.stream()
-                .filter(conflict -> ConflictUtils.getDataConflictTypes().contains(conflict.getConflictType()))
-                .map(conflict -> {
-                    RefBookRowValue refFromRowValue = findConflictedValue(refFromRowValues, conflict);
-                    if (refFromRowValue == null)
-                        return null;
-
-                    return recalculateDataConflict(refFromEntity, oldRefToEntity, newRefToEntity, conflict, refFromRowValue, diffRowValues);
-                })
-                .filter(Objects::nonNull)
-                .collect(toList());
-    }
-
-    /**
-     * Перевычисление существующих конфликтов справочников.
-     *
-     * @param refFromEntity   версия справочника, которая ссылается
-     * @param oldRefToEntity  версия справочника, на которую ссылались
-     * @param conflict        конфликт
-     * @param refFromRowValue запись версии справочника, которая ссылается
-     * @param diffRowValues   список различий версий справочника, на которую ссылаются
-     * @return Список конфликтов
-     */
-    private RefBookConflictEntity recalculateDataConflict(RefBookVersionEntity refFromEntity,
-                                                          RefBookVersionEntity oldRefToEntity,
-                                                          RefBookVersionEntity newRefToEntity,
-                                                          RefBookConflictEntity conflict,
-                                                          RefBookRowValue refFromRowValue,
-                                                          List<DiffRowValue> diffRowValues) {
-
-        ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refFromRowValue.getFieldValue(conflict.getRefFieldCode()));
-        Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
-        Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
-        ReferenceFilterValue filterValue = new ReferenceFilterValue(refToAttribute, fieldValue);
-
-        // NB: Extract to separated method `recalculateDataConflict`.
-        // Проверка существующего конфликта с текущей diff-записью по правилам пересчёта.
-        DiffRowValue diffRowValue;
-        switch (conflict.getConflictType()) {
-            case DELETED:
-                diffRowValue = findDiffRowValue(filterValue, diffRowValues);
-                if (Objects.nonNull(diffRowValue)) {
-                    if (DiffStatusEnum.INSERTED.equals(diffRowValue.getStatus())) {
-                        String displayValue = diffValuesToDisplayValue(refFromReference.getDisplayExpression(),
-                                diffRowValue.getValues(), DiffStatusEnum.INSERTED);
-
-                        if (Objects.equals(displayValue, fieldValue.getValue().getDisplayValue()))
-                            return null; // Восстановление удалённой строки
-
-                        conflict.setConflictType(ConflictType.UPDATED); // Вставка удалённой строки с изменениями
-
-                    } else
-                        return null; // Для удалённых записей не может быть удалений и обновлений
-                }
-
-                break; // Есть только старое удаление
-
-            case UPDATED:
-            case ALTERED:
-                diffRowValue = findDiffRowValue(filterValue, diffRowValues);
-                if (Objects.nonNull(diffRowValue))
-                    return null; // Есть новые изменения
-
-                break; // Есть только старое обновление
-
-            default:
-                return null; // Нет старых конфликтов, только новые
-        }
-
-        return new RefBookConflictEntity(refFromEntity, newRefToEntity,
-                refFromRowValue.getSystemId(), conflict.getRefFieldCode(), conflict.getConflictType());
     }
 
     /**
@@ -627,13 +446,14 @@ public class ConflictServiceImpl implements ConflictService {
                     Serializable value = getDiffFieldValue(diffFieldValue, diff.getStatus());
 
                     return refFromAttributes.stream()
-                            .map(attribute -> singletonList(toFieldSearchCriteria(attribute, value)));
+                            .map(attribute -> singletonList(toDiffFieldSearchCriteria(attribute, value)));
                 }).collect(toSet());
     }
 
-    private FieldSearchCriteria toFieldSearchCriteria(Structure.Attribute attribute, Serializable value) {
+    private FieldSearchCriteria toDiffFieldSearchCriteria(Structure.Attribute attribute, Serializable value) {
 
-        return new FieldSearchCriteria(ConverterUtil.field(attribute), SearchTypeEnum.EXACT, singletonList(value));
+        SearchTypeEnum searchType = (attribute.getType() != FieldType.REFERENCE) ? SearchTypeEnum.EXACT : SearchTypeEnum.REFERENCE;
+        return new FieldSearchCriteria(ConverterUtil.field(attribute), searchType, singletonList(value));
     }
 
     /**
@@ -846,6 +666,36 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
+     * Вычисление конфликтов справочников по diff-записям.
+     *
+     * @param refFromEntity  версия, которая ссылается
+     * @param oldRefToEntity версия, на которую ссылаются
+     * @param diffRowValues  diff-записи
+     * @return Список конфликтов для версии, которая ссылается
+     * @see #checkDataDiffConflicts
+     */
+    private List<RefBookConflictEntity> calculateDataDiffConflicts(RefBookVersionEntity refFromEntity,
+                                                                   RefBookVersionEntity oldRefToEntity,
+                                                                   RefBookVersionEntity newRefToEntity,
+                                                                   List<DiffRowValue> diffRowValues) {
+
+        List<Structure.Attribute> refToPrimaries = oldRefToEntity.getStructure().getPrimaries();
+        List<Structure.Attribute> refFromAttributes = refFromEntity.getStructure().getRefCodeAttributes(oldRefToEntity.getRefBook().getCode());
+        List<RefBookRowValue> refFromRowValues = getConflictedRowContent(refFromEntity, diffRowValues, refToPrimaries, refFromAttributes);
+
+        return refFromAttributes.stream().flatMap(refFromAttribute ->
+                diffRowValues.stream().flatMap(diffRowValue -> {
+                    List<RefBookRowValue> rowValues =
+                            findRefBookRowValues(refToPrimaries, refFromAttribute, diffRowValue, refFromRowValues);
+                    return rowValues.stream()
+                            .map(rowValue ->
+                                    new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                                            rowValue.getSystemId(), refFromAttribute.getCode(), diffStatusToConflictType(diffRowValue.getStatus())));
+                })
+        ).collect(toList());
+    }
+
+    /**
      * Перевычисление конфликтов.
      *
      * @param refFromEntity  версия, которая ссылается
@@ -946,6 +796,135 @@ public class ConflictServiceImpl implements ConflictService {
                 conflictRepository.saveAll(entities);
             }
         });
+    }
+
+    /**
+     * Перевычисление существующих конфликтов данных для справочника.
+     *
+     * @param refFromEntity  версия справочника, которая ссылается
+     * @param oldRefToEntity старая версия справочника, на которую ссылались
+     * @param newRefToEntity новая версия, на которую будут ссылаться
+     * @param conflicts      страничный список конфликтов
+     * @param isAltered      наличие изменения структуры
+     * @return Список перевычисленных конфликтов данных для версии, которая ссылается
+     */
+    // NB: Заменить public на private после исключения вызова из тестов!
+    @SuppressWarnings("WeakerAccess")
+    public List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity refFromEntity,
+                                                                RefBookVersionEntity oldRefToEntity,
+                                                                RefBookVersionEntity newRefToEntity,
+                                                                List<? extends RefBookConflictEntity> conflicts,
+                                                                boolean isAltered) {
+        List<Long> refFromSystemIds = conflicts.stream()
+                .map(RefBookConflictEntity::getRefRecordId)
+                .filter(Objects::nonNull)
+                .collect(toList());
+        if (isEmpty(refFromSystemIds))
+            return emptyList();
+
+        List<RefBookRowValue> refFromRowValues = getSystemRowValues(refFromEntity.getId(), refFromSystemIds);
+        List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, oldRefToEntity, conflicts, refFromRowValues);
+        List<DiffRowValue> diffRowValues = toDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
+
+        List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
+                // Если структура не изменена, то для перевычисления нужны все конфликты.
+                // Если же структура изменена, то все строки с заполненными ссылками помечаются как ALTERED-конфликтные,
+                // поэтому для перевычисления достаточно отработать только удалённые конфликты
+                // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
+                .filter(conflict -> !isAltered || ALTERED_RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType()))
+                .collect(toList());
+
+        return recalculateDataConflicts(refFromEntity, oldRefToEntity, newRefToEntity, filteredConflicts, refFromRowValues, diffRowValues);
+    }
+
+    /**
+     * Перевычисление существующих конфликтов данных для справочника.
+     *
+     * @param refFromEntity    версия справочника, которая ссылается
+     * @param oldRefToEntity   старая версия справочника, на которую ссылались
+     * @param newRefToEntity   новая версия, на которую будут ссылаться
+     * @param conflicts        список конфликтов
+     * @param refFromRowValues список записей версии справочника, которая ссылается
+     * @param diffRowValues    список различий версий справочника, на которую ссылаются
+     * @return Список конфликтов
+     */
+    private List<RefBookConflictEntity> recalculateDataConflicts(RefBookVersionEntity refFromEntity,
+                                                                 RefBookVersionEntity oldRefToEntity,
+                                                                 RefBookVersionEntity newRefToEntity,
+                                                                 List<RefBookConflictEntity> conflicts,
+                                                                 List<RefBookRowValue> refFromRowValues,
+                                                                 List<DiffRowValue> diffRowValues) {
+        return conflicts.stream()
+                .filter(conflict -> ConflictUtils.getDataConflictTypes().contains(conflict.getConflictType()))
+                .map(conflict -> {
+                    RefBookRowValue refFromRowValue = findConflictedValue(refFromRowValues, conflict);
+                    if (refFromRowValue == null)
+                        return null;
+
+                    return recalculateDataConflict(refFromEntity, oldRefToEntity, newRefToEntity, conflict, refFromRowValue, diffRowValues);
+                })
+                .filter(Objects::nonNull)
+                .collect(toList());
+    }
+
+    /**
+     * Перевычисление существующих конфликтов справочников.
+     *
+     * @param refFromEntity   версия справочника, которая ссылается
+     * @param oldRefToEntity  версия справочника, на которую ссылались
+     * @param conflict        конфликт
+     * @param refFromRowValue запись версии справочника, которая ссылается
+     * @param diffRowValues   список различий версий справочника, на которую ссылаются
+     * @return Список конфликтов
+     */
+    private RefBookConflictEntity recalculateDataConflict(RefBookVersionEntity refFromEntity,
+                                                          RefBookVersionEntity oldRefToEntity,
+                                                          RefBookVersionEntity newRefToEntity,
+                                                          RefBookConflictEntity conflict,
+                                                          RefBookRowValue refFromRowValue,
+                                                          List<DiffRowValue> diffRowValues) {
+
+        ReferenceFieldValue fieldValue = (ReferenceFieldValue) (refFromRowValue.getFieldValue(conflict.getRefFieldCode()));
+        Structure.Reference refFromReference = refFromEntity.getStructure().getReference(conflict.getRefFieldCode());
+        Structure.Attribute refToAttribute = refFromReference.findReferenceAttribute(oldRefToEntity.getStructure());
+        ReferenceFilterValue filterValue = new ReferenceFilterValue(refToAttribute, fieldValue);
+
+        // NB: Extract to separated method `recalculateDataConflict`.
+        // Проверка существующего конфликта с текущей diff-записью по правилам пересчёта.
+        DiffRowValue diffRowValue;
+        switch (conflict.getConflictType()) {
+            case DELETED:
+                diffRowValue = findDiffRowValue(filterValue, diffRowValues);
+                if (Objects.nonNull(diffRowValue)) {
+                    if (DiffStatusEnum.INSERTED.equals(diffRowValue.getStatus())) {
+                        String displayValue = diffValuesToDisplayValue(refFromReference.getDisplayExpression(),
+                                diffRowValue.getValues(), DiffStatusEnum.INSERTED);
+
+                        if (Objects.equals(displayValue, fieldValue.getValue().getDisplayValue()))
+                            return null; // Восстановление удалённой строки
+
+                        conflict.setConflictType(ConflictType.UPDATED); // Вставка удалённой строки с изменениями
+
+                    } else
+                        return null; // Для удалённых записей не может быть удалений и обновлений
+                }
+
+                break; // Есть только старое удаление
+
+            case UPDATED:
+            case ALTERED:
+                diffRowValue = findDiffRowValue(filterValue, diffRowValues);
+                if (Objects.nonNull(diffRowValue))
+                    return null; // Есть новые изменения
+
+                break; // Есть только старое обновление
+
+            default:
+                return null; // Нет старых конфликтов, только новые
+        }
+
+        return new RefBookConflictEntity(refFromEntity, newRefToEntity,
+                refFromRowValue.getSystemId(), conflict.getRefFieldCode(), conflict.getConflictType());
     }
 
     /**
