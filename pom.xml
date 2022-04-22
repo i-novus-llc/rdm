@@ -4,13 +4,13 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>4.9.0-SNAPSHOT</version>
+    <version>4.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>4.5.0</version>
+        <version>4.9.0</version>
     </parent>
 
     <properties>
@@ -340,6 +340,18 @@
                     <name>release</name>
                 </property>
             </activation>
+            <modules>
+                <module>rdm-esnsi</module>
+                <module>rdm-loader-client-starter</module>
+                <module>rdm-impl</module>
+                <module>rdm-rest</module>
+                <module>rdm-rest-spring-boot-autoconfigure</module>
+                <module>rdm-rest-spring-boot-starter</module>
+                <module>rdm-n2o-api</module>
+                <module>rdm-n2o</module>
+                <module>rdm-web-spring-boot-autoconfigure</module>
+                <module>rdm-web-spring-boot-starter</module>
+            </modules>
             <build>
                 <plugins>
                     <plugin>
