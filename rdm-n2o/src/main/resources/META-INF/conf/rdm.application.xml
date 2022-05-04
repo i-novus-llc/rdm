@@ -1,24 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <application xmlns="http://n2oapp.net/framework/config/schema/application-2.0"
-             xmlns:sec="http://n2oapp.net/framework/config/schema/security-1.0"
         welcome-page-id="refBookList">
 
     <header title="НСИ"
             class="inverse">
 
-        <nav>
-            <menu-item name="Реестр справочников"><open-page page-id="refBookList" route="/"/></menu-item>
-            <menu-item name="Журнал операций"><open-page page-id="asyncLogList" route="/asyncLog"/></menu-item>
-        </nav>
-
-        <extra-menu>
-            <menu-item name="Войти" sec:anonymous="true"><a href="/login"/></menu-item>
-
-            <dropdown-menu id="usermenu" name="#{username}" icon="fa fa-user" sec:authenticated="true">
-                <menu-item name="Профиль"><open-page page-id="profile" route="/profile"/></menu-item>
-                <menu-item name="Выход"><a href="logout"/></menu-item>
-            </dropdown-menu>
-        </extra-menu>
+        <nav ref-id="rdm"/>
+        <extra-menu ref-id="user"/>
+        
     </header>
 
     <footer left-text="N2O ${n2o.version} © ${n2o.version.copyright.text}"
