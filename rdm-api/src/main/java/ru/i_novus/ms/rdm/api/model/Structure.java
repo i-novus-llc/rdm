@@ -72,7 +72,7 @@ public class Structure implements Serializable {
 
     public Attribute getAttribute(String code) {
 
-        if (CollectionUtils.isEmpty(attributes))
+        if (StringUtils.isEmpty(code) || CollectionUtils.isEmpty(attributes))
             return null;
 
         return attributes.stream()
@@ -82,7 +82,7 @@ public class Structure implements Serializable {
 
     public Reference getReference(String attributeCode) {
 
-        if (CollectionUtils.isEmpty(references))
+        if (StringUtils.isEmpty(attributeCode) || CollectionUtils.isEmpty(references))
             return null;
 
         return references.stream()

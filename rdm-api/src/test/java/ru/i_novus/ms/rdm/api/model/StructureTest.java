@@ -269,6 +269,9 @@ public class StructureTest extends BaseTest {
 
         Structure structure = createStructure();
 
+        assertNull(structure.getAttribute(null));
+        assertNull(structure.getAttribute(""));
+
         IntStream.range(0, ATTRIBUTE_CODES.size()).forEach(index -> {
 
             String code = ATTRIBUTE_CODES.get(index);
@@ -277,6 +280,9 @@ public class StructureTest extends BaseTest {
                     structure.getAttribute(code)
             );
         });
+
+        assertNull(structure.getReference(null));
+        assertNull(structure.getReference(""));
 
         IntStream.range(0, REFERENCE_CODES.size()).forEach(index -> {
 

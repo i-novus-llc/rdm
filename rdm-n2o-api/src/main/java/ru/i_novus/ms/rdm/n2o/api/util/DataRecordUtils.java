@@ -22,7 +22,8 @@ public class DataRecordUtils {
      * @return Наименование поля с префиксом
      */
     public static String addPrefix(String fieldName) {
-        return FIELD_PREFIX + fieldName;
+
+        return fieldName != null ? FIELD_PREFIX + fieldName : null;
     }
 
     /**
@@ -33,10 +34,7 @@ public class DataRecordUtils {
      */
     public static String deletePrefix(String fieldName) {
 
-        if (hasPrefix(fieldName)) {
-            fieldName = fieldName.replace(FIELD_PREFIX, "");
-        }
-        return fieldName;
+        return hasPrefix(fieldName) ? fieldName.substring(FIELD_PREFIX.length()): fieldName;
     }
 
     /**
@@ -46,6 +44,7 @@ public class DataRecordUtils {
      * @return Результат проверки
      */
     public static boolean hasPrefix(String fieldName) {
+
         return fieldName != null && fieldName.startsWith(FIELD_PREFIX);
     }
 

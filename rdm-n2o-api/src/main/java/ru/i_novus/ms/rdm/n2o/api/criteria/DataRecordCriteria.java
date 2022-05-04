@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import io.swagger.annotations.ApiParam;
+import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
@@ -38,8 +39,22 @@ public class DataRecordCriteria extends AbstractCriteria {
     }
 
     public DataRecordCriteria(int pageNumber, int pageSize) {
-
         super(pageNumber, pageSize);
+    }
+
+    public DataRecordCriteria(int pageNumber, int pageSize, Sort sort) {
+        super(pageNumber, pageSize, sort);
+    }
+
+    public DataRecordCriteria(DataRecordCriteria criteria) {
+
+        super(criteria);
+
+        this.id = criteria.getId();
+        this.versionId = criteria.getVersionId();
+        this.optLockValue = criteria.getOptLockValue();
+        this.localeCode = criteria.getLocaleCode();
+        this.dataAction = criteria.getDataAction();
     }
 
     public Long getId() {

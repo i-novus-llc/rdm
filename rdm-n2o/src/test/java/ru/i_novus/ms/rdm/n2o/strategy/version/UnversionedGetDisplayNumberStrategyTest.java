@@ -17,6 +17,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UnversionedGetDisplayNumberStrategyTest {
 
+    private static final String USED_VERSION = "-1.0";
+
     @InjectMocks
     private UnversionedGetDisplayNumberStrategy strategy;
 
@@ -26,12 +28,10 @@ public class UnversionedGetDisplayNumberStrategyTest {
     @Test
     public void testGet() {
 
-        final String versionNumber = "-1.0";
-
         RefBook refBook = new RefBook();
         refBook.setType(RefBookTypeEnum.UNVERSIONED);
         refBook.setStatus(RefBookVersionStatus.PUBLISHED);
-        refBook.setVersion(versionNumber);
+        refBook.setVersion(USED_VERSION);
 
         when(messages.getMessage(any(String.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
@@ -40,6 +40,22 @@ public class UnversionedGetDisplayNumberStrategyTest {
         assertEquals("refbook.display.number.unversioned", actual);
 
         verify(messages).getMessage(any(String.class));
+        verifyNoMoreInteractions(messages);
+    }
+
+    @Test
+    public void testGetVersioned() {
+
+        final String versionNumber = "1.0";
+
+        RefBook refBook = new RefBook();
+        refBook.setType(RefBookTypeEnum.UNVERSIONED);
+        refBook.setStatus(RefBookVersionStatus.PUBLISHED);
+        refBook.setVersion(versionNumber);
+
+        String actual = strategy.get(refBook);
+        assertEquals(versionNumber, actual);
+
         verifyNoMoreInteractions(messages);
     }
 }
