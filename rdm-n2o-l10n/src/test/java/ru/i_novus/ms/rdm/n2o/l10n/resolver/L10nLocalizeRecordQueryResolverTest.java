@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,7 +34,7 @@ public class L10nLocalizeRecordQueryResolverTest {
 
         DataRecordRequest request = new DataRecordRequest();
 
-        List<N2oQuery.Field> fields = resolver.createRegularFields(request);
+        List<QuerySimpleField> fields = resolver.createRegularFields(request);
         assertNotNull(fields);
         assertEquals(1, fields.size());
         assertEquals(FIELD_LOCALE_NAME, fields.get(0).getId());

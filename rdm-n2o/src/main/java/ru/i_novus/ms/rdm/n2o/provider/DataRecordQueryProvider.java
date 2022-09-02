@@ -4,8 +4,10 @@ import net.n2oapp.criteria.filters.FilterType;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
 import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
+import net.n2oapp.framework.api.metadata.global.dao.query.AbstractField;
+import net.n2oapp.framework.api.metadata.global.dao.query.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,71 +95,71 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return selection;
     }
 
-    private N2oQuery.Field[] createQueryFields(DataRecordRequest request) {
+    private QuerySimpleField[] createQueryFields(DataRecordRequest request) {
 
         return Stream.concat(
                 createRegularFields(request).stream(),
                 createDynamicFields(request.getStructure()).stream())
-                .toArray(N2oQuery.Field[]::new);
+                .toArray(QuerySimpleField[]::new);
     }
 
-    private List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
+    private List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
 
-        N2oQuery.Field idField = new N2oQuery.Field();
+        QuerySimpleField idField = new QuerySimpleField();
         idField.setId(FIELD_SYSTEM_ID);
-        idField.setSelectMapping("['" + FIELD_SYSTEM_ID + "']");
+        idField.setMapping("['" + FIELD_SYSTEM_ID + "']");
 
         N2oQuery.Filter idFilter = new N2oQuery.Filter();
         idFilter.setType(FilterType.eq);
-        idFilter.setFilterField(FIELD_SYSTEM_ID);
+        idFilter.setFieldId(FIELD_SYSTEM_ID);
         idFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_SYSTEM_ID);
         idFilter.setDomain(N2oDomain.INTEGER);
         idField.setFilterList(new N2oQuery.Filter[]{ idFilter });
 
-        N2oQuery.Field versionIdField = new N2oQuery.Field();
+        QuerySimpleField versionIdField = new QuerySimpleField();
         versionIdField.setId(FIELD_VERSION_ID);
 
         N2oQuery.Filter versionIdFilter = new N2oQuery.Filter();
         versionIdFilter.setType(FilterType.eq);
-        versionIdFilter.setFilterField(FIELD_VERSION_ID);
+        versionIdFilter.setFieldId(FIELD_VERSION_ID);
         versionIdFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_VERSION_ID);
         versionIdFilter.setDomain(N2oDomain.INTEGER);
         versionIdFilter.setDefaultValue(String.valueOf(request.getVersionId()));
         versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
 
-        N2oQuery.Field optLockValueField = new N2oQuery.Field();
+        QuerySimpleField optLockValueField = new QuerySimpleField();
         optLockValueField.setId(FIELD_OPT_LOCK_VALUE);
 
         N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter();
         optLockValueFilter.setType(FilterType.eq);
-        optLockValueFilter.setFilterField(FIELD_OPT_LOCK_VALUE);
+        optLockValueFilter.setFieldId(FIELD_OPT_LOCK_VALUE);
         optLockValueFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_OPT_LOCK_VALUE);
         optLockValueFilter.setDomain(N2oDomain.INTEGER);
         optLockValueFilter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         optLockValueField.setFilterList(new N2oQuery.Filter[]{ optLockValueFilter });
 
-        N2oQuery.Field localeCodeField = new N2oQuery.Field();
+        QuerySimpleField localeCodeField = new QuerySimpleField();
         localeCodeField.setId(FIELD_LOCALE_CODE);
 
         N2oQuery.Filter localeCodeFilter = new N2oQuery.Filter();
         localeCodeFilter.setType(FilterType.eq);
-        localeCodeFilter.setFilterField(FIELD_LOCALE_CODE);
+        localeCodeFilter.setFieldId(FIELD_LOCALE_CODE);
         localeCodeFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_LOCALE_CODE);
         localeCodeFilter.setDomain(N2oDomain.STRING);
         localeCodeFilter.setDefaultValue(DEFAULT_LOCALE_CODE);
         localeCodeField.setFilterList(new N2oQuery.Filter[]{ localeCodeFilter });
 
-        N2oQuery.Field dataActionField = new N2oQuery.Field();
+        QuerySimpleField dataActionField = new QuerySimpleField();
         dataActionField.setId(FIELD_DATA_ACTION);
 
         N2oQuery.Filter dataActionFilter = new N2oQuery.Filter();
         dataActionFilter.setType(FilterType.eq);
-        dataActionFilter.setFilterField(FIELD_DATA_ACTION);
+        dataActionFilter.setFieldId(FIELD_DATA_ACTION);
         dataActionFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_DATA_ACTION);
         dataActionFilter.setDomain(N2oDomain.STRING);
         dataActionField.setFilterList(new N2oQuery.Filter[]{ dataActionFilter });
 
-        List<N2oQuery.Field> list = new ArrayList<>(List.of(
+        List<QuerySimpleField> list = new ArrayList<>(List.of(
                 idField, versionIdField, optLockValueField, localeCodeField, dataActionField
         ));
 
@@ -169,12 +171,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return list;
     }
 
-    private List<N2oQuery.Field> createDynamicFields(Structure structure) {
+    private List<QuerySimpleField> createDynamicFields(Structure structure) {
 
         if (structure.isEmpty())
             return emptyList();
 
-        List<N2oQuery.Field> list = new ArrayList<>();
+        List<QuerySimpleField> list = new ArrayList<>();
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             switch (attribute.getType()) {
@@ -192,32 +194,32 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return list;
     }
 
-    private N2oQuery.Field createField(Structure.Attribute attribute) {
+    private QuerySimpleField createField(Structure.Attribute attribute) {
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
-        N2oQuery.Field field = new N2oQuery.Field();
+        QuerySimpleField field = new QuerySimpleField();
         field.setId(codeWithPrefix);
         field.setName(attribute.getName());
-        field.setSelectMapping(getAttributeMapping(codeWithPrefix));
+        field.setMapping(getAttributeMapping(codeWithPrefix));
         field.setDomain(N2oDomain.fieldTypeToDomain(attribute.getType()));
 
         return field;
     }
 
-    private List<N2oQuery.Field> createReferenceFields(Structure.Attribute attribute) {
+    private List<QuerySimpleField> createReferenceFields(Structure.Attribute attribute) {
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
         final String attributeMapping = getAttributeMapping(codeWithPrefix);
 
-        N2oQuery.Field valueField = new N2oQuery.Field();
+        QuerySimpleField valueField = new QuerySimpleField();
         valueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
-        valueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_VALUE));
+        valueField.setMapping(addFieldProperty(attributeMapping, REFERENCE_VALUE));
         valueField.setDomain(N2oDomain.STRING);
 
-        N2oQuery.Field displayValueField = new N2oQuery.Field();
+        QuerySimpleField displayValueField = new QuerySimpleField();
         displayValueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_DISPLAY_VALUE));
-        displayValueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
+        displayValueField.setMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
         displayValueField.setDomain(N2oDomain.STRING);
 
         return List.of(valueField, displayValueField);

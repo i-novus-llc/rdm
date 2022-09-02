@@ -79,12 +79,12 @@ public class UpdateDependencyTransformer
                 .findAny().orElse(null);
 
         if (condition != null) {
-            condition.setModelLink(new ModelLink(ReduxModel.RESOLVE, tableId).getBindLink());
+            condition.setModelLink(new ModelLink(ReduxModel.resolve, tableId).getBindLink());
 
         } else {
             condition = new Condition();
             condition.setExpression(BUTTON_CONDITION_EXPRESSION);
-            condition.setModelLink(new ModelLink(ReduxModel.RESOLVE, tableId).getBindLink());
+            condition.setModelLink(new ModelLink(ReduxModel.resolve, tableId).getBindLink());
             conditions.add(condition);
         }
     }

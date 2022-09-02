@@ -2,7 +2,7 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
              name="Добавление данных из файла">
 
-    <form object-id="refBook" default-values-query-id="fileDefault">
+    <form object-id="refBook" default-values-query-id="fileDefault" upload="defaults">
 
         <pre-filters>
             <eq field-id="versionId" param="versionId"/>

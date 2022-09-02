@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
@@ -19,7 +19,7 @@ public class DefaultRecordQueryResolver implements DataRecordQueryResolver {
     }
 
     @Override
-    public List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
+    public List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
         return emptyList();
     }
 }
