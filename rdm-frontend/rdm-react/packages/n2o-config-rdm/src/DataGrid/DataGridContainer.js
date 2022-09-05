@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { compose, withHandlers, withState, lifecycle } from 'recompose';
-import widgetContainer from 'n2o-framework/lib/components/widgets/AdvancedTable/AdvancedTableContainer';
+import widgetContainer from 'n2o-framework/lib/components/widgets/WidgetContainer';
 import DataGrid from "./DataGrid";
 
 import { setModel } from 'n2o-framework/lib/ducks/models/store';
@@ -20,7 +20,7 @@ import isNil from 'lodash/isNil'
 
 const ReduxCell = columnHOC(TableCell);
 
-function AdvancedTableContainer({
+function DataGridContainer({
     columns,
     rows,
     onSetFilter,
@@ -161,4 +161,4 @@ export default compose(
             }
         }
     })
-)(AdvancedTableContainer);
+)(DataGridContainer);
