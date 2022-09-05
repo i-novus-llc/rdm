@@ -17,7 +17,6 @@
     "release": "lerna publish from-package --yes --registry https://npm.i-novus.ru"
   },
   "dependencies": {
-    "n2o-auth": "7.20.21",
     "n2o-framework": "7.23.23"
   },
   "devDependencies": {

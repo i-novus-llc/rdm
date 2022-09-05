@@ -29,7 +29,6 @@
     "recharts": "^1.4.2"
   },
 	"peerDependencies": {
-    "n2o-auth": "*",
     "n2o-framework": "*",
     "classnames": "*",
     "lodash": "*",
