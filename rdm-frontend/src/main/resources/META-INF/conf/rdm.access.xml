@@ -5,6 +5,7 @@
         <page-access page-id="refBookView"/>
         <page-access page-id="asyncLogList"/>
         <page-access page-id="asyncLogView"/>
+        <page-access page-id="refBook"/>
 
         <object-access object-id="refBook"/>
         <object-access object-id="refBookStatusList"/>
@@ -40,7 +41,6 @@
     </permit-all>
 
     <permission id="rdm.edit" name="Добавление/редактирование справочников">
-        <page-access page-id="refBook"/>
         <page-access page-id="attribute"/>
         <page-access page-id="createRefBook"/>
         <page-access page-id="createFromFile"/>
