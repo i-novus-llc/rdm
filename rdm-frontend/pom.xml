@@ -28,7 +28,6 @@
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-web-spring-boot-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>

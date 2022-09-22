@@ -14,7 +14,6 @@
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-rest-spring-boot-autoconfigure</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

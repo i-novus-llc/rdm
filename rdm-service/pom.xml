@@ -26,7 +26,6 @@
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-rest-spring-boot-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -97,19 +96,16 @@
                 <dependency>
                     <groupId>ru.i-novus.components</groupId>
                     <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
-                    <version>${l10n.vds.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
                     <artifactId>rdm-l10n-api</artifactId>
-                    <version>${project.version}</version>
                 </dependency>
 
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
                     <artifactId>rdm-l10n-impl</artifactId>
-                    <version>${project.version}</version>
                 </dependency>
             </dependencies>
         </profile>

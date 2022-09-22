@@ -3,7 +3,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-web-spring-boot-autoconfigure</artifactId>
-    <packaging>jar</packaging>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
@@ -17,7 +16,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
@@ -62,7 +60,5 @@
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
-
     </dependencies>
-
 </project>
