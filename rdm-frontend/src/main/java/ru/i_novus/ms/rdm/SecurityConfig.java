@@ -1,6 +1,11 @@
 package ru.i_novus.ms.rdm;
 
+import net.n2oapp.security.admin.rest.client.AccountServiceRestClient;
 import net.n2oapp.security.auth.OpenIdSecurityConfigurerAdapter;
+import net.n2oapp.security.auth.common.context.ContextFilter;
+import net.n2oapp.security.auth.common.context.ContextUserInfoTokenServices;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2SsoProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -18,6 +24,15 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @SuppressWarnings("unused")
 public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
+
+    @Value("${security.oauth2.client.client-id}")
+    private String clientId;
+
+    @Value("${security.oauth2.resource.user-info-uri}")
+    private String userInfoUri;
+
+    @Autowired
+    private AccountServiceRestClient accountServiceRestClient;
 
     @Bean
     @Primary
@@ -52,5 +67,12 @@ public class SecurityConfig extends OpenIdSecurityConfigurerAdapter {
         ssoFilter.setApplicationEventPublisher(this.getApplicationContext());
 
         return ssoFilter;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
+        ContextUserInfoTokenServices tokenServices = new ContextUserInfoTokenServices(userInfoUri, clientId);
+        http.addFilterAfter(new ContextFilter(tokenServices, accountServiceRestClient), FilterSecurityInterceptor.class);
     }
 }
