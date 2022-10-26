@@ -45,11 +45,10 @@ public class RefreshTransformer
             return;
 
         RefreshSaga refresh = new RefreshSaga();
-        refresh.setType(RefreshSaga.Type.widget);
 
         Matcher matcher = WIDGET_ID_PATTERN.matcher(route);
         String refreshedWidgetId = matcher.matches() ? matcher.group(1) : DEFAULT_WIDGET_ID;
-        refresh.getOptions().setWidgetId(refreshedWidgetId);
+        refresh.getDatasources().add(refreshedWidgetId);
 
         invokeAction.getMeta().getSuccess().setRefresh(refresh);
     }

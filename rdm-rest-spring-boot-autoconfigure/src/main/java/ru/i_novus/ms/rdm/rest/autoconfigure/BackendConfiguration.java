@@ -111,7 +111,6 @@ public class BackendConfiguration {
 
     @Bean
     public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(ConnectionFactory connectionFactory) {
-
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setSessionTransacted(true);
@@ -121,7 +120,6 @@ public class BackendConfiguration {
     @Bean
     @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
     public DefaultJmsListenerContainerFactory publishTopicListenerContainerFactory(ConnectionFactory connectionFactory) {
-
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);

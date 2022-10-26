@@ -1,15 +1,8 @@
-import React from 'react';
-import { pure } from 'recompose';
-import { get, isEmpty, isObject } from 'lodash';
-/**
- * Компонент обертка Cell
- * @param children - вставляемый компонент
- * @param hasSpan - флаг возможности colSpan/rowSpan в этой колонке
- * @param record - модель строки
- * @param valueKey
- * @returns {*}
- * @constructor
- */
+import React from 'react'
+import get from 'lodash/get'
+import isEmpty from 'lodash/isEmpty'
+import isObject from 'lodash/isObject'
+
 function DataGridCell({ children, hasSpan, record, valueKey }) {
     const { span } = record;
     let colSpan = 1;
@@ -41,4 +34,4 @@ function DataGridCell({ children, hasSpan, record, valueKey }) {
     );
 }
 
-export default pure(DataGridCell);
+export default DataGridCell

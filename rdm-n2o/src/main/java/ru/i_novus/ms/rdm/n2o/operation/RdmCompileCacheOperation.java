@@ -5,7 +5,7 @@ import net.n2oapp.criteria.dataset.DataSet;
 import net.n2oapp.framework.api.metadata.compile.BindProcessor;
 import net.n2oapp.framework.api.metadata.compile.CompileContext;
 import net.n2oapp.framework.api.metadata.compile.CompileProcessor;
-import net.n2oapp.framework.api.metadata.validate.ValidateProcessor;
+import net.n2oapp.framework.api.metadata.compile.SourceProcessor;
 import net.n2oapp.framework.config.compile.pipeline.operation.CompileCacheOperation;
 
 import java.util.function.Supplier;
@@ -26,11 +26,11 @@ public class RdmCompileCacheOperation<S> extends CompileCacheOperation<S> {
     public S execute(CompileContext<?,?> context, DataSet data, Supplier<S> supplier,
                      CompileProcessor compileProcessor,
                      BindProcessor bindProcessor,
-                     ValidateProcessor validateProcessor) {
+                     SourceProcessor sourceProcessor) {
         String sourceId = context.getSourceId(bindProcessor);
         if (sourceId.startsWith("dataRecord")) {
             return supplier.get();
         }
-        return super.execute(context, data, supplier, compileProcessor, bindProcessor, validateProcessor);
+        return super.execute(context, data, supplier, compileProcessor, bindProcessor, sourceProcessor);
     }
 }

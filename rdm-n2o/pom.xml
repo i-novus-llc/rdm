@@ -87,7 +87,6 @@
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
                     <artifactId>rdm-n2o-l10n</artifactId>
-                    <version>${project.version}</version>
                 </dependency>
             </dependencies>
         </profile>

@@ -20,9 +20,9 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.20.12</n2o.version>
+        <n2o.version>7.23.25</n2o.version>
         <vds.version>3.19</vds.version>
-        <l10n.vds.version>3.21</l10n.vds.version>
+        <l10n.vds.version>3.22</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
@@ -32,8 +32,8 @@
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>5.0.0</security.admin.version>
-        <security.oauth2.autoconfigure.version>2.1.1.RELEASE</security.oauth2.autoconfigure.version>
+        <security.admin.version>6.1.1</security.admin.version>
+        <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
     </properties>
 
@@ -76,44 +76,56 @@
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-api</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-impl</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
                 <scope>runtime</scope>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest-spring-boot-starter</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest-spring-boot-autoconfigure</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o-api</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
-                <version>${project.version}</version>
+                <version>4.12.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-web-spring-boot-starter</artifactId>
+                <version>4.12.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-web-spring-boot-autoconfigure</artifactId>
+                <version>4.12.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
@@ -315,19 +327,19 @@
                     <dependency>
                         <groupId>ru.i-novus.ms.rdm</groupId>
                         <artifactId>rdm-l10n-api</artifactId>
-                        <version>${project.version}</version>
+                        <version>4.12.0-SNAPSHOT</version>
                     </dependency>
 
                     <dependency>
                         <groupId>ru.i-novus.ms.rdm</groupId>
                         <artifactId>rdm-l10n-impl</artifactId>
-                        <version>${project.version}</version>
+                        <version>4.12.0-SNAPSHOT</version>
                     </dependency>
 
                     <dependency>
                         <groupId>ru.i-novus.ms.rdm</groupId>
                         <artifactId>rdm-n2o-l10n</artifactId>
-                        <version>${project.version}</version>
+                        <version>4.12.0-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </dependencyManagement>

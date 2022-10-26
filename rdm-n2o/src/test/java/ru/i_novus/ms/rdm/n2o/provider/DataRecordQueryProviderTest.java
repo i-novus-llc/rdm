@@ -1,7 +1,9 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.framework.api.metadata.SourceMetadata;
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.AbstractField;
+import net.n2oapp.framework.api.metadata.global.dao.query.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,7 +80,7 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
         assertNotNull(query.getUniques());
         assertEquals(1, query.getUniques().length);
 
-        List<N2oQuery.Field> items = Arrays.asList(query.getFields());
+        List<AbstractField> items = Arrays.asList(query.getFields());
         assertNotNull(items);
         assertTrue(items.size() >= structure.getAttributes().size());
 
@@ -96,12 +98,12 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
         });
     }
 
-    private boolean existsItem(List<N2oQuery.Field> items, String id) {
+    private boolean existsItem(List<AbstractField> items, String id) {
 
         return items.stream().anyMatch(item -> id.equals(getFieldId(item)));
     }
 
-    private String getFieldId(N2oQuery.Field item) {
+    private String getFieldId(AbstractField item) {
 
         return item.getId();
     }
@@ -121,7 +123,7 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
         }
 
         @Override
-        public List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
+        public List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
             return emptyList();
         }
     }

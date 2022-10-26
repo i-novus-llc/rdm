@@ -16,7 +16,9 @@
     "build:commonjs": "yarnpkg run clean:commonjs && yarnpkg run compile:commonjs",
     "build:es": "yarnpkg run clean:es && yarnpkg run compile:es",
     "compile:commonjs": "cross-env NODE_ENV=commonjs babel src --out-dir dist/commonjs --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
+    "compile:commonjs:watch": "cross-env NODE_ENV=commonjs babel src --out-dir dist/commonjs --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js' -w",
     "compile:es": "cross-env NODE_ENV=es babel src --out-dir dist/es --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js'",
+    "compile:es:watch": "cross-env NODE_ENV=es babel src --out-dir dist/es --ignore '**/__fixtures__/**/*,src/cosmos.proxies.js' -w",
     "clean": "yarnpkg run clean:commonjs && yarnpkg run clean:es",
     "clean:commonjs": "rimraf dist/commonjs",
     "clean:es": "rimraf dist/es"
@@ -29,7 +31,6 @@
     "recharts": "^1.4.2"
   },
 	"peerDependencies": {
-    "n2o-auth": "*",
     "n2o-framework": "*",
     "classnames": "*",
     "lodash": "*",

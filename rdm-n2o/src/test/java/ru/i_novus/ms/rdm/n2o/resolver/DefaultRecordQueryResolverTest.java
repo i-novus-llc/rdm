@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.resolver;
 
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,7 +37,7 @@ public class DefaultRecordQueryResolverTest extends BaseTest {
 
         DataRecordRequest request = new DataRecordRequest();
 
-        List<N2oQuery.Field> fields = resolver.createRegularFields(request);
+        List<QuerySimpleField> fields = resolver.createRegularFields(request);
         assertEmpty(fields);
     }
 }

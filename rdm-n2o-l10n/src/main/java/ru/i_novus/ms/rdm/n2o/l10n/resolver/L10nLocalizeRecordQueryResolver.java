@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
-import net.n2oapp.framework.api.metadata.global.dao.N2oQuery;
+import net.n2oapp.framework.api.metadata.global.dao.query.field.QuerySimpleField;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordQueryResolver;
@@ -19,14 +19,14 @@ public class L10nLocalizeRecordQueryResolver implements DataRecordQueryResolver 
     }
 
     @Override
-    public List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
+    public List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
 
         return List.of(createLocaleNameField());
     }
 
-    private N2oQuery.Field createLocaleNameField() {
+    private QuerySimpleField createLocaleNameField() {
 
-        N2oQuery.Field field = new N2oQuery.Field();
+        QuerySimpleField field = new QuerySimpleField();
         field.setId(FIELD_LOCALE_NAME);
 
         return field;

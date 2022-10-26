@@ -1,52 +1,64 @@
-import React from 'react';
-import {compose, withHandlers} from 'recompose';
-import dependency from 'n2o-framework/lib/core/dependency';
-import DataGridPagination from "./DataGridPagination";
-import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget';
-import DataGridContainer from "./DataGridContainer";
-import {connect} from "react-redux";
+import React from 'react'
+// import omit from 'lodash/omit'
+import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget'
+import { WidgetHOC } from 'n2o-framework/lib/core/widget/WidgetHOC'
+import { WithActiveModel } from 'n2o-framework/lib/components/widgets/Widget/WithActiveModel'
 
-function DataGridWidget({
+import { DataGridPagination } from './DataGridPagination'
+import { DataGridContainer } from './DataGridContainer'
+
+function DataGridWidget(props) {
+  const {
     id,
     disabled,
-    actions,
-    getWidgetProps,
     toolbar,
     paging,
     models,
-  }) {
+    page,
+    size,
+    count,
+  } = props
+
+  const getWidgetProps = ({ id, table, ...rest }) => ({
+    id,
+    table,
+    ...table,
+    ...rest,
+  })
+
   return (
     <div className="rdm-data-grid">
       <StandardWidget
+        widgetId={id}
         toolbar={toolbar}
         disabled={disabled}
-        widgetId={id}
-        modelId={id}
-        actions={actions}
-        bottomLeft={paging && <DataGridPagination widgetId={id}/>}
+        bottomLeft={paging && (
+          <DataGridPagination
+            {...paging}
+            models={models}
+            activePage={page}
+            size={size}
+            count={count}
+          />
+        )}
       >
-        <DataGridContainer {...getWidgetProps()} models={models}/>
+        <DataGridContainer {...getWidgetProps(props)} />
       </StandardWidget>
     </div>
   );
 }
 
-const mapStateToProps = (state) => {
-  return {
-    models: state.models
-  }
-}
+// const OmitProps = Component => (props) => {
+//   const omited = omit(props, [])
+//
+//   omited.table = omit(omited.table, ['sorting', 'size'])
+//
+//   return (
+//     <Component {...omited} />
+//   )
+// }
 
-export default compose(
-  dependency,
-  withHandlers({
-    getWidgetProps: ({id, table, ...rest}) => () => ({
-      widgetId: id,
-      modelId: id,
-      table,
-      ...table,
-      ...rest
-    })
-  }),
-  connect(mapStateToProps),
-)(DataGridWidget);
+export default WidgetHOC(WithActiveModel(
+  DataGridWidget,
+  () => false,
+))

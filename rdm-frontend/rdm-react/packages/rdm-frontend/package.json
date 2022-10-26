@@ -11,10 +11,9 @@
   },
   "dependencies": {
     "http-proxy-middleware": "^0.20.0",
-    "n2o-config-rdm": "^2.0.5"
+    "n2o-config-rdm": "^2.0.6"
   },
   "peerDependencies": {
-    "n2o-auth": "*",
     "n2o-framework": "*",
     "react": "*",
     "react-dom": "*"
