@@ -21,7 +21,7 @@
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
         <n2o.version>7.23.25</n2o.version>
-        <vds.version>3.19</vds.version>
+        <vds.version>3.20</vds.version>
         <l10n.vds.version>3.22</l10n.vds.version>
 
         <apache.poi.version>3.17</apache.poi.version>
