@@ -36,6 +36,7 @@
                     <query-param name="code" value="{code}"/>
                 </open-page>
             </button>
+
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">
                     <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
