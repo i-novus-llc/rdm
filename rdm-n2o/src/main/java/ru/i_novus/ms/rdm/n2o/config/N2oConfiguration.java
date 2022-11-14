@@ -42,7 +42,7 @@ public class N2oConfiguration {
                                          Collection<CriteriaConstructResolver> criteriaConstructResolvers) {
         N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, exceptionHandler);
         queryProcessor.setEnvironment(metadataEnvironment);
-        queryProcessor.setCriteriaResolver(criteriaConstructor(criteriaConstructResolvers));
+        queryProcessor.setCriteriaConstructor(criteriaConstructor(criteriaConstructResolvers));
         return queryProcessor;
     }
 

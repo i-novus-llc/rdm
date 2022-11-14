@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
-import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.criteria.api.SortingDirection;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.core.annotation.Order;
@@ -50,12 +50,12 @@ public class RestCriteriaConstructResolver implements CriteriaConstructResolver 
         );
     }
 
-    protected Sort.Direction toSortDirection(Direction direction) {
+    protected Sort.Direction toSortDirection(SortingDirection direction) {
 
-        if (direction.equals(Direction.ASC))
+        if (direction.equals(SortingDirection.ASC))
             return Sort.Direction.ASC;
 
-        if (direction.equals(Direction.DESC))
+        if (direction.equals(SortingDirection.DESC))
             return Sort.Direction.DESC;
 
         return null;
