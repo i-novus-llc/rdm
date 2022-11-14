@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +41,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PublishServiceTest {
@@ -86,10 +86,10 @@ public class PublishServiceTest {
     private AsyncOperationQueue asyncQueue;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(service, PublishServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(service, "strategyLocator", strategyLocator);
     }
 
     @Test

@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -45,6 +44,7 @@ import static java.util.Collections.emptyMap;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -83,10 +83,10 @@ public class CreateDraftControllerTest extends BaseTest {
 
     @Before
     @SuppressWarnings("java:S2696")
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         final UiStrategyLocator strategyLocator = new BaseUiStrategyLocator(getStrategies());
-        FieldSetter.setField(controller, CreateDraftController.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(controller, "strategyLocator", strategyLocator);
     }
 
     @Test

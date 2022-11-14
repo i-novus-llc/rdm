@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy;
 
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -18,6 +17,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,12 +72,8 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
     }
 
     protected void fillOptLockValue(RefBookVersionEntity entity, int optLockValue) {
-        try {
-            FieldSetter.setField(entity, RefBookVersionEntity.class.getDeclaredField("optLockValue"), optLockValue);
 
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
+        setField(entity, "optLockValue", optLockValue);
     }
 
     protected RefBookEntity createDefaultRefBookEntity() {

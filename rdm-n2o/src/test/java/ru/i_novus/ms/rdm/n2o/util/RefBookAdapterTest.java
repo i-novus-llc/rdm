@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
@@ -25,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookAdapterTest {
@@ -39,10 +39,10 @@ public class RefBookAdapterTest {
     private Messages messages;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         final UiStrategyLocator strategyLocator = new BaseUiStrategyLocator(getStrategies());
-        FieldSetter.setField(adapter, RefBookAdapter.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(adapter, "strategyLocator", strategyLocator);
 
         when(messages.getMessage(any(String.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);

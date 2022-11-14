@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationHandler;
@@ -21,6 +20,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncOperationQueueListenerTest {
@@ -47,9 +47,9 @@ public class AsyncOperationQueueListenerTest {
 
     @Before
     @SuppressWarnings("java:S2696")
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
-        FieldSetter.setField(listener, AsyncOperationQueueListener.class.getDeclaredField("queueId"), TEST_QUEUE_ID);
+        setField(listener, "queueId", TEST_QUEUE_ID);
     }
 
     @Test

@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.util.StringUtils;
@@ -38,7 +37,10 @@ import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrateg
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.io.InputStream;
 import java.util.*;
@@ -48,6 +50,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -116,16 +119,16 @@ public class DraftServiceFileTest {
     private AfterUploadDataStrategy afterUploadDataStrategy;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         reset(draftDataService);
         when(createDraftStorageStrategy.create(any(Structure.class))).thenReturn(NEW_DRAFT_CODE);
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(draftService, "strategyLocator", strategyLocator);
 
-        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("refBookRepository"), refBookRepository);
-        FieldSetter.setField(versionValidation, VersionValidationImpl.class.getDeclaredField("versionRepository"), versionRepository);
+        setField(versionValidation, "refBookRepository", refBookRepository);
+        setField(versionValidation, "versionRepository", versionRepository);
     }
 
     @Test

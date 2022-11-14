@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -34,6 +33,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"rawtypes","java:S5778"})
@@ -70,9 +70,9 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     }
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
-        FieldSetter.setField(runner, RefBookDataServerLoaderRunner.class.getDeclaredField("loaderEnabled"), true);
+        setField(runner, "loaderEnabled", true);
     }
 
     @Test
