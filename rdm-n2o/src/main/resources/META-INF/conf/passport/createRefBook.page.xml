@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
              name="Создание справочника">
 
-    <form name="Паспорт" query-id="refBook" object-id="refBook">
+    <form name="Паспорт">
+        <datasource object-id="refBook"/>
 
         <fields>
 
@@ -14,6 +15,7 @@
 
             <input-text id="name" label="Наименование" required="true"/>
             <input-text id="shortName" label="Краткое наименование"/>
+
             <input-select id="category" label="Категория"
                           query-id="category" label-field-id="id"/>
 
