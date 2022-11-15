@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
@@ -25,188 +26,117 @@
         </java>
     </unique>
 
-    <fields>
-        
-        <field id="id" domain="integer">
-            <select mapping="refBookId"/>
-            <filters>
-                <eq filter-id="id" mapping="['criteria'].refBookId"/>
-            </filters>
-        </field>
+    <filters>
+        <eq filter-id="id" field-id="id" mapping="['criteria'].refBookId"/>
 
-        <field id="refBookId" domain="integer">
-            <select/>
-        </field>
+        <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
 
-        <field id="version.id" domain="integer">
-            <select mapping="id"/>
-            <filters>
-                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
-            </filters>
-        </field>
+        <eq filter-id="code" field-id="code" mapping="['criteria'].code"/>
 
-        <field id="optLockValue" domain="integer">
-            <select/>
-        </field>
+        <eq filter-id="status.id" field-id="status" mapping="['criteria'].status"/>
 
-        <field id="code" domain="string">
-            <select/>
-            <filters>
-                <eq filter-id="code" mapping="['criteria'].code"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="type.id" domain="string">
-            <select mapping="type"/>
-        </field>
-
-        <field id="status" domain="string">
-            <filters>
-                <eq filter-id="status.id" mapping="['criteria'].status" domain="string"/>
-            </filters>
-        </field>
-
-        <field id="isArchived" domain="boolean">
-            <select mapping="archived"/>
-            <filters>
-                <eq filter-id="isArchived" mapping="['criteria'].isArchived"/>
-            </filters>
-        </field>
-
-        <field id="nonArchived" domain="boolean">
-            <select mapping="!archived"/>
-            <filters>
-                <eq filter-id="nonArchived" mapping="['criteria'].nonArchived"/>
-            </filters>
-        </field>
+        <eq filter-id="isArchived" field-id="isArchived" mapping="['criteria'].isArchived"/>
+        <eq filter-id="nonArchived" field-id="nonArchived" mapping="['criteria'].nonArchived"/>
 
         <!-- Passport values -->
-        <field id="name" domain="string">
-            <select mapping="passport['name']"/>
-            <filters>
-                <eq filter-id="name" mapping="['criteria'].passport['name']"/>
-            </filters>
-            <sorting/>
-        </field>
+        <eq filter-id="name" field-id="name" mapping="['criteria'].passport['name']"/>
 
-        <field id="shortName" domain="string">
-            <select mapping="passport['shortName']"/>
-        </field>
+        <eq filter-id="category.id" field-id="category.id" mapping="['criteria'].category"/>
 
-        <field id="description" domain="string">
-            <select mapping="passport['description']"/>
-        </field>
+        <eq filter-id="excludeDraft" default-value="false"
+            field-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
+
+        <eq filter-id="excludeByVersionId" field-id="excludeByVersionId"
+            mapping="['criteria'].excludeByVersionId"/>
+
+        <eq filter-id="hasPublished" field-id="hasPublished" mapping="['criteria'].hasPublished"/>
+
+        <more filter-id="lastPublishedDateInterval.begin" field-id="lastPublishedDate"
+              mapping="['criteria'].fromDateBegin"
+              normalize="#this.withHour(0).withMinute(0).withSecond(0)"/>
+        <less filter-id="lastPublishedDateInterval.end" field-id="lastPublishedDate"
+              mapping="['criteria'].fromDateEnd"
+              normalize="#this.withHour(23).withMinute(59).withSecond(59)"/>
+
+        <eq filter-id="hasPrimaryAttribute" field-id="hasPrimaryAttribute"
+            mapping="['criteria'].hasPrimaryAttribute"/>
+    </filters>
+
+    <fields>
+        
+        <field id="id" domain="integer" mapping="refBookId"/>
+
+        <field id="refBookId" domain="integer"/>
+
+        <field id="version.id" domain="integer" mapping="id"/>
+
+        <field id="optLockValue" domain="integer"/>
+
+        <field id="code" domain="string" sorting="true"/>
+
+        <field id="type.id" domain="string" mapping="type"/>
+
+        <field id="status" domain="string" select="false"/>
+
+        <field id="isArchived" domain="boolean" mapping="archived"/>
+        <field id="nonArchived" domain="boolean" mapping="!archived" select="false"/>
+
+        <!-- Passport values -->
+        <field id="name" domain="string" mapping="passport['name']" sorting="true"/>
+        <field id="shortName" domain="string" mapping="passport['shortName']"/>
+        <field id="description" domain="string" mapping="passport['description']"/>
         <!-- / Passport values -->
 
-        <field id="category.id" domain="string" name="Категория">
-            <select mapping="category"/>
-            <filters>
-                <eq filter-id="category.id" mapping="['criteria'].category"/>
-            </filters>
-            <sorting/>
-        </field>
+        <field id="category.id" domain="string" mapping="category" sorting="true"/>
 
-        <field id="excludeDraft" domain="boolean">
-            <select mapping="draftVersionId == null"/>
-            <filters>
-                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft" default-value="false"/>
-            </filters>
-        </field>
+        <field id="excludeDraft" domain="boolean"
+               mapping="draftVersionId == null"/>
 
-        <field id="excludeByVersionId" domain="integer">
-            <filters>
-                <eq filter-id="excludeByVersionId" mapping="['criteria'].excludeByVersionId"/>
-            </filters>
-        </field>
+        <field id="excludeByVersionId" domain="integer" select="false"/>
 
-        <field id="draftVersionId" domain="integer">
-            <select/>
-        </field>
+        <field id="draftVersionId" domain="integer"/>
 
-        <field id="lastPublishedVersionId" domain="integer">
-            <select/>
-        </field>
+        <field id="lastPublishedVersionId" domain="integer"/>
 
-        <field id="version.isLast" domain="boolean">
-            <select mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
-        </field>
+        <field id="version.isLast" domain="boolean"
+               mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
 
-        <field id="lastPublishedVersion" domain="string">
-            <select/>
-        </field>
+        <field id="lastPublishedVersion" domain="string"/>
 
-        <field id="hasPublished" domain="boolean">
-            <select mapping="lastPublishedVersionId != null"/>
-            <filters>
-                <eq filter-id="hasPublished" mapping="['criteria'].hasPublished"/>
-            </filters>
-        </field>
+        <field id="hasPublished" domain="boolean"
+               mapping="lastPublishedVersionId != null"/>
 
-        <field id="lastPublishedDate" domain="localdatetime">
-            <select/>
-            <filters>
-                <more filter-id="lastPublishedDateInterval.begin" mapping="['criteria'].fromDateBegin"
-                      normalize="#this.withHour(0).withMinute(0).withSecond(0)"/>
-                <less filter-id="lastPublishedDateInterval.end" mapping="['criteria'].fromDateEnd"
-                      normalize="#this.withHour(23).withMinute(59).withSecond(59)"/>
-            </filters>
-            <sorting/>
-        </field>
+        <field id="lastPublishedDate" domain="localdatetime" sorting="true"/>
 
-        <field id="hasPrimaryAttribute" domain="boolean">
-            <select/>
-            <filters>
-                <eq filter-id="hasPrimaryAttribute" mapping="['criteria'].hasPrimaryAttribute"/>
-            </filters>
-        </field>
+        <field id="hasPrimaryAttribute" domain="boolean"/>
 
-        <field id="hasReferrer" domain="boolean">
-            <select/>
-        </field>
+        <field id="hasReferrer" domain="boolean"/>
 
-        <field id="version.hasDataConflict" domain="boolean">
-            <select mapping="hasDataConflict"/>
-        </field>
+        <field id="version.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
 
-        <field id="version.hasUpdatedConflict" domain="boolean">
-            <select mapping="hasUpdatedConflict"/>
-        </field>
+        <field id="version.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
 
-        <field id="version.hasAlteredConflict" domain="boolean">
-            <select mapping="hasAlteredConflict"/>
-        </field>
+        <field id="version.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
 
-        <field id="version.hasConflict" domain="boolean">
-            <select mapping="hasDataConflict || hasStructureConflict"/>
-        </field>
+        <field id="version.hasConflict" domain="boolean"
+               mapping="hasDataConflict || hasStructureConflict"/>
 
-        <field id="version.hasRefreshedConflict" domain="boolean">
-            <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
-        </field>
+        <field id="version.hasRefreshedConflict" domain="boolean"
+               mapping="hasUpdatedConflict || hasAlteredConflict"/>
 
-        <field id="lastHasConflict" domain="boolean">
-            <select/>
-        </field>
+        <field id="lastHasConflict" domain="boolean"/>
 
-        <field id="lastHasConflictMsg" domain="string">
-            <select mapping="
+        <field id="lastHasConflictMsg" domain="string"
+               mapping="
                 (lastHasConflict ? 'В опубликованной версии есть ссылки на неактуальные данные' : '')
                 "/>
-        </field>
 
+        <field id="editDate" domain="date"/>
 
-        <field id="editDate" domain="date">
-            <select/>
-        </field>
+        <field id="displayStatus" domain="string"/>
 
-        <field id="displayStatus" domain="string">
-            <select/>
-        </field>
-
-        <field id="displayVersion" domain="string">
-            <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
-        </field>
+        <field id="displayVersion" domain="string"
+               mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
 
     </fields>
 </query>
