@@ -3,6 +3,7 @@
              name="Создание справочника">
 
     <form name="Паспорт">
+
         <datasource object-id="refBook"/>
 
         <fields>

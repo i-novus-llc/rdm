@@ -14,7 +14,8 @@
         </java>
     </list>
 
-    <unique filters="versionId,excludeDraft" result-mapping="#this">
+    <unique filters="versionId,excludeDraft"
+            result-mapping="#this">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="getVersionRefBook">
             <spring/>
@@ -27,12 +28,11 @@
     </unique>
 
     <filters>
-        <eq filter-id="id" field-id="id" mapping="['criteria'].refBookId"/>
 
+        <eq filter-id="id" field-id="id" mapping="['criteria'].refBookId"/>
         <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
 
         <eq filter-id="code" field-id="code" mapping="['criteria'].code"/>
-
         <eq filter-id="status.id" field-id="status" mapping="['criteria'].status"/>
 
         <eq filter-id="isArchived" field-id="isArchived" mapping="['criteria'].isArchived"/>
@@ -40,14 +40,16 @@
 
         <!-- Passport values -->
         <eq filter-id="name" field-id="name" mapping="['criteria'].passport['name']"/>
+        <!-- / Passport values -->
 
         <eq filter-id="category.id" field-id="category.id" mapping="['criteria'].category"/>
 
-        <eq filter-id="excludeDraft" default-value="false"
-            field-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
-
+        <!-- Filters only -->
+        <eq filter-id="excludeDraft" field-id="excludeDraft"
+            mapping="['criteria'].excludeDraft" default-value="false"/>
         <eq filter-id="excludeByVersionId" field-id="excludeByVersionId"
             mapping="['criteria'].excludeByVersionId"/>
+        <!-- / Filters only -->
 
         <eq filter-id="hasPublished" field-id="hasPublished" mapping="['criteria'].hasPublished"/>
 
@@ -60,22 +62,18 @@
 
         <eq filter-id="hasPrimaryAttribute" field-id="hasPrimaryAttribute"
             mapping="['criteria'].hasPrimaryAttribute"/>
+
     </filters>
 
     <fields>
-        
+
         <field id="id" domain="integer" mapping="refBookId"/>
-
         <field id="refBookId" domain="integer"/>
-
         <field id="version.id" domain="integer" mapping="id"/>
-
         <field id="optLockValue" domain="integer"/>
 
         <field id="code" domain="string" sorting="true"/>
-
         <field id="type.id" domain="string" mapping="type"/>
-
         <field id="status" domain="string" select="false"/>
 
         <field id="isArchived" domain="boolean" mapping="archived"/>
@@ -89,47 +87,42 @@
 
         <field id="category.id" domain="string" mapping="category" sorting="true"/>
 
-        <field id="excludeDraft" domain="boolean"
-               mapping="draftVersionId == null"/>
-
+        <!-- Filters only -->
+        <field id="excludeDraft" domain="boolean" select="false"/>
         <field id="excludeByVersionId" domain="integer" select="false"/>
+        <!-- / Filters only -->
 
+        <!-- Versions -->
         <field id="draftVersionId" domain="integer"/>
 
         <field id="lastPublishedVersionId" domain="integer"/>
+        <field id="hasPublished" domain="boolean" mapping="lastPublishedVersionId != null"/>
+
+        <field id="lastPublishedVersion" domain="string"/>
+        <field id="lastPublishedDate" domain="localdatetime" sorting="true"/>
 
         <field id="version.isLast" domain="boolean"
                mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
-
-        <field id="lastPublishedVersion" domain="string"/>
-
-        <field id="hasPublished" domain="boolean"
-               mapping="lastPublishedVersionId != null"/>
-
-        <field id="lastPublishedDate" domain="localdatetime" sorting="true"/>
+        <!-- / Versions -->
 
         <field id="hasPrimaryAttribute" domain="boolean"/>
 
         <field id="hasReferrer" domain="boolean"/>
 
+        <!-- Conflicts -->
         <field id="version.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
-
         <field id="version.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
-
         <field id="version.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
 
-        <field id="version.hasConflict" domain="boolean"
-               mapping="hasDataConflict || hasStructureConflict"/>
-
-        <field id="version.hasRefreshedConflict" domain="boolean"
-               mapping="hasUpdatedConflict || hasAlteredConflict"/>
+        <field id="version.hasConflict" domain="boolean" mapping="hasDataConflict || hasStructureConflict"/>
+        <field id="version.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
 
         <field id="lastHasConflict" domain="boolean"/>
-
         <field id="lastHasConflictMsg" domain="string"
                mapping="
                 (lastHasConflict ? 'В опубликованной версии есть ссылки на неактуальные данные' : '')
                 "/>
+        <!-- / Conflicts -->
 
         <field id="editDate" domain="date"/>
 
