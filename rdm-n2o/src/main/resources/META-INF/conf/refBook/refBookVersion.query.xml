@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="refBook">
 
     <unique filters="refBookId" result-mapping="#this">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
@@ -13,92 +14,61 @@
         </java>
     </unique>
 
+    <filters>
+
+        <eq filter-id="refBookId" field-id="refBookId" mapping="['criteria'].refBookId"/>
+        <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
+
+        <eq filter-id="excludeDraft" field-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
+
+    </filters>
+
     <fields>
-        
-        <field id="id" domain="integer">
-            <select mapping="id"/>
-        </field>
 
-        <field id="optLockValue" domain="integer">
-            <select mapping="optLockValue"/>
-        </field>
+        <field id="id" domain="integer"/>
+        <field id="optLockValue" domain="integer"/>
 
-        <field id="localeCode.id" domain="string">
-            <select mapping="''"/>
-        </field>
+        <field id="localeCode.id" domain="string" mapping="''"/>
+        <field id="localeCode.name" domain="string" mapping="''"/>
 
-        <field id="localeCode.name" domain="string">
-            <select mapping="''"/>
-        </field>
+        <field id="refBookId" domain="integer"/>
+        <field id="code" domain="string"/>
+        <field id="name" domain="string" mapping="passport['name']"/>
 
-        <field id="refBookId" domain="integer">
-            <select mapping="refBookId"/>
-            <filters>
-                <eq filter-id="refBookId" mapping="['criteria'].refBookId"/>
-            </filters>
-        </field>
+        <!-- Значение для заполнения select-поля version по unique-выборке -->
+        <field id="version.id" domain="integer" mapping="id"/>
+        <!--<field id="version.version" domain="string" mapping="displayNumber"/>-->
 
-        <field id="version.id" domain="integer">
-            <select mapping="id"/>
-            <filters>
-                <eq filter-id="version.id" mapping="['criteria'].versionId"/>
-            </filters>
-        </field>
+        <!--<field id="status" domain="string"/>-->
 
-        <field id="version.status" domain="string">
-            <select mapping="status"/>
-        </field>
+        <!-- Filters only -->
+        <field id="excludeDraft" domain="boolean" select="false"/>
+        <!-- / Filters only -->
 
-        <field id="code" domain="string">
-            <select/>
-        </field>
+        <!-- Поля выборки для валидации полей и действий на странице -->
 
-        <field id="status" domain="string">
-            <select/>
-        </field>
+        <!-- Versions -->
+        <field id="version.status" domain="string" mapping="status"/>
 
-        <field id="excludeDraft" domain="boolean">
-            <filters>
-                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
-            </filters>
-        </field>
+        <field id="draftVersionId" domain="integer"/>
 
-        <field id="draftVersionId" domain="integer">
-            <select/>
-        </field>
+        <field id="lastPublishedVersionId" domain="integer"/>
 
-        <field id="lastPublishedVersionId" domain="integer">
-            <select/>
-        </field>
+        <field id="version.isLast" domain="boolean"
+               mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
+        <!-- / Versions -->
 
-        <field id="version.isLast" domain="boolean">
-            <select mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
-        </field>
+        <!-- Conflicts -->
+        <field id="version.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
+        <field id="version.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
+        <field id="version.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
 
-        <field id="version.hasDataConflict" domain="boolean">
-            <select mapping="hasDataConflict"/>
-        </field>
-
-        <field id="version.hasUpdatedConflict" domain="boolean">
-            <select mapping="hasUpdatedConflict"/>
-        </field>
-
-        <field id="version.hasAlteredConflict" domain="boolean">
-            <select mapping="hasAlteredConflict"/>
-        </field>
-
-        <field id="version.hasConflict" domain="boolean">
-            <select mapping="hasDataConflict || hasStructureConflict"/>
-        </field>
-
-        <field id="version.hasRefreshedConflict" domain="boolean">
-            <select mapping="hasUpdatedConflict || hasAlteredConflict"/>
-        </field>
+        <field id="version.hasConflict" domain="boolean" mapping="hasDataConflict || hasStructureConflict"/>
+        <field id="version.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
+        <!-- / Conflicts -->
 
         <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
-        <field id="now" domain="date">
-            <select mapping="new java.util.Date()"/>
-        </field>
-
+        <field id="now" domain="date" mapping="new java.util.Date()"/>
+        
     </fields>
 </query>
