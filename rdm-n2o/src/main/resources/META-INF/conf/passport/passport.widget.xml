@@ -2,8 +2,6 @@
 <form xmlns="http://n2oapp.net/framework/config/schema/widget-5.0"
       name="Паспорт">
 
-    <datasource query-id="refBook" object-id="refBook"/>
-
     <fields>
 
         <row>
@@ -12,6 +10,7 @@
                     <enabling>!hasReferrer</enabling>
                 </dependencies>
             </input-text>
+            
             <input-select id="type" label="Тип"
                           query-id="refBookTypeList" label-field-id="name" enabled="false"/>
         </row>
