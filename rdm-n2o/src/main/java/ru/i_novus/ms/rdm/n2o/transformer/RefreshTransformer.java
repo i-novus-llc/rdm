@@ -41,7 +41,7 @@ public class RefreshTransformer
 
     private void setRefreshSaga(InvokeAction invokeAction, String route) {
 
-        if (!route.endsWith(REFRESHED_ID_SUFFIX))
+        if (route == null || !route.endsWith(REFRESHED_ID_SUFFIX))
             return;
 
         RefreshSaga refresh = new RefreshSaga();
