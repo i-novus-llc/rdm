@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
-import static org.springframework.util.StringUtils.isEmpty;
 
 public class RefBookDataUtil {
+
+    private static final char FILE_NAME_EXT_SEPARATOR = '.';
 
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -36,7 +37,10 @@ public class RefBookDataUtil {
 
     private static String getExtension(String filename) {
 
-        int lastIndex = filename.lastIndexOf('.');
+        if (isEmpty(filename))
+            return null;
+
+        int lastIndex = filename.lastIndexOf(FILE_NAME_EXT_SEPARATOR);
         return (lastIndex >= 0) ? filename.substring(lastIndex + 1) : null;
     }
 
@@ -113,5 +117,9 @@ public class RefBookDataUtil {
 
         JsonNode valueJson = node.get(key);
         return (valueJson == null) ? null : valueExtractor.apply(valueJson);
+    }
+
+    private static boolean isEmpty(String s) {
+        return s == null || s.isEmpty();
     }
 }
