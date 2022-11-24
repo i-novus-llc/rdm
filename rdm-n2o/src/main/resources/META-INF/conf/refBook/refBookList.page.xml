@@ -4,7 +4,6 @@
              name="Реестр НСИ">
 
     <table>
-
         <datasource query-id="refBook" object-id="refBook"/>
 
         <pagination/>
@@ -101,7 +100,6 @@
                 <case value="true">bg-danger</case>
             </switch>
         </rows>
-
     </table>
 
 </simple-page>

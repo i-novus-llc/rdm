@@ -89,10 +89,9 @@
                       depends-on="version_select" fetch-on-init="true"
                       master-field-id="id" detail-field-id="version.id" object-id="refBook">
                     <toolbar place="bottomRight">
-
                         <!-- '.*_r$' - паттерн названия кнопки, при котором обновляется виджет version_select -->
-                        <!--см. RefreshTransformer-->
-                        <!--to-do: сделать отдельную кнопку без рефреша для редактирования черновика-->
+                        <!-- Подробнее: см. RefreshTransformer -->
+                        <!--to-do: Сделать отдельную кнопку без refresh для редактирования черновика-->
                         <button label="Изменить" id="editPassport_r">
                             <invoke operation-id="edit" close-after-success="false" refresh-widget-id="version_select"/>
                         </button>
@@ -144,7 +143,7 @@
                     </pre-filters>
 
                     <toolbar place="topRight">
-                        <!--to-do: сделать отдельные кнопки без рефреша для редактирования черновика-->
+                        <!--to-do: Сделать отдельные кнопки без refresh для редактирования черновика-->
                         <button id="createRecord_r" label="Добавить" icon="fa fa-plus"
                                 widget-id="version_select" model="resolve"
                                 enabling-condition="version.hasStructure">

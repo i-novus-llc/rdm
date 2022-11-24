@@ -2,8 +2,8 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
        object-id="versionList">
 
-    <list result-mapping="content" count-mapping="totalElements"
-          filters="refBookId,excludeDraft">
+    <!-- Список версий выбранного справочника -->
+    <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
         <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
               method="getList">
             <spring/>
@@ -15,8 +15,8 @@
         </java>
     </list>
 
-    <unique result-mapping="#this"
-            filters="id,excludeDraft">
+    <!-- Версия выбранного справочника -->
+    <unique result-mapping="#this" filters="id,excludeDraft">
         <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
               method="getVersion">
             <spring/>
@@ -29,7 +29,6 @@
     </unique>
 
     <filters>
-
         <eq filter-id="id" field-id="id" mapping="['criteria'].id"/>
         <eq filter-id="refBookId" field-id="refBookId" mapping="['criteria'].refBookId"/>
 
@@ -37,11 +36,9 @@
 
         <eq filter-id="excludeDraft" field-id="excludeDraft"
             mapping="['criteria'].excludeDraft" default-value="false"/>
-
     </filters>
 
     <fields>
-
         <field id="id" domain="integer"/>
         <field id="optLockValue" domain="integer"/>
 
@@ -71,6 +68,5 @@
         <!-- Filters only -->
         <field id="excludeDraft" domain="boolean" select="false"/>
         <!-- / Filters only -->
-
     </fields>
 </query>

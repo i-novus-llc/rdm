@@ -2,6 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
        object-id="refBook">
 
+    <!-- Список справочников (текущие версии) -->
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="getList">
@@ -14,8 +15,9 @@
         </java>
     </list>
 
-    <unique filters="versionId,excludeDraft"
-            result-mapping="#this">
+    <!-- Получение справочника по версии -->
+    <!-- NB: Используется для получения паспорта в окне редактирования справочника -->
+    <unique result-mapping="#this" filters="versionId,excludeDraft">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="getVersionRefBook">
             <spring/>
@@ -28,7 +30,6 @@
     </unique>
 
     <filters>
-
         <eq filter-id="id" field-id="id" mapping="['criteria'].refBookId"/>
         <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
 
@@ -62,11 +63,9 @@
 
         <eq filter-id="hasPrimaryAttribute" field-id="hasPrimaryAttribute"
             mapping="['criteria'].hasPrimaryAttribute"/>
-
     </filters>
 
     <fields>
-
         <field id="id" domain="integer" mapping="refBookId"/>
         <field id="refBookId" domain="integer"/>
         <field id="version.id" domain="integer" mapping="id"/>
@@ -130,6 +129,5 @@
 
         <field id="displayVersion" domain="string"
                mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
-
     </fields>
 </query>

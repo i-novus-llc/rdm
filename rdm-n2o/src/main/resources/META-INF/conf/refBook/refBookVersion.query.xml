@@ -2,7 +2,8 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
        object-id="refBook">
 
-    <unique filters="refBookId" result-mapping="#this">
+    <!-- Текущая (обычно последняя) версия справочника -->
+    <unique result-mapping="#this" filters="refBookId">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
               method="getLastVersion">
             <spring/>
@@ -15,16 +16,13 @@
     </unique>
 
     <filters>
-
         <eq filter-id="refBookId" field-id="refBookId" mapping="['criteria'].refBookId"/>
         <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
 
         <eq filter-id="excludeDraft" field-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
-
     </filters>
 
     <fields>
-
         <field id="id" domain="integer"/>
         <field id="optLockValue" domain="integer"/>
 
@@ -67,8 +65,7 @@
         <field id="version.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
         <!-- / Conflicts -->
 
-        <!--Хак, для обновления detail виджетов, если в master нет изменений после рефреша-->
+        <!-- Хак для обновления detail-виджетов, если в master нет изменений после refresh -->
         <field id="now" domain="date" mapping="new java.util.Date()"/>
-        
     </fields>
 </query>
