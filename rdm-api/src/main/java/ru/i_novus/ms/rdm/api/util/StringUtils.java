@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
-import static org.springframework.util.StringUtils.isEmpty;
 
 public class StringUtils {
 
@@ -22,6 +21,10 @@ public class StringUtils {
 
     private StringUtils() {
         // Nothing to do.
+    }
+
+    public static boolean isEmpty(String s) {
+        return s == null || s.isEmpty();
     }
 
     public static String addDoubleQuotes(String value) {
@@ -47,10 +50,10 @@ public class StringUtils {
     /** Преобразование строки в UUID. */
     public static UUID toUuid(String s) {
 
-        if (!isEmpty(s))
+        if (!org.springframework.util.StringUtils.isEmpty(s))
             s = s.trim();
 
-        if (isEmpty(s))
+        if (org.springframework.util.StringUtils.isEmpty(s))
             return null;
 
         if (UUID_PATTERN.matcher(s).matches())

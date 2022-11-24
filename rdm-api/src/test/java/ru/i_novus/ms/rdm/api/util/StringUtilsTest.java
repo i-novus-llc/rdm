@@ -2,10 +2,20 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.StringUtils.*;
 
 public class StringUtilsTest {
+
+    @Test
+    public void testIsNullOrEmpty() {
+
+        assertTrue(isEmpty(null));
+        assertTrue(isEmpty(""));
+
+        assertFalse(isEmpty(" "));
+        assertFalse(isEmpty("abc"));
+    }
 
     @Test
     public void testAddDoubleQuotes() {
