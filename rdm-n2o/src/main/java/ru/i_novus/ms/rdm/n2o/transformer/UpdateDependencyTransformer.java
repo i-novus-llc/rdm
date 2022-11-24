@@ -28,7 +28,7 @@ public class UpdateDependencyTransformer
         implements CompileTransformer<Table, CompileContext<?, ?>>, CompiledClassAware {
 
     // Список суффиксов таблиц, для которых нужно выполнить transform.
-    private static final List<String> UPDATED_TABLE_SUFFIXES = asList(
+    private static final List<String> DATA_TABLE_SUFFIXES = asList(
             "_dataTable", "_dataTableWithLocales", "_dataTableWithConflicts"
     );
 
@@ -47,13 +47,23 @@ public class UpdateDependencyTransformer
     public Table transform(Table table, CompileContext<?, ?> compileContext, CompileProcessor compileProcessor) {
 
         String tableId = table.getId();
-        if (UPDATED_TABLE_SUFFIXES.stream().noneMatch(tableId::endsWith)) {
-            return table;
+        if (isDataTable(tableId)) {
+            transformButtons(table, tableId);
         }
+
+        return table;
+    }
+
+    private boolean isDataTable(String tableId) {
+        
+        return DATA_TABLE_SUFFIXES.stream().anyMatch(tableId::endsWith);
+    }
+
+    private void transformButtons(Table table, String tableId) {
 
         Toolbar toolbar = table.getToolbar();
         if (toolbar == null || toolbar.get("topRight") == null) {
-            return table;
+            return;
         }
 
         List<AbstractButton> buttons = toolbar.get("topRight").get(0).getButtons();
@@ -62,8 +72,6 @@ public class UpdateDependencyTransformer
                         button.getId().startsWith(BUTTON_PREFIX)
                                 && button.getId().endsWith(BUTTON_SUFFIX))
                 .forEach(button -> transformButton(tableId, button));
-
-        return table;
     }
 
     private void transformButton(String tableId, AbstractButton button) {
