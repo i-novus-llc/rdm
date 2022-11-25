@@ -1,24 +1,26 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.platform.jaxrs.RestPage;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.validation.*;
-import ru.i_novus.ms.rdm.api.model.version.*;
+import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
+import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
@@ -26,11 +28,14 @@ import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest.setUpdateValueIfExists;
 
 @Controller
@@ -104,8 +109,10 @@ public class StructureController {
     /** Проверка на соответствие атрибута критерию поиска. */
     private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
 
-        return (isEmpty(criteria.getCode()) || criteria.getCode().equals(attribute.getCode()))
-                && (isEmpty(criteria.getName()) || containsIgnoreCase(attribute.getName(), criteria.getName()));
+        String code = criteria.getCode();
+        String name = criteria.getName();
+        return (StringUtils.isEmpty(code) || code.equals(attribute.getCode())) &&
+                (StringUtils.isEmpty(name) || containsIgnoreCase(attribute.getName(), name));
     }
 
     /** Преобразование атрибута в атрибут для отображения на форме. */
@@ -121,7 +128,7 @@ public class StructureController {
         readAttribute.setVersionId(version.getId());
         readAttribute.setOptLockValue(version.getOptLockValue());
 
-        readAttribute.setIsReferrer(!CollectionUtils.isEmpty(version.getStructure().getReferences()));
+        readAttribute.setIsReferrer(!isEmpty(version.getStructure().getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
         if (reference != null) {
@@ -135,7 +142,7 @@ public class StructureController {
 
     private List<AttributeValidation> getValidations(List<AttributeValidation> validations, String attribute) {
 
-        if (CollectionUtils.isEmpty(validations))
+        if (isEmpty(validations))
             return Collections.emptyList();
 
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(toList());
@@ -146,48 +153,39 @@ public class StructureController {
 
         for (AttributeValidation validation : validations) {
             switch (validation.getType()) {
-                case REQUIRED:
-                    attribute.setRequired(true);
-                    break;
+                case REQUIRED -> attribute.setRequired(true);
 
-                case UNIQUE:
-                    attribute.setUnique(true);
-                    break;
+                case UNIQUE -> attribute.setUnique(true);
 
-                case PLAIN_SIZE:
-                    attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
-                    break;
+                case PLAIN_SIZE -> attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
 
-                case FLOAT_SIZE:
+                case FLOAT_SIZE -> {
                     FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
                     attribute.setIntPartSize(floatSize.getIntPartSize());
                     attribute.setFracPartSize(floatSize.getFracPartSize());
-                    break;
+                }
 
-                case INT_RANGE:
+                case INT_RANGE -> {
                     IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
                     attribute.setMinInteger(intRange.getMin());
                     attribute.setMaxInteger(intRange.getMax());
-                    break;
+                }
 
-                case FLOAT_RANGE:
+                case FLOAT_RANGE -> {
                     FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
                     attribute.setMinFloat(floatRange.getMin());
                     attribute.setMaxFloat(floatRange.getMax());
-                    break;
-
-                case DATE_RANGE:
+                }
+                case DATE_RANGE -> {
                     DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
                     attribute.setMinDate(dateRange.getMin());
                     attribute.setMaxDate(dateRange.getMax());
-                    break;
+                }
 
-                case REG_EXP:
-                    attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
-                    break;
+                case REG_EXP -> attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
 
-                default:
-                    break;
+                default -> {
+                }
             }
         }
     }
@@ -200,7 +198,7 @@ public class StructureController {
 
         int displayType = 1;
         String displayExpression = reference.getDisplayExpression();
-        if (StringUtils.isNotEmpty(displayExpression)) {
+        if (!StringUtils.isEmpty(displayExpression)) {
             attribute.setDisplayExpression(displayExpression);
 
             displayType = 2;
@@ -242,7 +240,7 @@ public class StructureController {
         conflictCriteria.setPageSize(1);
 
         Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
-        return conflicts != null && !CollectionUtils.isEmpty(conflicts.getContent());
+        return conflicts != null && !isEmpty(conflicts.getContent());
     }
 
     public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
