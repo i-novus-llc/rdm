@@ -68,4 +68,5 @@
         <!-- Хак для обновления detail-виджетов, если в master нет изменений после refresh -->
         <field id="now" domain="date" mapping="new java.util.Date()"/>
     </fields>
+
 </query>

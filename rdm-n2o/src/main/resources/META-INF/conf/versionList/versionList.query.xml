@@ -69,4 +69,5 @@
         <field id="excludeDraft" domain="boolean" select="false"/>
         <!-- / Filters only -->
     </fields>
+
 </query>

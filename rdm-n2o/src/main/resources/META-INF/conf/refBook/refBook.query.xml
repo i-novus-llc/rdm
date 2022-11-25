@@ -130,4 +130,5 @@
         <field id="displayVersion" domain="string"
                mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
     </fields>
+
 </query>
