@@ -6,7 +6,7 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import java.util.Objects;
 
 /**
- * Информация о справочнике для UI.
+ * Модель справочника для UI.
  */
 public class UiRefBook extends RefBook {
 
