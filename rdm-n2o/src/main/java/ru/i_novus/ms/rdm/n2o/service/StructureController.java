@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
+import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
+import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.ArrayList;
@@ -42,17 +44,35 @@ import static ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest.setUpda
 @SuppressWarnings("WeakerAccess")
 public class StructureController {
 
-    @Autowired
-    private RefBookService refBookService;
+    private static final String ATTRIBUTE_TYPE_PREFIX = "attribute.type.";
+
+    private static final int DISPLAY_TYPE_ATTRIBUTE = 1;
+    private static final int DISPLAY_TYPE_EXPRESSION = 2;
+
+    private final RefBookService refBookService;
+
+    private final VersionRestService versionService;
+
+    private final DraftRestService draftService;
+
+    private final ConflictService conflictService;
+
+    private final Messages messages;
 
     @Autowired
-    private VersionRestService versionService;
+    public StructureController(RefBookService refBookService,
+                               VersionRestService versionService,
+                               DraftRestService draftService,
+                               ConflictService conflictService,
+                               Messages messages) {
+        this.refBookService = refBookService;
+        this.versionService = versionService;
+        this.draftService = draftService;
 
-    @Autowired
-    private DraftRestService draftService;
+        this.conflictService = conflictService;
 
-    @Autowired
-    private ConflictService conflictService;
+        this.messages = messages;
+    }
 
     // used in: attribute.query.xml
     RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
@@ -196,15 +216,15 @@ public class StructureController {
         Integer referenceRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(referenceRefBookId);
 
-        int displayType = 1;
+        int displayType = DISPLAY_TYPE_ATTRIBUTE;
         String displayExpression = reference.getDisplayExpression();
         if (!StringUtils.isEmpty(displayExpression)) {
             attribute.setDisplayExpression(displayExpression);
 
-            displayType = 2;
+            displayType = DISPLAY_TYPE_EXPRESSION;
             String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
             if (attributeCode != null) {
-                displayType = 1;
+                displayType = DISPLAY_TYPE_ATTRIBUTE;
                 attribute.setDisplayAttribute(attributeCode);
                 attribute.setDisplayAttributeName(attributeCodeToName(reference.getReferenceCode(), attributeCode));
             }
@@ -269,7 +289,7 @@ public class StructureController {
     /** Заполнение валидаций атрибута из атрибута формы. */
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
 
-        List<AttributeValidation> validations = new ArrayList<>();
+        List<AttributeValidation> validations = new ArrayList<>(8);
 
         if (Boolean.TRUE.equals(formAttribute.getRequired())) {
             validations.add(new RequiredAttributeValidation());
@@ -310,6 +330,7 @@ public class StructureController {
         readAttribute.setCode(attribute.getCode());
         readAttribute.setName(attribute.getName());
         readAttribute.setType(attribute.getType());
+        readAttribute.setTypeName(getFieldTypeName(attribute.getType()));
 
         readAttribute.setIsPrimary(attribute.getIsPrimary());
         readAttribute.setLocalizable(attribute.getLocalizable());
@@ -321,6 +342,11 @@ public class StructureController {
         }
 
         return readAttribute;
+    }
+
+    /** Наименование типа поля. */
+    private String getFieldTypeName(FieldType type) {
+        return type != null ? messages.getMessage(ATTRIBUTE_TYPE_PREFIX + type.name().toLowerCase()) : null;
     }
 
     /** Получение атрибута для добавления из атрибута формы. */

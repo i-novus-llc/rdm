@@ -24,7 +24,11 @@ public class ReadAttribute extends FormAttribute {
     /** Идентификатор справочника, на который ссылаются. */
     private Integer referenceRefBookId;
 
-    /** Тип отображения displayExpression ссылки: 1 - выбор одного атрибута, 2 - строка-значение. */
+    /**
+     * Тип отображения displayExpression ссылки:
+     * 1 - DISPLAY_TYPE_ATTRIBUTE - выбор одного атрибута,
+     * 2 - DISPLAY_TYPE_EXPRESSION - строка-значение.
+     */
     private Integer displayType;
 
     /** Код отображаемого атрибута при displayType = 1. */
