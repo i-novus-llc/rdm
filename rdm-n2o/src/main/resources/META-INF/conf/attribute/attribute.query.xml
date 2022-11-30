@@ -2,7 +2,7 @@
 <query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
        object-id="attribute">
 
-    <list result-mapping="['content']" count-mapping="['totalElements']">
+    <list result-mapping="['content']" count-mapping="['totalElements']" filters="versionId">
         <java method="getPage" class="ru.i_novus.ms.rdm.n2o.service.StructureController">
             <spring/>
 
@@ -25,13 +25,13 @@
     </unique>
 
     <filters>
+        <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
+        <eq filter-id="optLockValue" field-id="optLockValue" mapping="['criteria'].optLockValue"/>
+
         <eq filter-id="id" field-id="id" mapping="['criteria'].code"/>
 
         <eq filter-id="code" field-id="code" mapping="['criteria'].code"/>
         <eq filter-id="name" field-id="name" mapping="['criteria'].name"/>
-
-        <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
-        <eq filter-id="optLockValue" field-id="optLockValue" mapping="['criteria'].optLockValue"/>
     </filters>
 
     <fields>
@@ -105,7 +105,6 @@
 
         <field id="regExp"/>
         <!-- / Пользовательские проверки -->
-
     </fields>
     
 </query>
