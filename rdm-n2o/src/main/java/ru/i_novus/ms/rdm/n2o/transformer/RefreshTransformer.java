@@ -10,6 +10,7 @@ import net.n2oapp.framework.api.metadata.meta.saga.RefreshSaga;
 import net.n2oapp.framework.config.metadata.compile.N2oCompileProcessor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,7 @@ public class RefreshTransformer
         implements CompileTransformer<InvokeAction, CompileContext<?, ?>>, CompiledClassAware {
 
     private static final String REFRESHED_ID_SUFFIX = "_r";
-    private static final String DEFAULT_WIDGET_ID = "main_edit_version_select";
+    private static final String DEFAULT_WIDGET_ID = "main_edit_version_select"; // TODO: Проверить для n2o 7.23
     private static final String WIDGET_ID_REGEX = "^.+/:(.*?" + DEFAULT_WIDGET_ID + ")_id/.+" + REFRESHED_ID_SUFFIX + "$";
     private static final Pattern WIDGET_ID_PATTERN = Pattern.compile(WIDGET_ID_REGEX);
 
@@ -44,10 +45,13 @@ public class RefreshTransformer
         if (route == null || !route.endsWith(REFRESHED_ID_SUFFIX))
             return;
 
-        RefreshSaga refresh = new RefreshSaga();
-
         Matcher matcher = WIDGET_ID_PATTERN.matcher(route);
         String refreshedWidgetId = matcher.matches() ? matcher.group(1) : DEFAULT_WIDGET_ID;
+
+        RefreshSaga refresh = new RefreshSaga();
+        if (refresh.getDatasources() == null) {
+            refresh.setDatasources(new ArrayList<>(1));
+        }
         refresh.getDatasources().add(refreshedWidgetId);
 
         invokeAction.getMeta().getSuccess().setRefresh(refresh);
