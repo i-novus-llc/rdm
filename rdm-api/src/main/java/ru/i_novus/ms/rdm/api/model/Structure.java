@@ -9,7 +9,7 @@ import io.swagger.annotations.ApiParam;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
