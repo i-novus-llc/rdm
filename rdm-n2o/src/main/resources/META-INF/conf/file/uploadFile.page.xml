@@ -12,9 +12,8 @@
         <fields>
             <output-text id="versionId" visible="false"/>
 
-            <alert id="warning" no-label="true" color="danger">
-                Внимание: Все неопубликованные данные будут удалены.
-            </alert>
+            <alert id="warning" no-label="true" color="danger"
+                   text="Внимание: Все неопубликованные данные будут удалены."/>
 
             <file-upload id="file" label="Файл с данными (xml, xlsx)" label-field-id="name"
                          upload-url="/files"/>
