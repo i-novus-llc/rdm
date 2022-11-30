@@ -75,12 +75,12 @@ public class StructureController {
     }
 
     // used in: attribute.query.xml
-    RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
+    public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
         RefBookVersion version = versionService.getById(versionId);
         if (version.hasEmptyStructure()) {
-            return new RestPage<>(new ArrayList<>(), Pageable.unpaged(), 0);
+            return new RestPage<>(new ArrayList<>(0), Pageable.unpaged(), 0);
         }
 
         if (criteria.getOptLockValue() != null) {
@@ -96,14 +96,14 @@ public class StructureController {
                     .map(attribute -> toReadAttribute(attribute, version, validations))
                     .collect(toList());
         } else {
-            list = new ArrayList<>();
+            list = new ArrayList<>(0);
         }
 
         return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
     }
 
     // used in: attributeDefault.query.xml
-    ReadAttribute getDefault(AttributeCriteria criteria) {
+    public ReadAttribute getDefault(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
 
