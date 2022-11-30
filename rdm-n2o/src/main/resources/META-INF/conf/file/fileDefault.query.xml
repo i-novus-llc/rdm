@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0">
 
-    <unique filters="id" result-mapping="#this">
+    <unique result-mapping="#this" filters="versionId">
         <java method="getVersion" class="ru.i_novus.ms.rdm.n2o.service.VersionController">
             <spring/>
 
@@ -12,21 +12,15 @@
         </java>
     </unique>
 
-    <fields>
+    <filters>
+        <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].id"/>
+    </filters>
 
+    <fields>
         <field id="id"/>
 
-        <field id="versionId" domain="integer">
-            <select mapping="id"/>
-            <filters>
-                <eq filter-id="id" mapping="['criteria'].id"/>
-            </filters>
-        </field>
-
-        <field id="optLockValue" domain="integer">
-            <select/>
-        </field>
-        
+        <field id="versionId" domain="integer" mapping="id"/>
+        <field id="optLockValue" domain="integer"/>
     </fields>
 
 </query>
