@@ -85,7 +85,7 @@
 
         <tabs always-refresh="true">
             <tab name="Паспорт">
-                <form ref-id="passport" id="passport_form"
+                <form id="passport_form" ref-id="passport"
                       depends-on="version_select" fetch-on-init="true"
                       master-field-id="id" detail-field-id="version.id" object-id="refBook">
                     <toolbar place="bottomRight">

@@ -3,7 +3,6 @@
         name="Запись справочника">
 
     <operations>
-        
         <operation id="deleteRecord" submit-label="Удалить" success-text="Запись успешно удалена"
                    confirm="true" confirm-text="Вы точно хотите удалить запись?">
             <invocation>
@@ -45,7 +44,6 @@
                 <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
-
     </operations>
 
 </object>
