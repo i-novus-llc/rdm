@@ -49,14 +49,7 @@
         <field id="name" domain="string"/>
 
         <field id="attrType.id" domain="string" mapping="type.name()"/>
-        <field id="attrType.name" domain="string"
-               mapping="type.name() == 'STRING' ? 'Строковый' :
-                        type.name() == 'INTEGER' ? 'Целочисленный' :
-                        type.name() == 'FLOAT' ? 'Дробный' :
-                        type.name() == 'DATE' ? 'Дата' :
-                        type.name() == 'BOOLEAN' ? 'Логический' :
-                        type.name() == 'REFERENCE' ? 'Ссылочный' :
-                        null"/>
+        <field id="attrType.name" domain="string" mapping="typeName"/>
 
         <field id="isPrimary" domain="boolean"/>
         <field id="isPrimaryText" domain="string"

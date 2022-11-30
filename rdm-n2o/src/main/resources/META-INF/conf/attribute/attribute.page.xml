@@ -72,12 +72,12 @@
 
                 <select id="attrType" label="Тип" required="true" label-field-id="name" cleanable="false">
                     <options>
-                        <option id="STRING" name="Строковый"/>
-                        <option id="INTEGER" name="Целочисленный"/>
-                        <option id="FLOAT" name="Дробный"/>
-                        <option id="DATE" name="Дата"/>
-                        <option id="BOOLEAN" name="Логический"/>
-                        <option id="REFERENCE" name="Ссылочный"/>
+                        <option id="STRING" name="${attribute.type.string}"/>
+                        <option id="INTEGER" name="${attribute.type.integer}"/>
+                        <option id="FLOAT" name="${attribute.type.float}"/>
+                        <option id="DATE" name="${attribute.type.date}"/>
+                        <option id="BOOLEAN" name="${attribute.type.boolean}"/>
+                        <option id="REFERENCE" name="${attribute.type.reference}"/>
                     </options>
                 </select>
             </row>
