@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.async;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
@@ -93,8 +94,8 @@ class AsyncOperationMessage implements Serializable {
         this.userName = userName;
     }
 
-    public String getPayloadAsJson() {
-        return JsonUtil.toJsonString(Map.of(ARGS_KEY, args, USER_KEY, userName));
+    public String toPayload(ObjectMapper objectMapper) {
+        return JsonUtil.toJsonString(objectMapper, Map.of(ARGS_KEY, args, USER_KEY, userName));
     }
 
     @Override
