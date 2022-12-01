@@ -14,8 +14,13 @@ public class PassportPredicateProducerImpl implements PassportPredicateProducer 
 
     @Override
     public Predicate toPredicate(Map<String, String> passport) {
+
         BooleanBuilder where = new BooleanBuilder();
-        passport.forEach((k, v) -> where.and(hasPassportAttributeValue(k, v)));
+
+        passport.forEach((k, v) ->
+                where.and(hasPassportAttributeValue(k, v))
+        );
+
         return where.getValue();
     }
 }

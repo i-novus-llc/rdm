@@ -29,7 +29,6 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Pageable.unpaged;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.fromDataDiffValues;
 
 @Service
@@ -41,9 +40,9 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     public static final String COMPARE_DATA_DIFF_NOT_FOUND_EXCEPTION_CODE = "compare.data.diff.not.found";
     public static final String COMPARE_PRIMARY_FILTER_IS_EXACT_ONLY_EXCEPTION_CODE = "compare.primary.filter.is.exact.only";
 
-    private RefBookVersionRepository versionRepository;
-    private RefBookVersionDiffRepository versionDiffRepository;
-    private VersionDataDiffResultRepository dataDiffResultRepository;
+    private final RefBookVersionRepository versionRepository;
+    private final RefBookVersionDiffRepository versionDiffRepository;
+    private final VersionDataDiffResultRepository dataDiffResultRepository;
 
     @Autowired
     public VersionDataDiffServiceImpl(RefBookVersionRepository versionRepository,
@@ -86,7 +85,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     private String searchVersionDiffIds(String refBookCode, RefBookVersionEntity oldVersion, RefBookVersionEntity newVersion, String versionIds) {
 
         String result = versionDiffRepository.searchVersionDiffIds(oldVersion.getId(), newVersion.getId(), versionIds);
-        if (isEmpty(result)) {
+        if (StringUtils.isEmpty(result)) {
             throw new NotFoundException(new Message(COMPARE_DATA_DIFF_NOT_FOUND_EXCEPTION_CODE,
                     refBookCode, oldVersion.getVersionNumber(), newVersion.getVersionNumber()));
         }

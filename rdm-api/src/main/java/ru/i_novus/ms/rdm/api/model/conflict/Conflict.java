@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
 import javax.ws.rs.QueryParam;

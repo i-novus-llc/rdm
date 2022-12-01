@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Arrays.asList;
-import static java.util.Objects.nonNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -60,6 +59,7 @@ public class RefBookConflictQueryProvider {
     }
 
     public Page<RefBookConflictEntity> search(RefBookConflictCriteria criteria) {
+
         JPAQuery<RefBookConflictEntity> jpaQuery =
                 new JPAQuery<>(entityManager)
                         .select(QRefBookConflictEntity.refBookConflictEntity)
@@ -110,6 +110,7 @@ public class RefBookConflictQueryProvider {
     }
 
     private JPAQuery<Long> getConflictedRowIdsQuery(RefBookConflictCriteria criteria) {
+
         return new JPAQuery<>(entityManager)
                 .select(QRefBookConflictEntity.refBookConflictEntity.refRecordId)
                 .from(QRefBookConflictEntity.refBookConflictEntity)
@@ -124,37 +125,48 @@ public class RefBookConflictQueryProvider {
      * @return Предикат для запроса поиска
      */
     private static Predicate toPredicate(RefBookConflictCriteria criteria) {
+
         BooleanBuilder where = new BooleanBuilder();
 
-        if (nonNull(criteria.getReferrerVersionId()))
+        if (criteria.getReferrerVersionId() != null) {
             where.and(RefBookConflictPredicates.isReferrerVersionId(criteria.getReferrerVersionId()));
+        }
 
-        if (nonNull(criteria.getReferrerVersionRefBookId()))
+        if (criteria.getReferrerVersionRefBookId() != null) {
             where.and(RefBookConflictPredicates.isReferrerVersionRefBookId(criteria.getReferrerVersionRefBookId()));
+        }
 
-        if (nonNull(criteria.getPublishedVersionId()))
+        if (criteria.getPublishedVersionId() != null) {
             where.and(RefBookConflictPredicates.isPublishedVersionId(criteria.getPublishedVersionId()));
+        }
 
-        if (nonNull(criteria.getPublishedVersionRefBookId()))
+        if (criteria.getPublishedVersionRefBookId() != null) {
             where.and(RefBookConflictPredicates.isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
+        }
 
-        if (criteria.getIsLastPublishedVersion())
+        if (criteria.getIsLastPublishedVersion()) {
             where.and(RefBookConflictPredicates.isLastPublishedVersion());
+        }
 
-        if (nonNull(criteria.getRefRecordId()))
+        if (criteria.getRefRecordId() != null) {
             where.and(RefBookConflictPredicates.isRefRecordId(criteria.getRefRecordId()));
+        }
 
-        if (!isEmpty(criteria.getRefRecordIds()))
+        if (!isEmpty(criteria.getRefRecordIds())) {
             where.and(RefBookConflictPredicates.isRefRecordIdIn(criteria.getRefRecordIds()));
+        }
 
-        if (!isEmpty(criteria.getRefFieldCodes()))
+        if (!isEmpty(criteria.getRefFieldCodes())) {
             where.and(RefBookConflictPredicates.isRefFieldCodeIn(criteria.getRefFieldCodes()));
+        }
 
-        if (nonNull(criteria.getConflictType()))
+        if (criteria.getConflictType() != null) {
             where.and(RefBookConflictPredicates.isConflictType(criteria.getConflictType()));
+        }
 
-        if (!isEmpty(criteria.getConflictTypes()))
+        if (!isEmpty(criteria.getConflictTypes())) {
             where.and(RefBookConflictPredicates.isConflictTypeIn(criteria.getConflictTypes()));
+        }
 
         return where.getValue();
     }
@@ -241,28 +253,34 @@ public class RefBookConflictQueryProvider {
 
         BooleanBuilder where = new BooleanBuilder();
 
-        if (nonNull(criteria.getReferrerVersionId()))
+        if (criteria.getReferrerVersionId() != null) {
             where.and(RefBookConflictPredicates.isReferrerVersionId(criteria.getReferrerVersionId()));
+        }
 
-        if (nonNull(criteria.getReferrerVersionRefBookId()))
+        if (criteria.getReferrerVersionRefBookId() != null) {
             where.and(RefBookConflictPredicates.isReferrerVersionRefBookId(criteria.getReferrerVersionRefBookId()));
+        }
 
-        if (nonNull(criteria.getPublishedVersionId()))
+        if (criteria.getPublishedVersionId() != null) {
             where.and(RefBookConflictPredicates.isPublishedVersionId(criteria.getPublishedVersionId()));
+        }
 
-        if (nonNull(criteria.getPublishedVersionRefBookId()))
+        if (criteria.getPublishedVersionRefBookId() != null) {
             where.and(RefBookConflictPredicates.isPublishedVersionRefBookId(criteria.getPublishedVersionRefBookId()));
+        }
 
-        if (nonNull(criteria.getExcludedPublishedVersionId()))
+        if (criteria.getExcludedPublishedVersionId() != null) {
             where.andNot(RefBookConflictPredicates.isPublishedVersionId(criteria.getExcludedPublishedVersionId()));
+        }
 
-        if (nonNull(criteria.getRefFieldCode()))
+        if (criteria.getRefFieldCode() != null) {
             where.and(RefBookConflictPredicates.isRefFieldCodeIn(List.of(criteria.getRefFieldCode())));
+        }
 
-        if (nonNull(criteria.getConflictType()))
+        if (criteria.getConflictType() != null) {
             where.and(RefBookConflictPredicates.isConflictType(criteria.getConflictType()));
+        }
 
         return where.getValue();
     }
-
 }

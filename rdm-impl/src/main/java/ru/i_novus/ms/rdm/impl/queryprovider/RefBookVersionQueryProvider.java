@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.impl.entity.QPassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.QRefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -27,8 +28,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static org.springframework.util.StringUtils.isEmpty;
 
 @Component
 @SuppressWarnings("java:S3740")
@@ -89,6 +88,7 @@ public class RefBookVersionQueryProvider {
      * @return Предикат для запроса поиска
      */
     public Predicate toPredicate(RefBookCriteria criteria) {
+
         BooleanBuilder where = new BooleanBuilder();
 
         fillRefBookPredicate(criteria, where);
@@ -105,34 +105,44 @@ public class RefBookVersionQueryProvider {
      */
     private void fillRefBookPredicate(RefBookCriteria criteria, BooleanBuilder where) {
 
-        if (!CollectionUtils.isEmpty(criteria.getRefBookIds()))
+        if (!CollectionUtils.isEmpty(criteria.getRefBookIds())) {
             where.and(RefBookVersionPredicates.isVersionOfRefBooks(criteria.getRefBookIds()));
+        }
 
-        if (!isEmpty(criteria.getCode()))
+        if (!StringUtils.isEmpty(criteria.getCode())) {
             where.and(RefBookVersionPredicates.isCodeContains(criteria.getCode()));
-        else if (!isEmpty(criteria.getCodeExact()))
+
+        } else if (!StringUtils.isEmpty(criteria.getCodeExact())) {
             where.and(RefBookVersionPredicates.isCodeEquals(criteria.getCodeExact()));
+        }
 
-        if (nonNull(criteria.getVersionId()))
+        if (criteria.getVersionId() != null) {
             where.and(RefBookVersionPredicates.refBookHasVersion(criteria.getVersionId()));
+        }
 
-        if (nonNull(criteria.getExcludeByVersionId()))
+        if (criteria.getExcludeByVersionId() != null) {
             where.andNot(RefBookVersionPredicates.refBookHasVersion(criteria.getExcludeByVersionId()));
+        }
 
-        if (!isEmpty(criteria.getCategory()))
+        if (!StringUtils.isEmpty(criteria.getCategory())) {
             where.and(RefBookVersionPredicates.refBookHasCategory(criteria.getCategory()));
+        }
 
-        if (criteria.getIsArchived())
+        if (criteria.getIsArchived()) {
             where.and(RefBookVersionPredicates.isArchived());
+        }
 
-        else if (criteria.getNonArchived())
+        else if (criteria.getNonArchived()) {
             where.andNot(RefBookVersionPredicates.isArchived());
+        }
 
-        if (!isEmpty(criteria.getDisplayCode()))
+        if (!StringUtils.isEmpty(criteria.getDisplayCode())) {
             where.and(RefBookVersionPredicates.isDisplayCodeContains(criteria.getDisplayCode()));
+        }
 
-        if (!CollectionUtils.isEmpty(criteria.getPassport()))
+        if (!CollectionUtils.isEmpty(criteria.getPassport())) {
             where.and(passportPredicateProducer.toPredicate(criteria.getPassport()));
+        }
     }
 
     /**
@@ -143,22 +153,27 @@ public class RefBookVersionQueryProvider {
      */
     private void fillRefBookVersionPredicate(RefBookCriteria criteria, BooleanBuilder where) {
 
-        if (nonNull(criteria.getFromDateBegin()))
+        if (criteria.getFromDateBegin() != null) {
             where.and(RefBookVersionPredicates.isMaxFromDateEqOrAfter(criteria.getFromDateBegin()));
+        }
 
-        if (nonNull(criteria.getFromDateEnd()))
+        if (criteria.getFromDateEnd() != null) {
             where.and(RefBookVersionPredicates.isMaxFromDateEqOrBefore(criteria.getFromDateEnd()));
+        }
 
         where.and(RefBookVersionPredicates.isSourceType(getSourceType(criteria)));
 
-        if (criteria.getHasDraft())
+        if (criteria.getHasDraft()) {
             where.andNot(RefBookVersionPredicates.isArchived()).and(RefBookVersionPredicates.refBookHasDraft());
+        }
 
-        if (criteria.getHasPublished())
+        if (criteria.getHasPublished()) {
             where.andNot(RefBookVersionPredicates.isArchived()).and(RefBookVersionPredicates.refBookHasPublished());
+        }
 
-        if (criteria.getHasPrimaryAttribute())
+        if (criteria.getHasPrimaryAttribute()) {
             where.and(RefBookVersionPredicates.hasStructure()).and(RefBookVersionPredicates.hasPrimaryAttribute());
+        }
     }
 
     private RefBookSourceType getSourceType(RefBookCriteria criteria) {
@@ -270,22 +285,28 @@ public class RefBookVersionQueryProvider {
      * @return Предикат для запроса поиска
      */
     public static Predicate toVersionPredicate(VersionCriteria criteria) {
+
         BooleanBuilder where = new BooleanBuilder();
 
-        if (nonNull(criteria.getId()))
+        if (criteria.getId() != null) {
             where.andNot(RefBookVersionPredicates.hasVersionId(criteria.getId()));
+        }
 
-        if (nonNull(criteria.getRefBookId()))
+        if (criteria.getRefBookId() != null) {
             where.and(RefBookVersionPredicates.isVersionOfRefBook(criteria.getRefBookId()));
+        }
 
-        if (nonNull(criteria.getRefBookCode()))
+        if (criteria.getRefBookCode() != null) {
             where.and(RefBookVersionPredicates.isVersionOfRefBookCode(criteria.getRefBookCode()));
+        }
 
-        if (criteria.getExcludeDraft())
+        if (criteria.getExcludeDraft()) {
             where.andNot(RefBookVersionPredicates.isDraft());
+        }
 
-        if (nonNull(criteria.getVersion()))
+        if (criteria.getVersion() != null) {
             where.and(RefBookVersionPredicates.isVersionNumberContains(criteria.getVersion()));
+        }
 
         return where.getValue();
     }

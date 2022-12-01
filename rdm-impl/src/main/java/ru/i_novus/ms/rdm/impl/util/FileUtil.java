@@ -2,7 +2,7 @@ package ru.i_novus.ms.rdm.impl.util;
 
 import org.apache.commons.io.FilenameUtils;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
 public final class FileUtil {
 

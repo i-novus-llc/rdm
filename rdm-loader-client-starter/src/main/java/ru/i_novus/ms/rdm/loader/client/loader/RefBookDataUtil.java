@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 
-public class RefBookDataUtil {
+public final class RefBookDataUtil {
 
     private static final char FILE_NAME_EXT_SEPARATOR = '.';
 
@@ -21,6 +21,10 @@ public class RefBookDataUtil {
 
     private RefBookDataUtil() {
         // Nothing to do.
+    }
+
+    public static boolean isEmpty(String s) {
+        return s == null || s.isEmpty();
     }
 
     public static List<RefBookDataModel> toRefBookDataModels(Resource file) {
@@ -117,9 +121,5 @@ public class RefBookDataUtil {
 
         JsonNode valueJson = node.get(key);
         return (valueJson == null) ? null : valueExtractor.apply(valueJson);
-    }
-
-    private static boolean isEmpty(String s) {
-        return s == null || s.isEmpty();
     }
 }

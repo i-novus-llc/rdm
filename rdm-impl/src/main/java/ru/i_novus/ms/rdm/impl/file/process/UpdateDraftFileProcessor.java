@@ -16,15 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
 
     private final Integer refBookId;
 
     private final DraftService draftService;
 
-    public UpdateDraftFileProcessor(Integer refBookId, DraftService draftService) {
+    public UpdateDraftFileProcessor(Integer refBookId,
+                                    DraftService draftService) {
         this.refBookId = refBookId;
         this.draftService = draftService;
     }
@@ -39,13 +38,15 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
     public Draft process(Supplier<InputStream> fileSource) {
 
         Map<String, Object> passport;
-        Pair<Structure, Map<String, List<AttributeValidation>>> pair;
+        Pair<Structure, Map<String, List<AttributeValidation>>> pair = null;
 
         try (InputStream inputStream = fileSource.get()) {
 
             setFile(inputStream);
             passport = getPassport();
-            pair = getStructureAndValidations();
+            if (passport != null) {
+                pair = getStructureAndValidations();
+            }
 
         }  catch (IOException e) {
             throw new FileContentException(e);
@@ -57,9 +58,13 @@ public abstract class UpdateDraftFileProcessor implements FileProcessor<Draft> {
             throw new FileProcessingException(e);
         }
 
-        if (passport != null && pair != null && !isEmpty(pair.getFirst())) {
+        if (passport == null)
+            return null;
 
-            CreateDraftRequest request = new CreateDraftRequest(refBookId, pair.getFirst(), passport, pair.getSecond());
+        Structure structure = (pair != null) ? pair.getFirst() : null;
+        if (structure != null) {
+
+            CreateDraftRequest request = new CreateDraftRequest(refBookId, structure, passport, pair.getSecond());
             request.setReferrerValidationRequired(true);
             return draftService.create(request);
         }

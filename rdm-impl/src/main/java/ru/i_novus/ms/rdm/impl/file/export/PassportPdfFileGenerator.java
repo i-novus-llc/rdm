@@ -1,10 +1,11 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
 import com.itextpdf.text.DocumentException;
-import org.springframework.util.StringUtils;
-import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
+import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
+import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 
 import java.io.IOException;
@@ -14,23 +15,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
-
 public class PassportPdfFileGenerator implements FileGenerator {
 
     private static final String VERSION_CODE_NAME = "Код справочника";
     private static final String VERSION_CATEGORY_NAME = "Категория справочника";
 
-    private PassportValueRepository passportValueRepository;
+    private final PassportValueRepository passportValueRepository;
 
     /** Версия справочника. */
-    private RefBookVersion version;
+    private final RefBookVersion version;
 
     /** Заголовок. */
-    private String head;
+    private final String head;
 
     public PassportPdfFileGenerator(PassportValueRepository passportValueRepository,
-                                    RefBookVersion version, String head) {
+                                    RefBookVersion version,
+                                    String head) {
         this.passportValueRepository = passportValueRepository;
 
         this.version = version;
@@ -42,7 +42,7 @@ public class PassportPdfFileGenerator implements FileGenerator {
 
         List<PassportValueEntity> values = passportValueRepository
                 .findAllByVersionIdOrderByAttributePosition(version.getId());
-        if (isEmpty(values)) return;
+        if (CollectionUtils.isEmpty(values)) return;
 
         Map<String, String> passportToWrite = new LinkedHashMap<>();
 

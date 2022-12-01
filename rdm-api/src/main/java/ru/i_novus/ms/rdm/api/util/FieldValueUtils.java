@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -71,11 +70,13 @@ public final class FieldValueUtils {
                                          List<String> primaryKeyCodes) {
 
         Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
+        Map<String, Object> map = new HashMap<>(placeholders.size());
 
-        Map<String, Object> map = new HashMap<>();
-        fieldValues.forEach(fieldValue ->
-                map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
-        );
+        if (!CollectionUtils.isEmpty(fieldValues)) {
+            fieldValues.forEach(fieldValue ->
+                    map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
+            );
+        }
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
                 .filter(placeholder -> Objects.isNull(map.get(placeholder)))

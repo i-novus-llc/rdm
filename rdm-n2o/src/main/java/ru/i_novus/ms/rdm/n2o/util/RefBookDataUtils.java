@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.util;
 
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
 import java.io.Serializable;
@@ -9,8 +10,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
-
-import static org.springframework.util.StringUtils.isEmpty;
 
 public final class RefBookDataUtils {
 
@@ -101,7 +100,7 @@ public final class RefBookDataUtils {
     public static Boolean parseBoolean(String value) {
 
         String stringValue = value.toLowerCase();
-        if (isEmpty(stringValue))
+        if (StringUtils.isEmpty(stringValue))
             return null;
 
         if (BOOL_TRUE_PATTERN.matcher(stringValue).matches())

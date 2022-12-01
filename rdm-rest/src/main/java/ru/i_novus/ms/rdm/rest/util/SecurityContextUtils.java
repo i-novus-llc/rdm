@@ -14,7 +14,7 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.IOException;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
 public final class SecurityContextUtils {
 

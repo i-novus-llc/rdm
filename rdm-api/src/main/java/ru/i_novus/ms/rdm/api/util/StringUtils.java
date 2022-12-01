@@ -50,10 +50,10 @@ public final class StringUtils {
     /** Преобразование строки в UUID. */
     public static UUID toUuid(String s) {
 
-        if (!org.springframework.util.StringUtils.isEmpty(s))
+        if (!isEmpty(s))
             s = s.trim();
 
-        if (org.springframework.util.StringUtils.isEmpty(s))
+        if (isEmpty(s))
             return null;
 
         if (UUID_PATTERN.matcher(s).matches())
