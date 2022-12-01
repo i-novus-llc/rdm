@@ -54,9 +54,9 @@ public class DataDiffUtil {
 
     public static ObjectMapper createVdsObjectMapper() {
 
-        ObjectMapper jsonMapper = new ObjectMapper();
-        new VdsMapperConfigurer().configure(jsonMapper);
+        ObjectMapper objectMapper = new ObjectMapper();
+        new VdsMapperConfigurer().configure(objectMapper);
 
-        return jsonMapper;
+        return objectMapper;
     }
 }

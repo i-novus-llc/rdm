@@ -14,9 +14,11 @@ public class RdmN2oLocalDateTimeMapperPreparer implements MapperConfigurer {
 
     @Override
     public void configure(ObjectMapper objectMapper) {
+
         SimpleModule module = new SimpleModule();
         module.addSerializer(new RdmN2oJsonLocalDateTimeSerializer());
         module.addDeserializer(LocalDateTime.class, new RdmN2oJsonLocalDateTimeDeserializer());
+
         objectMapper.registerModule(module);
     }
 }

@@ -17,7 +17,7 @@ public class RefBookDataUtil {
 
     private static final char FILE_NAME_EXT_SEPARATOR = '.';
 
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private RefBookDataUtil() {
         // Nothing to do.
@@ -46,7 +46,7 @@ public class RefBookDataUtil {
 
     private static JsonNode fromFile(Resource file) {
         try {
-            return jsonMapper.readTree(file.getInputStream());
+            return OBJECT_MAPPER.readTree(file.getInputStream());
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Cannot deserialize json from file.", e);
@@ -106,7 +106,7 @@ public class RefBookDataUtil {
 
     private static String asJsonString(JsonNode value) {
         try {
-            return jsonMapper.writeValueAsString(value);
+            return OBJECT_MAPPER.writeValueAsString(value);
 
         } catch (JsonProcessingException e) {
             return null;

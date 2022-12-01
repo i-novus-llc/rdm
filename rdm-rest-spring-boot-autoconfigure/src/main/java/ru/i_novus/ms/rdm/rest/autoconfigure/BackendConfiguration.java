@@ -2,8 +2,8 @@ package ru.i_novus.ms.rdm.rest.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
-import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
+import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,9 +39,7 @@ public class BackendConfiguration {
 
     @Bean
     public AttributeFilterConverter attributeFilterConverter(
-            @Autowired
-            @Qualifier("cxfObjectMapper")
-            ObjectMapper objectMapper
+            @Autowired @Qualifier("cxfObjectMapper") ObjectMapper objectMapper
     ) {
         return new AttributeFilterConverter(objectMapper);
     }

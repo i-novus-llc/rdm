@@ -41,7 +41,7 @@ public class VdsMapperConfigurer implements MapperConfigurer {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // в строку / из строки
         mapper.disable(SerializationFeature.WRITE_DATES_WITH_ZONE_ID); // без временно'й зоны
 
-        // (Де)сериализация значений, хранящихся в переменных класса Object:
+        // (Де)сериализация значений, хранящихся в полях класса Object:
         mapper.activateDefaultTypingAsProperty(
                 BasicPolymorphicTypeValidator.builder().build(),
                 ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT,
