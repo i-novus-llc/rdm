@@ -1,21 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
              name="Публикация справочника">
 
-    <form object-id="publish" default-values-query-id="publish" upload="defaults">
-
-        <pre-filters>
-            <eq field-id="version.id" param="versionId"/>
-            <eq field-id="version.optLockValue" param="optLockValue"/>
-        </pre-filters>
+    <form>
+        <datasource query-id="publish" object-id="publish">
+            <filters>
+                <eq field-id="versionId" param="versionId"/>
+                <eq field-id="optLockValue" param="optLockValue"/>
+            </filters>
+        </datasource>
 
         <fields>
-            
             <row>
-                <output-text id="version.id" label="id" visible="false"/>
-                <output-text id="version.optLockValue" label="optLockValue" visible="false"/>
+                <output-text id="versionId" label="id" visible="false"/>
+                <output-text id="optLockValue" label="optLockValue" visible="false"/>
+                <output-text id="displayVersion" no-label-block="true" visible="false"/>
             </row>
-            <output-text id="version.version" no-label-block="true" visible="false"/>
 
             <output-text id="errorMessage" class="alert alert-danger" no-label="true">
                 <dependencies>
@@ -57,11 +57,9 @@
                     <visibility>!hasErrorMessage</visibility>
                 </dependencies>
             </output-text>
-
         </fields>
 
         <toolbar place="bottomRight">
-
             <button id="publishDraft" label="Опубликовать"
                     color="primary" visible="{isPublishable}">
                 <invoke operation-id="publishDraft" close-after-success="true" message-on-success="false"
@@ -77,9 +75,7 @@
             <button id="cancel" label="Отмена">
                 <close/>
             </button>
-
         </toolbar>
-
     </form>
 
 </simple-page>
