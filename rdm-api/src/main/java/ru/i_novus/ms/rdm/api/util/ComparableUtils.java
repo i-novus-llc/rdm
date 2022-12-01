@@ -26,9 +26,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @SuppressWarnings("java:S3740")
-public class ComparableUtils {
+public final class ComparableUtils {
 
     private ComparableUtils() {
+        // Nothing to do.
     }
 
     public static DiffStatusEnum getStrongestStatus(DiffStatusEnum status1, DiffStatusEnum status2) {

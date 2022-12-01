@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
 
-public class StringUtils {
+public final class StringUtils {
 
     public static final String ESCAPE_CHAR = "\\";
     public static final String DOUBLE_QUOTE_CHAR = "\"";

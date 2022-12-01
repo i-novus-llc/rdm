@@ -51,6 +51,7 @@ public final class TimeUtils {
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
     private TimeUtils() {
+        // Nothing to do.
     }
 
     public static OffsetDateTime parseOffsetDateTime(String str) {

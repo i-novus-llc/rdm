@@ -12,10 +12,10 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-public class StructureUtils {
+public final class StructureUtils {
 
     private StructureUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /** Проверка на наличие атрибута-ссылки. */

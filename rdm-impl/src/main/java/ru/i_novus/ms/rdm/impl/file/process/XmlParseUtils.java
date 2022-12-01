@@ -12,10 +12,10 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 
-public class XmlParseUtils {
+public final class XmlParseUtils {
 
     private XmlParseUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /**

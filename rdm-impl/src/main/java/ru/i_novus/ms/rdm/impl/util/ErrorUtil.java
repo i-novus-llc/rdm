@@ -6,11 +6,13 @@ import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
 
 import javax.persistence.PersistenceException;
 
-public class ErrorUtil {
+public final class ErrorUtil {
 
     private static final String ROW_NOT_UNIQUE = "row.not.unique";
 
-    private ErrorUtil() {throw new UnsupportedOperationException();}
+    private ErrorUtil() {
+        // Nothing to do.
+    }
 
     public static void rethrowError(RuntimeException e) {
         if (e instanceof NotUniqueException) {

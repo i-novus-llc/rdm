@@ -10,7 +10,10 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
@@ -26,12 +29,12 @@ import static java.util.stream.Collectors.toSet;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class FieldValueUtils {
+public final class FieldValueUtils {
 
     private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
 
     private FieldValueUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /**

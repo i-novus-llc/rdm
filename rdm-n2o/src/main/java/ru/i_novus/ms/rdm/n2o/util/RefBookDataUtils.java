@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
-public class RefBookDataUtils {
+public final class RefBookDataUtils {
 
     private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
 
@@ -22,7 +22,7 @@ public class RefBookDataUtils {
     private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
     private RefBookDataUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     public static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {

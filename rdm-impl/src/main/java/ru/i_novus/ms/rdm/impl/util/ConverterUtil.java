@@ -39,14 +39,14 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class ConverterUtil {
+public final class ConverterUtil {
 
     private static final List<? extends Serializable> NOT_NULL_VALUES = List.of(0L);
 
     private static final FieldFactory fieldFactory = new FieldFactoryImpl();
 
     private ConverterUtil() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /**

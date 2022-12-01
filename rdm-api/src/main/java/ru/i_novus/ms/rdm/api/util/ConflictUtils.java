@@ -1,14 +1,14 @@
 package ru.i_novus.ms.rdm.api.util;
 
-import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-public class ConflictUtils {
+public final class ConflictUtils {
 
     private static final List<ConflictType> DATA_CONFLICT_TYPES = asList(
             ConflictType.UPDATED, ConflictType.DELETED, ConflictType.ALTERED
@@ -19,6 +19,7 @@ public class ConflictUtils {
     );
 
     private ConflictUtils() {
+        // Nothing to do.
     }
 
     public static List<ConflictType> getDataConflictTypes() {

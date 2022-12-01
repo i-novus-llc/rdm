@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.api.util;
 
-public class DataRecordUtils {
+public final class DataRecordUtils {
 
     /** Префикс для полей (колонок) справочника, чтобы отличать их от системных. */
     private static final String FIELD_PREFIX = "_refBook_";
@@ -12,7 +12,7 @@ public class DataRecordUtils {
     private static final char FIELD_PROPERTY_SEPARATOR = '.';
 
     private DataRecordUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /**

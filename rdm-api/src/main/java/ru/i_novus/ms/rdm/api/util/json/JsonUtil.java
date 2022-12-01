@@ -19,7 +19,7 @@ public final class JsonUtil {
     }
 
     private JsonUtil() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     public static ObjectMapper getMapper() {
