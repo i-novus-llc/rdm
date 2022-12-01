@@ -2,12 +2,21 @@ package ru.i_novus.ms.rdm.api.util.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.platform.jaxrs.RestObjectMapperConfigurer;
 
 import java.io.IOException;
 
 public final class JsonUtil {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = createObjectMapper();
+
+    public static ObjectMapper createObjectMapper() {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        RestObjectMapperConfigurer.configure(objectMapper, null);
+
+        return objectMapper;
+    }
 
     private JsonUtil() {
         throw new UnsupportedOperationException();
