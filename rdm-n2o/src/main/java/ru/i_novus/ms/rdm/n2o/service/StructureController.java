@@ -142,7 +142,7 @@ public class StructureController {
         Structure.Reference reference = attribute.isReferenceType()
                 ? version.getStructure().getReference(attribute.getCode())
                 : null;
-        ReadAttribute readAttribute = getReadAttribute(attribute, reference);
+        ReadAttribute readAttribute = toReadAttribute(attribute, reference);
         enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
 
         readAttribute.setVersionId(version.getId());
@@ -322,9 +322,9 @@ public class StructureController {
         return validations;
     }
 
-    /** Получение атрибута для отображения на форме из конкретного атрибута (+ ссылки). */
-    private ReadAttribute getReadAttribute(Structure.Attribute attribute,
-                                           Structure.Reference reference) {
+    /** Преобразование конкретного атрибута (+ ссылки) в атрибут для отображения на форме. */
+    private ReadAttribute toReadAttribute(Structure.Attribute attribute,
+                                          Structure.Reference reference) {
 
         ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
