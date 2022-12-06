@@ -53,7 +53,7 @@
 
         <field id="isPrimary" domain="boolean"/>
         <field id="isPrimaryText" domain="string"
-               mapping="isPrimary ? 'Ключевой атрибут' : null"/>
+               mapping="(isPrimary?:false) ? 'Ключевой атрибут' : null"/>
 
         <field id="localizable" domain="boolean"/>
 
