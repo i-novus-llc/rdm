@@ -13,7 +13,7 @@
         </java>
     </list>
 
-    <unique result-mapping="['content'][0]" filters="versionId,code">
+    <unique result-mapping="['content'][0]" filters="versionId,optLockValue,code">
         <java method="getPage" class="ru.i_novus.ms.rdm.n2o.service.StructureController">
             <spring/>
 
