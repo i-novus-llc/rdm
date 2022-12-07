@@ -469,15 +469,21 @@ public class RefBookDataController {
         return value != null ? messages.getMessage(DATA_BOOLEAN_VALUE_PREFIX + value) : null;
     }
 
+    /**
+     * Запись (строка) для DataGrid.
+     */
     @SuppressWarnings("WeakerAccess")
     public static class DataGridRow {
 
+        /** Идентификатор записи. */
         @JsonProperty
         private Long id;
 
+        /** Колонки. */
         @JsonProperty
         private List<DataGridColumn> columns;
 
+        /** Содержимое (строка). */
         @JsonProperty
         private Map<String, Object> row;
 
@@ -520,12 +526,17 @@ public class RefBookDataController {
         }
     }
 
+    /**
+     * Ячейка для DataGrid.
+     */
     @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
 
+        /** Значение. */
         @JsonProperty
         private String value;
 
+        /** Настройки. */
         @JsonProperty
         private Map<String, Object> cellOptions;
 

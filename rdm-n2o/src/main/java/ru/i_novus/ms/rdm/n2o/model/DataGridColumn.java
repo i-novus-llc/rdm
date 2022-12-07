@@ -4,31 +4,46 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 
 /**
+ * Колонка для DataGrid.
+ *
  * Created by znurgaliev on 13.11.2018.
  */
 public class DataGridColumn {
+
+    /** Обозначение. */
     @JsonProperty
     private String key;
+    /** Наименование. */
     @JsonProperty
     private String name;
+
+    /** Фильтруемость. */
     @JsonProperty
     private boolean filterable;
+    /** Изменяемость по ширине. */
     @JsonProperty
     private boolean resizable;
+    /** Сортируемость. */
     @JsonProperty
     private boolean sortable;
+
+    /** Элемент управления для фильтрации. */
     @JsonProperty
     private Control filterControl;
 
     public DataGridColumn() {
     }
 
-    public DataGridColumn(String key, String name, boolean filterable, boolean resizable, boolean sortable, Control filterControl) {
+    public DataGridColumn(String key, String name,
+                          boolean filterable, boolean resizable, boolean sortable,
+                          Control filterControl) {
         this.key = key;
         this.name = name;
+
         this.filterable = filterable;
         this.resizable = resizable;
         this.sortable = sortable;
+
         this.filterControl = filterControl;
     }
 
