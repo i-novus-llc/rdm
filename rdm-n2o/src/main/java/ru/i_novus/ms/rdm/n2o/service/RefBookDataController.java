@@ -8,6 +8,7 @@ import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,8 @@ import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchType
 @Component
 public class RefBookDataController {
 
+    private static final String DATA_BOOLEAN_VALUE_PREFIX = "data.boolean.value.";
+
     private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
     private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
     private static final String DATA_SORT_IS_INVALID_EXCEPTION_CODE = "data.sort.is.invalid";
@@ -84,16 +87,21 @@ public class RefBookDataController {
 
     private final RefBookDataDecorator refBookDataDecorator;
 
+    private final Messages messages;
+
     @Autowired
     public RefBookDataController(VersionRestService versionService,
                                  ConflictService conflictService,
                                  DataFieldFilterProvider dataFieldFilterProvider,
-                                 RefBookDataDecorator refBookDataDecorator) {
+                                 RefBookDataDecorator refBookDataDecorator,
+                                 Messages messages) {
         this.versionService = versionService;
         this.conflictService = conflictService;
 
         this.dataFieldFilterProvider = dataFieldFilterProvider;
         this.refBookDataDecorator = refBookDataDecorator;
+
+        this.messages = messages;
     }
 
     /**
@@ -415,6 +423,7 @@ public class RefBookDataController {
                 true, true, true, filterField.getControl());
     }
 
+    /** Преобразование атрибута в поле для поиска значений по этому атрибуту. */
     private N2oField toN2oField(Structure.Attribute attribute) {
 
         switch (attribute.getType()) {
@@ -448,11 +457,16 @@ public class RefBookDataController {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, String>[] getBooleanValues() {
+    private Map<String, String>[] getBooleanValues() {
         return new Map[]{
-                Map.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                Map.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
+                Map.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, getBooleanValueName(true)),
+                Map.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, getBooleanValueName(false))
         };
+    }
+
+    /** Наименование значения boolean. */
+    private String getBooleanValueName(Boolean value) {
+        return value != null ? messages.getMessage(DATA_BOOLEAN_VALUE_PREFIX + value) : null;
     }
 
     @SuppressWarnings("WeakerAccess")
