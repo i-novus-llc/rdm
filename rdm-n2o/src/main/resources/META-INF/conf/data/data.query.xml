@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookDataController"
@@ -13,48 +13,29 @@
         </java>
     </list>
 
+    <filters>
+        <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
+        <eq filter-id="optLockValue" field-id="optLockValue" mapping="['criteria'].optLockValue"/>
+
+        <eq filter-id="localeCode" field-id="localeCode" mapping="['criteria'].localeCode"/>
+        <eq filter-id="filter" field-id="filter" mapping="['criteria'].filter" domain="object"/>
+        <eq filter-id="hasDataConflict" field-id="hasDataConflict" mapping="['criteria'].hasDataConflict"/>
+    </filters>
+
     <fields>
-        <field id="id">
-            <select/>
-        </field>
+        <field id="id"/>
 
-        <field id="versionId" domain="integer">
-            <filters>
-                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
-            </filters>
-        </field>
+        <field id="versionId" domain="integer" select="false"/>
+        <field id="optLockValue" domain="integer" select="false"/>
 
-        <field id="optLockValue" domain="integer">
-            <filters>
-                <eq filter-id="optLockValue" mapping="['criteria'].optLockValue"/>
-            </filters>
-        </field>
+        <field id="localeCode" domain="string" select="false"/>
 
-        <field id="localeCode" domain="string">
-            <filters>
-                <eq filter-id="localeCode" mapping="['criteria'].localeCode"/>
-            </filters>
-        </field>
+        <field id="columns" domain="object[]"/>
+        <field id="row" domain="object[]"/>
 
-        <field id="columns">
-            <select/>
-        </field>
+        <field id="filter" select="false"/>
 
-        <field id="row">
-            <select/>
-        </field>
-
-        <field id="filter">
-            <filters>
-                <eq filter-id="filter" mapping="['criteria'].filter" domain="object"/>
-            </filters>
-        </field>
-
-        <field id="hasDataConflict" domain="boolean">
-            <filters>
-                <eq filter-id="hasDataConflict" mapping="['criteria'].hasDataConflict"/>
-            </filters>
-        </field>
-
+        <field id="hasDataConflict" domain="boolean" select="false"/>
     </fields>
+
 </query>
