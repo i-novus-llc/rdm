@@ -22,7 +22,7 @@ public class DataRecordCriteria extends AbstractCriteria {
     @QueryParam("versionId")
     private Integer versionId;
 
-    @ApiParam("Идентификатор записи")
+    @ApiParam("Значение оптимистической блокировки версии")
     @QueryParam("optLockValue")
     private Integer optLockValue;
 
