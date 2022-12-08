@@ -5090,9 +5090,9 @@ decimal.js-light@^2.4.1:
   integrity sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "https://npm.i-novus.ru/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha1-6zkTMzRYd1y4TNGh+uBiEGu4dUU=
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 dedent@^0.7.0:
   version "0.7.0"
@@ -9931,10 +9931,10 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-framework@7.23.23:
-  version "7.23.23"
-  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.23.23.tgz#63234172dacfdd85e1b0dc9d70c7c7b9a4bd4178"
-  integrity sha512-bdEyrrN/DmlztLtdXHq879ohgG0Oq9ZucwBYO6Gmaz0QMN5PFkWuV0siR8e3U40GWbFRz7rDd0q83yXLrbzdyg==
+n2o-framework@7.23.25:
+  version "7.23.25"
+  resolved "https://registry.yarnpkg.com/n2o-framework/-/n2o-framework-7.23.25.tgz#9c8bb2f5f2f2f1dad0b7003e1d8b06e50396c146"
+  integrity sha512-CUI/VikLEBjs/pmIyX/rzm2wv6qUkOySGl7vmFoSyBK9y+ki3CYeR/Ck2Pdn9wBjz+neQzRbfrGnKV2mkbeKzA==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
