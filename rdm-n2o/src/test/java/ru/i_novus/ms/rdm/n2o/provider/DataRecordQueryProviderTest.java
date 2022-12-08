@@ -109,7 +109,7 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
 
     private String getFieldId(AbstractField item) {
 
-        return item.getId();
+        return item != null ? item.getId() : null;
     }
 
     @Test
@@ -128,6 +128,11 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
 
         @Override
         public List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
+            return emptyList();
+        }
+
+        @Override
+        public List<N2oQuery.Filter> createRegularFilters(DataRecordRequest request) {
             return emptyList();
         }
     }
