@@ -17,18 +17,21 @@
         <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
         <eq filter-id="optLockValue" field-id="optLockValue" mapping="['criteria'].optLockValue"/>
 
+        <eq filter-id="id" field-id="id" mapping="['criteria'].id"/>
         <eq filter-id="localeCode" field-id="localeCode" mapping="['criteria'].localeCode"/>
+        <eq filter-id="dataAction" field-id="dataAction" mapping="['criteria'].dataAction"/>
+
         <eq filter-id="filter" field-id="filter" mapping="['criteria'].filter" domain="object"/>
         <eq filter-id="hasDataConflict" field-id="hasDataConflict" mapping="['criteria'].hasDataConflict"/>
     </filters>
 
     <fields>
-        <field id="id"/>
-
         <field id="versionId" domain="integer" select="false"/>
         <field id="optLockValue" domain="integer" select="false"/>
 
+        <field id="id"/>
         <field id="localeCode" domain="string" select="false"/>
+        <field id="dataAction" domain="string" select="false"/>
 
         <field id="columns" domain="object[]"/>
         <field id="row" domain="object[]"/>
