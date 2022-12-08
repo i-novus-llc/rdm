@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiParam;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Sort;
 
 import javax.ws.rs.QueryParam;
@@ -65,7 +64,7 @@ public class DataCriteria extends DataRecordCriteria {
     @JsonIgnore
     public boolean isHasDataConflict() {
 
-        return BooleanUtils.isTrue(hasDataConflict) && (getLocaleCode() == null);
+        return Boolean.TRUE.equals(hasDataConflict) && (getLocaleCode() == null);
     }
 
     @Override
