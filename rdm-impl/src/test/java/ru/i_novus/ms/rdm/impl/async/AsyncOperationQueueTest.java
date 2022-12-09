@@ -11,6 +11,7 @@ import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
 import java.io.Serializable;
@@ -48,6 +49,7 @@ public class AsyncOperationQueueTest {
     @SuppressWarnings("java:S2696")
     public void setUp() {
 
+        setField(queue, "objectMapper", JsonUtil.getMapper());
         setField(queue, "queueId", TEST_QUEUE_ID);
     }
 

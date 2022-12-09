@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationHandler;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
@@ -49,6 +50,7 @@ public class AsyncOperationQueueListenerTest {
     @SuppressWarnings("java:S2696")
     public void setUp() {
 
+        setField(listener, "objectMapper", JsonUtil.getMapper());
         setField(listener, "queueId", TEST_QUEUE_ID);
     }
 
