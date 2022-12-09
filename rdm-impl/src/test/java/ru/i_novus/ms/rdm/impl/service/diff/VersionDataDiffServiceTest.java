@@ -47,7 +47,7 @@ import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getVdsObjectMappe
 @SuppressWarnings({"java:S5778"})
 public class VersionDataDiffServiceTest extends BaseTest {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final VdsMapperConfigurer VDS_MAPPER_CONFIGURER = new VdsMapperConfigurer();
 
     private static final String TEST_REFBOOK_CODE = "test_code";
@@ -117,7 +117,7 @@ public class VersionDataDiffServiceTest extends BaseTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        VDS_MAPPER_CONFIGURER.configure(JSON_MAPPER);
+        VDS_MAPPER_CONFIGURER.configure(OBJECT_MAPPER);
     }
 
     /** Поиск в случае без фильтрации. */

@@ -11,7 +11,7 @@ import static org.junit.Assert.fail;
 
 public class FieldMixinTest {
 
-    private static final ObjectMapper vdsObjectMapper = DataDiffUtil.getVdsObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = DataDiffUtil.getMapper();
 
     @Test
     public void testJson() {
@@ -31,8 +31,8 @@ public class FieldMixinTest {
         if (field == null)
             return;
 
-        String json = JsonUtil.toJsonString(vdsObjectMapper, field);
-        T restored = JsonUtil.fromJsonString(vdsObjectMapper, json, clazz);
+        String json = JsonUtil.toJsonString(OBJECT_MAPPER, field);
+        T restored = JsonUtil.fromJsonString(OBJECT_MAPPER, json, clazz);
         assertEquals(field.getClass(), restored.getClass());
         assertEquals(field, restored);
     }

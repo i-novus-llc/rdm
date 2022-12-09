@@ -19,7 +19,7 @@ import static org.junit.Assert.fail;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DiffFieldValueMixinTest {
 
-    private static final ObjectMapper vdsObjectMapper = DataDiffUtil.getVdsObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = DataDiffUtil.getMapper();
 
     @Test
     public void testJson() {
@@ -63,8 +63,8 @@ public class DiffFieldValueMixinTest {
 
         DiffFieldValue value = new DiffFieldValue(field, oldValue, newValue, toStatus(oldValue, newValue));
 
-        String json = JsonUtil.toJsonString(vdsObjectMapper, value);
-        DiffFieldValue restored = JsonUtil.fromJsonString(vdsObjectMapper, json, DiffFieldValue.class);
+        String json = JsonUtil.toJsonString(OBJECT_MAPPER, value);
+        DiffFieldValue restored = JsonUtil.fromJsonString(OBJECT_MAPPER, json, DiffFieldValue.class);
         assertEquals("Error when class deserialization from json\n:" + json + "\n:", value.getClass(), restored.getClass());
         assertEquals("Error when value deserialization from json\n:" + json + "\n:", value, restored);
     }
