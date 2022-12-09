@@ -291,7 +291,7 @@ public class Structure implements Serializable {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 
     @ApiModel("Атрибут справочника")
@@ -467,7 +467,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            return JsonUtil.toJsonString(this);
+            return getClass().getSimpleName() + JsonUtil.toJsonString(this);
         }
     }
 
@@ -580,7 +580,7 @@ public class Structure implements Serializable {
 
         @Override
         public String toString() {
-            return JsonUtil.toJsonString(this);
+            return getClass().getSimpleName() + JsonUtil.toJsonString(this);
         }
     }
 }

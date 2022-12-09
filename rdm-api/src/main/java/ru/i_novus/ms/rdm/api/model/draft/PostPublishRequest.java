@@ -102,6 +102,6 @@ public class PostPublishRequest implements Serializable {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }

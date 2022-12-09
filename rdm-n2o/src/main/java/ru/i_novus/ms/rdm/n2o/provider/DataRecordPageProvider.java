@@ -9,6 +9,7 @@ import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
+import net.n2oapp.framework.api.metadata.global.view.page.datasource.N2oStandardDatasource;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,14 +80,21 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
     private N2oForm createForm(String context, DataRecordRequest request) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
-        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
-        
-        n2oForm.setPreFilters(createPreFilters());
-
+        n2oForm.setDatasource(createDatasource(context));
         n2oForm.setItems(createPageFields(request));
 
         return n2oForm;
+    }
+
+    private N2oStandardDatasource createDatasource(String context) {
+
+        N2oStandardDatasource n2oDatasource = new N2oStandardDatasource();
+        n2oDatasource.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
+        n2oDatasource.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+
+        n2oDatasource.setFilters(createPreFilters());
+
+        return n2oDatasource;
     }
 
     private N2oPreFilter[] createPreFilters() {
@@ -101,10 +109,8 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oPreFilter createPreFilter(String fieldId, String param, FilterType type) {
 
-        N2oPreFilter preFilter = new N2oPreFilter();
-        preFilter.setFieldId(fieldId);
+        N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
         preFilter.setParam(param);
-        preFilter.setType(type);
 
         return preFilter;
     }

@@ -75,7 +75,7 @@ public class AbstractCriteria extends RestCriteria {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 
     public static boolean isEmptyOrders(List<Sort.Order> orders, List<Sort.Order> defaultOrders) {
