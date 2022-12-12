@@ -19,6 +19,7 @@
         <eq filter-id="refBookId" field-id="refBookId" mapping="['criteria'].refBookId"/>
         <eq filter-id="versionId" field-id="version.id" mapping="['criteria'].versionId"/>
 
+        <eq filter-id="id" field-id="id" mapping="['criteria'].versionId"/>
         <eq filter-id="excludeDraft" field-id="excludeDraft" mapping="['criteria'].excludeDraft"/>
     </filters>
 
