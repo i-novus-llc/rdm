@@ -7,6 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -135,8 +136,8 @@ public class DiffRowValueCalculator {
 
     private DiffFieldValue calculateFieldValue(String fieldName, DiffStatusEnum rowStatus) {
         Field field = getDiffFieldValue(firstDiff, fieldName).getField();
-        Object oldValue = rowStatus == INSERTED ? null : getOldValue(fieldName);
-        Object newValue = rowStatus == DELETED ? null : getNewValue(fieldName);
+        Serializable oldValue = rowStatus == INSERTED ? null : getOldValue(fieldName);
+        Serializable newValue = rowStatus == DELETED ? null : getNewValue(fieldName);
         DiffStatusEnum status = calculateFieldStatus(rowStatus, oldValue, newValue);
 
         return new DiffFieldValue<>(field, status == null ? null : oldValue, newValue, status);
@@ -146,7 +147,7 @@ public class DiffRowValueCalculator {
         return rowStatus != UPDATED || !changed(oldValue, newValue) ? rowStatus : null;
     }
 
-    private Object getOldValue(String fieldName) {
+    private Serializable getOldValue(String fieldName) {
         DiffFieldValue diffFieldValue = getDiffFieldValue(firstDiff, fieldName);
 
         if(isBackward)
@@ -157,7 +158,7 @@ public class DiffRowValueCalculator {
             return diffFieldValue.getNewValue();
     }
 
-    private Object getNewValue(String fieldName) {
+    private Serializable getNewValue(String fieldName) {
         DiffFieldValue diffFieldValue = getDiffFieldValue(lastDiff == null ? firstDiff : lastDiff, fieldName);
 
         if(!isBackward)
