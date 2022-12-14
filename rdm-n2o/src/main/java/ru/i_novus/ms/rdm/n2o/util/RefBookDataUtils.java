@@ -15,6 +15,7 @@ public final class RefBookDataUtils {
 
     private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
 
+    // TODO: Вынести список значений в rdmui.properties, а здесь преобразовать в regex (с фильтрацией корректных символов!)
     private static final String BOOL_TRUE_REGEX = "true|t|y|yes|yeah|д|да|истина|правда";
     private static final Pattern BOOL_TRUE_PATTERN = Pattern.compile(BOOL_TRUE_REGEX);
     private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
