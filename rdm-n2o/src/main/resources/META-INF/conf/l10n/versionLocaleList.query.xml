@@ -12,8 +12,9 @@
 
     <filters>
         <eq filter-id="versionId" field-id="versionId" domain="integer"/>
+        <eq filter-id="id" field-id="id" domain="string"/>
 
-        <eq filter-id="localeCode" field-id="id" domain="string"/>
+        <eq filter-id="localeCode" field-id="localeCode" domain="string"/>
     </filters>
 
     <fields>
