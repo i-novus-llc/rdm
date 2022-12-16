@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>4.9.0</version>
+        <version>5.1.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -20,10 +20,12 @@
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.23.43</n2o.version>
+        <n2o.version>7.23.49</n2o.version>
         <vds.version>3.20</vds.version>
         <l10n.vds.version>3.22</l10n.vds.version>
 
+        <jackson-databind.version>2.13.4.2</jackson-databind.version>
+        <jackson-datatype.version>2.13.4</jackson-datatype.version>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
         <itext.version>5.5.9</itext.version>
@@ -35,6 +37,8 @@
         <security.admin.version>6.1.1</security.admin.version>
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
+
+        <rdm.n2o.debug>false</rdm.n2o.debug>
     </properties>
 
     <name>rdm</name>
@@ -408,6 +412,13 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>n2o-debug</id>
+            <properties>
+                <rdm.n2o.debug>true</rdm.n2o.debug>
+            </properties>
         </profile>
     </profiles>
 </project>
