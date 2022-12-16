@@ -259,7 +259,7 @@
                         </button>
 
                         <button label="Удалить" id="deleteAttribute" color="danger" icon="fa fa-trash"
-                                datasource="refBookVersion" disable-on-empty-model="false">
+                                disable-on-empty-model="false">
                             <invoke operation-id="deleteAttribute" object-id="attribute"
                                     route="/:versionId/attribute/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">
@@ -346,7 +346,7 @@
                         </button>
 
                         <button id="deleteRecord" label="Удалить" color="danger" icon="fa fa-trash"
-                                datasource="refBookVersion" disable-on-empty-model="false">
+                                disable-on-empty-model="false">
                             <invoke operation-id="deleteRecord" object-id="data"
                                     route="/:versionId/record/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">
