@@ -99,10 +99,11 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oPreFilter[] createPreFilters() {
 
-        N2oPreFilter idFilter = createPreFilter("id", "id", FilterType.eq);
-        N2oPreFilter optLockValueFilter = createPreFilter("optLockValue", "optLockValue", FilterType.eq);
-        N2oPreFilter localeCodeFilter = createPreFilter("localeCode", "localeCode", FilterType.eq);
-        N2oPreFilter dataActionFilter = createPreFilter("dataAction", "dataAction", FilterType.eq);
+        N2oPreFilter idFilter = createPreFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID, FilterType.eq);
+
+        N2oPreFilter optLockValueFilter = createPreFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE, FilterType.eq);
+        N2oPreFilter localeCodeFilter = createPreFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE, FilterType.eq);
+        N2oPreFilter dataActionFilter = createPreFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION, FilterType.eq);
 
         return new N2oPreFilter[]{idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
     }

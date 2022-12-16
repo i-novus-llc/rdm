@@ -11,6 +11,7 @@ public class DataRecordConstants {
     private static final List<String> DATA_ACTIONS = Arrays.asList(DATA_ACTION_CREATE, DATA_ACTION_UPDATE);
 
     public static final String FIELD_SYSTEM_ID = "id";
+
     public static final String FIELD_VERSION_ID = "versionId";
     public static final String FIELD_OPT_LOCK_VALUE = "optLockValue";
     public static final int DEFAULT_OPT_LOCK_VALUE = 0;
