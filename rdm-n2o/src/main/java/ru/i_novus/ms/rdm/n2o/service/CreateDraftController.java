@@ -75,10 +75,11 @@ public class CreateDraftController {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!uiDraft.isVersionDraft(versionId)) {
+            versionId = uiDraft.getId();
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), optLockValue, uiPassport));
+        refBookService.update(toRefBookUpdateRequest(versionId, optLockValue, uiPassport));
         return uiDraft;
     }
 

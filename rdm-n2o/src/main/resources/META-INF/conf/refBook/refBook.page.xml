@@ -175,15 +175,13 @@
 
         <tabs always-refresh="true">
             <tab id="tab_passport" name="Паспорт">
-            <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passport" datasource="versionPassport" fetch-on-init="true">
                     <toolbar place="bottomRight">
-                        <!--route="/:versionId/passport/edit"-->
-                        <button label="Изменить" id="editPassport">
+                        <button id="editPassport" label="Изменить">
                             <invoke operation-id="edit" object-id="refBook"
+                                    route="/:versionId/passport/edit"
                                     refresh-datasources="refBookVersion" close-after-success="false">
-                                <!--<path-param name="versionId" value="{id}" datasource="refBookVersion"/>-->
-                                <!--<header-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>-->
+                                <path-param name="versionId" value="{version.id}"/>
                             </invoke>
                         </button>
                     </toolbar>

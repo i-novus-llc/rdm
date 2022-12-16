@@ -3,6 +3,9 @@
       name="Паспорт">
 
     <fields>
+        <row>
+            <output-text id="version.id" visible="false"/>
+        </row>
 
         <row>
             <input-text id="code" label="Код" required="true">
@@ -19,6 +22,5 @@
         <input-text id="shortName" label="Краткое наименование"/>
         <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
         <text-area id="description" label="Описание"/>
-        
     </fields>
 </form>
