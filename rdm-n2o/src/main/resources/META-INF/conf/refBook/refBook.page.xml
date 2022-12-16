@@ -44,28 +44,16 @@
             </filters>
         </datasource>
 
-        <!-- Модель (используемой) локализации -->
-        <datasource id="versionLocale" default-values-mode="defaults">
-            <!--<dependencies>-->
-            <!--    <fetch on="refBookVersion" model="resolve"/>-->
-            <!--</dependencies>-->
-
-            <!--<filters>-->
-            <!--    <eq field-id="versionId" param="id" datasource="refBookVersion"/>-->
-            <!--</filters>-->
-        </datasource>
-
         <!-- Модель локализаций записей (данных) у версии справочника -->
         <datasource id="localizedData" query-id="data" object-id="data">
             <dependencies>
                 <fetch on="refBookVersion" model="resolve"/>
-                <fetch on="versionLocale" model="resolve"/>
             </dependencies>
 
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
-                <eq field-id="localeCode" value="{localeCode.id}" datasource="versionLocale" required="true"/>
+                <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion" required="true"/>
             </filters>
         </datasource>
 
@@ -91,7 +79,7 @@
                 <set field-label-location="left">
                     <row>
                         <output-text id="refBookId" visible="false"/>
-                        <output-text id="current" depends-on="version" default-value="-">
+                        <output-text id="current" depends-on="version" default-value="-" visible="false">
                             <dependencies>
                                 <set-value on="version">version.refBookId??'?' + ' (' + (version.code??'?') + ') *'</set-value>
                             </dependencies>
@@ -186,6 +174,7 @@
         <!--</table>-->
 
         <tabs always-refresh="true">
+            <tab id="tab_passport" name="Паспорт">
             <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passport" datasource="versionPassport" fetch-on-init="true">
                     <toolbar place="bottomRight">
@@ -397,13 +386,34 @@
             </tab>
 
             <tab id="tab_localized" name="Переведённые данные">
-                <form id="locale_select" datasource="versionLocale">
+                <form id="locale_select" datasource="refBookVersion">
                     <fields>
-                        <select id="localeCode" no-label-block="true" cleanable="false"
-                                query-id="versionLocaleList" label-field-id="name"
-                                depends-on="refBookVersion">
+                        <set field-label-location="left">
+                            <row>
+                                <output-text id="id" depends-on="version" visible="false">
+                                    <dependencies>
+                                        <set-value on="version">version.id</set-value>
+                                    </dependencies>
+                                </output-text>
+
+                                <output-text id="optLockValue" depends-on="version" visible="false">
+                                    <dependencies>
+                                        <set-value on="version">version.optLockValue</set-value>
+                                    </dependencies>
+                                </output-text>
+
+                                <output-text id="localeCode" depends-on="locale" default-value="-" visible="false">
+                                    <dependencies>
+                                        <set-value on="locale">locale.id</set-value>
+                                    </dependencies>
+                                </output-text>
+                            </row>
+                        </set>
+
+                        <select id="locale" no-label-block="true" cleanable="false"
+                                query-id="versionLocaleList" label-field-id="name">
                             <filters>
-                                <eq field-id="versionId" value="{id}" datasource="refBookVersion" model="resolve"/>
+                                <eq field-id="versionId" value="{id}" model="resolve"/>
                             </filters>
 
                             <dependencies>
@@ -422,7 +432,8 @@
                 <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
                     <toolbar place="topRight">
                         <button id="localizeRecord" label="Задать перевод" icon="fa fa-pencil"
-                                datasource="refBookVersion" model="resolve">
+                                datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
+                            <!-- NB: id для page-id берётся из :versionId в route с учётом datasource в button -->
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
                                         route="/:versionId/record/localize"
                                         submit-operation-id="localize" submit-label="Сохранить"
@@ -433,7 +444,7 @@
                                             <eq field-id="versionId" param="versionId" model="resolve"/>
                                             <eq field-id="optLockValue" param="optLockValue" model="resolve"/>
 
-                                            <eq field-id="localeCode" param="localeCode" model="resolve"/>
+                                            <eq field-id="localeCode" param="localeCode" model="resolve" required="true"/>
                                             <eq field-id="id" param="id" model="resolve" required="true"/>
                                             <eq field-id="dataAction" param="dataAction" model="resolve"/>
                                         </filters>
@@ -444,7 +455,7 @@
                                     <path-param name="versionId" value="{id}" datasource="refBookVersion"/>
                                     <query-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
 
-                                    <query-param name="localeCode" value="{localeCode.id}" datasource="versionLocale"/>
+                                    <query-param name="localeCode" value="{locale.id}" datasource="refBookVersion"/>
                                     <query-param name="id" value="{id}" datasource="localizedData"/>
                                     <query-param name="dataAction" value="localize"/>
                                 </params>
@@ -458,7 +469,7 @@
                     </toolbar>
 
                     <dependencies>
-                        <visibility datasource="versionLocale">${rdm.l10n.support} &amp;&amp; localeCode.id != null</visibility>
+                        <visibility datasource="refBookVersion">${rdm.l10n.support} &amp;&amp; locale.id != null</visibility>
                     </dependencies>
                 </table>
             </tab>
