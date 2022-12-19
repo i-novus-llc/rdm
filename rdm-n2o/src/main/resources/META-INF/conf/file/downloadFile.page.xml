@@ -3,7 +3,7 @@
              name="Скачивание файла">
 
     <form>
-        <datasource query-id="versionDefault" object-id="refBook" default-values-mode="defaults">
+        <datasource query-id="versionDefault" object-id="refBook" default-values-mode="merge">
             <filters>
                 <eq field-id="versionId" param="versionId"/>
             </filters>
