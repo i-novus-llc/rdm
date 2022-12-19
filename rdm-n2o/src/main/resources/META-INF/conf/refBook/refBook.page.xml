@@ -368,7 +368,6 @@
                                 datasource="refBookVersion" model="resolve">
                             <show-modal page-id="uploadData"
                                         route="/:versionId/record/uploadData"
-                                        submit-operation-id="uploadData"
                                         refresh-datasources="refBookVersion">
                                 <params>
                                     <path-param name="versionId" value="{id}" datasource="refBookVersion" model="resolve"/>
