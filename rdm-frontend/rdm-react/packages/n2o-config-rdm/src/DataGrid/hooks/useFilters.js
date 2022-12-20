@@ -1,25 +1,24 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
-export const useFilters = ({ models, setFilter, fetchData }) => {
-  const [filters, setFilters] = useState({})
-  const { filter } = models
+export const useFilters = ({ filterModel, setFilter, fetchData }) => {
+  const [filters, setFilterState] = useState({})
 
-  const onFilter = newFilter => {
-    const filterModel = {
-      ...filter,
+  const onFilter = useCallback((newFilter) => {
+    const filter = {
+      ...filterModel,
       [`filter.${newFilter.id}`]: newFilter.value,
     }
 
-    setFilters(({
+    setFilterState(({
       ...filters,
       [newFilter.id]: newFilter.value,
     }))
-    setFilter(filterModel)
+    setFilter(filter)
     fetchData({
-      ...filterModel,
+      ...filter,
       page: 1
     })
-  }
+  }, [setFilter, filterModel, fetchData])
 
   return { filters, onFilter }
 }

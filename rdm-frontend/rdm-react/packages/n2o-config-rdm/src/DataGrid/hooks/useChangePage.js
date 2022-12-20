@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import isEqual from 'lodash/isEqual'
 import isEmpty from 'lodash/isEmpty'
 
@@ -13,21 +13,22 @@ export const useChangePage = ({
   fetchData,
 }) => {
   const prevData = useRef([])
-  const { datasource, filter } = models
+  const { datasource, filter = {} } = models
 
-  const onChangePage = page => {
+  const onChangePage = useCallback(page => {
     fetchData({
       page,
-      ...(filter || {}),
+      ...filter,
     })
-  }
+  }, [fetchData, filter])
 
   useEffect(() => {
     const data = getDataFromDatasource(datasource)
     const notEqualData = !isEqual(prevData.current, data)
-    const needSetPage = isEmpty(data) && count > 0 && activePage > 1
 
     if (notEqualData) {
+      const needSetPage = isEmpty(data) && count > 0 && activePage > 1
+
       if (needSetPage) {
         setPage(Math.ceil(count / size))
       }
@@ -36,7 +37,5 @@ export const useChangePage = ({
     }
   }, [datasource, activePage, count, size])
 
-  return {
-    onChangePage,
-  }
+  return onChangePage
 }

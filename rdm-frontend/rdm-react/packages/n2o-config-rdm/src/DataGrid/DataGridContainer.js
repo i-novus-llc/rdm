@@ -1,22 +1,44 @@
 import React from 'react'
+import AdvancedTable from "n2o-framework/lib/components/widgets/AdvancedTable/AdvancedTable";
 
 import { useColumns } from './hooks/useColumns'
 import { useData } from './hooks/useData'
 import { useFilters } from './hooks/useFilters'
-import DataGrid from './DataGrid'
+import DataGridCell from "./DataGridCell";
+
+const components = {
+  body: {
+    cell: DataGridCell
+  }
+};
 
 export function DataGridContainer(props) {
-    const columns = useColumns(props)
-    const data = useData(props)
-    const { filters, onFilter } = useFilters(props)
+    const { setResolve, models, setFilter, fetchData, onSort, sorting, id } = props
+    const columns = useColumns({
+      id,
+      datasourceModel: models.datasource,
+      sorting,
+      onSort
+    })
+    const data = useData({
+      datasourceModel: models.datasource,
+      setResolve
+    })
+    const { filters, onFilter } = useFilters({
+      filterModel: models.filter,
+      setFilter,
+      fetchData
+    })
 
     return (
-        <DataGrid
-            columns={columns}
-            data={data}
-            filters={filters}
-            onFilter={onFilter}
-            {...props.table}
+        <AdvancedTable
+          components={components}
+          columns={columns}
+          data={data}
+          filters={filters}
+          onFilter={onFilter}
+          resolveModel={models.resolve}
+          {...props}
         />
     );
 }

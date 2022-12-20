@@ -5,24 +5,23 @@ import isEmpty from 'lodash/isEmpty'
 
 import { getDataFromDatasource } from '../utils'
 
-export const useData = ({ models, setResolve }) => {
+export const useData = ({ datasourceModel, setResolve }) => {
   const prevData = useRef([])
   const [data, setData] = useState([])
-  const { datasource } = models
 
-    useEffect(() => {
-      const data = getDataFromDatasource(datasource)
+  useEffect(() => {
+    const data = getDataFromDatasource(datasourceModel)
 
-      if (!isEqual(prevData.current, data)) {
-        setData(data)
+    if (!isEqual(prevData.current, data)) {
+      setData(data)
 
-        if (isEmpty(prevData.current) && !isEmpty(data)) {
-          setResolve(first(data))
-        }
-
-        prevData.current = data
+      if (isEmpty(prevData.current) && !isEmpty(data)) {
+        setResolve(first(data))
       }
-    }, [datasource])
+
+      prevData.current = data
+    }
+  }, [datasourceModel, setResolve])
 
   return data
 }

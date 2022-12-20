@@ -11,19 +11,19 @@ import { getColumnsFromDatasource } from '../utils'
 
 const ReduxCell = columnHOC(TableCell)
 
-export const useColumns = ({ id, models: { datasource }, sorting, onSort }) => {
+export const useColumns = ({ id, datasourceModel, sorting, onSort }) => {
   const prevColumns = useRef([])
   const [columns, setColumns] = useState([])
 
   useEffect(() => {
-    const columns = getColumnsFromDatasource(datasource)
+    const columns = getColumnsFromDatasource(datasourceModel)
 
     if (!isEqual(prevColumns.current, columns)) {
       setColumns(prepareColumns(columns))
 
       prevColumns.current = columns
     }
-  }, [datasource])
+  }, [datasourceModel])
 
   const prepareColumns = columns => {
     return map(columns, (item) => {
