@@ -126,7 +126,7 @@ public final class ConverterUtil {
     @SuppressWarnings("unchecked")
     private static FieldValue toFieldValue(Map<String, Object> data, Field field) {
 
-        return field.valueOf(data.get(field.getName()));
+        return field.valueOf((Serializable) data.get(field.getName()));
     }
 
     public static Date date(LocalDateTime date) {
