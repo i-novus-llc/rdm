@@ -46,7 +46,7 @@ public class DataDiffUtilTest {
         Field floatField = new FloatField(VERSION_ATTRIBUTE_FLOAT);
         Field strField = new StringField(VERSION_ATTRIBUTE_STR);
         Field dateField = new DateField(VERSION_ATTRIBUTE_DATE);
-        Field boolField = new StringField(VERSION_ATTRIBUTE_BOOL);
+        Field boolField = new BooleanField(VERSION_ATTRIBUTE_BOOL);
         Field refField = new ReferenceField(VERSION_ATTRIBUTE_REF);
 
         DiffRowValue value = new DiffRowValue(asList(
@@ -55,7 +55,7 @@ public class DataDiffUtilTest {
                 new DiffFieldValue(strField, null, "two", null),
                 new DiffFieldValue(dateField, null, LocalDate.of(2021, 2, 3), DiffStatusEnum.INSERTED),
                 new DiffFieldValue(boolField, Boolean.FALSE, Boolean.TRUE, DiffStatusEnum.UPDATED),
-                new DiffFieldValue(refField, "ref1", null, DiffStatusEnum.DELETED)
+                new DiffFieldValue(refField, "ref1", null, DiffStatusEnum.DELETED) // reference value only
         ), DiffStatusEnum.UPDATED);
 
         String json = toDataDiffValues(value);
