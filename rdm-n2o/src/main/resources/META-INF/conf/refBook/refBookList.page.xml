@@ -49,7 +49,7 @@
                 </menu-item>
             </sub-menu>
 
-            <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!isArchived">
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
                 <open-page page-id="refBook" page-name="Редактирование справочника &quot;{name}&quot; [{code}]"
                            route="/:refBookId/edit">
                     <params>
@@ -58,21 +58,34 @@
                         <query-param name="code" value="{code}"/>
                     </params>
                 </open-page>
+
+                <dependencies>
+                    <enabling>!isArchived</enabling>
+                </dependencies>
             </button>
 
-            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger"
-                    enabled="{!isArchived &amp;&amp; !hasReferrer}">
+            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
+
+                <dependencies>
+                    <enabling>!isArchived &amp;&amp; !hasReferrer</enabling>
+                </dependencies>
             </button>
 
-            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
-                    visible="{!isArchived}">
+            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock">
                 <invoke operation-id="toArchive"/>
+
+                <dependencies>
+                    <visibility>!isArchived</visibility>
+                </dependencies>
             </button>
 
-            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
-                    visible="{isArchived}">
+            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock">
                 <invoke operation-id="fromArchive"/>
+
+                <dependencies>
+                    <visibility>isArchived</visibility>
+                </dependencies>
             </button>
         </toolbar>
 
