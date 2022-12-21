@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import net.n2oapp.platform.jaxrs.MapperConfigurer;
 import org.springframework.data.domain.PageImpl;
-import ru.i_novus.ms.rdm.api.model.diff.DiffFieldValueMixin;
+import ru.i_novus.ms.rdm.api.model.diff.DiffFieldValueDeserializer;
 import ru.i_novus.ms.rdm.api.model.diff.DiffRowValueMixin;
 import ru.i_novus.ms.rdm.api.model.field.FieldValueMixin;
 import ru.i_novus.ms.rdm.api.model.refdata.RowValueMixin;
@@ -26,12 +26,16 @@ public class VdsMapperConfigurer implements MapperConfigurer {
     @Override
     public void configure(ObjectMapper mapper) {
 
-        mapper.addMixIn(RowValue.class, RowValueMixin.class);
-        mapper.addMixIn(FieldValue.class, FieldValueMixin.class);
-        mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
-        mapper.addMixIn(DiffFieldValue.class, DiffFieldValueMixin.class);
         mapper.addMixIn(Field.class, VdsFieldMixin.class);
+        mapper.addMixIn(FieldValue.class, FieldValueMixin.class);
+        mapper.addMixIn(RowValue.class, RowValueMixin.class);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {});
+
+        mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
+
+        SimpleModule module = new SimpleModule()
+                .addDeserializer(DiffFieldValue.class, new DiffFieldValueDeserializer());
+        mapper.registerModule(module);
 
         mapper.enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
