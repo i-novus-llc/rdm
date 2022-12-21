@@ -24,8 +24,8 @@
         <vds.version>3.20</vds.version>
         <l10n.vds.version>3.22</l10n.vds.version>
 
-        <jackson-databind.version>2.13.4.2</jackson-databind.version>
-        <jackson-datatype.version>2.13.4</jackson-datatype.version>
+        <jackson-databind.version>2.12.7.1</jackson-databind.version>
+        <jackson-datatype.version>2.12.7</jackson-datatype.version>
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
         <itext.version>5.5.9</itext.version>
