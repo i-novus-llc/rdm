@@ -24,6 +24,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -406,15 +407,7 @@ public class CachedDataDiffServiceTest {
         return criteria;
     }
 
-    private DiffRowValue createInserted(Integer pkValue) {
-        return createDiffRowValue(pkValue, INSERTED);
-    }
-
-    private DiffRowValue createDeleted(Integer pkValue) {
-        return createDiffRowValue(pkValue, DELETED);
-    }
-
-    private DiffRowValue createDiffRowValue(Integer pkValue, DiffStatusEnum status) {
+    private DiffRowValue createDiffRowValue(BigInteger pkValue, DiffStatusEnum status) {
         return new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), status == INSERTED ? null : pkValue, status == INSERTED ? pkValue : null, status),
@@ -437,8 +430,8 @@ public class CachedDataDiffServiceTest {
 
     private VersionDataDiff createVersionDataDiff(String pkName, int pkValue, DiffStatusEnum firstRowValuesStatus, DiffStatusEnum lastRowValueStatus) {
         return new VersionDataDiff(pkName + "=" + pkValue,
-                createDiffRowValue(pkValue, firstRowValuesStatus),
-                createDiffRowValue(pkValue, lastRowValueStatus));
+                createDiffRowValue(BigInteger.valueOf(pkValue), firstRowValuesStatus),
+                createDiffRowValue(BigInteger.valueOf(pkValue), lastRowValueStatus));
     }
 
     private CompareDataCriteria createCriteria(Integer oldVersionId, Integer newVersionId, DiffStatusEnum status, Boolean countOnly) {
