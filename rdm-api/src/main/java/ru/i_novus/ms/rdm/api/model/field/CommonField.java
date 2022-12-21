@@ -23,6 +23,12 @@ public class CommonField extends Field {
         return null;
     }
 
+    @JsonIgnore
+    @Override
+    public Class getFieldValueClass() {
+        return null;
+    }
+
     @Override
     public FieldValue valueOf(Serializable value) {
         return null;
