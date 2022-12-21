@@ -358,7 +358,7 @@ public final class ConverterUtil {
             return value;
         }
 
-        throw new RdmException("invalid field type");
+        throw new RdmException(String.format("invalid field type: %s", field));
     }
 
     /**

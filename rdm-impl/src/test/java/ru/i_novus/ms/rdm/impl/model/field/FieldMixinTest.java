@@ -39,7 +39,7 @@ public class FieldMixinTest {
 
     private <T> T createField(Class<T> clazz) {
         try {
-            return (T) clazz.getConstructor(String.class).newInstance("text");
+            return clazz.getConstructor(String.class).newInstance("text");
 
         } catch (ReflectiveOperationException e) {
             fail();

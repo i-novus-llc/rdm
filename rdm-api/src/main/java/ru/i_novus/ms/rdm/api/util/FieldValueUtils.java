@@ -158,10 +158,10 @@ public final class FieldValueUtils {
     public static Serializable castReferenceValue(String value, FieldType toFieldType) {
 
         return switch (toFieldType) {
-            case INTEGER -> new BigInteger(value);
-            case FLOAT -> Float.parseFloat(value);
-            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
             case BOOLEAN -> Boolean.valueOf(value);
+            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
+            case FLOAT -> Float.parseFloat(value);
+            case INTEGER -> new BigInteger(value);
             default -> value;
         };
     }
@@ -205,9 +205,7 @@ public final class FieldValueUtils {
 
     public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
 
-        return DiffStatusEnum.DELETED.equals(status)
-                ? (Serializable) fieldValue.getOldValue()
-                : (Serializable) fieldValue.getNewValue();
+        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -219,12 +217,12 @@ public final class FieldValueUtils {
     public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
 
         return switch (fieldType) {
-            case STRING -> new StringFieldValue(fieldCode, (String) value);
-            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
             case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
             case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
+            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
+            case STRING -> new StringFieldValue(fieldCode, (String) value);
             case TREE -> new TreeFieldValue(fieldCode, (String) value);
         };
     }

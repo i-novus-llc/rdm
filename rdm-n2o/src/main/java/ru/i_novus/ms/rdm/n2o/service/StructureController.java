@@ -31,10 +31,10 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -80,7 +80,7 @@ public class StructureController {
         Integer versionId = criteria.getVersionId();
         RefBookVersion version = versionService.getById(versionId);
         if (version.hasEmptyStructure()) {
-            return new RestPage<>(new ArrayList<>(0), Pageable.unpaged(), 0);
+            return new RestPage<>(emptyList(), Pageable.unpaged(), 0);
         }
 
         if (criteria.getOptLockValue() != null) {
@@ -96,7 +96,7 @@ public class StructureController {
                     .map(attribute -> toReadAttribute(attribute, version, validations))
                     .collect(toList());
         } else {
-            list = new ArrayList<>(0);
+            list = emptyList();
         }
 
         return new RestPage<>(list, PageRequest.of(criteria.getPage(), criteria.getSize()), attributes.size());
@@ -163,7 +163,7 @@ public class StructureController {
     private List<AttributeValidation> getValidations(List<AttributeValidation> validations, String attribute) {
 
         if (isEmpty(validations))
-            return Collections.emptyList();
+            return emptyList();
 
         return validations.stream().filter(v -> Objects.equals(attribute, v.getAttribute())).collect(toList());
     }

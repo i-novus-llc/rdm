@@ -312,7 +312,7 @@ public class RefBookDataController {
         List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
         List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
-        List<DataGridRow> resultRows = new ArrayList<>();
+        List<DataGridRow> resultRows = new ArrayList<>(dataGridRows.size() + 1);
         resultRows.add(dataGridHead);
         resultRows.addAll(dataGridRows);
         return resultRows;
@@ -343,13 +343,13 @@ public class RefBookDataController {
     private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version,
                                       DataCriteria criteria, boolean isDataConflict) {
 
-        Map<String, Object> rowMap = new HashMap<>();
-        LongRowValue longRowValue = (LongRowValue) rowValue;
+        Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 4);
 
-        longRowValue.getFieldValues().forEach(fieldValue ->
+        rowValue.getFieldValues().forEach(fieldValue ->
                 rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
         );
 
+        LongRowValue longRowValue = (LongRowValue) rowValue;
         rowMap.put(FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
         rowMap.put(FIELD_VERSION_ID, String.valueOf(version.getId()));
         rowMap.put(FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
@@ -359,10 +359,11 @@ public class RefBookDataController {
     }
 
     private static Map<String, Object> getDataConflictedCellOptions() {
-        Map<String, Object> cellOptions = new HashMap<>();
+
+        Map<String, Object> cellOptions = new HashMap<>(2);
         cellOptions.put("src", "TextCell");
 
-        Map<String, Object> styleOptions = new HashMap<>();
+        Map<String, Object> styleOptions = new HashMap<>(1);
         styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
         cellOptions.put("styles", styleOptions);
 
@@ -441,7 +442,7 @@ public class RefBookDataController {
 
             case DATE:
                 N2oDatePicker dateField = new N2oDatePicker();
-                dateField.setDateFormat("DD.MM.YYYY");
+                dateField.setDateFormat("DD.MM.YYYY"); // DATE_PATTERN_EUROPEAN
                 return dateField;
 
             case BOOLEAN:
