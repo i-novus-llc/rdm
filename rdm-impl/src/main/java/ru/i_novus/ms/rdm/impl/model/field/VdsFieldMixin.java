@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.model.field;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
@@ -19,5 +20,8 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
         @JsonSubTypes.Type(value = StringField.class, name = "StringField"),
         @JsonSubTypes.Type(value = TreeField.class, name = "TreeField")
 })
-public class VdsFieldMixin {
+public abstract class VdsFieldMixin {
+
+    @JsonIgnore
+    public abstract Class getFieldValueClass();
 }
