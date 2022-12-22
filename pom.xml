@@ -37,8 +37,6 @@
         <security.admin.version>6.1.1</security.admin.version>
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
-
-        <rdm.n2o.debug>false</rdm.n2o.debug>
     </properties>
 
     <name>rdm</name>
@@ -412,13 +410,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>n2o-debug</id>
-            <properties>
-                <rdm.n2o.debug>true</rdm.n2o.debug>
-            </properties>
         </profile>
     </profiles>
 </project>
