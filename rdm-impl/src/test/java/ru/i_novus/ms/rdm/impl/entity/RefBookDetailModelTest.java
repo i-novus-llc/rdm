@@ -4,24 +4,24 @@ import org.junit.Assert;
 import org.junit.Test;
 import ru.i_novus.ms.rdm.impl.BaseTest;
 
-public class RefBookModelDataTest extends BaseTest {
+public class RefBookDetailModelTest extends BaseTest {
 
     @Test
     public void testClass() {
 
-        RefBookModelData data = new RefBookModelData();
+        RefBookDetailModel data = new RefBookDetailModel();
         assertSpecialEquals(data);
 
-        RefBookModelData modelData = createModelData();
+        RefBookDetailModel modelData = createModelData();
         assertObjects(Assert::assertNotEquals, data, modelData);
 
-        RefBookModelData copyData = copyModelData(modelData);
+        RefBookDetailModel copyData = copyModelData(modelData);
         assertObjects(Assert::assertEquals, modelData, copyData);
     }
 
-    private RefBookModelData createModelData() {
+    private RefBookDetailModel createModelData() {
 
-        RefBookModelData data = new RefBookModelData();
+        RefBookDetailModel data = new RefBookDetailModel();
 
         data.setCurrentVersionId(1);
         data.setDraftVersion(new RefBookVersionEntity());
@@ -39,9 +39,9 @@ public class RefBookModelDataTest extends BaseTest {
         return data;
     }
 
-    private RefBookModelData copyModelData(RefBookModelData origin) {
+    private RefBookDetailModel copyModelData(RefBookDetailModel origin) {
 
-        RefBookModelData data = new RefBookModelData();
+        RefBookDetailModel data = new RefBookDetailModel();
 
         data.setCurrentVersionId(origin.getCurrentVersionId());
         data.setDraftVersion(origin.getDraftVersion());

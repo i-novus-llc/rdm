@@ -28,14 +28,14 @@ import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookModelData;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.i_novus.ms.rdm.impl.repository.RefBookModelDataRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookDetailModelRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
@@ -71,7 +71,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private final RefBookRepository refBookRepository;
     private final RefBookVersionRepository versionRepository;
-    private final RefBookModelDataRepository refBookModelDataRepository;
+    private final RefBookDetailModelRepository refBookDetailModelRepository;
 
     private final DropDataService dropDataService;
 
@@ -94,7 +94,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
-                              RefBookModelDataRepository refBookModelDataRepository,
+                              RefBookDetailModelRepository refBookDetailModelRepository,
                               DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
@@ -106,7 +106,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
-        this.refBookModelDataRepository = refBookModelDataRepository;
+        this.refBookDetailModelRepository = refBookDetailModelRepository;
 
         this.dropDataService = dropDataService;
 
@@ -372,7 +372,7 @@ public class RefBookServiceImpl implements RefBookService {
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
-        model.setStatus(entity.getStatus());
+        //model.setStatus(entity.getStatus()); // ??
 
         if (entity.getRefBookOperation() != null) {
             model.setCurrentOperation(entity.getRefBookOperation().getOperation());
@@ -382,7 +382,7 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
         model.setHasPrimaryAttribute(!primaries.isEmpty());
 
-        RefBookModelData modelData = refBookModelDataRepository.findData(model.getId());
+        RefBookDetailModel modelData = refBookDetailModelRepository.findByVersionId(model.getId());
 
         if (!excludeDraft) {
             RefBookVersionEntity draftVersion = modelData.getDraftVersion();

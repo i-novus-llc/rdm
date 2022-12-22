@@ -4,15 +4,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
-import ru.i_novus.ms.rdm.impl.entity.RefBookModelData;
+import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
 
-@SuppressWarnings({"squid:S1214","java:S1192"})
-public interface RefBookModelDataRepository extends
-        JpaRepository<RefBookModelData, Integer>,
-        QuerydslPredicateExecutor<RefBookModelData> {
+@SuppressWarnings({"squid:S1214","java:S1192","I-novus:MethodNameWordCountRule"})
+public interface RefBookDetailModelRepository extends
+        JpaRepository<RefBookDetailModel, Integer>,
+        QuerydslPredicateExecutor<RefBookDetailModel> {
 
     /**
-     * Проверка наличия справочника, ссылащегося на справочник с кодом refBookCode.
+     * Проверка наличия справочника, ссылающегося на справочник с кодом refBookCode.
      * <p/>
      * Аналогичен запросу {@link RefBookVersionRepository#FIND_REFERRER_VERSIONS}.
      */
@@ -45,7 +45,7 @@ public interface RefBookModelDataRepository extends
             "             limit 1 ) \n";
 
     @SuppressWarnings("squid:S1192")
-    String FIND_MODEL_DATA = "with current_version as ( \n" +
+    String FIND_BY_VERSION_ID = "with current_version as ( \n" +
             "  select \n" +
             "    v.id as id, \n" +
             "    b.id as ref_book_id, \n" +
@@ -124,9 +124,8 @@ public interface RefBookModelDataRepository extends
             "  from current_version cv";
 
     /**
-     * Проверка существования конфликтов.
-     *
+     * Получение подробностей о версиях, структуре и наличии конфликтов.
      */
-    @Query(nativeQuery = true, value = FIND_MODEL_DATA)
-    RefBookModelData findData(@Param("currentVersionId") Integer currentVersionId);
+    @Query(nativeQuery = true, value = FIND_BY_VERSION_ID)
+    RefBookDetailModel findByVersionId(@Param("currentVersionId") Integer currentVersionId);
 }

@@ -18,12 +18,12 @@ import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
-import ru.i_novus.ms.rdm.impl.entity.RefBookModelData;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
-import ru.i_novus.ms.rdm.impl.repository.RefBookModelDataRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookDetailModelRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
@@ -62,7 +62,7 @@ public class RefBookServiceTest {
     @Mock
     private RefBookVersionRepository versionRepository;
     @Mock
-    private RefBookModelDataRepository refBookModelDataRepository;
+    private RefBookDetailModelRepository refBookDetailModelRepository;
 
     @Mock
     private DropDataService dropDataService;
@@ -134,9 +134,9 @@ public class RefBookServiceTest {
         List<RefBookVersionEntity> lastPublishedEntities = new ArrayList<>(versionEntities);
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class)))
+        when(refBookDetailModelRepository.findByVersionId(any(Integer.class)))
                 .thenAnswer(v -> {
-                    RefBookModelData data = new RefBookModelData();
+                    RefBookDetailModel data = new RefBookDetailModel();
 
                     Integer currentVersionId = (Integer) v.getArguments()[0];
                     data.setCurrentVersionId(currentVersionId);
@@ -316,7 +316,7 @@ public class RefBookServiceTest {
     private void mockRefBookModel() {
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class))).thenReturn(new RefBookModelData());
+        when(refBookDetailModelRepository.findByVersionId(any(Integer.class))).thenReturn(new RefBookDetailModel());
     }
 
     @Test
