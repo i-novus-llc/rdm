@@ -42,32 +42,23 @@
         <field id="id" domain="integer"/>
         <field id="optLockValue" domain="integer"/>
 
-        <field id="localeCode.id" domain="string" mapping="''"/>
-        <field id="localeCode.name" domain="string" mapping="''"/>
+        <!--<field id="locale.id" domain="string" mapping="null"/>-->
+        <!--<field id="locale.name" domain="string" mapping="null"/>-->
 
         <field id="refBookId" domain="integer"/>
         <field id="code" domain="string"/>
         <field id="name" domain="string" mapping="passport['name']"/>
 
-        <field id="fromDate" domain="date"/>
-
-        <field id="version" domain="string" mapping="displayNumber"/>
-
-        <field id="status" domain="string"/>
-
-        <field id="editDate" domain="string"/>
-
-        <field id="archived" domain="boolean"/>
-
         <!-- Structure -->
-        <field id="hasStructure" domain="boolean" mapping="!!!hasEmptyStructure()"/>
-        <field id="hasEmptyStructure" domain="boolean" mapping="hasEmptyStructure()"/>
+        <field id="hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
         <field id="isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
         <!-- / Structure -->
 
         <!-- Filters only -->
         <field id="excludeDraft" domain="boolean" select="false"/>
         <!-- / Filters only -->
+
+        <field id="displayVersion" domain="string" mapping="displayNumber"/>
     </fields>
 
 </query>
