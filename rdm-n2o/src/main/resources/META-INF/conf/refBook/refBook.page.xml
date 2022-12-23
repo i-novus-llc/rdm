@@ -80,6 +80,7 @@
                 <set field-label-location="left">
                     <row>
                         <output-text id="refBookId" visible="false"/>
+
                         <output-text id="current" depends-on="version" default-value="-" visible="false">
                             <dependencies>
                                 <set-value on="version">version.refBookId??'?' + ' (' + (version.code??'?') + ') *'</set-value>
@@ -100,11 +101,28 @@
 
                         <output-text id="now" no-label-block="true" visible="false"/>
                     </row>
+
+                    <row>
+                        <checkbox id="isDraft" enabled="false" visible="false">
+                            <dependencies>
+                                <set-value on="version">version.id == draftVersionId</set-value>
+                            </dependencies>
+                        </checkbox>
+
+                        <checkbox id="isLast" enabled="false" visible="false">
+                            <dependencies>
+                                <set-value on="version">
+                                    version.id == draftVersionId ||
+                                    (version.id == lastPublishedVersionId &amp;&amp; draftVersionId == null)
+                                </set-value>
+                            </dependencies>
+                        </checkbox>
+                    </row>
                 </set>
 
                 <!-- Поле выбора версии справочника -->
                 <select id="version" label="Версия" cleanable="false"
-                        query-id="versionList" label-field-id="version">
+                        query-id="versionList" label-field-id="displayVersion">
                     <filters>
                         <eq field-id="refBookId" value="{refBookId}" model="resolve"/>
                     </filters>
@@ -116,7 +134,7 @@
                             (draftVersionId == null || version.id == draftVersionId)
                         </condition>
                         <condition id="isNotLastPublished" severity="warning"
-                                   message="Выбранная версия справочника не является последней опубликованной версией">
+                                   message="Выбранная версия не является черновиком или последней опубликованной версией">
                             (version.id == draftVersionId || version.id == lastPublishedVersionId)
                         </condition>
                     </validations>
@@ -125,27 +143,34 @@
 
             <toolbar place="bottomLeft">
                 <sub-menu label="Действия">
-                    <menu-item label="Опубликовать"
-                               visible="{version.status=='DRAFT' &amp;&amp; !version.hasConflict}">
+                    <menu-item label="Опубликовать">
                         <show-modal page-id="publish" upload="defaults">
                             <params>
-                                <query-param name="versionId" value="{version.id}"/>
+                                <query-param name="versionId" value="{id}"/>
                                 <query-param name="optLockValue" value="{optLockValue}"/>
                             </params>
                         </show-modal>
+
+                        <dependencies>
+                            <visibility>isDraft &amp;&amp; !last.hasConflict</visibility>
+                        </dependencies>
                     </menu-item>
 
-                    <menu-item label="Обновить ссылки"
-                               visible="{version.isLast &amp;&amp; version.hasRefreshedConflict}">
+                    <menu-item label="Обновить ссылки">
                         <invoke operation-id="refreshReferrer"/>
+
+                        <dependencies>
+                            <visibility>isLast &amp;&amp; last.hasRefreshedConflict</visibility>
+                        </dependencies>
                     </menu-item>
 
                     <menu-item label="Загрузить из файла">
-                        <show-modal page-id="uploadFile" submit-operation-id="uploadFromFile" upload="defaults"
+                        <show-modal page-id="uploadFile"
+                                    submit-operation-id="uploadFromFile" upload="defaults"
                                     redirect-target="application"
                                     redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
                             <params>
-                                <query-param name="versionId" value="{version.id}"/>
+                                <query-param name="versionId" value="{id}"/>
                             </params>
                         </show-modal>
                     </menu-item>
@@ -153,7 +178,7 @@
                     <menu-item label="Скачать">
                         <show-modal page-id="downloadFile">
                             <params>
-                                <query-param name="versionId" value="{version.id}"/>
+                                <query-param name="versionId" value="{id}"/>
                             </params>
                         </show-modal>
                     </menu-item>
@@ -376,7 +401,7 @@
                             </show-modal>
 
                             <dependencies>
-                                <enabling datasource="refBookVersion">version.hasStructure &amp;&amp; version.status == 'DRAFT'</enabling>
+                                <enabling datasource="refBookVersion">version.hasStructure &amp;&amp; isDraft</enabling>
                             </dependencies>
                         </button>
                     </toolbar>
