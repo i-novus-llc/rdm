@@ -67,55 +67,37 @@
 
     <fields>
         <field id="id" domain="integer" mapping="refBookId"/>
-        <field id="refBookId" domain="integer"/>
+
         <field id="version.id" domain="integer" mapping="id"/>
         <field id="optLockValue" domain="integer"/>
 
+        <field id="refBookId" domain="integer"/>
         <field id="code" domain="string" sorting="true"/>
-        <field id="type.id" domain="string" mapping="type"/>
-        <field id="status" domain="string" select="false"/>
 
+        <field id="status" domain="string" select="false"/>
         <field id="isArchived" domain="boolean" mapping="archived"/>
         <field id="nonArchived" domain="boolean" mapping="!archived" select="false"/>
 
-        <!-- Passport values -->
+        <!-- Passport -->
+        <field id="type.id" domain="string" mapping="type"/>
+        <field id="category.id" domain="string" mapping="category" sorting="true"/>
+
         <field id="name" domain="string" mapping="passport['name']" sorting="true"/>
         <field id="shortName" domain="string" mapping="passport['shortName']"/>
         <field id="description" domain="string" mapping="passport['description']"/>
-        <!-- / Passport values -->
-
-        <field id="category.id" domain="string" mapping="category" sorting="true"/>
-
-        <!-- Filters only -->
-        <field id="excludeDraft" domain="boolean" select="false"/>
-        <field id="excludeByVersionId" domain="integer" select="false"/>
-        <!-- / Filters only -->
+        <!-- / Passport -->
 
         <!-- Versions -->
-        <field id="draftVersionId" domain="integer"/>
-
-        <field id="lastPublishedVersionId" domain="integer"/>
-        <field id="hasPublished" domain="boolean" mapping="lastPublishedVersionId != null"/>
-
-        <field id="lastPublishedVersion" domain="string"/>
         <field id="lastPublishedDate" domain="localdatetime" sorting="true"/>
-
-        <field id="version.isLast" domain="boolean"
-               mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
         <!-- / Versions -->
 
+        <!-- Detail -->
         <field id="hasPrimaryAttribute" domain="boolean"/>
 
         <field id="hasReferrer" domain="boolean"/>
+        <!-- Detail -->
 
         <!-- Conflicts -->
-        <field id="version.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
-        <field id="version.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
-        <field id="version.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
-
-        <field id="version.hasConflict" domain="boolean" mapping="hasDataConflict || hasStructureConflict"/>
-        <field id="version.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
-
         <field id="lastHasConflict" domain="boolean"/>
         <field id="lastHasConflictMsg" domain="string"
                mapping="
@@ -123,10 +105,12 @@
                 "/>
         <!-- / Conflicts -->
 
-        <field id="editDate" domain="date"/>
+        <!-- Filters only -->
+        <field id="excludeDraft" domain="boolean" select="false"/>
+        <field id="excludeByVersionId" domain="integer" select="false"/>
+        <!-- / Filters only -->
 
         <field id="displayStatus" domain="string"/>
-
         <field id="displayVersion" domain="string"
                mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
     </fields>
