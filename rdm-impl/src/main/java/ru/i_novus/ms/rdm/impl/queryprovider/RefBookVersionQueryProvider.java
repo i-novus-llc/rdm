@@ -182,17 +182,20 @@ public class RefBookVersionQueryProvider {
         if (criteria.getIncludeVersions()) {
             // Если ищется последняя версия справочника, то выбирается требуемая последняя версия.
             if (criteria.getExcludeDraft()
-                    && (isNull(sourceType) || RefBookSourceType.LAST_VERSION.equals(sourceType)))
+                    && (isNull(sourceType) || RefBookSourceType.LAST_VERSION.equals(sourceType))) {
                 sourceType = RefBookSourceType.LAST_PUBLISHED;
+            }
 
         } else {
             // Если ищется список справочников, то выбираются только требуемые последние версии.
-            if (isNull(sourceType))
+            if (isNull(sourceType)) {
                 sourceType = RefBookSourceType.LAST_VERSION;
+            }
 
             if (criteria.getExcludeDraft()
-                    && RefBookSourceType.LAST_VERSION.equals(sourceType))
+                    && RefBookSourceType.LAST_VERSION.equals(sourceType)) {
                 sourceType = RefBookSourceType.LAST_PUBLISHED;
+            }
         }
 
         return sourceType;
