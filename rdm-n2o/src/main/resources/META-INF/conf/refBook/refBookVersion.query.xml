@@ -27,44 +27,61 @@
         <field id="id" domain="integer"/>
         <field id="optLockValue" domain="integer"/>
 
-        <field id="localeCode.id" domain="string" mapping="''"/>
-        <field id="localeCode.name" domain="string" mapping="''"/>
-
         <field id="refBookId" domain="integer"/>
         <field id="code" domain="string"/>
         <field id="name" domain="string" mapping="passport['name']"/>
 
+        <!-- Versions -->
+        <field id="draftVersionId" domain="integer"/>
+        <field id="lastPublishedVersionId" domain="integer"/>
+
+        <field id="isDraft" domain="boolean" mapping="id == draftVersionId"/>
+        <field id="isLast" domain="boolean"
+               mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
+        <!-- / Versions -->
+
+        <!-- Version List -->
         <!-- Значение для заполнения select-поля version по unique-выборке -->
         <field id="version.id" domain="integer" mapping="id"/>
-        <!--<field id="version.version" domain="string" mapping="displayNumber"/>-->
+        <field id="version.optLockValue" domain="integer" mapping="optLockValue"/>
 
-        <!--<field id="status" domain="string"/>-->
+        <field id="version.refBookId" domain="integer" mapping="refBookId"/>
+        <field id="version.code" domain="string" mapping="code"/>
+        <field id="version.name" domain="string" mapping="passport['name']"/>
+
+            <!-- Structure -->
+        <field id="version.hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
+        <field id="version.isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
+            <!-- / Structure -->
+
+        <field id="version.displayVersion" domain="string" mapping="displayNumber"/>
+        <!-- / Version List -->
+
+        <!-- Поля выборки для валидации полей и действий на странице -->
+
+        <!-- Structure -->
+        <field id="hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
+        <field id="isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
+        <!-- / Structure -->
+
+        <!-- NB: Поля используются только для последней версии справочника! -->
+        <!-- Conflicts -->
+        <field id="last.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
+        <field id="last.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
+        <field id="last.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
+
+        <field id="last.hasConflict" domain="boolean" mapping="hasDataConflict || hasStructureConflict"/>
+        <field id="last.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
+        <!-- / Conflicts -->
+
+        <!-- Localization -->
+        <field id="locale.id" domain="string" mapping="null"/>
+        <field id="locale.name" domain="string" mapping="null"/>
+        <!-- / Localization -->
 
         <!-- Filters only -->
         <field id="excludeDraft" domain="boolean" select="false"/>
         <!-- / Filters only -->
-
-        <!-- Поля выборки для валидации полей и действий на странице -->
-
-        <!-- Versions -->
-        <field id="version.status" domain="string" mapping="status"/>
-
-        <field id="draftVersionId" domain="integer"/>
-
-        <field id="lastPublishedVersionId" domain="integer"/>
-
-        <field id="version.isLast" domain="boolean"
-               mapping="id == draftVersionId || (id == lastPublishedVersionId &amp;&amp; draftVersionId == null)"/>
-        <!-- / Versions -->
-
-        <!-- Conflicts -->
-        <field id="version.hasDataConflict" domain="boolean" mapping="hasDataConflict"/>
-        <field id="version.hasUpdatedConflict" domain="boolean" mapping="hasUpdatedConflict"/>
-        <field id="version.hasAlteredConflict" domain="boolean" mapping="hasAlteredConflict"/>
-
-        <field id="version.hasConflict" domain="boolean" mapping="hasDataConflict || hasStructureConflict"/>
-        <field id="version.hasRefreshedConflict" domain="boolean" mapping="hasUpdatedConflict || hasAlteredConflict"/>
-        <!-- / Conflicts -->
 
         <!-- Хак для обновления detail-виджетов, если в master нет изменений после refresh -->
         <field id="now" domain="date" mapping="new java.util.Date()"/>
