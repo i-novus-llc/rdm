@@ -434,6 +434,7 @@
                         </set>
 
                         <select id="locale" no-label-block="true" cleanable="false"
+                                placeholder="Выберите язык перевода"
                                 query-id="versionLocaleList" label-field-id="name">
                             <filters>
                                 <eq field-id="versionId" value="{id}" model="resolve"/>
