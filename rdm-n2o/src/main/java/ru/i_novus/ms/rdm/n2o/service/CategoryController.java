@@ -26,8 +26,13 @@ public class CategoryController {
     private static final String CATEGORY_CODE_FIELD_CODE = "code";
     private static final String CATEGORY_NAME_FIELD_CODE = "name";
 
+    private final VersionRestService versionService;
+
     @Autowired
-    private VersionRestService versionService;
+    public CategoryController(VersionRestService versionService) {
+
+        this.versionService = versionService;
+    }
 
     /**
      * Поиск списка категорий из справочника категорий (находится по коду)

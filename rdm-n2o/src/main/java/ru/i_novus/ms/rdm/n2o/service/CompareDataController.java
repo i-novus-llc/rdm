@@ -23,11 +23,17 @@ import java.util.stream.Collectors;
 @SuppressWarnings("WeakerAccess")
 public class CompareDataController {
 
-    @Autowired
-    CompareService compareService;
+    private final CompareService compareService;
+
+    private final VersionRestService versionService;
 
     @Autowired
-    VersionRestService versionService;
+    public CompareDataController(CompareService compareService,
+                                 VersionRestService versionService) {
+
+        this.compareService = compareService;
+        this.versionService = versionService;
+    }
 
     public Page<ComparableRow> getOldWithDiff(CompareDataCriteria criteria) {
         return getComparableRowsPage(criteria.getOldVersionId(), criteria, DiffStatusEnum.DELETED);

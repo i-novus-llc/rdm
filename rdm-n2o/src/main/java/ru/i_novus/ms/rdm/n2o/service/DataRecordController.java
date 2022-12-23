@@ -25,14 +25,21 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 @Controller
 public class DataRecordController {
 
-    @Autowired
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
+
+    private final DraftRestService draftService;
+
+    private final Collection<DataRecordGetterResolver> resolvers;
 
     @Autowired
-    private DraftRestService draftService;
+    public DataRecordController(VersionRestService versionService,
+                                DraftRestService draftService,
+                                Collection<DataRecordGetterResolver> resolvers) {
+        this.versionService = versionService;
+        this.draftService = draftService;
 
-    @Autowired
-    private Collection<DataRecordGetterResolver> resolvers;
+        this.resolvers = resolvers;
+    }
 
     /**
      * Получение записи версии справочника по параметрам.

@@ -33,16 +33,18 @@ public class FilesRestController {
 
     private final VersionRestService versionService;
 
-    @Value("${rdm.max-file-size-mb:55}")
-    private int maxFileSizeMb;
+    private final int maxFileSizeMb;
 
     @Autowired
     public FilesRestController(FileStorageService fileStorageService,
-                               VersionRestService versionService) {
+                               VersionRestService versionService,
+                               @Value("${rdm.max-file-size-mb:55}") int maxFileSizeMb) {
 
         this.fileStorageService = fileStorageService;
 
         this.versionService = versionService;
+
+        this.maxFileSizeMb = maxFileSizeMb;
     }
 
     @CrossOrigin(origins = "*")

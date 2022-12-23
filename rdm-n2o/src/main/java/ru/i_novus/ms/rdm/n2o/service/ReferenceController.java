@@ -27,8 +27,13 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceController {
 
+    private final VersionRestService versionService;
+
     @Autowired
-    private VersionRestService versionService;
+    public ReferenceController(VersionRestService versionService) {
+
+        this.versionService = versionService;
+    }
 
     /**
      * Поиск списка значений справочника для ссылки.

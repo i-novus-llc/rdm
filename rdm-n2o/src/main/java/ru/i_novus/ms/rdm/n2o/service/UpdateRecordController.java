@@ -32,14 +32,22 @@ public class UpdateRecordController {
     private static final String CONFLICT_TEXT_DELETED = "conflict.text.deleted";
     private static final String CONFLICT_TEXT_ALTERED = "conflict.text.altered";
 
-    @Autowired
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
+
+    private final ConflictService conflictService;
+
+    private final Messages messages;
 
     @Autowired
-    private ConflictService conflictService;
+    public UpdateRecordController(VersionRestService versionService,
+                                  ConflictService conflictService,
+                                  Messages messages) {
 
-    @Autowired
-    private Messages messages;
+        this.versionService = versionService;
+        this.conflictService = conflictService;
+
+        this.messages = messages;
+    }
 
     /**
      * Проверка наличия конфликтов для записи у ссылающейся версии.
@@ -126,11 +134,12 @@ public class UpdateRecordController {
 
     /** Получение описания конфликта по его типу. */
     private String getConflictTypeText(ConflictType type) {
-        switch (type) {
-            case UPDATED: return CONFLICT_TEXT_UPDATED;
-            case DELETED: return CONFLICT_TEXT_DELETED;
-            case ALTERED: return CONFLICT_TEXT_ALTERED;
-            default: return null;
-        }
+
+        return switch (type) {
+            case UPDATED -> CONFLICT_TEXT_UPDATED;
+            case DELETED -> CONFLICT_TEXT_DELETED;
+            case ALTERED -> CONFLICT_TEXT_ALTERED;
+            default -> null;
+        };
     }
 }

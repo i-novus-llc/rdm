@@ -14,7 +14,7 @@ import java.util.List;
 @SuppressWarnings("UnusedParameter")
 public class PlainRefBookDataDecorator implements RefBookDataDecorator {
 
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
 
     @Autowired
     public PlainRefBookDataDecorator(VersionRestService versionService) {

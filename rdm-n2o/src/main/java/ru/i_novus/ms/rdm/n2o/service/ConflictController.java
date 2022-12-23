@@ -7,10 +7,11 @@ import ru.i_novus.ms.rdm.api.service.ReferenceService;
 @Controller
 public class ConflictController {
 
-    private ReferenceService referenceService;
+    private final ReferenceService referenceService;
 
     @Autowired
     public ConflictController(ReferenceService referenceService) {
+
         this.referenceService = referenceService;
     }
 
