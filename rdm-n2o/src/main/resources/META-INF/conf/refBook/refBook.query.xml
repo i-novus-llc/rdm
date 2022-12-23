@@ -39,11 +39,11 @@
         <eq filter-id="isArchived" field-id="isArchived" mapping="['criteria'].isArchived"/>
         <eq filter-id="nonArchived" field-id="nonArchived" mapping="['criteria'].nonArchived"/>
 
-        <!-- Passport values -->
+        <!-- Passport -->
         <eq filter-id="name" field-id="name" mapping="['criteria'].passport['name']"/>
-        <!-- / Passport values -->
 
         <eq filter-id="category.id" field-id="category.id" mapping="['criteria'].category"/>
+        <!-- / Passport -->
 
         <!-- Filters only -->
         <eq filter-id="excludeDraft" field-id="excludeDraft"
@@ -88,6 +88,8 @@
         <!-- / Passport -->
 
         <!-- Versions -->
+        <field id="hasPublished" domain="boolean" mapping="lastPublishedVersionId != null" select="false"/>
+
         <field id="lastPublishedDate" domain="localdatetime" sorting="true"/>
         <!-- / Versions -->
 
