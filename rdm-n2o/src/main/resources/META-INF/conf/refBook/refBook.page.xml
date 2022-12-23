@@ -53,7 +53,8 @@
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
-                <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion" required="true"/>
+
+                <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion"/>
             </filters>
         </datasource>
 
@@ -441,7 +442,7 @@
                                             <eq field-id="versionId" param="versionId" model="resolve"/>
                                             <eq field-id="optLockValue" param="optLockValue" model="resolve"/>
 
-                                            <eq field-id="localeCode" param="localeCode" model="resolve" required="true"/>
+                                            <eq field-id="localeCode" param="localeCode" model="resolve"/>
                                             <eq field-id="id" param="id" model="resolve" required="true"/>
                                             <eq field-id="dataAction" param="dataAction" model="resolve"/>
                                         </filters>
