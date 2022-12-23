@@ -372,7 +372,6 @@ public class RefBookServiceImpl implements RefBookService {
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
-        //model.setStatus(entity.getStatus()); // ??
 
         if (entity.getRefBookOperation() != null) {
             model.setCurrentOperation(entity.getRefBookOperation().getOperation());
@@ -382,31 +381,31 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
         model.setHasPrimaryAttribute(!primaries.isEmpty());
 
-        RefBookDetailModel modelData = refBookDetailModelRepository.findByVersionId(model.getId());
+        RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(model.getId());
 
         if (!excludeDraft) {
-            RefBookVersionEntity draftVersion = modelData.getDraftVersion();
+            RefBookVersionEntity draftVersion = detailModel.getDraftVersion();
             if (draftVersion != null) {
                 model.setDraftVersionId(draftVersion.getId());
             }
         }
 
-        RefBookVersionEntity lastPublishedVersion = modelData.getLastPublishedVersion();
+        RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();
         if (lastPublishedVersion != null) {
             model.setLastPublishedVersionId(lastPublishedVersion.getId());
             model.setLastPublishedVersion(lastPublishedVersion.getVersion());
             model.setLastPublishedDate(lastPublishedVersion.getFromDate());
         }
 
-        final boolean hasReferrer = Boolean.TRUE.equals(modelData.getHasReferrer());
-        model.setRemovable(Boolean.TRUE.equals(modelData.getRemovable()) && !hasReferrer);
+        final boolean hasReferrer = Boolean.TRUE.equals(detailModel.getHasReferrer());
+        model.setRemovable(Boolean.TRUE.equals(detailModel.getRemovable()) && !hasReferrer);
         model.setHasReferrer(hasReferrer);
 
-        model.setHasDataConflict(modelData.getHasDataConflict());
-        model.setHasUpdatedConflict(modelData.getHasUpdatedConflict());
-        model.setHasAlteredConflict(modelData.getHasAlteredConflict());
-        model.setHasStructureConflict(modelData.getHasStructureConflict());
-        model.setLastHasConflict(modelData.getLastHasConflict());
+        model.setHasDataConflict(detailModel.getHasDataConflict());
+        model.setHasUpdatedConflict(detailModel.getHasUpdatedConflict());
+        model.setHasAlteredConflict(detailModel.getHasAlteredConflict());
+        model.setHasStructureConflict(detailModel.getHasStructureConflict());
+        model.setLastHasConflict(detailModel.getLastHasConflict());
 
         return model;
     }
