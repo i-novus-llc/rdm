@@ -2,12 +2,10 @@
 <simple-page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
              name="Создание справочника">
 
-    <form name="Паспорт">
-
+    <form>
         <datasource object-id="refBook"/>
 
         <fields>
-
             <row>
                 <input-text id="code" label="Код" required="true"/>
                 <input-select id="type" label="Тип"
@@ -21,7 +19,6 @@
                           query-id="category" label-field-id="id"/>
 
             <text-area id="description" label="Описание"/>
-
         </fields>
         
     </form>
