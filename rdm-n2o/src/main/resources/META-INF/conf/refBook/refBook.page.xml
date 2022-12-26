@@ -215,7 +215,7 @@
             </tab>
 
             <tab id="tab_structure" name="Структура">
-                <table id="version_structure" ref-id="structure" datasource="versionStructure" fetch-on-init="true">
+                <table id="version_structure" ref-id="structure" datasource="versionStructure">
                     <toolbar place="bottomRight">
                         <button label="Добавить" id="createAttribute"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
@@ -290,7 +290,7 @@
             </tab>
 
             <tab id="tab_data" name="Данные">
-                <table id="dataTable" src="DataGrid" datasource="versionData" fetch-on-init="true">
+                <table id="dataTable" src="DataGrid" datasource="versionData">
                     <toolbar place="topRight">
                         <!-- to-do: Сделать отдельные кнопки без refresh для редактирования черновика -->
                         <button id="createRecord" label="Добавить" icon="fa fa-plus"
@@ -499,7 +499,7 @@
             </tab>
 
             <tab id="tab_conflicted" name="Данные с конфликтами">
-                <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData" fetch-on-init="true">
+                <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData">
                     <toolbar place="topRight">
                         <button id="updateConflictedRecord" label="Исправить" icon="fa fa-pencil"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
@@ -529,7 +529,7 @@
                             </show-modal>
 
                             <dependencies>
-                                <enabling datasource="refBookVersion">isLast</enabling>
+                                <visibility datasource="refBookVersion">isLast</visibility>
                                 <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
                         </button>
@@ -545,7 +545,7 @@
                             </invoke>
 
                             <dependencies>
-                                <enabling datasource="refBookVersion">isLast</enabling>
+                                <visibility datasource="refBookVersion">isLast</visibility>
                                 <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
                         </button>
