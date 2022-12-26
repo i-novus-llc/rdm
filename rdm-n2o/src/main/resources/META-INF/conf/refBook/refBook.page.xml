@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
       name="Справочник НСИ">
+
     <datasources>
         <!-- Модель текущей версии справочника -->
         <datasource id="refBookVersion" query-id="refBookVersion">
@@ -76,7 +77,6 @@
         <form id="version_select" datasource="refBookVersion">
             <fields>
                 <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
-                <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
                 <set field-label-location="left">
                     <row>
                         <output-text id="refBookId" visible="false"/>
@@ -184,7 +184,7 @@
                     </menu-item>
                 </sub-menu>
             </toolbar>
-        </form>
+        </form> <!-- version_select -->
 
         <!-- Таблица выбора версии справочника -->
         <!--<table id="version" datasource="versionList" table-size="sm">-->
@@ -451,7 +451,7 @@
                             ${rdm.l10n.support} &amp;&amp; version.isLocalizable
                         </visibility>
                     </dependencies>
-                </form>
+                </form> <!-- locale_select -->
 
                 <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
                     <toolbar place="topRight">
@@ -529,11 +529,13 @@
                             </show-modal>
 
                             <dependencies>
+                                <enabling datasource="refBookVersion">isLast</enabling>
                                 <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
                         </button>
 
-                        <button id="deleteConflictedRecord" label="Удалить" color="danger" icon="fa fa-trash">
+                        <button id="deleteConflictedRecord" label="Удалить" color="danger" icon="fa fa-trash"
+                                disable-on-empty-model="false">
                             <invoke operation-id="deleteRecord" object-id="data"
                                     route="/:versionId/record/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">
@@ -541,6 +543,11 @@
                                 <header-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
                                 <header-param name="id" value="{id}" datasource="conflictedData"/>
                             </invoke>
+
+                            <dependencies>
+                                <enabling datasource="refBookVersion">isLast</enabling>
+                                <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
+                            </dependencies>
                         </button>
                     </toolbar>
                 </table>
