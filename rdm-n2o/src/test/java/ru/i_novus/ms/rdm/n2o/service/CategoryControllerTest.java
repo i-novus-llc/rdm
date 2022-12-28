@@ -16,27 +16,25 @@ import ru.i_novus.ms.rdm.n2o.model.Category;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
-import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static ru.i_novus.ms.rdm.n2o.service.CategoryController.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CategoryControllerTest {
 
-    private static final String CATEGORY_REFBOOK_CODE = "CAT";
     private static final int CATEGORY_REFBOOK_VERSION_ID = -10;
-    private static final String CATEGORY_FILTER_VALUE = "name_1";
+    private static final long CATEGORY_DATA_COUNT = 5L;
 
     @InjectMocks
     private CategoryController controller;
@@ -45,7 +43,7 @@ public class CategoryControllerTest {
     private VersionRestService versionService;
 
     @Test
-    public void testGetAllCategories() {
+    public void testGetListAll() {
 
         CategoryCriteria criteria = new CategoryCriteria();
 
@@ -55,27 +53,30 @@ public class CategoryControllerTest {
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getCategories(criteria);
+        Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());
     }
 
     @Test
-    public void testGetCategoriesByName() {
+    public void testGetListByName() {
+
+        final String categoryName = "some_name";
 
         CategoryCriteria criteria = new CategoryCriteria();
-        criteria.setName(CATEGORY_FILTER_VALUE);
+        criteria.setName(categoryName);
 
         SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
-        AttributeFilter filter = new AttributeFilter("name", CATEGORY_FILTER_VALUE, FieldType.STRING, SearchTypeEnum.LIKE);
+        AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
+                categoryName, FieldType.STRING, SearchTypeEnum.LIKE);
         searchDataCriteria.addAttributeFilterList(singletonList(filter));
 
         List<RefBookRowValue> rowValues = createContent().subList(0, 1);
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getCategories(criteria);
+        Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());
@@ -88,22 +89,16 @@ public class CategoryControllerTest {
 
     private List<RefBookRowValue> createContent() {
 
-        int rowValueCount = 5;
-
-        List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
-
-        LongStream.range(1, rowValueCount + 1).forEach(systemId ->
-                rowValues.add(new RefBookRowValue(createLongRowValue(systemId), CATEGORY_REFBOOK_VERSION_ID))
-        );
-
-        return rowValues;
+        return LongStream.range(1, CATEGORY_DATA_COUNT + 1)
+                .mapToObj(systemId -> new RefBookRowValue(createLongRowValue(systemId), CATEGORY_REFBOOK_VERSION_ID))
+                .collect(toList());
     }
 
     private LongRowValue createLongRowValue(long systemId) {
 
         return new LongRowValue(systemId, asList(
-                new IntegerFieldValue("code", BigInteger.valueOf(systemId)),
-                new StringFieldValue("name", "name_" + systemId)
+                new StringFieldValue(CATEGORY_CODE_FIELD_CODE, "code_" + systemId),
+                new StringFieldValue(CATEGORY_NAME_FIELD_CODE, "name_" + systemId)
         ));
     }
 }

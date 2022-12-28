@@ -4,7 +4,7 @@
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.CategoryController"
-              method="getCategories">
+              method="getList">
             <spring/>
 
             <arguments>
