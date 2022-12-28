@@ -29,21 +29,16 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 @Controller
-public class RefBookController {
+public class RefBookController extends BaseController {
 
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
 
     private static final String REFBOOK_TYPE_PREFIX = "refbook.type.";
-
-    private static final String REFBOOK_STATUS_ARCHIVED = "refbook.status.archived";
-    private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
-    private static final String REFBOOK_STATUS_PUBLISHED = "refbook.status.published";
+    private static final String REFBOOK_STATUS_PREFIX = "refbook.status.";
 
     private final RefBookService refBookService;
 
     private final RefBookAdapter refBookAdapter;
-
-    private final Messages messages;
 
     private final RdmPermission rdmPermission;
 
@@ -52,11 +47,11 @@ public class RefBookController {
                              RefBookAdapter refBookAdapter,
                              Messages messages,
                              RdmPermission rdmPermission) {
+        super(messages);
 
         this.refBookService = refBookService;
         this.refBookAdapter = refBookAdapter;
 
-        this.messages = messages;
         this.rdmPermission = rdmPermission;
     }
 
@@ -134,13 +129,19 @@ public class RefBookController {
         return new RestPage<>(list, criteria, refBooks.getTotalElements());
     }
 
+    /**
+     * Получение модели справочника для UI по исходной модели.
+     *
+     * @param refBook исходная модель справочника
+     * @return Модель справочника для UI
+     */
     private UiRefBook toUiRefBook(RefBook refBook) {
 
         if (refBook == null)
             return null;
 
         UiRefBook result = refBookAdapter.toUiRefBook(refBook);
-        result.setTypeName(getTypeName(refBook.getType()));
+        result.setTypeName(toEnumLocaleName(REFBOOK_TYPE_PREFIX, refBook.getType()));
 
         return result;
     }
@@ -186,31 +187,28 @@ public class RefBookController {
                 (criteria.getName() == null || criteria.getName().equals(type.getName()));
     }
 
+    /** Тип справочника с локализованным наименованием. */
     private UiRefBookType toRefBookType(RefBookTypeEnum type) {
-        return new UiRefBookType(type, getTypeName(type));
-    }
-
-    /** Наименование типа справочника. */
-    private String getTypeName(RefBookTypeEnum type) {
-        return type != null ? messages.getMessage(REFBOOK_TYPE_PREFIX + type.name().toLowerCase()) : null;
+        return new UiRefBookType(type, toEnumLocaleName(REFBOOK_TYPE_PREFIX, type));
     }
 
     @SuppressWarnings("unused") // used in: refBookStatusList.query.xml
     public Page<UiRefBookStatus> getStatusList(RefBookStatusCriteria criteria) {
 
         List<UiRefBookStatus> list = new ArrayList<>(3);
-        list.add(getRefBookStatus(RefBookStatus.PUBLISHED, REFBOOK_STATUS_PUBLISHED));
+        list.add(toRefBookStatus(RefBookStatus.PUBLISHED));
 
         if (!criteria.getExcludeDraft())
-            list.add(getRefBookStatus(RefBookStatus.HAS_DRAFT, REFBOOK_STATUS_HAS_DRAFT));
+            list.add(toRefBookStatus(RefBookStatus.HAS_DRAFT));
 
         if (!criteria.getNonArchived())
-            list.add(getRefBookStatus(RefBookStatus.ARCHIVED, REFBOOK_STATUS_ARCHIVED));
+            list.add(toRefBookStatus(RefBookStatus.ARCHIVED));
 
         return new RestPage<>(list, Pageable.unpaged(), list.size());
     }
 
-    private UiRefBookStatus getRefBookStatus(RefBookStatus status, String code) {
-        return new UiRefBookStatus(status, messages.getMessage(code));
+    /** Статус справочника с локализованным наименованием. */
+    private UiRefBookStatus toRefBookStatus(RefBookStatus status) {
+        return new UiRefBookStatus(status, toEnumLocaleName(REFBOOK_STATUS_PREFIX, status));
     }
 }

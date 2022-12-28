@@ -27,7 +27,6 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
-import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ import static ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest.setUpda
 
 @Controller
 @SuppressWarnings("WeakerAccess")
-public class StructureController {
+public class StructureController extends BaseController {
 
     private static final String ATTRIBUTE_TYPE_PREFIX = "attribute.type.";
 
@@ -57,21 +56,19 @@ public class StructureController {
 
     private final ConflictService conflictService;
 
-    private final Messages messages;
-
     @Autowired
     public StructureController(RefBookService refBookService,
                                VersionRestService versionService,
                                DraftRestService draftService,
                                ConflictService conflictService,
                                Messages messages) {
+        super(messages);
+
         this.refBookService = refBookService;
         this.versionService = versionService;
         this.draftService = draftService;
 
         this.conflictService = conflictService;
-
-        this.messages = messages;
     }
 
     // used in: attribute.query.xml
@@ -330,7 +327,7 @@ public class StructureController {
         readAttribute.setCode(attribute.getCode());
         readAttribute.setName(attribute.getName());
         readAttribute.setType(attribute.getType());
-        readAttribute.setTypeName(getFieldTypeName(attribute.getType()));
+        readAttribute.setTypeName(toEnumLocaleName(ATTRIBUTE_TYPE_PREFIX, attribute.getType()));
 
         readAttribute.setIsPrimary(attribute.getIsPrimary());
         readAttribute.setLocalizable(attribute.getLocalizable());
@@ -342,11 +339,6 @@ public class StructureController {
         }
 
         return readAttribute;
-    }
-
-    /** Наименование типа поля. */
-    private String getFieldTypeName(FieldType type) {
-        return type != null ? messages.getMessage(ATTRIBUTE_TYPE_PREFIX + type.name().toLowerCase()) : null;
     }
 
     /** Получение атрибута для добавления из атрибута формы. */
