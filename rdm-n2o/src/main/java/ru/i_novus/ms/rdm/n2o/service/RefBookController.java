@@ -16,12 +16,16 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
-import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 @Controller
@@ -29,8 +33,7 @@ public class RefBookController {
 
     private static final String REFBOOK_NOT_FOUND_EXCEPTION_CODE = "refbook.not.found";
 
-    private static final String REFBOOK_TYPE_DEFAULT = "refbook.type.default";
-    private static final String REFBOOK_TYPE_UNVERSIONED = "refbook.type.unversioned";
+    private static final String REFBOOK_TYPE_PREFIX = "refbook.type.";
 
     private static final String REFBOOK_STATUS_ARCHIVED = "refbook.status.archived";
     private static final String REFBOOK_STATUS_HAS_DRAFT = "refbook.status.has_draft";
@@ -133,7 +136,13 @@ public class RefBookController {
 
     private UiRefBook toUiRefBook(RefBook refBook) {
 
-        return refBook != null ? refBookAdapter.toUiRefBook(new RefBook(refBook)) : null;
+        if (refBook == null)
+            return null;
+
+        UiRefBook result = refBookAdapter.toUiRefBook(refBook);
+        result.setTypeName(getTypeName(refBook.getType()));
+
+        return result;
     }
 
     /**
@@ -152,24 +161,20 @@ public class RefBookController {
         return criteria;
     }
 
-    @SuppressWarnings("unused") // used in: refBookTypeList.query.xml
+    // NB: used as list in: refBookTypeList.query.xml
     public Page<UiRefBookType> getTypeList() {
 
-        List<UiRefBookType> list = new ArrayList<>();
-        list.add(getRefBookType(RefBookTypeEnum.DEFAULT, REFBOOK_TYPE_DEFAULT));
-        list.add(getRefBookType(RefBookTypeEnum.UNVERSIONED, REFBOOK_TYPE_UNVERSIONED));
-
+        List<UiRefBookType> list = asList(
+                toRefBookType(RefBookTypeEnum.DEFAULT),
+                toRefBookType(RefBookTypeEnum.UNVERSIONED)
+        );
         return new RestPage<>(list, Pageable.unpaged(), list.size());
     }
 
-    private UiRefBookType getRefBookType(RefBookTypeEnum type, String code) {
-        return new UiRefBookType(type, messages.getMessage(code));
-    }
-
+    // NB: used as unique in: refBookTypeList.query.xml
     public UiRefBookType getTypeItem(RefBookTypeCriteria criteria) {
 
         Page<UiRefBookType> types = getTypeList();
-
         return types.getContent().stream()
                 .filter(type -> filterType(criteria, type))
                 .findFirst().orElse(null);
@@ -181,10 +186,19 @@ public class RefBookController {
                 (criteria.getName() == null || criteria.getName().equals(type.getName()));
     }
 
+    private UiRefBookType toRefBookType(RefBookTypeEnum type) {
+        return new UiRefBookType(type, getTypeName(type));
+    }
+
+    /** Наименование типа справочника. */
+    private String getTypeName(RefBookTypeEnum type) {
+        return type != null ? messages.getMessage(REFBOOK_TYPE_PREFIX + type.name().toLowerCase()) : null;
+    }
+
     @SuppressWarnings("unused") // used in: refBookStatusList.query.xml
     public Page<UiRefBookStatus> getStatusList(RefBookStatusCriteria criteria) {
 
-        List<UiRefBookStatus> list = new ArrayList<>();
+        List<UiRefBookStatus> list = new ArrayList<>(3);
         list.add(getRefBookStatus(RefBookStatus.PUBLISHED, REFBOOK_STATUS_PUBLISHED));
 
         if (!criteria.getExcludeDraft())
