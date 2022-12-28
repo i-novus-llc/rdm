@@ -80,6 +80,7 @@
 
         <!-- Passport -->
         <field id="type.id" domain="string" mapping="type"/>
+        <field id="type.name" domain="string" mapping="typeName"/>
         <field id="category.id" domain="string" mapping="category" sorting="true"/>
 
         <field id="name" domain="string" mapping="passport['name']" sorting="true"/>
