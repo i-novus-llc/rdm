@@ -7,6 +7,8 @@ import java.util.Objects;
 
 /**
  * Модель справочника для UI.
+ * <p/>
+ * Содержит поля, необходимые для вывода локализованных значений.
  */
 public class UiRefBook extends RefBook {
 

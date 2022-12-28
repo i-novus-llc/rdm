@@ -104,8 +104,7 @@ public class CreateDraftController {
 
     private Map<String, String> toPassport(UiPassport uiPassport) {
 
-        Map<String, String> passport = new HashMap<>();
-
+        Map<String, String> passport = new HashMap<>(3);
         passport.put(PASSPORT_REFBOOK_NAME, uiPassport.getName());
         passport.put(PASSPORT_REFBOOK_SHORT_NAME, uiPassport.getShortName());
         passport.put(PASSPORT_REFBOOK_DESCRIPTION, uiPassport.getDescription());

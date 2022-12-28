@@ -1,11 +1,25 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
+/**
+ * Паспорт справочника для UI.
+ */
 public class UiPassport {
+
+    /** Код справочника */
     private String code;
+
+    /** Категория справочника */
     private String category;
+
+    /** Наименование */
     private String name;
+    /** Краткое наименование */
     private String shortName;
+    /** Описание */
     private String description;
+
+    public UiPassport() {
+    }
 
     public String getCode() {
         return code;

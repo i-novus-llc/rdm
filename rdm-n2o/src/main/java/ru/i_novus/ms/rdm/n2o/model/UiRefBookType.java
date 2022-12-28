@@ -10,7 +10,7 @@ public class UiRefBookType {
     /** Тип справочника. */
     private RefBookTypeEnum id;
 
-    /** Наименование типа справочника. */
+    /** Локализованное наименование. */
     private String name;
 
     @SuppressWarnings("unused")
