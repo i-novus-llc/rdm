@@ -1,11 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+<page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
       name="Журнал операций">
 
     <regions>
-
         <region place="single">
-            <table query-id="asyncLog" size="10" route="/asyncLog">
+            <table>
+                <datasource query-id="asyncLog" size="10"/>
+
+                <pagination/>
 
                 <filters>
                     <row>
@@ -36,14 +38,16 @@
 
                 <rows>
                     <click>
-                        <show-modal page-id="asyncLogView" detail-field-id="id" route="/:id/view">
-                            <path-param name="id" value="{id}"/>
+                        <show-modal page-id="asyncLogView"
+                                    route="/:id/view">
+                            <params>
+                                <path-param name="id" value="{id}"/>
+                            </params>
                         </show-modal>
                     </click>
                 </rows>
-
             </table>
         </region>
-        
     </regions>
+
 </page>
