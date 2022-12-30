@@ -154,9 +154,8 @@ public class RefBookController extends BaseController {
      */
     private RefBookCriteria permitCriteria(RefBookCriteria criteria) {
 
-        if (!criteria.getExcludeDraft()) {
-            boolean excludeDraft = rdmPermission.excludeDraft();
-            if (excludeDraft) criteria.setExcludeDraft(true);
+        if (!criteria.getExcludeDraft() && rdmPermission.excludeDraft()) {
+            criteria.setExcludeDraft(true);
         }
 
         return criteria;
