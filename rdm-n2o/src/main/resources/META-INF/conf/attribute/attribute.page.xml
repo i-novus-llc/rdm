@@ -17,9 +17,7 @@
             <row>
                 <input-text id="code" label="Код" required="true">
                     <dependencies>
-                        <enabling>
-                            (typeof id == 'undefined' || id == null)
-                        </enabling>
+                        <enabling>typeof id == 'undefined' || id == null</enabling>
                     </dependencies>
 
                     <validations>
@@ -113,7 +111,7 @@
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
                     <filters>
-                        <eq field-id="versionId" value="{referenceRefBook.version.id}" />
+                        <eq field-id="versionId" value="{referenceRefBook.versionId}"/>
                     </filters>
 
                     <dependencies>

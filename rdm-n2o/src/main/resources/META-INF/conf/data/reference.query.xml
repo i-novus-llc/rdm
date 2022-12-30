@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java method="getList" class="ru.i_novus.ms.rdm.n2o.service.ReferenceController">
@@ -12,37 +13,22 @@
         </java>
     </list>
 
+    <filters>
+        <eq filter-id="versionId" field-id="versionId" mapping="['referenceCriteria'].versionId"/>
+        <eq filter-id="reference" field-id="reference" mapping="['referenceCriteria'].reference"/>
+
+        <eq filter-id="value" field-id="value" mapping="['referenceCriteria'].value"/>
+        <eq filter-id="displayValue" field-id="displayValue" mapping="['referenceCriteria'].displayValue"/>
+    </filters>
+
     <fields>
-        
-        <field id="id">
-            <select mapping="value"/>
-        </field>
+        <field id="id" mapping="value"/>
 
-        <field id="value" domain="string">
-            <select/>
-            <filters>
-                <eq filter-id="value" mapping="['referenceCriteria'].value"/>
-            </filters>
-        </field>
+        <field id="versionId" domain="integer" select="false"/>
+        <field id="reference" domain="string" select="false"/>
 
-        <field id="displayValue" domain="string">
-            <select/>
-            <filters>
-                <eq filter-id="displayValue" mapping="['referenceCriteria'].displayValue"/>
-            </filters>
-        </field>
-
-        <field id="versionId" domain="integer">
-            <filters>
-                <eq filter-id="versionId" mapping="['referenceCriteria'].versionId"/>
-            </filters>
-        </field>
-
-        <field id="reference" domain="string">
-            <filters>
-                <eq filter-id="reference" mapping="['referenceCriteria'].reference"/>
-            </filters>
-        </field>
-
+        <field id="value" domain="string"/>
+        <field id="displayValue" domain="string"/>
     </fields>
+
 </query>
