@@ -4,6 +4,7 @@ import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
+import net.n2oapp.framework.api.metadata.global.view.page.datasource.N2oStandardDatasource;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oWidget;
 import org.junit.Before;
@@ -87,8 +88,10 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
         assertTrue(widget instanceof N2oForm);
 
         N2oForm form = (N2oForm) widget;
-        assertNotNull(form.getQueryId());
-        assertNotNull(form.getObjectId());
+        N2oStandardDatasource datasource = form.getDatasource();
+        assertNotNull(datasource);
+        assertNotNull(datasource.getQueryId());
+        assertNotNull(datasource.getObjectId());
 
         List<SourceComponent> items = Arrays.asList(form.getItems());
         assertNotNull(items);
