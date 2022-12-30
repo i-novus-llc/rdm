@@ -98,7 +98,7 @@
         <field id="hasPrimaryAttribute" domain="boolean"/>
 
         <field id="hasReferrer" domain="boolean"/>
-        <!-- Detail -->
+        <!-- / Detail -->
 
         <!-- Conflicts -->
         <field id="lastHasConflict" domain="boolean"/>

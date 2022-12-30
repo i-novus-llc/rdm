@@ -58,7 +58,6 @@
         <!-- / Version List -->
 
         <!-- Поля выборки для валидации полей и действий на странице -->
-
         <!-- Structure -->
         <field id="hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
         <field id="isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
