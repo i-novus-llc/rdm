@@ -20,7 +20,6 @@
 
             <text-area id="description" label="Описание"/>
         </fields>
-        
     </form>
     
 </simple-page>
