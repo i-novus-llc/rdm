@@ -128,7 +128,7 @@
 
         <tabs>
             <tab id="tab_passport" name="Паспорт">
-                <form id="version_passport" ref-id="passport" datasource="versionPassport" fetch-on-init="true">
+                <form id="version_passport" ref-id="passportView" datasource="versionPassport" fetch-on-init="true">
                 </form>
             </tab>
 

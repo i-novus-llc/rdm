@@ -23,4 +23,5 @@
         <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
         <text-area id="description" label="Описание"/>
     </fields>
+
 </form>
