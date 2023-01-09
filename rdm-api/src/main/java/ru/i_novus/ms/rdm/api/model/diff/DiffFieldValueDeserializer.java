@@ -39,7 +39,8 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
     }
 
     @Override
-    public DiffFieldValue deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
+    public DiffFieldValue deserialize(JsonParser jsonParser, DeserializationContext ctxt)
+            throws IOException {
 
         ObjectCodec codec = jsonParser.getCodec();
         JsonNode node = codec.readTree(jsonParser);

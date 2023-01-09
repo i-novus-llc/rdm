@@ -6,11 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.n2oapp.platform.jaxrs.MapperConfigurer;
 import ru.i_novus.ms.rdm.api.provider.DataMapperConfigurer;
+import ru.i_novus.ms.rdm.impl.model.field.VdsFieldMixin;
+import ru.i_novus.platform.datastorage.temporal.model.Field;
 
 public class VdsMapperConfigurer extends DataMapperConfigurer implements MapperConfigurer {
 
     @Override
     public void configure(ObjectMapper mapper) {
+
+        mapper.addMixIn(Field.class, VdsFieldMixin.class);
 
         super.configure(mapper);
 
