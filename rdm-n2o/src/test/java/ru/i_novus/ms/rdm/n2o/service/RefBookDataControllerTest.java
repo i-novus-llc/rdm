@@ -2,6 +2,8 @@ package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
+import net.n2oapp.platform.i18n.Messages;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -75,6 +77,16 @@ public class RefBookDataControllerTest  {
 
     @Mock
     private RefBookDataDecorator refBookDataDecorator;
+
+    @Mock
+    private Messages messages;
+
+    @Before
+    public void setUp() {
+
+        when(messages.getMessage(any(String.class)))
+                .thenAnswer(invocation -> invocation.getArguments()[0]);
+    }
 
     @Test
     public void testGetList() {
