@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>5.1.0-SNAPSHOT</version>
+        <version>5.0.0</version>
     </parent>
 
     <properties>
@@ -21,8 +21,8 @@
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
         <n2o.version>7.23.50</n2o.version>
-        <vds.version>3.20</vds.version>
-        <l10n.vds.version>3.22</l10n.vds.version>
+        <vds.version>3.21-SNAPSHOT</vds.version>
+        <l10n.vds.version>3.23-SNAPSHOT</l10n.vds.version>
 
         <jackson-databind.version>2.12.7.1</jackson-databind.version>
         <jackson-datatype.version>2.12.7</jackson-datatype.version>
