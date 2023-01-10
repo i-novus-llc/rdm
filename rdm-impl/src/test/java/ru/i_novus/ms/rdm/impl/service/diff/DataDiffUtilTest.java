@@ -25,17 +25,17 @@ public class DataDiffUtilTest {
     private static final String VERSION_ATTRIBUTE_REF = "ref";
 
     @Test
-    public void testToPrimaryString() {
+    public void testToNamedStringValue() {
 
-        assertEquals("name=\"text\"", toPrimaryString("name", "text"));
+        assertEquals("name=\"text\"", toNamedStringValue("name", "text"));
     }
 
     @Test
-    public void testToPrimaryValue() {
+    public void testToStringValue() {
 
-        assertEquals("10", toPrimaryValue(BigInteger.valueOf(10L)));
-        assertEquals("\"text\"", toPrimaryValue("text"));
-        assertEquals("'2021-02-03'", toPrimaryValue(LocalDate.of(2021, 2, 3)));
+        assertEquals("10", toStringValue(BigInteger.valueOf(10L)));
+        assertEquals("\"text\"", toStringValue("text"));
+        assertEquals("'2021-02-03'", toStringValue(LocalDate.of(2021, 2, 3)));
     }
 
     @Test

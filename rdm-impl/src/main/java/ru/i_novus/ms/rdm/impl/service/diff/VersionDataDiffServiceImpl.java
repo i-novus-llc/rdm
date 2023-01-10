@@ -134,12 +134,12 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
                 .collect(joining(", "));
     }
 
-    private boolean isAttributeFilterDisallowed(AttributeFilter primaryAttributeFilter) {
-        return !SearchTypeEnum.EXACT.equals(primaryAttributeFilter.getSearchType());
+    private boolean isAttributeFilterDisallowed(AttributeFilter filter) {
+        return !SearchTypeEnum.EXACT.equals(filter.getSearchType());
     }
 
-    private String toAttributeFilterPrimary(AttributeFilter primaryAttributeFilter) {
-        return DataDiffUtil.toPrimaryString(primaryAttributeFilter.getAttributeName(), primaryAttributeFilter.getValue());
+    private String toAttributeFilterPrimary(AttributeFilter filter) {
+        return DataDiffUtil.toNamedStringValue(filter.getAttributeName(), filter.getValue());
     }
 
     private String toExcludePrimaries(List<String> excludePrimaryValues) {

@@ -39,11 +39,11 @@ public class DataDiffUtil {
         return OBJECT_MAPPER;
     }
 
-    public static String toPrimaryString(String name, Object value) {
-        return String.format(PRIMARY_FORMAT, name, toPrimaryValue(value));
+    public static String toNamedStringValue(String name, Object value) {
+        return String.format(PRIMARY_FORMAT, name, toStringValue(value));
     }
 
-    public static String toPrimaryValue(Object value) {
+    public static String toStringValue(Object value) {
 
         if (value instanceof LocalDate)
             return addSingleQuotes(DATE_FORMATTER.format((LocalDate) value));
