@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.api.model.diff;
+package ru.i_novus.ms.rdm.impl.model.field;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
-import ru.i_novus.ms.rdm.api.model.field.CommonField;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -21,20 +20,23 @@ import java.time.LocalDate;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ISO_FORMATTER;
 
 /**
- * Десериализатор DiffFieldValue для rdm API.
+ * Десериализатор DiffFieldValue для работы с vds.
  * <p/>
  * Обычная десериализация не восстанавливает oldValue и newValue в соответствии с типом поля.
- * Так как тип поля не восстанавливается для CommonField, то @JsonTypeInfo не применим.
+ * Так как тип поля хранится внутри поля field, то @JsonTypeInfo не применим.
+ * Так как не объявлены дочерние классы для DiffFieldValue, то @JsonSubTypes не применим.
  * Так как в БД уже есть сериализованные значения, то изменение (де)сериализации невозможно.
+ * <p/>
+ * См. также {@link ru.i_novus.ms.rdm.api.model.diff.DiffFieldValueDeserializer}.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> {
+public class VdsDiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> {
 
-    public DiffFieldValueDeserializer() {
+    public VdsDiffFieldValueDeserializer() {
         this(null);
     }
 
-    public DiffFieldValueDeserializer(Class<?> vc) {
+    public VdsDiffFieldValueDeserializer(Class<?> vc) {
         super(vc);
     }
 
@@ -52,20 +54,14 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
         if (field == null)
             return null;
 
-        String fieldId = null;
-        if (field instanceof CommonField) {
-            JsonNode idNode = fieldNode.get("id");
-            fieldId = idNode != null ? idNode.asText() : null;
-        }
-
         JsonNode oldValueNode = node.get("oldValue");
         JsonNode newValueNode = node.get("newValue");
         JsonNode statusNode = node.get("status");
 
         return new DiffFieldValue(
                 field,
-                oldValueNode != null ? toFieldValue(field, fieldId, oldValueNode.asText()) : null,
-                newValueNode != null ? toFieldValue(field, fieldId, newValueNode.asText()) : null,
+                oldValueNode != null ? toFieldValue(field, oldValueNode.asText()) : null,
+                newValueNode != null ? toFieldValue(field, newValueNode.asText()) : null,
                 statusNode != null ? DiffStatusEnum.fromValue(node.get("status").asText()) : null
         );
     }
@@ -73,22 +69,17 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
     /**
      * Преобразование сериализованного значения в значение, соответствующее типу поля.
      *
-     * @param field   поле
-     * @param fieldId идентификатор поля (в случае CommonField)
-     * @param value   сериализованное значение поля
+     * @param field поле
+     * @param value сериализованное значение поля
      * @return Десериализованное значение поля
      */
-    public static Serializable toFieldValue(Field field, String fieldId, String value) {
+    public static Serializable toFieldValue(Field field, String value) {
 
         if (value == null || StringUtils.isEmpty(value))
             return null;
 
-        return toCommonFieldValue(fieldId, value, field);
-
-        //Class clazz = field.getFieldValueClass();
-        //return (clazz != null)
-        //        ? toClassedFieldValue(clazz, value, field)
-        //        : toCommonFieldValue(fieldId, value, field);
+        Class clazz = field.getFieldValueClass();
+        return (clazz != null) ? toClassedFieldValue(clazz, value, field) : null;
     }
 
     /**
@@ -129,34 +120,5 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
         }
 
         throw new RdmException(String.format("Unknown field value class for field: %s", field));
-    }
-
-    /**
-     * Преобразование сериализованного значения в значение в соответствии с идентификатором поля.
-     *
-     * @param id    идентификатор поля CommonField
-     * @param value сериализованное значение поля
-     * @param field поле
-     * @return Десериализованное значение поля
-     */
-    private static Serializable toCommonFieldValue(String id, String value, Field field) {
-
-        if (id == null)
-            throw new RdmException(String.format("Absent field identifier for field: %s", field));
-
-        return switch (id) {
-            case "BooleanField" -> Boolean.valueOf(value);
-            case "DateField" -> LocalDate.parse(value, DATE_PATTERN_ISO_FORMATTER);
-            case "FloatField" -> new BigDecimal(value);
-            case "IntegerField" -> new BigInteger(value);
-            case "StringField",
-                    "IntegerStringField" -> value;
-
-            // NB: Строковые значения в составных полях!
-            case "ReferenceField",
-                    "TreeField" -> value;
-            default ->
-                    throw new RdmException(String.format("Unknown field identifier for field: %s", field));
-        };
     }
 }
