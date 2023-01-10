@@ -2289,7 +2289,7 @@ public class ApplicationTest {
         Field codeField = new CommonField(code.getCode());
         Field commonField = new CommonField(common.getCode());
 
-        List<DiffRowValue> expectedDiffRowValues = new ArrayList<>();
+        List<DiffRowValue> expectedDiffRowValues = new ArrayList<>(3);
         expectedDiffRowValues.add(new DiffRowValue(
                 asList(
                         new DiffFieldValue<>(idField, BigInteger.valueOf(1L), null, DiffStatusEnum.DELETED),
@@ -2343,15 +2343,11 @@ public class ApplicationTest {
         updateFromFile(refBook.getId(), null, FILE_NAME, "testCompare/" + FILE_NAME);
         publish(refBook.getId(), "1.0", publishDate1, null, false);
 
-        Integer newVersionId = draftService.create(
-                new CreateDraftRequest(
-                        refBook.getRefBookId(),
-                        new Structure(asList(
-                                id,
-                                code,
-                                name),
-                                emptyList())))
-                .getId();
+        CreateDraftRequest request = new CreateDraftRequest(
+                refBook.getRefBookId(),
+                new Structure(asList(id, code, name), emptyList())
+        );
+        Integer newVersionId = draftService.create(request).getId();
         updateFromFile(newVersionId, null, FILE_NAME, "testCompare/" + FILE_NAME);
         publish(newVersionId, "1.1", publishDate2, null, false);
 
