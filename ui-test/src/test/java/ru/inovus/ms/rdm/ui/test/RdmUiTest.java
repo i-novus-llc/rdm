@@ -370,7 +370,7 @@ public class RdmUiTest {
         dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
 
         refBookEditPage.refreshReferrer();
-        waitActionResult();
+        waitActionResult(SLEEP_TIME);
 
         nameColumnConflictedValues.remove(1);
         dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
@@ -400,7 +400,7 @@ public class RdmUiTest {
     private void publishRefBook(RefBookEditPage refBookEditPage) {
 
         refBookEditPage.publish();
-        waitActionResult();
+        waitActionResult(SLEEP_TIME);
     }
 
     private void fillDataRowForm(DataRowForm form, Map<RefBookField, Object> row) {
@@ -515,7 +515,10 @@ public class RdmUiTest {
             throw new IllegalArgumentException("Control is not reference input");
 
         N2oInputSelect control = (N2oInputSelect) referenceInput;
+        // to-do: Очищать только при наличии значения!
         control.clear();
+        waitActionResult(SLEEP_TIME / 2);
+        
         control.openPopup();
         control.select((int) value);
     }
@@ -530,8 +533,10 @@ public class RdmUiTest {
         return refBookListPage;
     }
 
-    private void waitActionResult() {
-        Selenide.sleep(SLEEP_TIME);
+    /** Ожидание результата действия. */
+    private void waitActionResult(long sleepTime) {
+        
+        Selenide.sleep(sleepTime != 0 ? sleepTime : 1);
     }
 
     /** Формирование информации о справочнике для создания. */
