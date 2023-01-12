@@ -507,7 +507,8 @@ public class RdmUiTest {
             throw new IllegalArgumentException("control is not check box");
 
         N2oInputSelect control = (N2oInputSelect) referenceInput;
-        control.expand();
+        control.clear();
+        control.openPopup();
         control.select((int) value);
     }
 
