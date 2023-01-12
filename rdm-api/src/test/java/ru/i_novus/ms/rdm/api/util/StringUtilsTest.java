@@ -65,7 +65,7 @@ public class StringUtilsTest {
     }
 
     @Test
-    public void testJoinNumeratedWithDefault() {
+    public void testJoinNumeratedByDefault() {
 
         assertEquals("1) a\n2) b", joinNumerated(List.of("a", "b")));
     }
