@@ -10,7 +10,7 @@ import ru.i_novus.ms.rdm.api.model.field.CommonField;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.value.*;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -84,51 +84,6 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
             return null;
 
         return toCommonFieldValue(fieldId, value, field);
-
-        //Class clazz = field.getFieldValueClass();
-        //return (clazz != null)
-        //        ? toClassedFieldValue(clazz, value, field)
-        //        : toCommonFieldValue(fieldId, value, field);
-    }
-
-    /**
-     * Преобразование сериализованного значения в значение в соответствии с классом значения поля.
-     *
-     * @param clazz класс значения поля
-     * @param value сериализованное значение поля
-     * @param field поле
-     * @return Десериализованное значение поля
-     */
-    private static Serializable toClassedFieldValue(Class clazz, String value, Field field) {
-
-        if (BooleanFieldValue.class.isAssignableFrom(clazz)) {
-            return Boolean.valueOf(value);
-        }
-
-        if (DateFieldValue.class.isAssignableFrom(clazz)) {
-            return LocalDate.parse(value, DATE_PATTERN_ISO_FORMATTER);
-        }
-
-        if (FloatFieldValue.class.isAssignableFrom(clazz)) {
-            return new BigDecimal(value);
-        }
-
-        if (IntegerFieldValue.class.isAssignableFrom(clazz)) {
-            return new BigInteger(value);
-        }
-
-        if (StringFieldValue.class.isAssignableFrom(clazz) ||
-                IntegerStringFieldValue.class.isAssignableFrom(clazz)) {
-            return value;
-        }
-
-        // NB: Строковые значения в составных полях!
-        if (ReferenceFieldValue.class.isAssignableFrom(clazz) ||
-                TreeFieldValue.class.isAssignableFrom(clazz)) {
-            return value;
-        }
-
-        throw new RdmException(String.format("Unknown field value class for field: %s", field));
     }
 
     /**
