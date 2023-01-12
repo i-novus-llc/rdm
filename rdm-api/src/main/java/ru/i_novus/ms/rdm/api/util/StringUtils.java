@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.api.util;
 
-import com.google.common.base.CaseFormat;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -37,14 +35,6 @@ public final class StringUtils {
 
     public static String toDoubleQuotes(String value) {
         return DOUBLE_QUOTE_CHAR + value.replace(DOUBLE_QUOTE_CHAR, ESCAPE_CHAR + DOUBLE_QUOTE_CHAR) + DOUBLE_QUOTE_CHAR;
-    }
-
-    public static String camelCaseToSnakeCase(String s) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, s);
-    }
-
-    public static String snakeCaseToCamelCase(String s) {
-        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, s);
     }
 
     /** Преобразование строки в UUID. */
