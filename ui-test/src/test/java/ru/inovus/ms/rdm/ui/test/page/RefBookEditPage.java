@@ -1,7 +1,6 @@
 package ru.inovus.ms.rdm.ui.test.page;
 
-import com.codeborne.selenide.*;
-import net.n2oapp.framework.autotest.N2oSelenide;
+import com.codeborne.selenide.Condition;
 import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.api.component.region.TabsRegion;
 import net.n2oapp.framework.autotest.impl.component.button.N2oDropdownButton;
@@ -12,6 +11,9 @@ import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 
 import static net.n2oapp.framework.autotest.N2oSelenide.page;
 
+/**
+ * Страница редактирования справочника.
+ */
 public class RefBookEditPage extends N2oStandardPage {
 
     @Override
@@ -19,31 +21,36 @@ public class RefBookEditPage extends N2oStandardPage {
 
         // Чтобы не кастомизировать таймаут, сначала ждём основную страницу, а потом вкладки.
         super.shouldExists();
+
         getTabsRegion().shouldExists();
-        getTabsRegion().tab(Condition.text("Структура")).shouldExists();
+        getTab("Структура").shouldExists();
     }
 
-    public StructureListWidget structure() {
+    public StructureWidget structure() {
 
-        TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Структура"));
+        TabsRegion.TabItem tabItem = getTab("Структура");
         tabItem.click();
-        return tabItem.content().widget(StructureListWidget.class);
+        tabItem.shouldBeActive();
+
+        return tabItem.content().widget(StructureWidget.class);
     }
 
     public DataListWidget data() {
 
-        TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Данные"));
-        tabItem.click();
-        return tabItem.content().widget(DataListWidget.class);
-    }
-
-    public DataWithConflictsListWidget dataWithConflicts() {
-
-        TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Данные с конфликтами"));
+        TabsRegion.TabItem tabItem = getTab("Данные");
         tabItem.click();
         tabItem.shouldBeActive();
 
-        return tabItem.content().widget(DataWithConflictsListWidget.class);
+        return tabItem.content().widget(DataListWidget.class);
+    }
+
+    public DataWithConflictsWidget dataWithConflicts() {
+
+        TabsRegion.TabItem tabItem = getTab("Данные с конфликтами");
+        tabItem.click();
+        tabItem.shouldBeActive();
+
+        return tabItem.content().widget(DataWithConflictsWidget.class);
     }
 
     public void publish() {
@@ -54,7 +61,7 @@ public class RefBookEditPage extends N2oStandardPage {
 
         Page.Dialog n2oDialog = n2oSimplePage.dialog("Публикация справочника");
         n2oDialog.shouldBeVisible();
-        n2oDialog.click("Опубликовать");
+        n2oDialog.button("Опубликовать").click();
     }
 
     public void refreshReferrer() {
@@ -65,14 +72,20 @@ public class RefBookEditPage extends N2oStandardPage {
 
         Page.Dialog n2oDialog = n2oSimplePage.dialog("Обновить ссылки");
         n2oDialog.shouldBeVisible();
-        n2oDialog.click("Да");
+        n2oDialog.button("Да").click();
     }
 
+    /** Регион со вкладками. */
     private N2oTabsRegion getTabsRegion() {
-        return regions()
-                .region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
+        return regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
     }
 
+    /** Вкладка с указанным заголовком. */
+    private TabsRegion.TabItem getTab(String label) {
+        return getTabsRegion().tab(Condition.text(label));
+    }
+
+    /** Меню "Действия". */
     private N2oDropdownButton getActionsButton(N2oSimplePage n2oSimplePage) {
 
         N2oDropdownButton actionsButton = n2oSimplePage.widget(N2oFormWidget.class).toolbar().bottomLeft()

@@ -1,5 +1,8 @@
 package ru.inovus.ms.rdm.ui.test.model;
 
+/**
+ * Представление типа поля с локальным наименованием.
+ */
 public enum FieldType {
 
     STRING("Строковый"),
@@ -9,13 +12,13 @@ public enum FieldType {
     REFERENCE("Ссылочный"),
     DATE("Дата");
 
-    private final String translated;
+    private final String label;
 
-    FieldType(String translated) {
-        this.translated = translated;
+    FieldType(String label) {
+        this.label = label;
     }
 
-    public String getTranslated() {
-        return translated;
+    public String getLabel() {
+        return label;
     }
 }

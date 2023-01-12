@@ -4,13 +4,19 @@ import com.codeborne.selenide.Condition;
 import net.n2oapp.framework.autotest.api.collection.Fields;
 import net.n2oapp.framework.autotest.api.component.page.SimplePage;
 import net.n2oapp.framework.autotest.api.component.widget.FormWidget;
-import net.n2oapp.framework.autotest.impl.component.control.*;
+import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
+import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
+import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
+import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
 import net.n2oapp.framework.autotest.impl.component.modal.N2oModal;
 
 import static com.codeborne.selenide.Selectors.byClassName;
 import static com.codeborne.selenide.Selenide.$;
 
-public class StructureFormModal extends N2oModal {
+/**
+ * Форма добавления/редактирования атрибута.
+ */
+public class AttributeForm extends N2oModal {
 
     public N2oInputText codeInput() {
         return fields().field("Код").control(N2oInputText.class);
@@ -43,5 +49,4 @@ public class StructureFormModal extends N2oModal {
     private Fields fields() {
         return content(SimplePage.class).widget(FormWidget.class).fields();
     }
-
 }

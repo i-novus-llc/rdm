@@ -2,6 +2,9 @@ package ru.inovus.ms.rdm.ui.test.model;
 
 import java.util.Map;
 
+/**
+ * Поле - представление атрибута версии справочника.
+ */
 public class RefBookField {
 
     private final String code;

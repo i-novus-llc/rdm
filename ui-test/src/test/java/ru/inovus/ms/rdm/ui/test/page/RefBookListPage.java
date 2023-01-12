@@ -10,31 +10,36 @@ import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 
 import java.util.List;
 
+/**
+ * Страница "Реестр НСИ".
+ */
 public class RefBookListPage extends N2oSimplePage {
 
     @Override
     public void shouldExists() {
+
         N2oTableWidget n2oTableWidget = table();
         n2oTableWidget.shouldExists();
         n2oTableWidget.filters().shouldBeVisible();
     }
 
-    public RefBookCreateFormWidget openCreateFormPage() {
+    public CreateRefBookWidget openCreateRefBookPage() {
+
         N2oDropdownButton createRefBookButton = table().toolbar().topLeft()
                 .button("Создать справочник", N2oDropdownButton.class);
         createRefBookButton.click();
         createRefBookButton.menuItem("Создать справочник").click();
 
-        RefBookCreateFormWidget createForm = widget(RefBookCreateFormWidget.class);
-        createForm.setOpenedFromPage(this);
-        return createForm;
+        CreateRefBookWidget createWidget = widget(CreateRefBookWidget.class);
+        createWidget.setOpenedFromPage(this);
+        return createWidget;
     }
 
     public RefBookEditPage openRefBookEditPage(int rowNum) {
-        table().columns().rows().row(rowNum)
-                .click();
-        table().toolbar().topLeft().button("Изменить справочник")
-                .click();
+
+        table().columns().rows().row(rowNum).click();
+        table().toolbar().topLeft().button("Изменить справочник").click();
+
         return N2oSelenide.page(RefBookEditPage.class);
     }
 
@@ -59,19 +64,16 @@ public class RefBookListPage extends N2oSimplePage {
     }
 
     public void deleteRow(int rowNumber) {
+
         table().columns().rows().row(rowNumber).click();
         table().toolbar().topLeft().button("Удалить справочник").click();
+
         Page.Dialog deleteDialog = dialog("Удалить");
         deleteDialog.shouldBeVisible();
-        deleteDialog.click("Да");
-
+        deleteDialog.button("Да").click();
     }
 
     private N2oTableWidget table() {
         return widget(N2oTableWidget.class);
     }
-
-
-
-
 }
