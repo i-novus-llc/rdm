@@ -17,6 +17,9 @@ public final class StringUtils {
     private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$";
     private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
+    private static final String JOIN_NUMERATED_DEFAULT_FORMAT = "%1$d) %2$s";
+    private static final String JOIN_NUMERATED_DEFAULT_DELIMITER = "\n";
+
     private StringUtils() {
         // Nothing to do.
     }
@@ -61,7 +64,7 @@ public final class StringUtils {
      */
     public static String joinNumerated(List<String> values) {
 
-        return joinNumerated(values, "%1$d) %2$s", "\n");
+        return joinNumerated(values, JOIN_NUMERATED_DEFAULT_FORMAT, JOIN_NUMERATED_DEFAULT_DELIMITER);
     }
 
     /**
