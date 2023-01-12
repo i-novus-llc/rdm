@@ -47,13 +47,14 @@ public final class FieldValueUtils {
     public static String toDisplayValue(String displayExpression,
                                         RowValue rowValue,
                                         List<String> primaryKeyCodes) {
-        return toDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues(), primaryKeyCodes);
+        return toDisplayValue(displayExpression, ((LongRowValue) rowValue).getFieldValues(), primaryKeyCodes);
     }
 
     /**
      * Получение отображаемого значения.
      * <p/>
-     * Подставляет в выражение отображаемого значения в соответствии с подстановками в нём
+     * Подставляет в выражение для вычисления отображаемого значения
+     * (в соответствии с подстановками в этом выражении)
      * значения полей из списка или значения по умолчанию из подстановок.
      * <p/>
      * При наличии кодов первичных ключей позволяет добавить к полученной строке
@@ -65,9 +66,9 @@ public final class FieldValueUtils {
      * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    private static String toDisplayValue(String displayExpression,
-                                         List<FieldValue> fieldValues,
-                                         List<String> primaryKeyCodes) {
+    public static String toDisplayValue(String displayExpression,
+                                        List<FieldValue> fieldValues,
+                                        List<String> primaryKeyCodes) {
 
         Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
         Map<String, Object> map = new HashMap<>(placeholders.size());
