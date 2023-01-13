@@ -54,8 +54,9 @@ public class StructureTestConstants {
 
     public static final Structure.Attribute ID_ATTRIBUTE = Structure.Attribute.buildPrimary(
             ID_ATTRIBUTE_CODE, ID_ATTRIBUTE_CODE.toLowerCase(), FieldType.INTEGER, "primary key");
+    // NB: Локализуемый и без описания!
     public static final Structure.Attribute NAME_ATTRIBUTE = Structure.Attribute.buildLocalizable(
-            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, null); // без описания!
+            NAME_ATTRIBUTE_CODE, NAME_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, null);
     public static final Structure.Attribute STRING_ATTRIBUTE = Structure.Attribute.build(
             STRING_ATTRIBUTE_CODE, STRING_ATTRIBUTE_CODE.toLowerCase(), FieldType.STRING, "string-typed");
     public static final Structure.Attribute INTEGER_ATTRIBUTE = Structure.Attribute.build(
