@@ -208,7 +208,7 @@ public class ApplicationTest {
         refBookCreateRequest = new RefBookCreateRequest();
         refBookCreateRequest.setCode("T1");
 
-        Map<String, String> createPassport = new HashMap<>();
+        Map<String, String> createPassport = new HashMap<>(3);
         createPassport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "Справочник специальностей");
         createPassport.put(PASSPORT_ATTRIBUTE_ANNOTATION, "Аннотация для справочника специальностей");
         createPassport.put(PASSPORT_ATTRIBUTE_GROUP, "Группа неизменна");
@@ -299,7 +299,7 @@ public class ApplicationTest {
         CreateAttributeRequest createReferredAttribute = new CreateAttributeRequest(null, referredIdAttribute, null);
         draftService.createAttribute(referredDraft.getId(), createReferredAttribute);
 
-        Row referredRow = new Row(new HashMap<>() {{ put(referredIdAttribute.getCode(), "1"); }});
+        Row referredRow = new Row(new HashMap<>(1) {{ put(referredIdAttribute.getCode(), "1"); }});
         updateData(referredDraft.getId(), referredRow, null);
         publish(referredDraft.getId(), null, null, null, false);
 
@@ -315,6 +315,7 @@ public class ApplicationTest {
         assertTrue(refBook.getRemovable());
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
+
         // получение черновика
         Draft draft = draftService.getDraft(refBook.getId());
         assertNotNull(draft);
@@ -326,7 +327,7 @@ public class ApplicationTest {
         refBookUpdateRequest.setVersionId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
-        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>();
+        Map<String, String> expectedAttributesAfterUpdate = new HashMap<>(2);
         expectedAttributesAfterUpdate.putAll(refBookCreateRequest.getPassport());
         expectedAttributesAfterUpdate.putAll(refBookUpdateRequest.getPassport());
         expectedAttributesAfterUpdate.entrySet().removeIf(e -> e.getValue() == null);
@@ -411,7 +412,7 @@ public class ApplicationTest {
 
         // Поиск по наименованию (атрибуту паспорта):
         RefBookCriteria nameCriteria = new RefBookCriteria();
-        Map<String, String> passportMap = new HashMap<>();
+        Map<String, String> passportMap = new HashMap<>(1);
         passportMap.put(PASSPORT_ATTRIBUTE_FULL_NAME, SEARCH_BY_NAME_STR);
         nameCriteria.setPassport(passportMap);
         RefBook refBook = refBookService.create(new RefBookCreateRequest(SEARCH_BY_NAME_STR_ASSERT_CODE, null, null, passportMap));
@@ -929,7 +930,7 @@ public class ApplicationTest {
             put(upd.getCode(), "u1");
             put(type.getCode(), "1");
         }};
-        Set<List<AttributeFilter>> filters = new HashSet<>() {{
+        Set<List<AttributeFilter>> filters = new HashSet<>(2) {{
             add(asList(
                     new AttributeFilter(id.getCode(), (Serializable) rowMap.get(id.getCode()), id.getType()),
                     new AttributeFilter(code.getCode(), (Serializable) rowMap.get(code.getCode()), code.getType())
@@ -1069,7 +1070,7 @@ public class ApplicationTest {
     @Test
     public void testDraftCreateFromFile() {
 
-        List<FieldValue> expectedData = new ArrayList<>() {{
+        List<FieldValue> expectedData = new ArrayList<>(7) {{
             add(new StringFieldValue("string", "Иван"));
             add(new StringFieldValue("reference", "2"));
             add(new StringFieldValue("float", "1.0"));
@@ -1281,12 +1282,12 @@ public class ApplicationTest {
         assertNotNull(draftId);
 
         List<String> codes = structure.getAttributeCodes();
-        Map<String, Object> rowMap1 = new HashMap<>();
+        Map<String, Object> rowMap1 = new HashMap<>(3);
         rowMap1.put(codes.get(0), BigInteger.valueOf(1L));
         rowMap1.put(codes.get(1), "Дублирующееся имя");
         rowMap1.put(codes.get(2), "001");
 
-        Map<String, Object> rowMap2 = new HashMap<>();
+        Map<String, Object> rowMap2 = new HashMap<>(3);
         rowMap2.put(codes.get(0), BigInteger.valueOf(2L));
         rowMap2.put(codes.get(1), "Дублирующееся имя");
         rowMap2.put(codes.get(2), "0021");
@@ -1313,11 +1314,12 @@ public class ApplicationTest {
     }
 
     /**
-     * Тест на изменение структуры черновика без данных
-     * <p>
-     * Создаем новый черновик с ссылкой на опубликованную версию
-     * Обновляем тип атрибута с любого на любой
-     * Обновление без ошибок, так как в версии нет данных
+     * Тест на изменение структуры черновика без данных.
+     * <p/>
+     * - Создаём новый черновик со ссылкой на опубликованную версию.
+     * - Обновляем тип атрибута с любого на любой.
+     * <p/>
+     * Обновление без ошибок, так как в версии нет данных.
      */
     @Test
     public void testUpdateAttributeTypeWithoutData() {
@@ -1387,11 +1389,12 @@ public class ApplicationTest {
     }
 
     /**
-     * Тест на изменение структуры черновика с данными
-     * <p>
-     * Создаем новый черновик с ссылкой на опубликованную версию
-     * Добавляем в версию наполнение
-     * Пытаемся изменить тип атрибута с любого на любой
+     * Тест на изменение структуры черновика с данными.
+     * <p/>
+     * - Создаём новый черновик со ссылкой на опубликованную версию.
+     * - Добавляем в версию наполнение.
+     * - Пытаемся изменить тип атрибута с любого на любой.
+     * <p/>
      * Без ошибок изменяется только тип поля string -> любой -> string. Возвращаются данные измененного типа
      * В остальных случаях ожидается ошибка
      */
@@ -1500,16 +1503,16 @@ public class ApplicationTest {
 
     /**
      * Тест на изменение optLockValue при изменении структуры.
-     * <p>
-     * - Создание нового черновика
-     * - Проверка создания атрибута
-     * - Проверка изменения атрибута
-     * - Проверка удаления атрибута
-     * - Проверка создания строки
-     * - Проверка изменения строки
-     * - Проверка удаления строки
-     * - Проверка загрузки данных
-     * <p>
+     * <p/>
+     * - Создание нового черновика.
+     * - Проверка создания атрибута.
+     * - Проверка изменения атрибута.
+     * - Проверка удаления атрибута.
+     * - Проверка создания строки.
+     * - Проверка изменения строки.
+     * - Проверка удаления строки.
+     * - Проверка загрузки данных.
+     * <p/>
      * Во всех случаях меняется optLockValue.
      */
     @Test
@@ -1693,7 +1696,8 @@ public class ApplicationTest {
     }
 
     /**
-     * Тест публикации версии со всеми случаями пересечения с предыдущими (включая разные комбинации пересечения данных)<br/>
+     * Тест публикации версии со всеми случаями пересечения с предыдущими
+     * (включая разные комбинации пересечения данных).
      */
     @Test
     public void testPublicationAllCases() {
@@ -1797,13 +1801,13 @@ public class ApplicationTest {
 
     /**
      * Тест публикации исходного справочника при наличии конфликтов в связанном справочнике.
-     *
+     * <p/>
      * 1. Загрузка, проверка и публикация исходного справочника.
      * 2. Загрузка и проверка связанного справочника.
      * 3. Изменение исходного справочника и его публикация без обновления ссылок.
      * 4. Проверка связанного справочника и проверка конфликтов.
      * 5. Создание черновика связанного справочника.
-     *
+     * <p/>
      * cardinalData.xml - исходный справочник для публикации после изменений в нём
      * referrerData.xml - связанный справочник с конфликтными ссылками на изменённый справочник
      */
@@ -2184,7 +2188,7 @@ public class ApplicationTest {
     public void testSortInRefBookSearch() {
 
         final String REFBOOK_CODE = "refbookSortCode";
-        Map<String, String> passport = new HashMap<>();
+        Map<String, String> passport = new HashMap<>(2);
 
         passport.put(PASSPORT_ATTRIBUTE_FULL_NAME, "order1");
         passport.put(PASSPORT_ATTRIBUTE_SHORT_NAME, "order3");
@@ -2714,7 +2718,7 @@ public class ApplicationTest {
         assertEquals(2, search.getContent().size());
 
         // Совпадение записей:
-        List<FieldValue> expectedData0 = new ArrayList<>() {{
+        List<FieldValue> expectedData0 = new ArrayList<>(4) {{
             add(new StringFieldValue("TEST_CODE", "string2"));
             add(new IntegerFieldValue("number", 2));
             add(new DateFieldValue("dt", LocalDate.of(2002, 2, 2)));
@@ -2723,7 +2727,7 @@ public class ApplicationTest {
         List actualData0 = search.getContent().get(0).getFieldValues();
         assertEquals(expectedData0, actualData0);
 
-        List<FieldValue> expectedData1 = new ArrayList<>() {{
+        List<FieldValue> expectedData1 = new ArrayList<>(4) {{
             add(new StringFieldValue("TEST_CODE", "string5"));
             add(new IntegerFieldValue("number", 5));
             add(new DateFieldValue("dt", LocalDate.of(2005, 5, 5)));
@@ -3057,7 +3061,7 @@ public class ApplicationTest {
 
     private Row createRowWithReferenceType(BigInteger id, String str, Object ref) {
 
-        Row row = new Row(new HashMap<>() {{
+        Row row = new Row(new HashMap<>(1) {{
             put("string", str);
         }});
         extendRowWithReferenceType(row, id, ref);
@@ -3069,7 +3073,7 @@ public class ApplicationTest {
     private List<RowValue> createOneStringFieldRow(String fieldName, String... values) {
         StringField stringField = new StringField(fieldName);
 
-        List<RowValue> rows = new ArrayList<>();
+        List<RowValue> rows = new ArrayList<>(values.length);
         for (String s : values) {
             rows.add(new LongRowValue(stringField.valueOf(s)));
         }
@@ -3087,22 +3091,16 @@ public class ApplicationTest {
     }
 
     private String getFieldTypeName(FieldType type) {
-        switch (type) {
-            case STRING:
-                return "Строчный";
-            case FLOAT:
-                return "Дробный";
-            case REFERENCE:
-                return "Ссылочный";
-            case INTEGER:
-                return "Целочисленный";
-            case BOOLEAN:
-                return "Логический";
-            case DATE:
-                return "Дата";
-            default:
-                return null;
-        }
+
+        return switch (type) {
+            case STRING -> "Строчный";
+            case FLOAT -> "Дробный";
+            case REFERENCE -> "Ссылочный";
+            case INTEGER -> "Целочисленный";
+            case BOOLEAN -> "Логический";
+            case DATE -> "Дата";
+            default -> null;
+        };
     }
 
     @SuppressWarnings("SameParameterValue")
