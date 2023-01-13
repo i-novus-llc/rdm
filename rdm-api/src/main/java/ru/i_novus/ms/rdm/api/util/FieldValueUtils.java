@@ -30,7 +30,7 @@ import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public final class FieldValueUtils {
 
-    private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
+    public static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
 
     private FieldValueUtils() {
         // Nothing to do.
@@ -71,7 +71,7 @@ public final class FieldValueUtils {
                                         List<String> primaryKeyCodes) {
 
         Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
-        Map<String, Object> map = new HashMap<>(placeholders.size());
+        Map<String, Serializable> map = new HashMap<>(placeholders.size());
 
         if (!CollectionUtils.isEmpty(fieldValues)) {
             fieldValues.forEach(fieldValue ->
@@ -84,7 +84,9 @@ public final class FieldValueUtils {
                 .collect(toList());
         absentPlaceholders.forEach(absent -> map.put(absent, ""));
 
-        String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
+        String displayValue = !StringUtils.isEmpty(displayExpression)
+                ? createDisplayExpressionSubstitutor(map).replace(displayExpression)
+                : "";
 
         if (!CollectionUtils.isEmpty(primaryKeyCodes) &&
                 !CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
@@ -237,9 +239,10 @@ public final class FieldValueUtils {
      * @return Отображаемое значение
      */
     public static String diffValuesToDisplayValue(String displayExpression,
-                                                  List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
+                                                  List<DiffFieldValue> diffFieldValues,
+                                                  DiffStatusEnum diffStatus) {
 
-        Map<String, Object> map = new HashMap<>(diffFieldValues.size());
+        Map<String, Serializable> map = new HashMap<>(diffFieldValues.size());
         diffFieldValues.forEach(fieldValue ->
                 map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
         );
@@ -247,7 +250,7 @@ public final class FieldValueUtils {
     }
 
     /** Создание объекта подстановки в выражение для вычисления отображаемого значения. */
-    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Object> map) {
+    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Serializable> map) {
 
         StringSubstitutor substitutor = new StringSubstitutor(map,
                 DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END);
