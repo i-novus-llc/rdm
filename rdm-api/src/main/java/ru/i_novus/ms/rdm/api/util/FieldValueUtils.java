@@ -175,13 +175,16 @@ public final class FieldValueUtils {
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
 
         return filterValues.stream()
-                .map(value -> {
-                    FieldType attributeType = value.getAttribute().getType();
-                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), attributeType);
-                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
-                })
+                .map(FieldValueUtils::toAttributeFilter)
                 .map(Collections::singletonList)
                 .collect(toSet());
+    }
+
+    private static AttributeFilter toAttributeFilter(ReferenceFilterValue filterValue) {
+
+        FieldType attributeType = filterValue.getAttribute().getType();
+        Serializable attributeValue = castFieldValue(filterValue.getReferenceValue(), attributeType);
+        return new AttributeFilter(filterValue.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
     }
 
     public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {

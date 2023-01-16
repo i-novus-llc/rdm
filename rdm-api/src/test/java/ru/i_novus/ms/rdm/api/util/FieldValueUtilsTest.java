@@ -1,6 +1,9 @@
 package ru.i_novus.ms.rdm.api.util;
 
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
+import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
@@ -11,10 +14,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -193,5 +193,30 @@ public class FieldValueUtilsTest {
         String value = "unknown";
         assertEquals(value, castReferenceValue(value, FieldType.REFERENCE));
         assertEquals(value, castReferenceValue(value, FieldType.TREE));
+    }
+
+    @Test
+    public void testToAttributeFilters() {
+
+        ReferenceFilterValue stringValue = createReferenceFilterValue(STRING_ATTRIBUTE, STRING_VALUE);
+        ReferenceFilterValue intValue = createReferenceFilterValue(INTEGER_ATTRIBUTE, INTEGER_VALUE.toString());
+        List<ReferenceFilterValue> filterValues = List.of(stringValue, intValue);
+
+        Set<List<AttributeFilter>> filterSet = toAttributeFilters(filterValues);
+        assertEquals(2, filterSet.size());
+    }
+
+    @Test
+    public void testToAttributeFiltersWhenEmpty() {
+
+        Set<List<AttributeFilter>> filterSet = toAttributeFilters(emptyList());
+        assertEquals(0, filterSet.size());
+    }
+
+    private ReferenceFilterValue createReferenceFilterValue(Structure.Attribute attribute, String value) {
+
+        Reference reference = new Reference(value, value + " displayed");
+        ReferenceFieldValue fieldValue = new ReferenceFieldValue(attribute.getCode(), reference);
+        return new ReferenceFilterValue(attribute, fieldValue);
     }
 }
