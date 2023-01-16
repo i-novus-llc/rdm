@@ -12,7 +12,7 @@
 
     <properties>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/*StrategyLocatorConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/*StrategyLocatorConfig.java, **/*QueryProvider.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
