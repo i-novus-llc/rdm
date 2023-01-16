@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.api.model.field;
 
-import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.platform.datastorage.temporal.model.value.ReferenceFieldValue;
 
 /**
  * Ссылочное значение.
- *
+ * <p/>
  * Используется для формирования промежуточных данных с целью дальнейшей обработки.
  */
 public class ReferenceFilterValue {
