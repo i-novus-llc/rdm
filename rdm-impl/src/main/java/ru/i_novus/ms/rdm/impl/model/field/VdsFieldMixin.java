@@ -20,6 +20,7 @@ import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
         @JsonSubTypes.Type(value = StringField.class, name = "StringField"),
         @JsonSubTypes.Type(value = TreeField.class, name = "TreeField")
 })
+@SuppressWarnings({"rawtypes", "java:S3740"})
 public abstract class VdsFieldMixin {
 
     @JsonIgnore
