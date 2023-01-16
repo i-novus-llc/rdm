@@ -198,7 +198,8 @@ public final class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
-    public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
+    /** Преобразование значения в значение поля в соответствии с указанным типом поля. */
+    public static FieldValue toFieldValue(Serializable value, String fieldCode, FieldType fieldType) {
 
         return switch (fieldType) {
             case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);

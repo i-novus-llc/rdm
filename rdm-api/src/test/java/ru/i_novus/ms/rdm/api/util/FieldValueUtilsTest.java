@@ -2,13 +2,14 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.junit.Test;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.i_novus.ms.rdm.api.model.field.CommonField;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
-import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
 import java.math.BigDecimal;
@@ -19,8 +20,7 @@ import java.util.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.FieldValueUtils.*;
 import static ru.i_novus.ms.rdm.api.util.StructureTestConstants.*;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
@@ -36,7 +36,7 @@ public class FieldValueUtilsTest {
     private static final BigDecimal FLOAT_VALUE = BigDecimal.valueOf(33.33);
     private static final Boolean BOOLEAN_VALUE = Boolean.TRUE;
     private static final LocalDate DATE_VALUE = LocalDate.of(2021, 2, 3);
-    //private static final Reference REFER_VALUE = new Reference("4", "four");
+    private static final Reference REFER_VALUE = new Reference("4", "four");
 
     @Test
     public void testToDisplayValueByRowValue() {
@@ -218,5 +218,38 @@ public class FieldValueUtilsTest {
         Reference reference = new Reference(value, value + " displayed");
         ReferenceFieldValue fieldValue = new ReferenceFieldValue(attribute.getCode(), reference);
         return new ReferenceFilterValue(attribute, fieldValue);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testGetDiffFieldValue() {
+
+        Field field = new CommonField(STRING_ATTRIBUTE_CODE);
+        DiffFieldValue fieldValue = new DiffFieldValue(field, "old", "new", DiffStatusEnum.UPDATED);
+        assertEquals("new", getDiffFieldValue(fieldValue, DiffStatusEnum.INSERTED));
+        assertEquals("old", getDiffFieldValue(fieldValue, DiffStatusEnum.DELETED));
+        assertEquals("new", getDiffFieldValue(fieldValue, DiffStatusEnum.UPDATED));
+    }
+
+    @Test
+    public void testGetCompareFieldValue() {
+
+        ComparableField field = new ComparableField(STRING_ATTRIBUTE_CODE, STRING_ATTRIBUTE_CODE, DiffStatusEnum.UPDATED);
+        ComparableFieldValue fieldValue = new ComparableFieldValue(field, "old", "new", DiffStatusEnum.UPDATED);
+        assertEquals("new", getCompareFieldValue(fieldValue, DiffStatusEnum.INSERTED));
+        assertEquals("old", getCompareFieldValue(fieldValue, DiffStatusEnum.DELETED));
+        assertEquals("new", getCompareFieldValue(fieldValue, DiffStatusEnum.UPDATED));
+    }
+
+    @Test
+    public void testToFieldValue() {
+
+        assertTrue(toFieldValue(BOOLEAN_VALUE, BOOLEAN_ATTRIBUTE_CODE, FieldType.BOOLEAN) instanceof BooleanFieldValue);
+        assertTrue(toFieldValue(DATE_VALUE, DATE_ATTRIBUTE_CODE, FieldType.DATE) instanceof DateFieldValue);
+        assertTrue(toFieldValue(FLOAT_VALUE, FLOAT_ATTRIBUTE_CODE, FieldType.FLOAT) instanceof FloatFieldValue);
+        assertTrue(toFieldValue(INTEGER_VALUE, INTEGER_ATTRIBUTE_CODE, FieldType.INTEGER) instanceof IntegerFieldValue);
+        assertTrue(toFieldValue(REFER_VALUE, REFERENCE_ATTRIBUTE_CODE, FieldType.REFERENCE) instanceof ReferenceFieldValue);
+        assertTrue(toFieldValue(STRING_VALUE, STRING_ATTRIBUTE_CODE, FieldType.STRING) instanceof StringFieldValue);
+        // TreeFieldValue пропущен, т.к. ещё не реализован.
     }
 }

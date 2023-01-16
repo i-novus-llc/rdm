@@ -48,6 +48,7 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -412,7 +413,7 @@ public class DraftServiceTest {
                 FieldType.REFERENCE,
                 FieldType.DATE
         };
-        Object[] primaryValues = {
+        Serializable[] primaryValues = {
                 "abc",
                 BigInteger.valueOf(123L), BigDecimal.valueOf(123.123),
                 new Reference("2", "-"),
@@ -425,7 +426,7 @@ public class DraftServiceTest {
         }
     }
 
-    private void testUpdateByPrimaryKey(FieldType primaryType, Object primaryValue) {
+    private void testUpdateByPrimaryKey(FieldType primaryType, Serializable primaryValue) {
 
         String primaryCode = "Primary";
         String notPrimaryCode = "NotPrimary";
@@ -446,7 +447,7 @@ public class DraftServiceTest {
         RefBookRowValue row = new RefBookRowValue();
         row.setSystemId(systemId);
         row.setFieldValues(List.of(
-                FieldValueUtils.toFieldValueByType(primaryValue, primaryCode, primaryType),
+                FieldValueUtils.toFieldValue(primaryValue, primaryCode, primaryType),
                 new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue))
         );
 
