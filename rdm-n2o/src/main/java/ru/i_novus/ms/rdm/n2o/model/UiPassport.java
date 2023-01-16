@@ -19,6 +19,7 @@ public class UiPassport {
     private String description;
 
     public UiPassport() {
+        // Nothing to do.
     }
 
     public String getCode() {

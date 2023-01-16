@@ -21,6 +21,7 @@ public class BaseController {
      * @param type   тип перечисления
      * @return Локализованное наименование
      */
+    @SuppressWarnings({"rawtypes", "java:S3740"})
     protected String toEnumLocaleName(String prefix, Enum type) {
         return type != null ? messages.getMessage(prefix + type.name().toLowerCase()) : null;
     }
