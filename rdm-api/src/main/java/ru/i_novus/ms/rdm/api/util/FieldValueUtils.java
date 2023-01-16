@@ -2,10 +2,8 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -22,7 +20,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
@@ -167,25 +164,6 @@ public final class FieldValueUtils {
             case INTEGER -> new BigInteger(value);
             default -> value;
         };
-    }
-
-    /**
-     * Получение значений первичных ключей
-     * по записи {@code rowValue} на основании структуры {@code structure}.
-     *
-     * @param rowValue  запись справочника
-     * @param structure структура справочника
-     * @return Список значений полей для первичных ключей
-     */
-    public static List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
-
-        if (rowValue == null || structure == null)
-            return emptyList();
-
-        return rowValue.getFieldValues().stream()
-                .filter(fieldValue ->
-                        structure.getAttribute(fieldValue.getField()).getIsPrimary())
-                .collect(toList());
     }
 
     /**
