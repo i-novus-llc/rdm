@@ -140,7 +140,7 @@ public class StructureController extends BaseController {
                 ? version.getStructure().getReference(attribute.getCode())
                 : null;
         ReadAttribute readAttribute = toReadAttribute(attribute, reference);
-        enrichAtribute(readAttribute, getValidations(validations, attribute.getCode()));
+        enrichAttribute(readAttribute, getValidations(validations, attribute.getCode()));
 
         readAttribute.setVersionId(version.getId());
         readAttribute.setOptLockValue(version.getOptLockValue());
@@ -166,45 +166,44 @@ public class StructureController extends BaseController {
     }
 
     /** Заполнение атрибута для отображения с учётом его представления. */
-    private void enrichAtribute(ReadAttribute attribute, List<AttributeValidation> validations) {
+    private void enrichAttribute(ReadAttribute attribute, List<AttributeValidation> validations) {
 
         for (AttributeValidation validation : validations) {
             switch (validation.getType()) {
                 case REQUIRED -> attribute.setRequired(true);
-
                 case UNIQUE -> attribute.setUnique(true);
-
                 case PLAIN_SIZE -> attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
-
-                case FLOAT_SIZE -> {
-                    FloatSizeAttributeValidation floatSize = (FloatSizeAttributeValidation) validation;
-                    attribute.setIntPartSize(floatSize.getIntPartSize());
-                    attribute.setFracPartSize(floatSize.getFracPartSize());
-                }
-
-                case INT_RANGE -> {
-                    IntRangeAttributeValidation intRange = (IntRangeAttributeValidation) validation;
-                    attribute.setMinInteger(intRange.getMin());
-                    attribute.setMaxInteger(intRange.getMax());
-                }
-
-                case FLOAT_RANGE -> {
-                    FloatRangeAttributeValidation floatRange = (FloatRangeAttributeValidation) validation;
-                    attribute.setMinFloat(floatRange.getMin());
-                    attribute.setMaxFloat(floatRange.getMax());
-                }
-                case DATE_RANGE -> {
-                    DateRangeAttributeValidation dateRange = (DateRangeAttributeValidation) validation;
-                    attribute.setMinDate(dateRange.getMin());
-                    attribute.setMaxDate(dateRange.getMax());
-                }
-
+                case FLOAT_SIZE -> enrichFloatSize(attribute, (FloatSizeAttributeValidation) validation);
+                case INT_RANGE -> enrichIntRange(attribute, (IntRangeAttributeValidation) validation);
+                case FLOAT_RANGE -> enrichFloatRange(attribute, (FloatRangeAttributeValidation) validation);
+                case DATE_RANGE -> enrichDateRange(attribute, (DateRangeAttributeValidation) validation);
                 case REG_EXP -> attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
-
-                default -> {
-                }
             }
         }
+    }
+
+    private static void enrichFloatSize(ReadAttribute attribute, FloatSizeAttributeValidation validation) {
+
+        attribute.setIntPartSize(validation.getIntPartSize());
+        attribute.setFracPartSize(validation.getFracPartSize());
+    }
+
+    private static void enrichIntRange(ReadAttribute attribute, IntRangeAttributeValidation validation) {
+
+        attribute.setMinInteger(validation.getMin());
+        attribute.setMaxInteger(validation.getMax());
+    }
+
+    private static void enrichFloatRange(ReadAttribute attribute, FloatRangeAttributeValidation validation) {
+
+        attribute.setMinFloat(validation.getMin());
+        attribute.setMaxFloat(validation.getMax());
+    }
+
+    private void enrichDateRange(ReadAttribute attribute, DateRangeAttributeValidation validation) {
+
+        attribute.setMinDate(validation.getMin());
+        attribute.setMaxDate(validation.getMax());
     }
 
     /** Заполнение атрибута-ссылки для отображения с учётом его представления. */
