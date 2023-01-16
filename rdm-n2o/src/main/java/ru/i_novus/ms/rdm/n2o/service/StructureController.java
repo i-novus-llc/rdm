@@ -148,9 +148,7 @@ public class StructureController extends BaseController {
         readAttribute.setIsReferrer(!isEmpty(version.getStructure().getReferences()));
         readAttribute.setCodeExpression(DisplayExpression.toPlaceholder(attribute.getCode()));
 
-        if (reference != null) {
-            enrichReference(readAttribute, reference);
-        }
+        enrichReference(readAttribute, reference);
 
         enrichByRefBook(version.getId(), readAttribute);
 
@@ -172,7 +170,7 @@ public class StructureController extends BaseController {
             switch (validation.getType()) {
                 case REQUIRED -> attribute.setRequired(true);
                 case UNIQUE -> attribute.setUnique(true);
-                case PLAIN_SIZE -> attribute.setPlainSize(((PlainSizeAttributeValidation) validation).getSize());
+                case PLAIN_SIZE -> enrichPlainSize(attribute, (PlainSizeAttributeValidation) validation);
                 case FLOAT_SIZE -> enrichFloatSize(attribute, (FloatSizeAttributeValidation) validation);
                 case INT_RANGE -> enrichIntRange(attribute, (IntRangeAttributeValidation) validation);
                 case FLOAT_RANGE -> enrichFloatRange(attribute, (FloatRangeAttributeValidation) validation);
@@ -180,6 +178,11 @@ public class StructureController extends BaseController {
                 case REG_EXP -> attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
             }
         }
+    }
+
+    private static void enrichPlainSize(ReadAttribute attribute, PlainSizeAttributeValidation validation) {
+
+        attribute.setPlainSize(validation.getSize());
     }
 
     private static void enrichFloatSize(ReadAttribute attribute, FloatSizeAttributeValidation validation) {
@@ -208,6 +211,8 @@ public class StructureController extends BaseController {
 
     /** Заполнение атрибута-ссылки для отображения с учётом его представления. */
     private void enrichReference(ReadAttribute attribute, Structure.Reference reference) {
+
+        if (reference == null) return;
 
         Integer referenceRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(referenceRefBookId);
