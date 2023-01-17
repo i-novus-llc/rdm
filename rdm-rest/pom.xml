@@ -55,9 +55,15 @@
         </dependency>
 
         <dependency>
-            <groupId>ru.i-novus.components</groupId>
+            <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
         </dependency>
+
+        <!--<dependency>-->
+        <!--    <groupId>ru.i-novus.components</groupId>-->
+        <!--    <artifactId>liquibase-core</artifactId>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
