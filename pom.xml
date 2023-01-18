@@ -29,7 +29,7 @@
         <apache.poi.version>3.17</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
         <itext.version>5.5.9</itext.version>
-        <commons.text.version>1.6</commons.text.version>
+        <commons.text.version>1.10.0</commons.text.version>
         <xmlunit.version>1.6</xmlunit.version>
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
