@@ -12,14 +12,19 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
-import static org.springframework.util.StringUtils.isEmpty;
 
-public class RefBookDataUtil {
+public final class RefBookDataUtil {
 
-    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private static final char FILE_NAME_EXT_SEPARATOR = '.';
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private RefBookDataUtil() {
         // Nothing to do.
+    }
+
+    public static boolean isEmpty(String s) {
+        return s == null || s.isEmpty();
     }
 
     public static List<RefBookDataModel> toRefBookDataModels(Resource file) {
@@ -36,13 +41,16 @@ public class RefBookDataUtil {
 
     private static String getExtension(String filename) {
 
-        int lastIndex = filename.lastIndexOf('.');
+        if (isEmpty(filename))
+            return null;
+
+        int lastIndex = filename.lastIndexOf(FILE_NAME_EXT_SEPARATOR);
         return (lastIndex >= 0) ? filename.substring(lastIndex + 1) : null;
     }
 
     private static JsonNode fromFile(Resource file) {
         try {
-            return jsonMapper.readTree(file.getInputStream());
+            return OBJECT_MAPPER.readTree(file.getInputStream());
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Cannot deserialize json from file.", e);
@@ -102,7 +110,7 @@ public class RefBookDataUtil {
 
     private static String asJsonString(JsonNode value) {
         try {
-            return jsonMapper.writeValueAsString(value);
+            return OBJECT_MAPPER.writeValueAsString(value);
 
         } catch (JsonProcessingException e) {
             return null;

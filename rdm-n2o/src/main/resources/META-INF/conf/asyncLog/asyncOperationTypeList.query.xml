@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0"
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
        name="Типы операций">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
@@ -7,16 +7,12 @@
     </list>
 
     <fields>
+        <field id="id" domain="string" mapping="toString()"/>
 
-        <field id="id" domain="string">
-            <select mapping="toString()"/>
-        </field>
-
-        <field id="operationTypeDisplay">
-            <select mapping="#this == 'PUBLICATION' ? 'Публикация' :
-                             #this == 'L10N_PUBLICATION' ? 'Публикация локализации' :
-                             #this"/>
-        </field>
-        
+        <field id="operationTypeDisplay"
+               mapping="#this == 'PUBLICATION' ? 'Публикация' :
+                        #this == 'L10N_PUBLICATION' ? 'Публикация локализации' :
+                        #this"/>
     </fields>
+
 </query>

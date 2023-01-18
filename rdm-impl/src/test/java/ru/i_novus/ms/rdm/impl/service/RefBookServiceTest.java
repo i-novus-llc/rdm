@@ -6,26 +6,34 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookDetailModelRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateRefBookEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
@@ -38,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,7 +62,7 @@ public class RefBookServiceTest {
     @Mock
     private RefBookVersionRepository versionRepository;
     @Mock
-    private RefBookModelDataRepository refBookModelDataRepository;
+    private RefBookDetailModelRepository refBookDetailModelRepository;
 
     @Mock
     private DropDataService dropDataService;
@@ -94,10 +103,10 @@ public class RefBookServiceTest {
     private EditPublishStrategy editPublishStrategy;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(refBookService, "strategyLocator", strategyLocator);
     }
 
     @Test
@@ -125,9 +134,9 @@ public class RefBookServiceTest {
         List<RefBookVersionEntity> lastPublishedEntities = new ArrayList<>(versionEntities);
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class)))
+        when(refBookDetailModelRepository.findByVersionId(any(Integer.class)))
                 .thenAnswer(v -> {
-                    RefBookModelData data = new RefBookModelData();
+                    RefBookDetailModel data = new RefBookDetailModel();
 
                     Integer currentVersionId = (Integer) v.getArguments()[0];
                     data.setCurrentVersionId(currentVersionId);
@@ -307,7 +316,7 @@ public class RefBookServiceTest {
     private void mockRefBookModel() {
 
         // .refBookModel
-        when(refBookModelDataRepository.findData(any(Integer.class))).thenReturn(new RefBookModelData());
+        when(refBookDetailModelRepository.findByVersionId(any(Integer.class))).thenReturn(new RefBookDetailModel());
     }
 
     @Test

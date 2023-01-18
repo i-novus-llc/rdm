@@ -13,7 +13,10 @@ import net.n2oapp.framework.autotest.impl.component.modal.N2oModal;
 import static com.codeborne.selenide.Selectors.byClassName;
 import static com.codeborne.selenide.Selenide.$;
 
-public class DataFormModal extends N2oModal {
+/**
+ * Форма добавления/редактирования записи.
+ */
+public class DataRowForm extends N2oModal {
 
     public N2oInputText stringInput(String fieldName) {
         return fields().field(fieldName).control(N2oInputText.class);

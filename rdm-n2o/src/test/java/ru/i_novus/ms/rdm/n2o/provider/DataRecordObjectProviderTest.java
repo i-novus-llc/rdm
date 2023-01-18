@@ -16,13 +16,16 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.REFERENCE_VALUE;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addFieldProperty;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
@@ -30,13 +33,14 @@ import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 @RunWith(MockitoJUnitRunner.class)
 public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
 
-    @Spy
-    private final Collection<DataRecordObjectResolver> resolvers = new ArrayList<>(1);
+    @InjectMocks
+    private DataRecordObjectProvider provider;
 
     @Mock
     protected VersionRestService versionService;
-    @InjectMocks
-    private DataRecordObjectProvider provider;
+
+    @Spy
+    private final Collection<DataRecordObjectResolver> resolvers = new ArrayList<>(1);
 
     @Before
     public void setUp() {

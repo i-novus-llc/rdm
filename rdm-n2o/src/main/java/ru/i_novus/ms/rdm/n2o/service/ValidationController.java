@@ -9,8 +9,13 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 @SuppressWarnings("unused")
 public class ValidationController {
 
+    private final VersionRestService versionService;
+
     @Autowired
-    private VersionRestService versionService;
+    public ValidationController(VersionRestService versionService) {
+
+        this.versionService = versionService;
+    }
 
     public boolean checkAttributeCodeNotExists(Integer versionId, String attributeCode) {
 

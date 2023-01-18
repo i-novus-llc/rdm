@@ -14,9 +14,9 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.IOException;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
-public class SecurityContextUtils {
+public final class SecurityContextUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityContextUtils.class);
 
@@ -24,7 +24,7 @@ public class SecurityContextUtils {
     private static final String DEFAULT_USER_NAME = "UNKNOWN";
 
     private SecurityContextUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     public static String getUserId() {

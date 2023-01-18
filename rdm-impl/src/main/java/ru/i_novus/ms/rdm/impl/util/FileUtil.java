@@ -2,11 +2,13 @@ package ru.i_novus.ms.rdm.impl.util;
 
 import org.apache.commons.io.FilenameUtils;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
-public class FileUtil {
+public final class FileUtil {
 
-    private FileUtil() { throw new UnsupportedOperationException(); }
+    private FileUtil() {
+        // Nothing to do.
+    }
 
     /**
      * Получение расширения файла для выбора действий с этим файлом.

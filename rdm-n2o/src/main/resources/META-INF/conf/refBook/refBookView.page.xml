@@ -1,118 +1,205 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<page xmlns="http://n2oapp.net/framework/config/schema/page-3.0" name="Реестр НСИ">
-    <regions>
+<page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
+      name="Справочник НСИ">
 
-        <form id="version_select" query-id="refBookVersion">
-
-            <pre-filters>
+    <datasources>
+        <!-- Модель текущей версии справочника -->
+        <datasource id="refBookVersion" query-id="refBookVersion">
+            <filters>
                 <eq field-id="refBookId" param="refBookId"/>
-            </pre-filters>
+            </filters>
+        </datasource>
 
+        <!-- Модель паспорта версии справочника -->
+        <datasource id="versionPassport" query-id="refBook" object-id="refBook">
+            <dependencies>
+                <fetch on="refBookVersion" model="resolve"/>
+            </dependencies>
+
+            <filters>
+                <eq field-id="version.id" value="{id}" datasource="refBookVersion" required="true"/>
+            </filters>
+        </datasource>
+
+        <!-- Модель структуры у версии справочника -->
+        <datasource id="versionStructure" query-id="attribute" object-id="attribute">
+            <dependencies>
+                <fetch on="refBookVersion" model="resolve"/>
+            </dependencies>
+
+            <filters>
+                <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
+            </filters>
+        </datasource>
+
+        <!-- Модель записей (данных) у версии справочника -->
+        <datasource id="versionData" query-id="data" object-id="data">
+            <dependencies>
+                <fetch on="refBookVersion" model="resolve"/>
+            </dependencies>
+
+            <filters>
+                <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
+                <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+                <eq field-id="localeCode" value=""/>
+            </filters>
+        </datasource>
+
+        <!-- Модель локализаций записей (данных) у версии справочника -->
+        <datasource id="localizedData" query-id="data" object-id="data">
+            <dependencies>
+                <fetch on="refBookVersion" model="resolve"/>
+            </dependencies>
+
+            <filters>
+                <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
+                <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+
+                <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion"/>
+            </filters>
+        </datasource>
+
+        <!-- Модель записей (данных) с конфликтами у версии справочника -->
+        <datasource id="conflictedData" query-id="data" object-id="data">
+            <dependencies>
+                <fetch on="refBookVersion" model="resolve"/>
+            </dependencies>
+
+            <filters>
+                <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
+                <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+                <eq field-id="hasDataConflict" value="true"/>
+            </filters>
+        </datasource>
+    </datasources>
+
+    <regions>
+        <form id="version_select" datasource="refBookVersion">
             <fields>
                 <!-- Поля для передачи динамичных атрибутов из versionList при редактировании записи -->
-                <!-- NB: Used as master-field-id="id" in depends-on="version_select" ? -->
-                <output-text id="id" visible="false">
-                    <dependencies>
-                        <set-value on="version">version.id</set-value>
-                    </dependencies>
-                </output-text>
+                <set field-label-location="left">
+                    <row>
+                        <output-text id="refBookId" visible="false"/>
 
-                <select id="version" label="Версия" query-id="versionList" label-field-id="version"
-                        cleanable="false">
-                    <pre-filters>
-                        <eq field-id="refBookId" value="{refBookId}"/>
-                    </pre-filters>
+                        <output-text id="current" depends-on="version" default-value="-" visible="false">
+                            <dependencies>
+                                <set-value on="version">version.refBookId??'?' + ' (' + (version.code??'?') + ') *'</set-value>
+                            </dependencies>
+                        </output-text>
+
+                        <output-text id="id" depends-on="version" visible="false">
+                            <dependencies>
+                                <set-value on="version">version.id</set-value>
+                            </dependencies>
+                        </output-text>
+
+                        <output-text id="optLockValue" depends-on="version" visible="false">
+                            <dependencies>
+                                <set-value on="version">version.optLockValue</set-value>
+                            </dependencies>
+                        </output-text>
+
+                        <output-text id="now" no-label-block="true" visible="false"/>
+                    </row>
+                </set>
+
+                <!-- Поле выбора версии справочника -->
+                <select id="version" label="Версия" cleanable="false"
+                        query-id="versionList" label-field-id="displayVersion">
+                    <filters>
+                        <eq field-id="refBookId" value="{refBookId}" model="resolve"/>
+                    </filters>
+
                 </select>
-
             </fields>
 
             <toolbar place="bottomLeft">
 
                 <button label="Скачать">
-                    <show-modal page-id="downloadFile" upload="defaults">
-                        <query-param name="versionId" value="{version.id}"/>
+                    <show-modal page-id="downloadFile">
+                        <params>
+                            <query-param name="versionId" value="{id}"/>
+                        </params>
                     </show-modal>
                 </button>
 
             </toolbar>
-        </form>
+        </form> <!-- version_select -->
 
         <tabs>
-            <tab name="Паспорт">
-                <form id="passport_form" ref-id="passportView"
-                      depends-on="version_select" fetch-on-init="true"
-                      master-field-id="id" detail-field-id="version.id" object-id="refBook"/>
+            <tab id="tab_passport" name="Паспорт">
+                <form id="version_passport" ref-id="passportView" datasource="versionPassport" fetch-on-init="true">
+                </form>
             </tab>
 
-            <tab name="Структура">
-                <table id="structure_table" ref-id="structure"
-                       depends-on="version_select" fetch-on-init="true"
-                       master-field-id="id" detail-field-id="versionId" upload="query"/>
-            </tab>
-
-            <tab name="Данные">
-                <table src="DataGrid" id="dataTable"
-                       query-id="data" depends-on="version_select" fetch-on-init="true"
-                       master-field-id="id" detail-field-id="versionId" object-id="data">
-                    <pre-filters>
-                        <eq field-id="localeCode" value=""/>
-                    </pre-filters>
-
+            <tab id="tab_structure" name="Структура">
+                <table id="version_structure" ref-id="structure" datasource="versionStructure" fetch-on-init="true">
                 </table>
             </tab>
 
-            <tab name="Переведённые данные">
+            <tab id="tab_data" name="Данные">
+                <table id="dataTable" src="DataGrid" datasource="versionData" fetch-on-init="true">
+                </table>
+            </tab>
 
-                <form id="locale_select">
+            <tab id="tab_localized" name="Переведённые данные">
+                <form id="locale_select" datasource="refBookVersion">
                     <fields>
-
                         <set field-label-location="left">
-                            <output-text id="id">
-                                <dependencies>
-                                    <visibility>return false</visibility>
-                                    <set-value on="localeCode">localeCode.versionId</set-value>
-                                </dependencies>
-                            </output-text>
+                            <row>
+                                <output-text id="id" depends-on="version" visible="false">
+                                    <dependencies>
+                                        <set-value on="version">version.id</set-value>
+                                    </dependencies>
+                                </output-text>
+
+                                <output-text id="optLockValue" depends-on="version" visible="false">
+                                    <dependencies>
+                                        <set-value on="version">version.optLockValue</set-value>
+                                    </dependencies>
+                                </output-text>
+
+                                <output-text id="localeCode" depends-on="locale" default-value="-" visible="false">
+                                    <dependencies>
+                                        <set-value on="locale">locale.id</set-value>
+                                    </dependencies>
+                                </output-text>
+                            </row>
                         </set>
 
-                        <select id="localeCode" no-label-block="true" cleanable="false"
-                                depends-on="version_select" query-id="versionLocaleList" label-field-id="name">
-                            <pre-filters>
-                                <eq field-id="versionId" value="{version.id}" ref-widget-id="version_select" ref-model="resolve"/>
-                            </pre-filters>
+                        <select id="locale" no-label-block="true" cleanable="false"
+                                placeholder="Выберите язык перевода"
+                                query-id="versionLocaleList" label-field-id="name">
+                            <filters>
+                                <eq field-id="versionId" value="{id}" model="resolve"/>
+                            </filters>
 
                             <dependencies>
-                                <visibility>return ${rdm.l10n.support}</visibility>
+                                <visibility>${rdm.l10n.support}</visibility>
                             </dependencies>
                         </select>
-
                     </fields>
+
+                    <dependencies>
+                        <visibility datasource="refBookVersion">
+                            ${rdm.l10n.support} &amp;&amp; version.isLocalizable
+                        </visibility>
+                    </dependencies>
                 </form> <!-- locale_select -->
 
-                <table src="DataGrid" id="dataTableWithLocales"
-                       query-id="data" depends-on="locale_select"
-                       master-field-id="id" detail-field-id="versionId" object-id="data"
-                       visible="{${rdm.l10n.support} &amp;&amp; localeCode.id != null}">
-                    <pre-filters>
-                        <eq field-id="optLockValue" value="{optLockValue}" ref-widget-id="version_select" ref-model="resolve"/>
-                        <eq field-id="localeCode" value="{localeCode.id}" ref-widget-id="locale_select" ref-model="resolve"/>
-                    </pre-filters>
+                <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
 
+                    <dependencies>
+                        <visibility datasource="refBookVersion">${rdm.l10n.support} &amp;&amp; locale.id != null</visibility>
+                    </dependencies>
                 </table>
-
             </tab>
 
-            <tab name="Данные с конфликтами">
-                <table src="DataGrid" id="dataTableWithConflicts"
-                       query-id="data" depends-on="version_select" fetch-on-init="true"
-                       master-field-id="id" detail-field-id="versionId" object-id="data">
-                    <pre-filters>
-                        <eq field-id="hasDataConflict" value="true"/>
-                    </pre-filters>
-
+            <tab id="tab_conflicted" name="Данные с конфликтами">
+                <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData" fetch-on-init="true">
                 </table>
             </tab>
         </tabs>
-
     </regions>
+
 </page>

@@ -9,7 +9,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -21,18 +20,31 @@ import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookDetailModelRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateRefBookEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -59,7 +71,7 @@ public class RefBookServiceImpl implements RefBookService {
 
     private final RefBookRepository refBookRepository;
     private final RefBookVersionRepository versionRepository;
-    private final RefBookModelDataRepository refBookModelDataRepository;
+    private final RefBookDetailModelRepository refBookDetailModelRepository;
 
     private final DropDataService dropDataService;
 
@@ -82,7 +94,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Autowired
     @SuppressWarnings("squid:S00107")
     public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
-                              RefBookModelDataRepository refBookModelDataRepository,
+                              RefBookDetailModelRepository refBookDetailModelRepository,
                               DropDataService dropDataService,
                               RefBookLockService refBookLockService,
                               PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
@@ -94,7 +106,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
-        this.refBookModelDataRepository = refBookModelDataRepository;
+        this.refBookDetailModelRepository = refBookDetailModelRepository;
 
         this.dropDataService = dropDataService;
 
@@ -360,7 +372,6 @@ public class RefBookServiceImpl implements RefBookService {
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
-        model.setStatus(entity.getStatus());
 
         if (entity.getRefBookOperation() != null) {
             model.setCurrentOperation(entity.getRefBookOperation().getOperation());
@@ -370,31 +381,31 @@ public class RefBookServiceImpl implements RefBookService {
         List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
         model.setHasPrimaryAttribute(!primaries.isEmpty());
 
-        RefBookModelData modelData = refBookModelDataRepository.findData(model.getId());
+        RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(model.getId());
 
         if (!excludeDraft) {
-            RefBookVersionEntity draftVersion = modelData.getDraftVersion();
+            RefBookVersionEntity draftVersion = detailModel.getDraftVersion();
             if (draftVersion != null) {
                 model.setDraftVersionId(draftVersion.getId());
             }
         }
 
-        RefBookVersionEntity lastPublishedVersion = modelData.getLastPublishedVersion();
+        RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();
         if (lastPublishedVersion != null) {
             model.setLastPublishedVersionId(lastPublishedVersion.getId());
             model.setLastPublishedVersion(lastPublishedVersion.getVersion());
             model.setLastPublishedDate(lastPublishedVersion.getFromDate());
         }
 
-        final boolean hasReferrer = Boolean.TRUE.equals(modelData.getHasReferrer());
-        model.setRemovable(Boolean.TRUE.equals(modelData.getRemovable()) && !hasReferrer);
+        final boolean hasReferrer = Boolean.TRUE.equals(detailModel.getHasReferrer());
+        model.setRemovable(Boolean.TRUE.equals(detailModel.getRemovable()) && !hasReferrer);
         model.setHasReferrer(hasReferrer);
 
-        model.setHasDataConflict(modelData.getHasDataConflict());
-        model.setHasUpdatedConflict(modelData.getHasUpdatedConflict());
-        model.setHasAlteredConflict(modelData.getHasAlteredConflict());
-        model.setHasStructureConflict(modelData.getHasStructureConflict());
-        model.setLastHasConflict(modelData.getLastHasConflict());
+        model.setHasDataConflict(detailModel.getHasDataConflict());
+        model.setHasUpdatedConflict(detailModel.getHasUpdatedConflict());
+        model.setHasAlteredConflict(detailModel.getHasAlteredConflict());
+        model.setHasStructureConflict(detailModel.getHasStructureConflict());
+        model.setLastHasConflict(detailModel.getLastHasConflict());
 
         return model;
     }

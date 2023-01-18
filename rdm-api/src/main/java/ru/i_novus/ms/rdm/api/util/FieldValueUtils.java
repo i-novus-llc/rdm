@@ -2,15 +2,15 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
-import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
@@ -20,18 +20,17 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class FieldValueUtils {
+public final class FieldValueUtils {
 
-    private static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
+    public static final String PRIMARY_KEY_VALUE_DISPLAY_DELIMITER = ": ";
 
     private FieldValueUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /**
@@ -45,13 +44,14 @@ public class FieldValueUtils {
     public static String toDisplayValue(String displayExpression,
                                         RowValue rowValue,
                                         List<String> primaryKeyCodes) {
-        return toDisplayValue(displayExpression, ((LongRowValue)rowValue).getFieldValues(), primaryKeyCodes);
+        return toDisplayValue(displayExpression, ((LongRowValue) rowValue).getFieldValues(), primaryKeyCodes);
     }
 
     /**
      * Получение отображаемого значения.
      * <p/>
-     * Подставляет в выражение отображаемого значения в соответствии с подстановками в нём
+     * Подставляет в выражение для вычисления отображаемого значения
+     * (в соответствии с подстановками в этом выражении)
      * значения полей из списка или значения по умолчанию из подстановок.
      * <p/>
      * При наличии кодов первичных ключей позволяет добавить к полученной строке
@@ -63,23 +63,27 @@ public class FieldValueUtils {
      * @param primaryKeyCodes   список кодов первичных ключей
      * @return Отображаемое значение
      */
-    private static String toDisplayValue(String displayExpression,
-                                         List<FieldValue> fieldValues,
-                                         List<String> primaryKeyCodes) {
+    public static String toDisplayValue(String displayExpression,
+                                        List<FieldValue> fieldValues,
+                                        List<String> primaryKeyCodes) {
 
         Map<String, String> placeholders = new DisplayExpression(displayExpression).getPlaceholders();
+        Map<String, Serializable> map = new HashMap<>(placeholders.size());
 
-        Map<String, Object> map = new HashMap<>();
-        fieldValues.forEach(fieldValue ->
-                map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
-        );
+        if (!CollectionUtils.isEmpty(fieldValues)) {
+            fieldValues.forEach(fieldValue ->
+                    map.put(fieldValue.getField(), toPlaceholderValue(fieldValue, placeholders))
+            );
+        }
 
         List<String> absentPlaceholders = placeholders.keySet().stream()
                 .filter(placeholder -> Objects.isNull(map.get(placeholder)))
                 .collect(toList());
         absentPlaceholders.forEach(absent -> map.put(absent, ""));
 
-        String displayValue = createDisplayExpressionSubstitutor(map).replace(displayExpression);
+        String displayValue = !StringUtils.isEmpty(displayExpression)
+                ? createDisplayExpressionSubstitutor(map).replace(displayExpression)
+                : "";
 
         if (!CollectionUtils.isEmpty(primaryKeyCodes) &&
                 !CollectionUtils.containsAny(placeholders.keySet(), primaryKeyCodes)) {
@@ -154,31 +158,12 @@ public class FieldValueUtils {
     public static Serializable castReferenceValue(String value, FieldType toFieldType) {
 
         return switch (toFieldType) {
-            case INTEGER -> new BigInteger(value);
-            case FLOAT -> Float.parseFloat(value);
-            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
             case BOOLEAN -> Boolean.valueOf(value);
+            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
+            case FLOAT -> Float.parseFloat(value);
+            case INTEGER -> new BigInteger(value);
             default -> value;
         };
-    }
-
-    /**
-     * Получение значений первичных ключей
-     * по записи {@code rowValue} на основании структуры {@code structure}.
-     *
-     * @param rowValue  запись справочника
-     * @param structure структура справочника
-     * @return Список значений полей для первичных ключей
-     */
-    public static List<FieldValue> getRowPrimaryValues(RefBookRowValue rowValue, Structure structure) {
-
-        if (rowValue == null || structure == null)
-            return emptyList();
-
-        return rowValue.getFieldValues().stream()
-                .filter(fieldValue ->
-                        structure.getAttribute(fieldValue.getField()).getIsPrimary())
-                .collect(toList());
     }
 
     /**
@@ -190,20 +175,21 @@ public class FieldValueUtils {
     public static Set<List<AttributeFilter>> toAttributeFilters(List<ReferenceFilterValue> filterValues) {
 
         return filterValues.stream()
-                .map(value -> {
-                    FieldType attributeType = value.getAttribute().getType();
-                    Serializable attributeValue = castFieldValue(value.getReferenceValue(), attributeType);
-                    return new AttributeFilter(value.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
-                })
+                .map(FieldValueUtils::toAttributeFilter)
                 .map(Collections::singletonList)
                 .collect(toSet());
     }
 
+    private static AttributeFilter toAttributeFilter(ReferenceFilterValue filterValue) {
+
+        FieldType attributeType = filterValue.getAttribute().getType();
+        Serializable attributeValue = castFieldValue(filterValue.getReferenceValue(), attributeType);
+        return new AttributeFilter(filterValue.getAttribute().getCode(), attributeValue, attributeType, SearchTypeEnum.EXACT);
+    }
+
     public static Serializable getDiffFieldValue(DiffFieldValue fieldValue, DiffStatusEnum status) {
 
-        return DiffStatusEnum.DELETED.equals(status)
-                ? (Serializable) fieldValue.getOldValue()
-                : (Serializable) fieldValue.getNewValue();
+        return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -212,15 +198,16 @@ public class FieldValueUtils {
         return DiffStatusEnum.DELETED.equals(status) ? fieldValue.getOldValue() : fieldValue.getNewValue();
     }
 
-    public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
+    /** Преобразование значения в значение поля в соответствии с указанным типом поля. */
+    public static FieldValue toFieldValue(Serializable value, String fieldCode, FieldType fieldType) {
 
         return switch (fieldType) {
-            case STRING -> new StringFieldValue(fieldCode, (String) value);
-            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
             case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
             case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
+            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
+            case STRING -> new StringFieldValue(fieldCode, (String) value);
             case TREE -> new TreeFieldValue(fieldCode, (String) value);
         };
     }
@@ -234,9 +221,10 @@ public class FieldValueUtils {
      * @return Отображаемое значение
      */
     public static String diffValuesToDisplayValue(String displayExpression,
-                                                  List<DiffFieldValue> diffFieldValues, DiffStatusEnum diffStatus) {
+                                                  List<DiffFieldValue> diffFieldValues,
+                                                  DiffStatusEnum diffStatus) {
 
-        Map<String, Object> map = new HashMap<>(diffFieldValues.size());
+        Map<String, Serializable> map = new HashMap<>(diffFieldValues.size());
         diffFieldValues.forEach(fieldValue ->
                 map.put(fieldValue.getField().getName(), getDiffFieldValue(fieldValue, diffStatus))
         );
@@ -244,7 +232,7 @@ public class FieldValueUtils {
     }
 
     /** Создание объекта подстановки в выражение для вычисления отображаемого значения. */
-    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Object> map) {
+    public static StringSubstitutor createDisplayExpressionSubstitutor(Map<String, Serializable> map) {
 
         StringSubstitutor substitutor = new StringSubstitutor(map,
                 DisplayExpression.PLACEHOLDER_START, DisplayExpression.PLACEHOLDER_END);

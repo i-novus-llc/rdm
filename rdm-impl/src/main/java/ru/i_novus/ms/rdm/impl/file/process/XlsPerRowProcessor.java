@@ -10,9 +10,12 @@ import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
 public class XlsPerRowProcessor extends FilePerRowProcessor {
 
@@ -20,9 +23,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     private final ExcelStyleDateFormatter excelStyleDateFormatter = new ExcelStyleDateFormatter("dd.MM.yyyy");
 
-    private Map<Integer, String> indexToNameMap = new HashMap<>();
-
     private Workbook workbook;
+    private Map<Integer, String> indexToNameMap;
+
     private Iterator<Sheet> sheetIterator;
     private Iterator<org.apache.poi.ss.usermodel.Row> rowIterator;
 
@@ -40,6 +43,9 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
                     .bufferSize(8096)
                     .sstCacheSize(3000)
                     .open(inputStream);
+
+            indexToNameMap = new HashMap<>();
+
             sheetIterator = workbook.sheetIterator();
             if (sheetIterator != null && sheetIterator.hasNext())
                 rowIterator = sheetIterator.next().rowIterator();
@@ -52,11 +58,12 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
             logger.error("cannot read xlsx", e);
             throw new UserException("cannot read xlsx");
         }
-
     }
 
     private void processFirstRow(org.apache.poi.ss.usermodel.Row row) {
-        if (row == null) return;
+        if (row == null)
+            return;
+
         for (Cell cell : row) {
             String value = cell.getStringCellValue() != null ? cell.getStringCellValue().trim() : null;
             if (!isEmpty(value))
@@ -66,13 +73,17 @@ public class XlsPerRowProcessor extends FilePerRowProcessor {
 
     @Override
     public boolean hasNext() {
-        if (rowIterator.hasNext()) {
+
+        if (rowIterator.hasNext())
             return true;
-        } else if (sheetIterator.hasNext()) {
-            rowIterator = sheetIterator.next().rowIterator();
-            if (rowIterator.hasNext())
-                processFirstRow(rowIterator.next());
-        } else return false;
+
+        if (!sheetIterator.hasNext())
+            return false;
+
+        rowIterator = sheetIterator.next().rowIterator();
+        if (rowIterator.hasNext())
+            processFirstRow(rowIterator.next());
+
         return hasNext();
     }
 

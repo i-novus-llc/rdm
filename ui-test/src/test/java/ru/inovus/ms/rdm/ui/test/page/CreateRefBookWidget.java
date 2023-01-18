@@ -6,7 +6,10 @@ import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
 import net.n2oapp.framework.autotest.impl.component.control.N2oTextArea;
 import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 
-public class RefBookCreateFormWidget extends N2oFormWidget {
+/**
+ * Виджет на странице создания справочника.
+ */
+public class CreateRefBookWidget extends N2oFormWidget {
 
     private RefBookListPage openedFromPage;
 
@@ -30,9 +33,10 @@ public class RefBookCreateFormWidget extends N2oFormWidget {
         return fields().field("Тип").control(N2oInputSelect.class);
     }
 
-
     public RefBookEditPage save() {
+
         openedFromPage.toolbar().bottomRight().button("Сохранить").click();
+
         return N2oSelenide.page(RefBookEditPage.class);
     }
 

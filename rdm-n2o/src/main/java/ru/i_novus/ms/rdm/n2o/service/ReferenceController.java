@@ -27,19 +27,25 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceController {
 
+    private final VersionRestService versionService;
+
     @Autowired
-    private VersionRestService versionService;
+    public ReferenceController(VersionRestService versionService) {
+
+        this.versionService = versionService;
+    }
 
     /**
      * Поиск списка значений справочника для ссылки.
      */
     @SuppressWarnings("unused") // used in: reference.query.xml, see DataRecordPageProvider
-    public Page<Reference> getList(ReferenceCriteria referenceCriteria) {
+    public Page<Reference> getList(ReferenceCriteria criteria) {
 
         Structure.Reference reference = versionService
-                .getStructure(referenceCriteria.getVersionId())
-                .getReference(referenceCriteria.getReference());
+                .getStructure(criteria.getVersionId())
+                .getReference(criteria.getReference());
 
+        // Версия справочника, на который ссылаются
         RefBookVersion referenceVersion = versionService.getLastPublishedVersion(reference.getReferenceCode());
         if (referenceVersion == null || referenceVersion.hasEmptyStructure()) {
             return new RestPage<>();
@@ -51,41 +57,47 @@ public class ReferenceController {
             return new RestPage<>();
         }
 
+        // Атрибут, на который ссылаются
         Structure.Attribute referenceAttribute = reference.findReferenceAttribute(referenceStructure);
-        SearchDataCriteria criteria = toSearchDataCriteria(referenceAttribute, referenceCriteria);
-        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), criteria);
+        SearchDataCriteria searchDataCriteria = toSearchDataCriteria(referenceAttribute, criteria);
+        Page<RefBookRowValue> rowValues = versionService.search(reference.getReferenceCode(), searchDataCriteria);
 
-        List<String> primaryKeyCodes = referenceStructure.getPrimaryCodes();
+        List<String> primaryCodes = referenceStructure.getPrimaryCodes();
 
-        return new RestPage<>(rowValues.getContent(), criteria, rowValues.getTotalElements())
-                .map(rowValue -> toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, primaryKeyCodes));
+        return new RestPage<>(rowValues.getContent(), searchDataCriteria, rowValues.getTotalElements())
+                .map(rowValue ->
+                        toReferenceValue(referenceAttribute, reference.getDisplayExpression(), rowValue, primaryCodes)
+                );
     }
 
-    private SearchDataCriteria toSearchDataCriteria(Structure.Attribute attribute, ReferenceCriteria referenceCriteria) {
+    private SearchDataCriteria toSearchDataCriteria(Structure.Attribute attribute,
+                                                    ReferenceCriteria criteria) {
 
-        SearchDataCriteria criteria = new SearchDataCriteria();
-        if (isNotBlank(referenceCriteria.getValue())) {
+        SearchDataCriteria result = new SearchDataCriteria(criteria.getPage() - 1, criteria.getSize());
 
+        if (isNotBlank(criteria.getValue())) {
             AttributeFilter filter = new AttributeFilter(attribute.getCode(),
-                    referenceCriteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT);
-            criteria.addAttributeFilterList(singletonList(filter));
+                    criteria.getValue(), FieldType.STRING, SearchTypeEnum.EXACT);
+            result.addAttributeFilterList(singletonList(filter));
         }
 
-        if (isNotBlank(referenceCriteria.getDisplayValue()))
-            criteria.setCommonFilter(referenceCriteria.getDisplayValue());
+        if (isNotBlank(criteria.getDisplayValue())) {
+            result.setCommonFilter(criteria.getDisplayValue());
+        }
 
-        criteria.setPageNumber(referenceCriteria.getPage() - 1);
-        criteria.setPageSize(referenceCriteria.getSize());
-
-        return criteria;
+        return result;
     }
 
     /** Вычисление отображаемого значения ссылки. */
-    private Reference toReferenceValue(Structure.Attribute attribute, String displayExpression,
-                                       RowValue rowValue, List<String> primaryKeyCodes) {
+    private Reference toReferenceValue(Structure.Attribute attribute,
+                                       String displayExpression,
+                                       RowValue rowValue,
+                                       List<String> primaryKeyCodes) {
+
         Reference referenceValue = new Reference();
         referenceValue.setValue(String.valueOf(rowValue.getFieldValue(attribute.getCode()).getValue()));
         referenceValue.setDisplayValue(toDisplayValue(displayExpression, rowValue, primaryKeyCodes));
+
         return referenceValue;
     }
 }

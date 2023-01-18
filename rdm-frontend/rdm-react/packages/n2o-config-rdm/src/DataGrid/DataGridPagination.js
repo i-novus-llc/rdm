@@ -4,8 +4,23 @@ import Pagination from 'n2o-framework/lib/components/snippets/Pagination/Paginat
 import { useChangePage } from './hooks/useChangePage'
 
 export function DataGridPagination(props) {
-    const { count } = props
-    const { onChangePage } = useChangePage(props)
+    const {
+      activePage,
+      count,
+      size,
+      models,
+      setPage,
+      fetchData,
+    } = props
+
+    const onChangePage = useChangePage({
+      activePage,
+      count,
+      size,
+      models,
+      setPage,
+      fetchData,
+    })
 
     return (
         <Pagination

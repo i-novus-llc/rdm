@@ -1,17 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
              xmlns:sec="http://n2oapp.net/framework/config/schema/security-1.0"
              name="Реестр НСИ">
 
-    <table query-id="refBook" route="/main">
+    <table>
+        <datasource query-id="refBook" object-id="refBook"/>
 
         <pagination/>
-
-        <rows>
-            <switch value-field-id="lastHasConflict">
-                <case value="true">bg-danger</case>
-            </switch>
-        </rows>
 
         <filters>
             <row>
@@ -27,15 +22,17 @@
         </filters>
 
         <toolbar>
-
             <button id="view" label="Просмотр">
                 <open-page page-id="refBookView" page-name="Просмотр справочника &quot;{name}&quot; [{code}]"
                            route="/:refBookId/view">
-                    <path-param name="refBookId" value="{id}"/>
-                    <query-param name="name" value="{name}"/>
-                    <query-param name="code" value="{code}"/>
+                    <params>
+                        <path-param name="refBookId" value="{id}"/>
+                        <query-param name="name" value="{name}"/>
+                        <query-param name="code" value="{code}"/>
+                    </params>
                 </open-page>
             </button>
+
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">
                     <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
@@ -52,33 +49,47 @@
                 </menu-item>
             </sub-menu>
 
-            <button id="edit" label="Изменить справочник" icon="fa fa-pencil" enabling-condition="!isArchived">
+            <button id="edit" label="Изменить справочник" icon="fa fa-pencil">
                 <open-page page-id="refBook" page-name="Редактирование справочника &quot;{name}&quot; [{code}]"
                            route="/:refBookId/edit">
-                    <path-param name="refBookId" value="{id}"/>
-                    <query-param name="name" value="{name}"/>
-                    <query-param name="code" value="{code}"/>
+                    <params>
+                        <path-param name="refBookId" value="{id}"/>
+                        <query-param name="name" value="{name}"/>
+                        <query-param name="code" value="{code}"/>
+                    </params>
                 </open-page>
+
+                <dependencies>
+                    <enabling>!isArchived</enabling>
+                </dependencies>
             </button>
 
-            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger"
-                    enabled="{!isArchived &amp;&amp; !hasReferrer}">
+            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
                 <invoke operation-id="delete"/>
+
+                <dependencies>
+                    <enabling>!isArchived &amp;&amp; !hasReferrer</enabling>
+                </dependencies>
             </button>
 
-            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock"
-                    visible="{!isArchived}">
+            <button id="toArchive" label="Отправить в архив" icon="fa fa-lock">
                 <invoke operation-id="toArchive"/>
+
+                <dependencies>
+                    <visibility>!isArchived</visibility>
+                </dependencies>
             </button>
 
-            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock"
-                    visible="{isArchived}">
+            <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock">
                 <invoke operation-id="fromArchive"/>
+
+                <dependencies>
+                    <visibility>isArchived</visibility>
+                </dependencies>
             </button>
         </toolbar>
 
         <columns>
-
             <column text-field-id="code" label="Код" width="100px" sorting-direction="asc"/>
             <column text-field-id="name" label="Наименование"/>
             <column text-field-id="displayVersion" label="Версия"/>
@@ -95,9 +106,13 @@
                     </switch>
                 </icon>
             </column>
-
         </columns>
 
+        <rows>
+            <switch value-field-id="lastHasConflict">
+                <case value="true">bg-danger</case>
+            </switch>
+        </rows>
     </table>
 
 </simple-page>

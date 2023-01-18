@@ -1,5 +1,4 @@
 import React from 'react'
-// import omit from 'lodash/omit'
 import StandardWidget from 'n2o-framework/lib/components/widgets/StandardWidget'
 import { WidgetHOC } from 'n2o-framework/lib/core/widget/WidgetHOC'
 import { WithActiveModel } from 'n2o-framework/lib/components/widgets/Widget/WithActiveModel'
@@ -17,24 +16,24 @@ function DataGridWidget(props) {
     page,
     size,
     count,
+    fetchData,
+    setPage,
+    loading,
   } = props
-
-  const getWidgetProps = ({ id, table, ...rest }) => ({
-    id,
-    table,
-    ...table,
-    ...rest,
-  })
+  const { table, ...otherProps } = props
 
   return (
     <div className="rdm-data-grid">
       <StandardWidget
+        loading={loading}
         widgetId={id}
         toolbar={toolbar}
         disabled={disabled}
         bottomLeft={paging && (
           <DataGridPagination
             {...paging}
+            setPage={setPage}
+            fetchData={fetchData}
             models={models}
             activePage={page}
             size={size}
@@ -42,21 +41,11 @@ function DataGridWidget(props) {
           />
         )}
       >
-        <DataGridContainer {...getWidgetProps(props)} />
+        <DataGridContainer {...otherProps} {...table} />
       </StandardWidget>
     </div>
   );
 }
-
-// const OmitProps = Component => (props) => {
-//   const omited = omit(props, [])
-//
-//   omited.table = omit(omited.table, ['sorting', 'size'])
-//
-//   return (
-//     <Component {...omited} />
-//   )
-// }
 
 export default WidgetHOC(WithActiveModel(
   DataGridWidget,

@@ -3,7 +3,6 @@
         name="Справочник">
 
     <operations>
-        
         <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook</rest>
@@ -205,7 +204,6 @@
                 <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
-
     </operations>
 
 </object>

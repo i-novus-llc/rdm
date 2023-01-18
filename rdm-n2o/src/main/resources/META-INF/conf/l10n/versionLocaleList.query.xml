@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionLocaleList">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="versionLocaleList">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <rest method="GET">${rdm.backend.path}/locale/version/{versionId}</rest>
@@ -9,35 +10,24 @@
         <rest method="GET">${rdm.backend.path}/locale/version/{versionId}/{localeCode}</rest>
     </unique>
 
+    <filters>
+        <eq filter-id="versionId" field-id="versionId" domain="integer"/>
+        <eq filter-id="id" field-id="id" domain="string"/>
+
+        <eq filter-id="localeCode" field-id="localeCode" domain="string"/>
+    </filters>
+
     <fields>
+        <field id="id" domain="string" mapping="['localeCode']"/>
 
-        <field id="id" domain="string">
-            <select mapping="['localeCode']"/>
-            <filters>
-                <eq filter-id="localeCode" domain="string"/>
-            </filters>
-        </field>
+        <field id="versionId" domain="integer"/>
 
-        <field id="versionId" domain="integer">
-            <select/>
-            <filters>
-                <eq filter-id="versionId" domain="integer"/>
-            </filters>
-        </field>
+        <field id="code" domain="string" mapping="['localeCode']"/>
+        <field id="name" domain="string" mapping="['localeName']"/>
 
-        <field id="code" domain="string">
-            <select mapping="['localeCode']"/>
-        </field>
-
-        <field id="name" domain="string">
-            <select mapping="['localeName']"/>
-        </field>
-
-        <field id="fullName" domain="string">
-            <select mapping="
+        <field id="fullName" domain="string"
+               mapping="
                 ['localeSelfName']?.length() == 0 ? ['localeName'] : ['localeName'] + '(' + ['localeSelfName'] + ')'
                 "/>
-        </field>
-
     </fields>
 </query>

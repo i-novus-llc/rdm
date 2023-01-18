@@ -6,12 +6,17 @@ import net.n2oapp.framework.autotest.impl.component.page.N2oPage;
 import static com.codeborne.selenide.Selectors.byId;
 import static com.codeborne.selenide.Selenide.$;
 
+/**
+ * Страница логина.
+ */
 public class LoginPage extends N2oPage {
 
     public RefBookListPage login(String username, String password) {
+
         fillInput("username", username);
         fillInput("password", password);
         login();
+
         return N2oSelenide.page(RefBookListPage.class);
     }
 

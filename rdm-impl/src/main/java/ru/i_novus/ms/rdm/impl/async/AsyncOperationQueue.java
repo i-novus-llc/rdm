@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.async;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,18 +25,30 @@ public class AsyncOperationQueue {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncOperationQueue.class);
 
-    @Autowired
-    @Qualifier("queueJmsTemplate")
-    private JmsTemplate jmsTemplate;
+    private final AsyncOperationLogEntryRepository repository;
+
+    private final ObjectMapper objectMapper;
+
+    private final UserAccessor userAccessor;
+
+    private final JmsTemplate jmsTemplate;
+
+    private final String queueId;
 
     @Autowired
-    private AsyncOperationLogEntryRepository repository;
+    public AsyncOperationQueue(AsyncOperationLogEntryRepository repository,
+                               @Qualifier("cxfObjectMapper") ObjectMapper objectMapper,
+                               UserAccessor userAccessor,
+                               @Qualifier("queueJmsTemplate") JmsTemplate jmsTemplate,
+                               @Value("${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}")
+                               String queueId) {
+        this.repository = repository;
+        this.objectMapper = objectMapper;
+        this.userAccessor = userAccessor;
 
-    @Autowired
-    private UserAccessor userAccessor;
-
-    @Value("${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}")
-    private String queueId;
+        this.jmsTemplate = jmsTemplate;
+        this.queueId = queueId;
+    }
 
     @Transactional
     public UUID add(AsyncOperationTypeEnum operationType, String code, Serializable[] args) {
@@ -65,8 +78,11 @@ public class AsyncOperationQueue {
 
         final UUID operationId = newOperationId();
 
-        AsyncOperationMessage message = new AsyncOperationMessage(operationId, operationType, code, args, userAccessor.get());
-        repository.saveWithoutConflict(operationId, operationType.name(), code, message.getPayloadAsJson());
+        AsyncOperationMessage message = new AsyncOperationMessage(
+                operationId, operationType, code, args, userAccessor.get()
+        );
+        repository.saveWithoutConflict(operationId, operationType.name(), code,
+                message.toPayload(objectMapper));
 
         return message;
     }

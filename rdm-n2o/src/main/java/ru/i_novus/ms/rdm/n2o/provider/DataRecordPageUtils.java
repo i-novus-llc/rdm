@@ -7,10 +7,10 @@ import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-public class DataRecordPageUtils {
+public final class DataRecordPageUtils {
 
     private DataRecordPageUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     public static N2oStandardField createField(FieldType type) {

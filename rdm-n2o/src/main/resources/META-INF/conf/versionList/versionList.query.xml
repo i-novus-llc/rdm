@@ -1,6 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="versionList">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="versionList">
 
+    <!-- Список версий выбранного справочника -->
     <list result-mapping="content" count-mapping="totalElements" filters="refBookId,excludeDraft">
         <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
               method="getList">
@@ -13,7 +15,8 @@
         </java>
     </list>
 
-    <unique filters="id,excludeDraft" result-mapping="#this">
+    <!-- Версия выбранного справочника -->
+    <unique result-mapping="#this" filters="id,excludeDraft">
         <java class="ru.i_novus.ms.rdm.n2o.service.VersionController"
               method="getVersion">
             <spring/>
@@ -25,83 +28,37 @@
         </java>
     </unique>
 
+    <filters>
+        <eq filter-id="id" field-id="id" mapping="['criteria'].id"/>
+        <eq filter-id="refBookId" field-id="refBookId" mapping="['criteria'].refBookId"/>
+
+        <eq filter-id="name" field-id="name" mapping="['criteria'].passport['name']"/>
+
+        <eq filter-id="excludeDraft" field-id="excludeDraft"
+            mapping="['criteria'].excludeDraft" default-value="false"/>
+    </filters>
+
     <fields>
+        <field id="id" domain="integer"/>
+        <field id="optLockValue" domain="integer"/>
 
-        <field id="id" domain="integer">
-            <select/>
-            <filters>
-                <eq filter-id="id" mapping="['criteria'].id"/>
-            </filters>
-        </field>
+        <!--<field id="locale.id" domain="string" mapping="null"/>-->
+        <!--<field id="locale.name" domain="string" mapping="null"/>-->
 
-        <field id="optLockValue" domain="integer">
-            <select/>
-        </field>
+        <field id="refBookId" domain="integer"/>
+        <field id="code" domain="string"/>
+        <field id="name" domain="string" mapping="passport['name']"/>
 
-        <field id="localeCode.id" domain="string">
-            <select mapping="''"/>
-        </field>
+        <!-- Structure -->
+        <field id="hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
+        <field id="isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
+        <!-- / Structure -->
 
-        <field id="localeCode.name" domain="string">
-            <select mapping="''"/>
-        </field>
+        <!-- Filters only -->
+        <field id="excludeDraft" domain="boolean" select="false"/>
+        <!-- / Filters only -->
 
-        <field id="refBookId" domain="integer">
-            <select/>
-            <filters>
-                <eq filter-id="refBookId" mapping="['criteria'].refBookId"/>
-            </filters>
-        </field>
-
-        <field id="code" domain="string" name="Код справочника">
-            <select/>
-        </field>
-
-        <field id="name" domain="string">
-            <select mapping="passport['name']"/>
-            <filters>
-                <eq filter-id="name" mapping="['criteria'].passport['name']"/>
-            </filters>
-        </field>
-
-        <field id="fromDate" domain="date">
-            <select/>
-        </field>
-
-        <field id="version" domain="string">
-            <select mapping="displayNumber"/>
-            <filters/>
-        </field>
-
-        <field id="status" domain="string">
-            <select/>
-        </field>
-
-        <field id="editDate" domain="string">
-            <select/>
-        </field>
-
-        <field id="archived" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="hasStructure" domain="boolean">
-            <select mapping="!!!hasEmptyStructure()"/>
-        </field>
-
-        <field id="hasEmptyStructure" domain="boolean">
-            <select mapping="hasEmptyStructure()"/>
-        </field>
-
-        <field id="isLocalizable" domain="boolean">
-            <select mapping="!structure.getLocalizables().isEmpty()"/>
-        </field>
-
-        <field id="excludeDraft" domain="boolean">
-            <filters>
-                <eq filter-id="excludeDraft" mapping="['criteria'].excludeDraft" default-value="false"/>
-            </filters>
-        </field>
-        
+        <field id="displayVersion" domain="string" mapping="displayNumber"/>
     </fields>
+
 </query>

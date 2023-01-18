@@ -23,7 +23,8 @@ public interface RefBookVersionRepository extends
      *   1) структуру,
      *   2) первичный ключ,
      *   3) ссылку на указанный справочник.
-     *
+     * <p/>
+     * Аналогичен запросу {@link RefBookDetailModelRepository#CHECK_REFERRER_VERSION}.
      */
     String FIND_REFERRER_VERSIONS = "select distinct bv.* \n" +
             "  from n2o_rdm_management.ref_book_version bv \n" +

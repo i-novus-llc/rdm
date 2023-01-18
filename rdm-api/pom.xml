@@ -12,6 +12,7 @@
 
     <properties>
         <jacoco.skip>false</jacoco.skip>
+        <sonar.coverage.exclusions>**/*Mixin.java, **/*Serializer.java, **/*Deserializer.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

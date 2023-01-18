@@ -1,8 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<form xmlns="http://n2oapp.net/framework/config/schema/n2o-widget-4.0"
-      name="Паспорт" query-id="refBook" object-id="refBook">
+<form xmlns="http://n2oapp.net/framework/config/schema/widget-5.0"
+      name="Паспорт">
 
     <fields>
+        <row>
+            <output-text id="version.id" visible="false"/>
+        </row>
 
         <row>
             <input-text id="code" label="Код" required="true">
@@ -10,6 +13,7 @@
                     <enabling>!hasReferrer</enabling>
                 </dependencies>
             </input-text>
+            
             <input-select id="type" label="Тип"
                           query-id="refBookTypeList" label-field-id="name" enabled="false"/>
         </row>
@@ -18,6 +22,6 @@
         <input-text id="shortName" label="Краткое наименование"/>
         <input-select id="category" label="Категория" query-id="category" label-field-id="id"/>
         <text-area id="description" label="Описание"/>
-        
     </fields>
+
 </form>

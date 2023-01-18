@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -28,6 +28,7 @@ import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookConflictEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -544,7 +545,7 @@ public class ConflictServiceImpl implements ConflictService {
                                                                         List<Structure.Reference> refFromReferences,
                                                                         StructureDiff structureDiff) {
         List<String> deletedCodes = getDeletedCodes(structureDiff);
-        if (StringUtils.isEmpty(deletedCodes))
+        if (CollectionUtils.isEmpty(deletedCodes))
             return emptyList();
 
         return refFromReferences.stream()
@@ -826,11 +827,11 @@ public class ConflictServiceImpl implements ConflictService {
         List<ReferenceFilterValue> filterValues = toFilterValues(refFromEntity, oldRefToEntity, conflicts, refFromRowValues);
         List<DiffRowValue> diffRowValues = toDiffRowValues(oldRefToEntity.getId(), newRefToEntity.getId(), filterValues);
 
+        // Если структура не изменена, то для перевычисления нужны все конфликты.
+        // Если же структура изменена, то все строки с заполненными ссылками помечаются как ALTERED-конфликтные,
+        // поэтому для перевычисления достаточно отработать только удалённые конфликты
+        // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
         List<RefBookConflictEntity> filteredConflicts = conflicts.stream()
-                // Если структура не изменена, то для перевычисления нужны все конфликты.
-                // Если же структура изменена, то все строки с заполненными ссылками помечаются как ALTERED-конфликтные,
-                // поэтому для перевычисления достаточно отработать только удалённые конфликты
-                // (see details in javadoc of ConflictServiceTest#testRecalculateConflicts).
                 .filter(conflict -> !isAltered || ALTERED_RECALCULATING_CONFLICT_TYPES.contains(conflict.getConflictType()))
                 .collect(toList());
 
@@ -937,7 +938,7 @@ public class ConflictServiceImpl implements ConflictService {
     private boolean isDisplayDamagedConflict(List<Structure.Reference> references, StructureDiff structureDiff) {
 
         List<String> deletedCodes = getDeletedCodes(structureDiff);
-        return !StringUtils.isEmpty(deletedCodes)
+        return !CollectionUtils.isEmpty(deletedCodes)
                 && references.stream().anyMatch(reference -> containsAnyPlaceholder(reference.getDisplayExpression(), deletedCodes));
     }
 

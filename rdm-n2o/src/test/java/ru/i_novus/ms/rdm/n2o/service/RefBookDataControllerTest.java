@@ -2,6 +2,8 @@ package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
+import net.n2oapp.platform.i18n.Messages;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -18,6 +20,7 @@ import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
@@ -43,7 +46,6 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -75,6 +77,16 @@ public class RefBookDataControllerTest  {
 
     @Mock
     private RefBookDataDecorator refBookDataDecorator;
+
+    @Mock
+    private Messages messages;
+
+    @Before
+    public void setUp() {
+
+        when(messages.getMessage(any(String.class)))
+                .thenAnswer(invocation -> invocation.getArguments()[0]);
+    }
 
     @Test
     public void testGetList() {
@@ -279,7 +291,7 @@ public class RefBookDataControllerTest  {
 
     private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {
 
-        if (filterValue == null || isEmpty(filterName))
+        if (filterValue == null || StringUtils.isEmpty(filterName))
             return null;
 
         Structure.Attribute attribute = structure.getAttribute(filterName);

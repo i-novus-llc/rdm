@@ -51,6 +51,7 @@ public final class TimeUtils {
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
     private TimeUtils() {
+        // Nothing to do.
     }
 
     public static OffsetDateTime parseOffsetDateTime(String str) {
@@ -130,20 +131,19 @@ public final class TimeUtils {
     }
 
     public static LocalDate parseLocalDate(Object value) {
+
         if (value instanceof Date)
             return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
         if (value instanceof LocalDate)
             return (LocalDate) value;
+
         if (value instanceof LocalDateTime)
             return ((LocalDateTime) value).toLocalDate();
-        else {
-            return LocalDate.parse(
-                String.valueOf(value),
-                String.valueOf(value).contains(".")
-                    ? DATE_PATTERN_EUROPEAN_FORMATTER
-                    : DATE_PATTERN_ISO_FORMATTER
-            );
-        }
+
+        String result = String.valueOf(value);
+        return LocalDate.parse(result,
+                result.contains(".") ? DATE_PATTERN_EUROPEAN_FORMATTER : DATE_PATTERN_ISO_FORMATTER);
     }
 
     public static String format(LocalDate localDate) {

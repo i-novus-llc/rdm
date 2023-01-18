@@ -24,6 +24,6 @@ public class N2oCriteriaConstructResolver implements CriteriaConstructResolver {
 
         result.setPage(criteria.getPage());
         result.setSize(criteria.getSize());
-        result.setSorting(criteria.getSorting());
+        result.addSorting(criteria.getSorting());
     }
 }

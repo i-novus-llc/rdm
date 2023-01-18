@@ -3,7 +3,6 @@
         name="Публикация справочника">
 
     <operations>
-
         <operation id="publishDraft" submit-label="Опубликовать" confirm="false">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
@@ -18,8 +17,8 @@
             </invocation>
 
             <in>
-                <field id="version.id" mapping="['draftId']" domain="integer"/>
-                <field id="version.optLockValue" mapping="['optLockValue']" domain="integer"/>
+                <field id="versionId" mapping="['draftId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
 
             <out>
@@ -41,15 +40,14 @@
             </invocation>
 
             <in>
-                <field id="version.id" mapping="['draftId']" domain="integer"/>
-                <field id="version.optLockValue" mapping="['optLockValue']" domain="integer"/>
+                <field id="versionId" mapping="['draftId']" domain="integer"/>
+                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
 
             <out>
                 <field id="opId" mapping="toString()" domain="string"/>
             </out>
         </operation>
-
     </operations>
 
 </object>

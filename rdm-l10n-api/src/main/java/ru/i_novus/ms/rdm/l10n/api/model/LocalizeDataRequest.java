@@ -35,6 +35,6 @@ public class LocalizeDataRequest extends LocalizeTableRequest implements DraftCh
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }

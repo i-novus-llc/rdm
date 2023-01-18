@@ -30,7 +30,7 @@ public class PrimaryKeyUniqueValidation implements RdmValidation {
     @Override
     public List<Message> validate() {
 
-        if(!draftDataService.isUnique(storageCode, primaryNames))
+        if(!draftDataService.isFieldUnique(storageCode, primaryNames, null))
             return Collections.singletonList(new Message("primary.key.not.unique"));
 
         return Collections.emptyList();

@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="refBook">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="refBook">
 
     <list result-mapping="['content']" count-mapping="['totalElements']">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookController"
@@ -13,66 +14,33 @@
         </java>
     </list>
 
+    <filters>
+        <eq filter-id="id" field-id="id" mapping="['criteria'].refBookId"/>
+        <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
+
+        <!-- Исключение справочника, который будет ссылаться, по его версии -->
+        <eq filter-id="excludeByVersionId" field-id="excludeByVersionId"
+            mapping="['criteria'].excludeByVersionId"/>
+
+        <eq filter-id="displayCode" field-id="displayCode" mapping="['criteria'].displayCode"/>
+    </filters>
+
     <fields>
+        <field id="id" domain="integer" mapping="refBookId"/>
+        <field id="versionId" domain="integer" mapping="id"/>
+        <field id="code" domain="string"/>
 
-        <field id="id" domain="integer">
-            <select mapping="refBookId"/>
-            <filters>
-                <eq filter-id="id" mapping="['criteria'].refBookId"/>
-            </filters>
-        </field>
+        <field id="excludeByVersionId" domain="integer" select="false"/>
 
-        <field id="refBookId" domain="integer">
-            <select mapping="refBookId"/>
-        </field>
+        <!-- Ссылка возможна только на первичный ключ -->
+        <field id="hasPrimaryAttribute" domain="boolean"/>
 
-        <field id="version.id" domain="integer">
-            <select mapping="id"/>
-            <filters>
-                <eq filter-id="versionId" mapping="['criteria'].versionId"/>
-            </filters>
-        </field>
-
-        <field id="code" domain="string">
-            <select/>
-            <filters>
-                <eq filter-id="code" mapping="code"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="excludeByVersionId" domain="integer">
-            <filters>
-                <eq filter-id="excludeByVersionId" mapping="['criteria'].excludeByVersionId"/>
-            </filters>
-        </field>
-
-        <field id="hasPublished" domain="boolean">
-            <select mapping="lastPublishedVersionId != null"/>
-            <filters>
-                <eq filter-id="hasPublished" mapping="['criteria'].hasPublished"/>
-            </filters>
-        </field>
-
-        <field id="hasPrimaryAttribute" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="editDate" domain="date">
-            <select/>
-        </field>
-
-        <field id="displayCode" domain="string">
-            <select mapping="
+        <field id="displayCode" domain="string"
+               mapping="
                     code +
                     ' (' + displayNumber + ')' +
                     (passport['name'] != null ? ' [' + passport['name'] + ']' : '')
                 "/>
-            <filters>
-                <eq filter-id="displayCode" mapping="['criteria'].displayCode"/>
-            </filters>
-        </field>
-
     </fields>
 
 </query>

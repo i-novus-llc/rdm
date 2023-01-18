@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<query xmlns="http://n2oapp.net/framework/config/schema/query-4.0" object-id="publish">
+<query xmlns="http://n2oapp.net/framework/config/schema/query-5.0"
+       object-id="publish">
 
-    <unique filters="version.id,version.optLockValue" result-mapping="#this">
+    <unique result-mapping="#this" filters="versionId,optLockValue">
         <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
               method="getDraft">
             <spring/>
@@ -13,115 +14,69 @@
         </java>
     </unique>
 
+    <filters>
+        <eq filter-id="versionId" field-id="versionId" mapping="['versionId']"/>
+        <eq filter-id="optLockValue" field-id="optLockValue" mapping="['optLockValue']" default-value="0"/>
+
+    </filters>
+
     <fields>
 
-        <field id="id" domain="integer">
-            <select mapping="refBookId"/>
-            <filters>
-                <eq filter-id="id" mapping="refBookId"/>
-            </filters>
-        </field>
+        <field id="id" domain="integer" mapping="refBookId"/>
 
-        <field id="refBookId" domain="integer">
-            <select mapping="refBookId"/>
-        </field>
+        <field id="refBookId" domain="integer"/>
 
-        <field id="version.id" domain="integer">
-            <select mapping="id"/>
-            <filters>
-                <eq filter-id="version.id" mapping="['versionId']"/>
-            </filters>
-        </field>
+        <field id="versionId" domain="integer" mapping="id"/>
 
-        <field id="version.version" domain="string">
-            <select mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
-        </field>
+        <field id="displayVersion" domain="string"
+               mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
 
-        <field id="version.optLockValue" domain="integer">
-            <select mapping="optLockValue"/>
-            <filters>
-                <eq filter-id="version.optLockValue" mapping="['optLockValue']" default-value="0"/>
-            </filters>
-        </field>
+        <field id="optLockValue" domain="integer" mapping="optLockValue"/>
 
-        <field id="code" domain="string">
-            <select/>
-            <filters>
-                <eq filter-id="code" mapping="code"/>
-            </filters>
-            <sorting/>
-        </field>
-
-        <field id="status" domain="string">
-            <select/>
-        </field>
-
-        <field id="archived" domain="boolean">
-            <select mapping="archived"/>
-        </field>
+        <field id="code" domain="string"/>
+        <field id="status" domain="string"/>
+        <field id="archived" domain="boolean"/>
 
         <!-- Checking conflicts -->
-        <field id="hasCheckDeletedConflicts" domain="boolean">
-            <select mapping="conflictingReferrerNames['DELETED']?.length() > 0"/>
-        </field>
-        <field id="hasCheckUpdatedConflicts" domain="boolean">
-            <select mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
-        </field>
-        <field id="hasCheckAlteredConflicts" domain="boolean">
-            <select mapping="conflictingReferrerNames['ALTERED']?.length() > 0"/>
-        </field>
-        <field id="hasCheckDisplayDamagedConflicts" domain="boolean">
-            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']?.length() > 0"/>
-        </field>
+        <field id="hasCheckDeletedConflicts" domain="boolean"
+               mapping="conflictingReferrerNames['DELETED']?.length() > 0"/>
+        <field id="hasCheckUpdatedConflicts" domain="boolean"
+               mapping="conflictingReferrerNames['UPDATED']?.length() > 0"/>
+        <field id="hasCheckAlteredConflicts" domain="boolean"
+               mapping="conflictingReferrerNames['ALTERED']?.length() > 0"/>
+        <field id="hasCheckDisplayDamagedConflicts" domain="boolean"
+               mapping="conflictingReferrerNames['DISPLAY_DAMAGED']?.length() > 0"/>
 
-        <field id="listCheckDeletedConflictReferrers" domain="string">
-            <select mapping="conflictingReferrerNames['DELETED']"/>
-        </field>
-        <field id="listCheckUpdatedConflictReferrers" domain="string">
-            <select mapping="conflictingReferrerNames['UPDATED']"/>
-        </field>
-        <field id="listCheckAlteredConflictReferrers" domain="string">
-            <select mapping="conflictingReferrerNames['ALTERED']"/>
-        </field>
-        <field id="listCheckDisplayDamagedConflictReferrers" domain="string">
-            <select mapping="conflictingReferrerNames['DISPLAY_DAMAGED']"/>
-        </field>
+        <field id="listCheckDeletedConflictReferrers" domain="string"
+               mapping="conflictingReferrerNames['DELETED']"/>
+        <field id="listCheckUpdatedConflictReferrers" domain="string"
+               mapping="conflictingReferrerNames['UPDATED']"/>
+        <field id="listCheckAlteredConflictReferrers" domain="string"
+               mapping="conflictingReferrerNames['ALTERED']"/>
+        <field id="listCheckDisplayDamagedConflictReferrers" domain="string"
+               mapping="conflictingReferrerNames['DISPLAY_DAMAGED']"/>
         <!-- / Checking conflicts -->
 
-        <field id="hasErrorMessage" domain="boolean">
-            <select mapping="errorMessage?.length() > 0"/>
-        </field>
-        <field id="errorMessage" domain="string">
-            <select/>
-        </field>
+        <field id="hasErrorMessage" domain="boolean"
+               mapping="errorMessage?.length() > 0"/>
+        <field id="errorMessage" domain="string"/>
 
         <!-- Existing conflicts -->
-        <field id="hasDataConflict" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="hasUpdatedConflict" domain="boolean">
-            <select/>
-        </field>
-
-        <field id="hasAlteredConflict" domain="boolean">
-            <select/>
-        </field>
+        <field id="hasDataConflict" domain="boolean"/>
+        <field id="hasUpdatedConflict" domain="boolean"/>
+        <field id="hasAlteredConflict" domain="boolean"/>
         <!-- / Existing conflicts -->
 
-        <field id="editDate" domain="date">
-            <select/>
-        </field>
+        <field id="editDate" domain="date"/>
 
-        <field id="isPublishable" domain="boolean">
-            <select mapping="
+        <field id="isPublishable" domain="boolean"
+               mapping="
                 !archived and
                 (status?.toString() == 'DRAFT') and
                 !hasDataConflict and
                 !hasStructureConflict and
                 !(errorMessage?.length() > 0)
                 "/>
-        </field>
-
     </fields>
+
 </query>

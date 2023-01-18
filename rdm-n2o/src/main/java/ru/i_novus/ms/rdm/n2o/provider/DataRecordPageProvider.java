@@ -9,6 +9,7 @@ import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.global.dao.N2oPreFilter;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oPage;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
+import net.n2oapp.framework.api.metadata.global.view.page.datasource.N2oStandardDatasource;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.register.DynamicMetadataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,32 +80,38 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
     private N2oForm createForm(String context, DataRecordRequest request) {
 
         N2oForm n2oForm = new N2oForm();
-        n2oForm.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
-        n2oForm.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
-        
-        n2oForm.setPreFilters(createPreFilters());
-
+        n2oForm.setDatasource(createDatasource(context));
         n2oForm.setItems(createPageFields(request));
 
         return n2oForm;
     }
 
+    private N2oStandardDatasource createDatasource(String context) {
+
+        N2oStandardDatasource n2oDatasource = new N2oStandardDatasource();
+        n2oDatasource.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
+        n2oDatasource.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+
+        n2oDatasource.setFilters(createPreFilters());
+
+        return n2oDatasource;
+    }
+
     private N2oPreFilter[] createPreFilters() {
 
-        N2oPreFilter idFilter = createPreFilter("id", "id", FilterType.eq);
-        N2oPreFilter optLockValueFilter = createPreFilter("optLockValue", "optLockValue", FilterType.eq);
-        N2oPreFilter localeCodeFilter = createPreFilter("localeCode", "localeCode", FilterType.eq);
-        N2oPreFilter dataActionFilter = createPreFilter("dataAction", "dataAction", FilterType.eq);
+        N2oPreFilter idFilter = createPreFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID, FilterType.eq);
+
+        N2oPreFilter optLockValueFilter = createPreFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE, FilterType.eq);
+        N2oPreFilter localeCodeFilter = createPreFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE, FilterType.eq);
+        N2oPreFilter dataActionFilter = createPreFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION, FilterType.eq);
 
         return new N2oPreFilter[]{idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
     }
 
     private N2oPreFilter createPreFilter(String fieldId, String param, FilterType type) {
 
-        N2oPreFilter preFilter = new N2oPreFilter();
-        preFilter.setFieldId(fieldId);
+        N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
         preFilter.setParam(param);
-        preFilter.setType(type);
 
         return preFilter;
     }

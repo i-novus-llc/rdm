@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
@@ -15,6 +14,7 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookPublish;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
@@ -107,7 +107,8 @@ public class RefBookPublishController {
             return messages.getMessage(PUBLISHING_DRAFT_STRUCTURE_NOT_FOUND_EXCEPTION_CODE);
         }
 
-        if (!Boolean.TRUE.equals(draftService.hasData(refBook.getId()))) {
+        Boolean hasData = draftService.hasData(refBook.getId());
+        if (!Boolean.TRUE.equals(hasData)) {
             return messages.getMessage(PUBLISHING_DRAFT_DATA_NOT_FOUND_EXCEPTION_CODE);
         }
 
@@ -146,9 +147,7 @@ public class RefBookPublishController {
     private Map<String, String> getConflictingReferrerNames(Integer versionId) {
 
         return Stream.of(CONFLICT_TYPE_VALUES).collect(
-                toMap(ConflictType::name,
-                        conflictType -> getConflictTypeReferrerNames(versionId, conflictType)
-                )
+                toMap(ConflictType::name, conflictType -> getConflictTypeReferrerNames(versionId, conflictType))
         );
     }
 

@@ -1,11 +1,14 @@
 package ru.i_novus.ms.rdm.n2o.model;
 
 /**
- * Статус для списка.
+ * Модель статуса справочника для UI.
  */
 public class UiRefBookStatus {
 
+    /** Статус справочника. */
     private RefBookStatus id;
+
+    /** Локализованное наименование. */
     private String name;
 
     @SuppressWarnings("unused")

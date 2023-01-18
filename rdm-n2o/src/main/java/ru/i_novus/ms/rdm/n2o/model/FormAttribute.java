@@ -19,6 +19,10 @@ public class FormAttribute {
     /** Тип атрибута. */
     private FieldType type;
 
+    /** Наименование типа атрибута. */
+    // Вместо FormAttributeType до создания FormAttributeRequest как с RefBook.
+    private String typeName;
+
     /** Признак первичного атрибута. */
     private Boolean isPrimary;
 
@@ -35,7 +39,7 @@ public class FormAttribute {
     /** Выражение для вычисления отображаемого ссылочного значения. */
     private String displayExpression;
 
-    // Пользовательские проверки
+    //<editor-fold default-state="collapsed" desc="Пользовательские проверки">
     private Boolean required;
     private Boolean unique;
 
@@ -54,8 +58,9 @@ public class FormAttribute {
     private LocalDate maxDate;
 
     private String regExp;
+    //</editor-fold> // Пользовательские проверки
 
-    // / Пользовательские проверки
+    //<editor-fold default-state="collapsed" desc="Методы доступа">
 
     public String getCode() {
         return code;
@@ -79,6 +84,14 @@ public class FormAttribute {
 
     public void setType(FieldType type) {
         this.type = type;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
     }
 
     public Boolean getIsPrimary() {
@@ -121,7 +134,7 @@ public class FormAttribute {
         this.displayExpression = displayExpression;
     }
 
-    // Пользовательские проверки
+    //<editor-fold default-state="collapsed" desc="Методы доступа: Пользовательские проверки">
 
     public Boolean getRequired() {
         return required;
@@ -219,7 +232,9 @@ public class FormAttribute {
         this.regExp = regExp;
     }
 
-    // / Пользовательские проверки
+    //</editor-fold> // Методы доступа: Пользовательские проверки
+
+    //</editor-fold> // Методы доступа
 
     public boolean hasIsPrimary() {
         return getIsPrimary() != null && getIsPrimary();

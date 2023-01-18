@@ -23,7 +23,7 @@ import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class RowUtils {
+public final class RowUtils {
 
     private RowUtils() {
         // Nothing to do.

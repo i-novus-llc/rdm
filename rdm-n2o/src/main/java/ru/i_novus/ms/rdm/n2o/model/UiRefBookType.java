@@ -3,11 +3,14 @@ package ru.i_novus.ms.rdm.n2o.model;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 /**
- * Тип справочника для списка.
+ * Модель типа справочника для UI.
  */
 public class UiRefBookType {
 
+    /** Тип справочника. */
     private RefBookTypeEnum id;
+
+    /** Локализованное наименование. */
     private String name;
 
     @SuppressWarnings("unused")

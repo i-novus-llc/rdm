@@ -1,12 +1,12 @@
 package ru.i_novus.ms.rdm.impl.file.process;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.exception.FileContentException;
 import ru.i_novus.ms.rdm.api.exception.FileProcessingException;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;

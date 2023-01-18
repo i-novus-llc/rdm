@@ -1,18 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-3.0"
-             name="Структура">
+<simple-page xmlns="http://n2oapp.net/framework/config/schema/page-4.0"
+             name="Атрибут">
 
-    <form default-values-query-id="attributeDefault" query-id="attribute" object-id="attribute">
-
-        <pre-filters>
-            <eq field-id="versionId" param="versionId"/>
-            <eq field-id="optLockValue" param="optLockValue"/>
-            <eq field-id="code" param="code"/>
-        </pre-filters>
+    <form>
+        <datasource query-id="attribute" object-id="attribute"/>
 
         <fields>
-
             <row>
+                <output-text id="id" visible="false"/>
+                <!-- refBook: -->
                 <output-text id="versionId" visible="false"/>
                 <output-text id="optLockValue" visible="false"/>
                 <checkbox id="hasReferrer" unchecked="false" visible="false"/>
@@ -21,9 +17,7 @@
             <row>
                 <input-text id="code" label="Код" required="true">
                     <dependencies>
-                        <enabling>
-                            (typeof id == 'undefined' || id == null)
-                        </enabling>
+                        <enabling>typeof id == 'undefined' || id == null</enabling>
                     </dependencies>
 
                     <validations>
@@ -72,21 +66,21 @@
 
                 <select id="attrType" label="Тип" required="true" label-field-id="name" cleanable="false">
                     <options>
-                        <option id="STRING" name="Строковый"/>
-                        <option id="INTEGER" name="Целочисленный"/>
-                        <option id="FLOAT" name="Дробный"/>
-                        <option id="DATE" name="Дата"/>
-                        <option id="BOOLEAN" name="Логический"/>
-                        <option id="REFERENCE" name="Ссылочный"/>
+                        <option id="STRING" name="${attribute.type.string}"/>
+                        <option id="INTEGER" name="${attribute.type.integer}"/>
+                        <option id="FLOAT" name="${attribute.type.float}"/>
+                        <option id="DATE" name="${attribute.type.date}"/>
+                        <option id="BOOLEAN" name="${attribute.type.boolean}"/>
+                        <option id="REFERENCE" name="${attribute.type.reference}"/>
                     </options>
                 </select>
             </row>
 
             <input-select id="referenceRefBook" label="Выбор справочника"
                           query-id="referenceRefBook" label-field-id="displayCode">
-                <pre-filters>
+                <filters>
                     <eq field-id="excludeByVersionId" value="{versionId}"/>
-                </pre-filters>
+                </filters>
 
                 <dependencies>
                     <visibility on="attrType">
@@ -116,9 +110,9 @@
             <row>
                 <input-select id="displayAttribute" label="Отображаемый атрибут"
                               query-id="attribute" label-field-id="name">
-                    <pre-filters>
-                        <eq field-id="versionId" value="{referenceRefBook.version.id}" />
-                    </pre-filters>
+                    <filters>
+                        <eq field-id="versionId" value="{referenceRefBook.versionId}"/>
+                    </filters>
 
                     <dependencies>
                         <visibility on="attrType,referenceRefBook">
@@ -311,9 +305,7 @@
             </date-interval>
 
             <!-- / Пользовательские проверки -->
-
         </fields>
-
     </form>
 
 </simple-page>

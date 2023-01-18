@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Информация о публикуемом черновике справочника для UI.
+ * Модель публикуемого черновика справочника для UI.
  */
 public class UiRefBookPublish extends UiRefBook {
 
@@ -63,6 +63,6 @@ public class UiRefBookPublish extends UiRefBook {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }

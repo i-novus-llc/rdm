@@ -5,15 +5,17 @@ import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 
 import java.util.List;
 
-public class DataWithConflictsListWidget extends N2oTableWidget {
+/**
+ * Таблица на вкладке "Данные с конфликтами" версии справочника.
+ */
+public class DataWithConflictsWidget extends N2oTableWidget {
 
-    public DataFormModal fixRowForm(int rowNum) {
+    public DataRowForm fixRowForm(int rowNum) {
+
         columns().rows().row(rowNum).click();
-        toolbar()
-                .topRight()
-                .button("Исправить")
-                .click();
-        return N2oSelenide.modal(DataFormModal.class);
+        toolbar().topRight().button("Исправить").click();
+
+        return N2oSelenide.modal(DataRowForm.class);
     }
 
     public void rowShouldHaveTexts(int columnNum, List<String> text) {

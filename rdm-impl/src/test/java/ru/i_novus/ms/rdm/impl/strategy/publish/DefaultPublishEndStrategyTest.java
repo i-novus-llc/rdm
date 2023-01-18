@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
@@ -24,6 +23,7 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus.PUBLISHED;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,10 +49,10 @@ public class DefaultPublishEndStrategyTest {
     private JmsTemplate jmsTemplate;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
-        FieldSetter.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("publishTopic"), PUBLISH_TOPIC);
-        FieldSetter.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("enablePublishTopic"), true);
+        setField(strategy, "publishTopic", PUBLISH_TOPIC);
+        setField(strategy, "enablePublishTopic", true);
     }
 
     @Test

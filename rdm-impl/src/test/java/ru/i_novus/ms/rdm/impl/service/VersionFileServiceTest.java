@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
@@ -33,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VersionFileServiceTest {
@@ -77,10 +77,10 @@ public class VersionFileServiceTest {
     private VersionService versionService;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategiesMap());
-        FieldSetter.setField(versionFileService, VersionFileServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(versionFileService, "strategyLocator", strategyLocator);
     }
 
     @Test

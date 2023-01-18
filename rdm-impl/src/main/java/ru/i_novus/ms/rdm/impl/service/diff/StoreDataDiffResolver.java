@@ -25,6 +25,7 @@ import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
@@ -193,7 +194,8 @@ public class StoreDataDiffResolver implements PublishResolver {
 
     private String toDataDiffPrimary(DiffFieldValue diffFieldValue) {
 
-        Object value = diffFieldValue.getNewValue() != null ? diffFieldValue.getNewValue() : diffFieldValue.getOldValue();
-        return DataDiffUtil.toPrimaryString(diffFieldValue.getField().getName(), value);
+        Serializable newValue = diffFieldValue.getNewValue();
+        Serializable value = newValue != null ? newValue : diffFieldValue.getOldValue();
+        return DataDiffUtil.toNamedStringValue(diffFieldValue.getField().getName(), value);
     }
 }

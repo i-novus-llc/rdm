@@ -28,7 +28,7 @@ public class RdmCompileCacheOperation<S> extends CompileCacheOperation<S> {
                      BindProcessor bindProcessor,
                      SourceProcessor sourceProcessor) {
         String sourceId = context.getSourceId(bindProcessor);
-        if (sourceId.startsWith("dataRecord")) {
+        if (sourceId != null && sourceId.startsWith("dataRecord")) {
             return supplier.get();
         }
         return super.execute(context, data, supplier, compileProcessor, bindProcessor, sourceProcessor);

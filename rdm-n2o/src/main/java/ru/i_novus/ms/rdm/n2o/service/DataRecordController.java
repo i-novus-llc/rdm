@@ -2,12 +2,12 @@ package ru.i_novus.ms.rdm.n2o.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
 
@@ -25,14 +25,21 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 @Controller
 public class DataRecordController {
 
-    @Autowired
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
+
+    private final DraftRestService draftService;
+
+    private final Collection<DataRecordGetterResolver> resolvers;
 
     @Autowired
-    private DraftRestService draftService;
+    public DataRecordController(VersionRestService versionService,
+                                DraftRestService draftService,
+                                Collection<DataRecordGetterResolver> resolvers) {
+        this.versionService = versionService;
+        this.draftService = draftService;
 
-    @Autowired
-    private Collection<DataRecordGetterResolver> resolvers;
+        this.resolvers = resolvers;
+    }
 
     /**
      * Получение записи версии справочника по параметрам.

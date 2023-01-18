@@ -14,9 +14,11 @@ public class LocalDateTimeMapperPreparer implements MapperConfigurer {
 
     @Override
     public void configure(ObjectMapper objectMapper) {
+
         SimpleModule module = new SimpleModule();
-        module.addSerializer(new JsonLocalDateTimeSerializer());
+        module.addSerializer(LocalDateTime.class, new JsonLocalDateTimeSerializer());
         module.addDeserializer(LocalDateTime.class, new JsonLocalDateTimeDeserializer());
+
         objectMapper.registerModule(module);
     }
 }

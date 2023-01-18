@@ -3,6 +3,9 @@ package ru.inovus.ms.rdm.ui.test.model;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Поле - представление (версии) справочника (вместе с записями).
+ */
 public class RefBook {
 
     private static final String REFBOOK_UNVERSIONED = "Неверсионный";
@@ -13,9 +16,11 @@ public class RefBook {
     private final String category;
     private final String description;
     private final String type;
+
     private final List<Map<RefBookField, Object>> rows;
 
-    public RefBook(String code, String name, String shortName, String category, String description, String type, List<Map<RefBookField, Object>> rows) {
+    public RefBook(String code, String name, String shortName, String category, String description, String type,
+                   List<Map<RefBookField, Object>> rows) {
         this.code = code;
         this.name = name;
         this.shortName = shortName;

@@ -75,10 +75,11 @@ public class CreateDraftController {
         final UiDraft uiDraft = getOrCreateDraft(versionId);
 
         if (!uiDraft.isVersionDraft(versionId)) {
+            versionId = uiDraft.getId();
             optLockValue = uiDraft.getOptLockValue();
         }
 
-        refBookService.update(toRefBookUpdateRequest(uiDraft.getId(), optLockValue, uiPassport));
+        refBookService.update(toRefBookUpdateRequest(versionId, optLockValue, uiPassport));
         return uiDraft;
     }
 
@@ -103,8 +104,7 @@ public class CreateDraftController {
 
     private Map<String, String> toPassport(UiPassport uiPassport) {
 
-        Map<String, String> passport = new HashMap<>();
-
+        Map<String, String> passport = new HashMap<>(3);
         passport.put(PASSPORT_REFBOOK_NAME, uiPassport.getName());
         passport.put(PASSPORT_REFBOOK_SHORT_NAME, uiPassport.getShortName());
         passport.put(PASSPORT_REFBOOK_DESCRIPTION, uiPassport.getDescription());

@@ -12,11 +12,14 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getMapper;
 
 public class StructureType implements UserType {
@@ -189,7 +192,7 @@ public class StructureType implements UserType {
 
     private <T> T getByKey(JsonNode node, String key, Function<JsonNode, T> valueExtractor) {
 
-        JsonNode valueJson = node.get(key);
-        return (valueJson == null) ? null : valueExtractor.apply(valueJson);
+        JsonNode jsonValue = node.get(key);
+        return (jsonValue == null) ? null : valueExtractor.apply(jsonValue);
     }
 }

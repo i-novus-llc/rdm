@@ -17,7 +17,10 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
-import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
@@ -67,7 +70,7 @@ public class RefBookControllerTest {
         when(refBookService.search(eq(criteria)))
                 .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
 
-        when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
+        mockToUiRefBook(refBook);
 
         Page<UiRefBook> page = controller.getList(criteria);
         assertNotNull(page.getContent());
@@ -83,7 +86,7 @@ public class RefBookControllerTest {
         RefBook refBook = createRefBook();
         when(refBookService.getByVersionId(VERSION_ID)).thenReturn(refBook);
 
-        when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
+        mockToUiRefBook(refBook);
 
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setVersionId(VERSION_ID);
@@ -106,7 +109,7 @@ public class RefBookControllerTest {
 
         RefBook changed = new RefBook(refBook);
         changed.setDraftVersionId(null);
-        when(refBookAdapter.toUiRefBook(eq(changed))).thenReturn(new UiRefBook(changed));
+        mockToUiRefBook(changed);
 
         UiRefBook actual = controller.getVersionRefBook(criteria);
         assertRefBookEquals(refBook, actual);
@@ -129,7 +132,7 @@ public class RefBookControllerTest {
         when(refBookService.searchVersions(eq(criteria)))
                 .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
 
-        when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
+        mockToUiRefBook(refBook);
 
         UiRefBook actual = controller.getLastVersion(criteria);
         assertRefBookEquals(refBook, actual);
@@ -148,6 +151,8 @@ public class RefBookControllerTest {
                 new PageImpl<>(refBooks, (RefBookCriteria) v.getArguments()[0], 1)
         );
 
+        mockToUiRefBook(refBook);
+
         RefBookCriteria criteria = new RefBookCriteria();
         Page<UiRefBook> page = controller.searchReferenceRefBooks(criteria);
         assertNotNull(page.getContent());
@@ -157,6 +162,12 @@ public class RefBookControllerTest {
         assertTrue(captured.getHasPublished());
         assertTrue(captured.getExcludeDraft());
         assertEquals(RefBookSourceType.LAST_PUBLISHED, captured.getSourceType());
+    }
+
+    private void mockToUiRefBook(RefBook refBook) {
+
+        when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
+        when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @Test

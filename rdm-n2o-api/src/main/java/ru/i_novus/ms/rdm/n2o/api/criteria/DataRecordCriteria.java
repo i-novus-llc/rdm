@@ -14,17 +14,17 @@ import java.util.Objects;
 @SuppressWarnings("unused") // used in: DataRecordQueryProvider
 public class DataRecordCriteria extends AbstractCriteria {
 
-    @ApiParam("Идентификатор записи")
-    @QueryParam("id")
-    private Long id;
-
     @ApiParam("Идентификатор версии")
     @QueryParam("versionId")
     private Integer versionId;
 
-    @ApiParam("Идентификатор записи")
+    @ApiParam("Значение оптимистической блокировки версии")
     @QueryParam("optLockValue")
     private Integer optLockValue;
+
+    @ApiParam("Идентификатор записи")
+    @QueryParam("id")
+    private Long id;
 
     @ApiParam("Код локали")
     @QueryParam("localeCode")
@@ -50,19 +50,12 @@ public class DataRecordCriteria extends AbstractCriteria {
 
         super(criteria);
 
-        this.id = criteria.getId();
         this.versionId = criteria.getVersionId();
         this.optLockValue = criteria.getOptLockValue();
+
+        this.id = criteria.getId();
         this.localeCode = criteria.getLocaleCode();
         this.dataAction = criteria.getDataAction();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getVersionId() {
@@ -79,6 +72,14 @@ public class DataRecordCriteria extends AbstractCriteria {
 
     public void setOptLockValue(Integer optLockValue) {
         this.optLockValue = optLockValue;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getLocaleCode() {
@@ -104,20 +105,21 @@ public class DataRecordCriteria extends AbstractCriteria {
         if (!super.equals(o)) return false;
 
         DataRecordCriteria that = (DataRecordCriteria) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(versionId, that.versionId) &&
+        return Objects.equals(versionId, that.versionId) &&
                 Objects.equals(optLockValue, that.optLockValue) &&
+                
+                Objects.equals(id, that.id) &&
                 Objects.equals(localeCode, that.localeCode) &&
                 Objects.equals(dataAction, that.dataAction);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), id, versionId, optLockValue, localeCode, dataAction);
+        return Objects.hash(super.hashCode(), versionId, optLockValue, id, localeCode, dataAction);
     }
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }

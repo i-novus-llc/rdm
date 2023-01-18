@@ -4,6 +4,7 @@ import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.global.view.page.N2oSimplePage;
+import net.n2oapp.framework.api.metadata.global.view.page.datasource.N2oStandardDatasource;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oForm;
 import net.n2oapp.framework.api.metadata.global.view.widget.N2oWidget;
 import org.junit.Before;
@@ -18,13 +19,16 @@ import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.util.StringUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -33,10 +37,11 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
     @InjectMocks
     private DataRecordPageProvider provider;
 
-    @Spy
-    private final Collection<DataRecordPageResolver> resolvers = new ArrayList<>(1);
     @Mock
     protected VersionRestService versionService;
+
+    @Spy
+    private final Collection<DataRecordPageResolver> resolvers = new ArrayList<>(1);
 
     @Before
     public void setUp() {
@@ -83,8 +88,10 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
         assertTrue(widget instanceof N2oForm);
 
         N2oForm form = (N2oForm) widget;
-        assertNotNull(form.getQueryId());
-        assertNotNull(form.getObjectId());
+        N2oStandardDatasource datasource = form.getDatasource();
+        assertNotNull(datasource);
+        assertNotNull(datasource.getQueryId());
+        assertNotNull(datasource.getObjectId());
 
         List<SourceComponent> items = Arrays.asList(form.getItems());
         assertNotNull(items);

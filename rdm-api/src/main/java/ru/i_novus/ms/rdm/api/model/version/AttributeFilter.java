@@ -14,7 +14,9 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
- * Если fieldType = REFERENCE, то в value = Reference.getValue
+ * Фильтр по атрибуту.
+ * <p/>
+ * Если fieldType = REFERENCE, то в value = Reference.getValue.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AttributeFilter implements Serializable {

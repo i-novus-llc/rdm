@@ -21,9 +21,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
- * Преобразует запросы для VersionPlainDataService, позволяя писать их в более удобном виде
+ * Преобразует запросы для VersionPlainDataService, позволяя писать их в более удобном виде.
  * Принимает запросы с параметрами вида filter.[key]=[value]
- * и преобразует их в формат json для десериализации в Map
+ * и преобразует их в формат json для десериализации в Map.
  */
 @PreMatching
 @Provider
@@ -34,9 +34,14 @@ public class PlainDataRequestFilter implements ContainerRequestFilter {
     public static final String PLAIN_DATA_URL_PREFIX = "plainData";
     public static final String PLAIN_FILTER_QUERY_PARAM = "plainAttributeFilter";
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    @Qualifier("cxfObjectMapper")
-    private ObjectMapper objectMapper;
+    public PlainDataRequestFilter(
+            @Qualifier("cxfObjectMapper") ObjectMapper objectMapper
+    ) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {

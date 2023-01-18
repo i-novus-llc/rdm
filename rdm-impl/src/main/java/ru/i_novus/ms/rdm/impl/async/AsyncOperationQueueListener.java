@@ -1,10 +1,12 @@
 package ru.i_novus.ms.rdm.impl.async;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -41,6 +43,8 @@ class AsyncOperationQueueListener {
 
     private final AsyncOperationHandler handler;
 
+    private final ObjectMapper objectMapper;
+
     private final Messages messages;
 
     private final String queueId;
@@ -48,17 +52,20 @@ class AsyncOperationQueueListener {
     @Autowired
     public AsyncOperationQueueListener(AsyncOperationLogEntryRepository repository,
                                        AsyncOperationHandler handler,
+                                       @Qualifier("cxfObjectMapper") ObjectMapper objectMapper,
                                        Messages messages,
                                        @Value("${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}")
                                        String queueId) {
         this.repository = repository;
         this.handler = handler;
+        this.objectMapper = objectMapper;
         this.messages = messages;
 
         this.queueId = queueId;
     }
 
-    @JmsListener(destination = "${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}", containerFactory = "internalAsyncOperationContainerFactory")
+    @JmsListener(destination = "${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}",
+            containerFactory = "internalAsyncOperationContainerFactory")
     public void onMessage(AsyncOperationMessage message) {
 
         if (logger.isInfoEnabled()) {
@@ -124,7 +131,7 @@ class AsyncOperationQueueListener {
 
         UUID operationId = message.getOperationId();
         repository.saveWithoutConflict(operationId, message.getOperationType().name(),
-                message.getCode(), message.getPayloadAsJson());
+                message.getCode(), message.toPayload(objectMapper));
 
         return repository.findByUuid(operationId);
     }

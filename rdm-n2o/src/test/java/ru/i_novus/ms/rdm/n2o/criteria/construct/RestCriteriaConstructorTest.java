@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
 import net.n2oapp.criteria.api.Criteria;
-import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.criteria.api.SortingDirection;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.junit.Test;
@@ -115,7 +115,7 @@ public class RestCriteriaConstructorTest {
         N2oPreparedCriteria criteria = new N2oPreparedCriteria();
         criteria.setPage(11);
         criteria.setSize(111);
-        criteria.setSorting(new Sorting(SORTED_FIELD, Direction.ASC));
+        criteria.addSorting(new Sorting(SORTED_FIELD, SortingDirection.ASC));
 
         return criteria;
     }

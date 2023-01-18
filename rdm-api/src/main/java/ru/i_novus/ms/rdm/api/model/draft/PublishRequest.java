@@ -76,6 +76,6 @@ public class PublishRequest implements DraftChangeRequest {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }

@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service.diff;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -21,7 +19,6 @@ import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffResult;
-import ru.i_novus.ms.rdm.impl.provider.VdsMapperConfigurer;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffResultRepository;
@@ -41,14 +38,11 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getVdsObjectMapper;
+import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getMapper;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"java:S5778"})
 public class VersionDataDiffServiceTest extends BaseTest {
-
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private static final VdsMapperConfigurer VDS_MAPPER_CONFIGURER = new VdsMapperConfigurer();
 
     private static final String TEST_REFBOOK_CODE = "test_code";
     private static final Integer OLD_VERSION_ID = 1;
@@ -113,12 +107,6 @@ public class VersionDataDiffServiceTest extends BaseTest {
     private RefBookVersionDiffRepository versionDiffRepository;
     @Mock
     private VersionDataDiffResultRepository dataDiffResultRepository;
-
-    @Before
-    public void setUp() throws NoSuchFieldException {
-
-        VDS_MAPPER_CONFIGURER.configure(JSON_MAPPER);
-    }
 
     /** Поиск в случае без фильтрации. */
     @Test
@@ -285,9 +273,9 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
         return new VersionDataDiff(
                 diff.getPrimaryValues(),
-                JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getFirstDiffValues(), DiffRowValue.class),
+                JsonUtil.fromJsonString(getMapper(), diff.getFirstDiffValues(), DiffRowValue.class),
                 (diff.getLastDiffValues() != null)
-                        ? JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getLastDiffValues(), DiffRowValue.class)
+                        ? JsonUtil.fromJsonString(getMapper(), diff.getLastDiffValues(), DiffRowValue.class)
                         : null
         );
     }

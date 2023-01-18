@@ -4,11 +4,11 @@ import javax.persistence.*;
 import java.util.Objects;
 
 /**
- * Данные для заполнения модели RefBook.
+ * Подробная информация о версии для заполнения модели RefBook.
  */
 @Entity
 @SuppressWarnings("unused")
-public class RefBookModelData {
+public class RefBookDetailModel {
 
     /** Текущая (рассматриваемая) версия. */
     @Id
@@ -53,7 +53,7 @@ public class RefBookModelData {
     @Column(name = "last_has_conflict")
     private Boolean lastHasConflict;
 
-    public RefBookModelData() {
+    public RefBookDetailModel() {
         // Nothing to do.
     }
 
@@ -142,7 +142,7 @@ public class RefBookModelData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RefBookModelData that = (RefBookModelData) o;
+        RefBookDetailModel that = (RefBookDetailModel) o;
         return Objects.equals(currentVersionId, that.currentVersionId) &&
                 Objects.equals(draftVersion, that.draftVersion) &&
                 Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&

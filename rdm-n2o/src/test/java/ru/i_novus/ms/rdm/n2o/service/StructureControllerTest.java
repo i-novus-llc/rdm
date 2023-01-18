@@ -1,11 +1,15 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import junit.framework.TestCase;
+import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
@@ -56,6 +60,9 @@ public class StructureControllerTest extends TestCase {
     private DraftRestService draftService;
     @Mock
     private ConflictService conflictService;
+
+    @Mock
+    private Messages messages;
 
     @Captor
     ArgumentCaptor<UpdateAttributeRequest> updateAttributeArgumentCaptor;

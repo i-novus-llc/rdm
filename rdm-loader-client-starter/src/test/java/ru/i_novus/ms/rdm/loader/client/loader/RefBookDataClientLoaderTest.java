@@ -1,14 +1,12 @@
 package ru.i_novus.ms.rdm.loader.client.loader;
 
 import net.n2oapp.platform.loader.client.LoadingException;
-import net.n2oapp.platform.loader.client.RestClientLoader;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -26,6 +24,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("rawtypes")
@@ -38,9 +37,9 @@ public class RefBookDataClientLoaderTest extends BaseTest {
     private RestOperations restTemplate;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
-        FieldSetter.setField(loader, RestClientLoader.class.getDeclaredField("endpointPattern"), "/loaders/{subject}/{target}");
+        setField(loader, "endpointPattern", "/loaders/{subject}/{target}");
     }
 
     @Test

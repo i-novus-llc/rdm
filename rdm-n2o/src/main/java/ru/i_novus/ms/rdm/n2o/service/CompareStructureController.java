@@ -19,11 +19,17 @@ import java.util.stream.Collectors;
 @Controller
 public class CompareStructureController {
 
-    @Autowired
-    CompareService compareService;
+    private final CompareService compareService;
+
+    private final VersionRestService versionService;
 
     @Autowired
-    VersionRestService versionService;
+    public CompareStructureController(CompareService compareService,
+                                      VersionRestService versionService) {
+
+        this.compareService = compareService;
+        this.versionService = versionService;
+    }
 
     public Page<AttributeDiff> getCommonDiff(CompareCriteria criteria) {
 

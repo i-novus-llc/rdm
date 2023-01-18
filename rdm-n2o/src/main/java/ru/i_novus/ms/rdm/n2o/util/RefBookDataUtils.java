@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.util;
 
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
 import java.io.Serializable;
@@ -10,19 +11,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
-public class RefBookDataUtils {
+public final class RefBookDataUtils {
 
     private static final String DATA_FILTER_BOOL_IS_INVALID_EXCEPTION_CODE = "data.filter.bool.is.invalid";
 
+    // to-do: Вынести список значений в rdmui.properties, а здесь преобразовать в regex (с фильтрацией корректных символов!)
     private static final String BOOL_TRUE_REGEX = "true|t|y|yes|yeah|д|да|истина|правда";
     private static final Pattern BOOL_TRUE_PATTERN = Pattern.compile(BOOL_TRUE_REGEX);
     private static final String BOOL_FALSE_REGEX = "false|f|n|no|nah|н|нет|ложь|неправда";
     private static final Pattern BOOL_FALSE_PATTERN = Pattern.compile(BOOL_FALSE_REGEX);
 
     private RefBookDataUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     public static Serializable castFilterValue(Structure.Attribute attribute, Serializable value) {
@@ -101,7 +101,7 @@ public class RefBookDataUtils {
     public static Boolean parseBoolean(String value) {
 
         String stringValue = value.toLowerCase();
-        if (isEmpty(stringValue))
+        if (StringUtils.isEmpty(stringValue))
             return null;
 
         if (BOOL_TRUE_PATTERN.matcher(stringValue).matches())

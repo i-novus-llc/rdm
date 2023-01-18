@@ -11,12 +11,11 @@ import java.util.Objects;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
 
-public class StructureUtils {
+public final class StructureUtils {
 
     private StructureUtils() {
-        throw new UnsupportedOperationException();
+        // Nothing to do.
     }
 
     /** Проверка на наличие атрибута-ссылки. */
@@ -25,6 +24,7 @@ public class StructureUtils {
     }
 
     /** Сравнение displayExpression двух ссылок. */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isDisplayExpressionEquals(Structure.Reference reference1,
                                                     Structure.Reference reference2) {
         return reference1 != null && reference2 != null
@@ -40,7 +40,7 @@ public class StructureUtils {
      */
     public static boolean containsAnyPlaceholder(String displayExpression, List<String> placeholders) {
 
-        if (isEmpty(displayExpression) || isEmpty(placeholders))
+        if (StringUtils.isEmpty(displayExpression) || isEmpty(placeholders))
             return false;
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
@@ -56,7 +56,7 @@ public class StructureUtils {
      */
     public static boolean hasAbsentPlaceholder(String displayExpression, Structure structure) {
 
-        if (isEmpty(displayExpression))
+        if (StringUtils.isEmpty(displayExpression))
             return false;
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
@@ -73,7 +73,7 @@ public class StructureUtils {
      */
     public static List<String> getAbsentPlaceholders(String displayExpression, Structure structure) {
 
-        if (isEmpty(displayExpression))
+        if (StringUtils.isEmpty(displayExpression))
             return emptyList();
 
         DisplayExpression expression = new DisplayExpression(displayExpression);
@@ -90,7 +90,7 @@ public class StructureUtils {
      */
     public static String displayExpressionToPlaceholder(String displayExpression) {
 
-        if (isEmpty(displayExpression))
+        if (StringUtils.isEmpty(displayExpression))
             return null;
 
         DisplayExpression expression = new DisplayExpression(displayExpression);

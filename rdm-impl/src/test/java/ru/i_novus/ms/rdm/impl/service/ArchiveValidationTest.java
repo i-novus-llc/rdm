@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -37,14 +36,21 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
-import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArchiveValidationTest extends BaseTest {
@@ -93,12 +99,12 @@ public class ArchiveValidationTest extends BaseTest {
     private ValidateVersionNotArchivedStrategy validateVersionNotArchivedStrategy;
 
     @Before
-    public void setUp() throws NoSuchFieldException {
+    public void setUp() {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
 
-        FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
-        FieldSetter.setField(draftService, DraftServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        setField(refBookService, "strategyLocator", strategyLocator);
+        setField(draftService, "strategyLocator", strategyLocator);
     }
 
     @Test

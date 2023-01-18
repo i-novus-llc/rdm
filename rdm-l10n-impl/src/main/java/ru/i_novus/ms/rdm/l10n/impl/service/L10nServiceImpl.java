@@ -5,7 +5,6 @@ import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.DraftChangeRequest;
@@ -19,13 +18,16 @@ import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeTableRequest;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
+import ru.i_novus.platform.datastorage.temporal.util.CollectionUtils;
+import ru.i_novus.platform.datastorage.temporal.util.StringUtils;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftDataService;
 import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nStorageCodeService;
 
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
 @Primary
@@ -38,11 +40,11 @@ public class L10nServiceImpl implements L10nService {
     private static final String LOCALE_CODE_IS_INVALID_EXCEPTION_CODE = "locale.code.is.invalid";
     private static final String STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE = "storage.code.not.found";
 
-    private L10nDraftDataService draftDataService;
-    private L10nStorageCodeService storageCodeService;
+    private final L10nDraftDataService draftDataService;
+    private final L10nStorageCodeService storageCodeService;
 
-    private RefBookVersionRepository versionRepository;
-    private VersionValidation versionValidation;
+    private final RefBookVersionRepository versionRepository;
+    private final VersionValidation versionValidation;
 
     @Autowired
     public L10nServiceImpl(L10nDraftDataService draftDataService,
@@ -60,10 +62,10 @@ public class L10nServiceImpl implements L10nService {
     @Override
     public void localizeData(Integer versionId, LocalizeDataRequest request) {
 
-        if (isEmpty(request.getLocaleCode()))
+        if (StringUtils.isNullOrEmpty(request.getLocaleCode()))
             throw new IllegalArgumentException(LOCALE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
-        if (CollectionUtils.isEmpty(request.getRows()))
+        if (CollectionUtils.isNullOrEmpty(request.getRows()))
             return;
 
         RefBookVersionEntity versionEntity = getVersionOrThrow(versionId);
@@ -73,7 +75,7 @@ public class L10nServiceImpl implements L10nService {
 
         Structure structure = toLocalizableStructure(versionEntity.getStructure());
         List<RowValue> updatedRowValues = toRowValues(request.getRows(), structure);
-        if (CollectionUtils.isEmpty(updatedRowValues))
+        if (CollectionUtils.isNullOrEmpty(updatedRowValues))
             return;
 
         draftDataService.localizeRows(targetCode, updatedRowValues);
@@ -83,7 +85,7 @@ public class L10nServiceImpl implements L10nService {
     private String localizeTable(RefBookVersionEntity versionEntity, LocalizeTableRequest request) {
 
         String sourceTableName = versionEntity.getStorageCode();
-        if (isEmpty(sourceTableName))
+        if (StringUtils.isNullOrEmpty(sourceTableName))
             throw new IllegalArgumentException(STORAGE_CODE_NOT_FOUND_EXCEPTION_CODE);
 
         String targetSchemaName = toValidSchemaName(request.getLocaleCode());
@@ -104,6 +106,9 @@ public class L10nServiceImpl implements L10nService {
     private Structure toLocalizableStructure(Structure structure) {
 
         List<Structure.Attribute> attributes = structure.getLocalizables();
+        if (isEmpty(attributes))
+            return new Structure();
+
         if (attributes.size() == structure.getAttributes().size())
             return structure;
 
@@ -111,9 +116,9 @@ public class L10nServiceImpl implements L10nService {
         if (references.isEmpty())
             return new Structure(attributes, null);
 
-        List<String> attributeCodes = Structure.getAttributeCodes(attributes).collect(toList());
-        references = structure.getReferences().stream()
-                .filter(reference -> attributeCodes.contains(reference.getAttribute()))
+        references = attributes.stream()
+                .map(attribute -> structure.getReference(attribute.getCode()))
+                .filter(Objects::nonNull)
                 .collect(toList());
 
         return new Structure(attributes, references);

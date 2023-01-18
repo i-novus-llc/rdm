@@ -8,6 +8,7 @@ import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
 import net.n2oapp.platform.i18n.Message;
+import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
@@ -26,6 +26,7 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
+import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
@@ -62,6 +63,8 @@ import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchType
 @Component
 public class RefBookDataController {
 
+    private static final String DATA_BOOLEAN_VALUE_PREFIX = "data.boolean.value.";
+
     private static final String DATA_FILTER_IS_INVALID_EXCEPTION_CODE = "data.filter.is.invalid";
     private static final String DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.filter.field.not.found";
     private static final String DATA_SORT_IS_INVALID_EXCEPTION_CODE = "data.sort.is.invalid";
@@ -84,16 +87,21 @@ public class RefBookDataController {
 
     private final RefBookDataDecorator refBookDataDecorator;
 
+    private final Messages messages;
+
     @Autowired
     public RefBookDataController(VersionRestService versionService,
                                  ConflictService conflictService,
                                  DataFieldFilterProvider dataFieldFilterProvider,
-                                 RefBookDataDecorator refBookDataDecorator) {
+                                 RefBookDataDecorator refBookDataDecorator,
+                                 Messages messages) {
         this.versionService = versionService;
         this.conflictService = conflictService;
 
         this.dataFieldFilterProvider = dataFieldFilterProvider;
         this.refBookDataDecorator = refBookDataDecorator;
+
+        this.messages = messages;
     }
 
     /**
@@ -304,7 +312,7 @@ public class RefBookDataController {
         List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
         List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
-        List<DataGridRow> resultRows = new ArrayList<>();
+        List<DataGridRow> resultRows = new ArrayList<>(dataGridRows.size() + 1);
         resultRows.add(dataGridHead);
         resultRows.addAll(dataGridRows);
         return resultRows;
@@ -335,13 +343,13 @@ public class RefBookDataController {
     private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version,
                                       DataCriteria criteria, boolean isDataConflict) {
 
-        Map<String, Object> rowMap = new HashMap<>();
-        LongRowValue longRowValue = (LongRowValue) rowValue;
+        Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 4);
 
-        longRowValue.getFieldValues().forEach(fieldValue ->
+        rowValue.getFieldValues().forEach(fieldValue ->
                 rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
         );
 
+        LongRowValue longRowValue = (LongRowValue) rowValue;
         rowMap.put(FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
         rowMap.put(FIELD_VERSION_ID, String.valueOf(version.getId()));
         rowMap.put(FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
@@ -351,10 +359,11 @@ public class RefBookDataController {
     }
 
     private static Map<String, Object> getDataConflictedCellOptions() {
-        Map<String, Object> cellOptions = new HashMap<>();
+
+        Map<String, Object> cellOptions = new HashMap<>(2);
         cellOptions.put("src", "TextCell");
 
-        Map<String, Object> styleOptions = new HashMap<>();
+        Map<String, Object> styleOptions = new HashMap<>(1);
         styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
         cellOptions.put("styles", styleOptions);
 
@@ -415,6 +424,7 @@ public class RefBookDataController {
                 true, true, true, filterField.getControl());
     }
 
+    /** Преобразование атрибута в поле для поиска значений по этому атрибуту. */
     private N2oField toN2oField(Structure.Attribute attribute) {
 
         switch (attribute.getType()) {
@@ -432,7 +442,7 @@ public class RefBookDataController {
 
             case DATE:
                 N2oDatePicker dateField = new N2oDatePicker();
-                dateField.setDateFormat("DD.MM.YYYY");
+                dateField.setDateFormat("DD.MM.YYYY"); // DATE_PATTERN_EUROPEAN
                 return dateField;
 
             case BOOLEAN:
@@ -448,22 +458,33 @@ public class RefBookDataController {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, String>[] getBooleanValues() {
+    private Map<String, String>[] getBooleanValues() {
         return new Map[]{
-                Map.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, "ИСТИНА"),
-                Map.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, "ЛОЖЬ")
+                Map.of(BOOL_FIELD_ID, "true", BOOL_FIELD_NAME, getBooleanValueName(true)),
+                Map.of(BOOL_FIELD_ID, "false", BOOL_FIELD_NAME, getBooleanValueName(false))
         };
     }
 
+    /** Наименование значения boolean. */
+    private String getBooleanValueName(Boolean value) {
+        return value != null ? messages.getMessage(DATA_BOOLEAN_VALUE_PREFIX + value) : null;
+    }
+
+    /**
+     * Запись (строка) для DataGrid.
+     */
     @SuppressWarnings("WeakerAccess")
     public static class DataGridRow {
 
+        /** Идентификатор записи. */
         @JsonProperty
         private Long id;
 
+        /** Колонки. */
         @JsonProperty
         private List<DataGridColumn> columns;
 
+        /** Содержимое (строка). */
         @JsonProperty
         private Map<String, Object> row;
 
@@ -506,12 +527,17 @@ public class RefBookDataController {
         }
     }
 
+    /**
+     * Ячейка для DataGrid.
+     */
     @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
 
+        /** Значение. */
         @JsonProperty
         private String value;
 
+        /** Настройки. */
         @JsonProperty
         private Map<String, Object> cellOptions;
 
