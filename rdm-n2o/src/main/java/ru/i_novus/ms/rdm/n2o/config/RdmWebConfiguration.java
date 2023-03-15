@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -16,6 +17,7 @@ public class RdmWebConfiguration {
 
     private final RestTemplate restTemplate;
 
+    @Autowired
     public RdmWebConfiguration(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
