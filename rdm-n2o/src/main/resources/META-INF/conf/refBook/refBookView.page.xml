@@ -131,7 +131,7 @@
             </toolbar>
         </form> <!-- version_select -->
 
-        <tabs>
+        <tabs routable="false">
             <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passportView" datasource="versionPassport" fetch-on-init="true">
                 </form>
