@@ -41,7 +41,9 @@
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+
                 <eq field-id="localeCode" value=""/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
 
@@ -56,6 +58,7 @@
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
 
                 <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion"/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
 
@@ -68,7 +71,9 @@
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+
                 <eq field-id="hasDataConflict" value="true"/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
     </datasources>
@@ -126,7 +131,7 @@
             </toolbar>
         </form> <!-- version_select -->
 
-        <tabs>
+        <tabs routable="false">
             <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passportView" datasource="versionPassport" fetch-on-init="true">
                 </form>

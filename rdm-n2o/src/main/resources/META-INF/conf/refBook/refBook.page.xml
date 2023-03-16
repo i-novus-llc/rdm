@@ -41,7 +41,9 @@
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+
                 <eq field-id="localeCode" value=""/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
 
@@ -56,6 +58,7 @@
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
 
                 <eq field-id="localeCode" value="{locale.id}" datasource="refBookVersion"/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
 
@@ -68,7 +71,9 @@
             <filters>
                 <eq field-id="versionId" value="{id}" datasource="refBookVersion" required="true"/>
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
+
                 <eq field-id="hasDataConflict" value="true"/>
+                <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
     </datasources>
@@ -186,20 +191,7 @@
             </toolbar>
         </form> <!-- version_select -->
 
-        <!-- Таблица выбора версии справочника -->
-        <!--<table id="version" datasource="versionList" table-size="sm">-->
-
-        <!--    <pagination show-count="false" max-pages="0"-->
-        <!--                prev="true" next="true" first="true" last="true"/>-->
-
-        <!--    <columns>-->
-        <!--        &lt;!&ndash;<column text-field-id="version" label=" "/>&ndash;&gt;-->
-        <!--        <column text-field-id="version" label="Версия"/>-->
-        <!--    </columns>-->
-
-        <!--</table>-->
-
-        <tabs always-refresh="true">
+        <tabs routable="false" always-refresh="true">
             <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passport" datasource="versionPassport" fetch-on-init="true">
                     <toolbar place="bottomRight">
