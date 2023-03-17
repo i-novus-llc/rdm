@@ -13,9 +13,6 @@
     <properties>
         <backend.default.port>8081</backend.default.port>
         <commons.fileupload.version>1.4</commons.fileupload.version>
-
-        <l10n.vds.version>3.21</l10n.vds.version>
-
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>**/Application.java, **/SecurityConfig.java</sonar.coverage.exclusions>
