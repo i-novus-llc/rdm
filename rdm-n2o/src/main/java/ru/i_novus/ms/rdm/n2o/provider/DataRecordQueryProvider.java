@@ -69,12 +69,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     /** Создание выборки. */
     private N2oQuery createQuery(DataRecordRequest request) {
 
-        N2oQuery n2oQuery = new N2oQuery();
-        n2oQuery.setUniques(new N2oQuery.Selection[]{ createSelection() });
-        n2oQuery.setFields(createQueryFields(request));
-        n2oQuery.setFilters(createQueryFilters(request));
+        N2oQuery query = new N2oQuery();
+        query.setUniques(new N2oQuery.Selection[]{ createSelection() });
+        query.setFields(createQueryFields(request));
+        query.setFilters(createQueryFilters(request));
 
-        return n2oQuery;
+        return query;
     }
 
     /** Создание правила выборки. */
