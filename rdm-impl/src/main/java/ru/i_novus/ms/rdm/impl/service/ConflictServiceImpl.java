@@ -310,11 +310,18 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     private RefBookConflict refBookConflictModel(RefBookConflictEntity entity) {
+
         if (entity == null)
             return null;
 
-        return new RefBookConflict(entity.getReferrerVersion().getId(), entity.getPublishedVersion().getId(),
-                entity.getRefRecordId(), entity.getRefFieldCode(), entity.getConflictType(), entity.getCreationDate());
+        return new RefBookConflict(
+                entity.getReferrerVersion().getId(),
+                entity.getPublishedVersion().getId(),
+                entity.getRefRecordId(),
+                entity.getRefFieldCode(),
+                entity.getConflictType(),
+                entity.getCreationDate()
+        );
     }
 
     /**
@@ -326,8 +333,10 @@ public class ConflictServiceImpl implements ConflictService {
      * @param refFromAttributes ссылочные атрибуты версии, которая ссылается
      * @return Список всех записей
      */
-    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity, List<DiffRowValue> diffRowValues,
-                                                          List<Structure.Attribute> refToPrimaries, List<Structure.Attribute> refFromAttributes) {
+    private List<RefBookRowValue> getConflictedRowContent(RefBookVersionEntity refFromEntity,
+                                                          List<DiffRowValue> diffRowValues,
+                                                          List<Structure.Attribute> refToPrimaries,
+                                                          List<Structure.Attribute> refFromAttributes) {
         Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
         StorageDataCriteria criteria = new StorageDataCriteria(
                 refFromEntity.getStorageCode(), // Без учёта локализации
@@ -370,7 +379,9 @@ public class ConflictServiceImpl implements ConflictService {
      * @param filterValues значения ссылочных полей
      * @return Список различий
      */
-    private List<DiffRowValue> toDiffRowValues(Integer oldVersionId, Integer newVersionId, List<ReferenceFilterValue> filterValues) {
+    private List<DiffRowValue> toDiffRowValues(Integer oldVersionId,
+                                               Integer newVersionId,
+                                               List<ReferenceFilterValue> filterValues) {
 
         CompareDataCriteria criteria = new CompareDataCriteria(oldVersionId, newVersionId);
         criteria.setPageSize(RefBookConflictQueryProvider.REF_BOOK_CONFLICT_PAGE_SIZE);
@@ -386,7 +397,8 @@ public class ConflictServiceImpl implements ConflictService {
      * @param isAltered     наличие изменения структуры
      * @return Список различий
      */
-    private List<DiffRowValue> getDataDiffContent(Page<? extends DiffRowValue> diffRowValues, boolean isAltered) {
+    private List<DiffRowValue> getDataDiffContent(Page<? extends DiffRowValue> diffRowValues,
+                                                  boolean isAltered) {
         return diffRowValues.getContent().stream()
                 .filter(diffRowValue -> isAltered
                         ? DiffStatusEnum.DELETED.equals(diffRowValue.getStatus())
