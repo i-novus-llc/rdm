@@ -46,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.*;
 import static ru.i_novus.ms.rdm.n2o.utils.StructureTestConstants.*;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.LIKE;
@@ -263,17 +264,17 @@ public class RefBookDataControllerTest  {
 
     private Map<String, Serializable> createCriteriaFilter() {
 
-        Map<String, Serializable> filter = new HashMap<>();
+        Map<String, Serializable> filter = new HashMap<>(10);
         filter.put("", "empty");
-        filter.put(ID_ATTRIBUTE_CODE, "1");
-        filter.put(NAME_ATTRIBUTE_CODE, null);
-        filter.put(STRING_ATTRIBUTE_CODE, "text_1");
-        filter.put(INTEGER_ATTRIBUTE_CODE, "11");
-        filter.put(FLOAT_ATTRIBUTE_CODE, "1.1");
-        filter.put(BOOLEAN_ATTRIBUTE_CODE, "false");
-        filter.put(DATE_ATTRIBUTE_CODE, "11.11.1111 11:11:11");
-        filter.put(REFERENCE_ATTRIBUTE_CODE, "REFER_1");
-        filter.put(SELF_REFER_ATTRIBUTE_CODE, "SELF_1");
+        filter.put(addPrefix(ID_ATTRIBUTE_CODE), "1");
+        filter.put(addPrefix(NAME_ATTRIBUTE_CODE), null);
+        filter.put(addPrefix(STRING_ATTRIBUTE_CODE), "text_1");
+        filter.put(addPrefix(INTEGER_ATTRIBUTE_CODE), "11");
+        filter.put(addPrefix(FLOAT_ATTRIBUTE_CODE), "1.1");
+        filter.put(addPrefix(BOOLEAN_ATTRIBUTE_CODE), "false");
+        filter.put(addPrefix(DATE_ATTRIBUTE_CODE), "11.11.1111 11:11:11");
+        filter.put(addPrefix(REFERENCE_ATTRIBUTE_CODE), "REFER_1");
+        filter.put(addPrefix(SELF_REFER_ATTRIBUTE_CODE), "SELF_1");
 
         return filter;
     }
@@ -291,15 +292,19 @@ public class RefBookDataControllerTest  {
 
     private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {
 
-        if (filterValue == null || StringUtils.isEmpty(filterName))
+        if (filterValue == null || StringUtils.isEmpty(filterName) || !hasPrefix(filterName))
             return null;
 
-        Structure.Attribute attribute = structure.getAttribute(filterName);
+        final String attributeCode = deletePrefix(filterName);
+        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        if (attribute == null)
+            return null;
+
         Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
-        AttributeFilter attributeFilter = new AttributeFilter(filterName, attributeValue, attribute.getType());
+        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
         attributeFilter.setSearchType(toSearchType(attribute));
         return attributeFilter;
     }

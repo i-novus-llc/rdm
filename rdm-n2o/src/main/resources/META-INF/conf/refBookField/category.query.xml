@@ -22,4 +22,5 @@
         <field id="id" domain="string" mapping="name"/>
         <field id="code" domain="string"/>
     </fields>
+
 </query>
