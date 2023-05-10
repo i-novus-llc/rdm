@@ -79,36 +79,37 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oForm createForm(String context, DataRecordRequest request) {
 
-        N2oForm n2oForm = new N2oForm();
-        n2oForm.setDatasource(createDatasource(context));
-        n2oForm.setItems(createPageFields(request));
+        N2oForm form = new N2oForm();
+        form.setDatasource(createDatasource(context));
+        form.setItems(createPageFields(request));
 
-        return n2oForm;
+        return form;
     }
 
     private N2oStandardDatasource createDatasource(String context) {
 
-        N2oStandardDatasource n2oDatasource = new N2oStandardDatasource();
-        n2oDatasource.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
-        n2oDatasource.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
+        N2oStandardDatasource datasource = new N2oStandardDatasource();
+        datasource.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
+        datasource.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
 
-        n2oDatasource.setFilters(createPreFilters());
+        datasource.setFilters(createPreFilters());
 
-        return n2oDatasource;
+        return datasource;
     }
 
     private N2oPreFilter[] createPreFilters() {
 
-        N2oPreFilter idFilter = createPreFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID, FilterType.eq);
+        N2oPreFilter idFilter = createParamFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID, FilterType.eq);
 
-        N2oPreFilter optLockValueFilter = createPreFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE, FilterType.eq);
-        N2oPreFilter localeCodeFilter = createPreFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE, FilterType.eq);
-        N2oPreFilter dataActionFilter = createPreFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION, FilterType.eq);
+        N2oPreFilter optLockValueFilter = createParamFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE, FilterType.eq);
+        N2oPreFilter localeCodeFilter = createParamFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE, FilterType.eq);
+        N2oPreFilter dataActionFilter = createParamFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION, FilterType.eq);
 
         return new N2oPreFilter[]{idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
     }
 
-    private N2oPreFilter createPreFilter(String fieldId, String param, FilterType type) {
+    @SuppressWarnings("SameParameterValue")
+    private N2oPreFilter createParamFilter(String fieldId, String param, FilterType type) {
 
         N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
         preFilter.setParam(param);

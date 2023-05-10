@@ -57,10 +57,10 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
     private N2oObject createObject(DataRecordRequest request) {
 
-        N2oObject n2oObject = new N2oObject();
-        n2oObject.setOperations(createOperations(request));
+        N2oObject object = new N2oObject();
+        object.setOperations(createOperations(request));
 
-        return n2oObject;
+        return object;
     }
 
     private N2oObject.Operation[] createOperations(DataRecordRequest request) {
