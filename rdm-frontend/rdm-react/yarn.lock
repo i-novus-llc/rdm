@@ -10589,10 +10589,10 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-framework@7.23.64:
-  version "7.23.64"
-  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.23.64.tgz#dd5fa69e877c1bec37b44cf19e2c387cd6d3c092"
-  integrity sha512-Qf2dCPdfXhRBxTcHtnYNmen+ikDmHlIIhglGxV6TzEhdrVy6KEzobS2Rsvy61eA2kwL+FafTPKppxYvfIjl9rg==
+n2o-framework@7.23.72:
+  version "7.23.72"
+  resolved "https://npm.i-novus.ru/n2o-framework/-/n2o-framework-7.23.72.tgz#3284311eee9d6ed754f6f60386d93b5470a49ce0"
+  integrity sha512-t+xrbN1lwRJgR/xLVHDpxYOXaGOWKruj1rb4wcnNHFlzZRvuynNQNVO9PjKygwAxqB1iGHN/cYw5S3SeI8zA5Q==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -10655,7 +10655,7 @@ n2o-framework@7.23.64:
     react-syntax-highlighter "^11.0.2"
     react-text-mask "5.4.3"
     react-textarea-autosize "7.0.4"
-    react-virtualized "^9.21.0"
+    react-virtualized "9.22.3"
     reactstrap "8.10.1-popper2-beta.0"
     recharts "^1.6.2"
     recompose "0.30.0"
@@ -13334,7 +13334,7 @@ react-transition-group@^3.0.0:
     prop-types "^15.6.2"
     react-lifecycles-compat "^3.0.4"
 
-react-virtualized@^9.21.0:
+react-virtualized@9.22.3:
   version "9.22.3"
   resolved "https://npm.i-novus.ru/react-virtualized/-/react-virtualized-9.22.3.tgz#f430f16beb0a42db420dbd4d340403c0de334421"
   integrity sha512-MKovKMxWTcwPSxE1kK1HcheQTWfuCxAuBoSTf2gwyMM21NdX/PXUhnoP8Uc5dRKd+nKm8v41R36OellhdCpkrw==
