@@ -52,8 +52,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
-import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.addPrefix;
-import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.deletePrefix;
+import static ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils.*;
 import static ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils.castFilterValue;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.REFERENCE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.STRING;
@@ -244,12 +243,21 @@ public class RefBookDataController {
         }
     }
 
+    /**
+     * Преобразование фильтра из критерия поиска в фильтр по атрибуту (при наличии атрибута).
+     *
+     * @param structure   структура справочника
+     * @param filterName  наименование фильтра
+     * @param filterValue значение фильтра
+     * @return Фильтр по атрибуту или null
+     */
     private AttributeFilter toAttributeFilter(Structure structure, String filterName, Serializable filterValue) {
 
-        if (filterValue == null || StringUtils.isEmpty(filterName))
+        if (filterValue == null || StringUtils.isEmpty(filterName) || !hasPrefix(filterName))
             return null;
 
         String attributeCode = deletePrefix(filterName);
+
         Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
             throw new NotFoundException(new Message(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, filterName));
