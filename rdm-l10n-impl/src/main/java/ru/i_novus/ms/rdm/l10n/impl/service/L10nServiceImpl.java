@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.l10n.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -28,7 +27,6 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.util.StringUtils.isEmpty;
 import static ru.i_novus.platform.versioned_data_storage.pg_impl.util.StorageUtils.*;
 
-@Primary
 @Service
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nServiceImpl implements L10nService {
