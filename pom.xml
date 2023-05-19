@@ -4,7 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>4.11.2-SNAPSHOT</version>
+    <version>4.11.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
