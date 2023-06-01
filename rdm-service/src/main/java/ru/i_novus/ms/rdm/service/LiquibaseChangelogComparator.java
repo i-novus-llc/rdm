@@ -3,9 +3,9 @@ package ru.i_novus.ms.rdm.service;
 import java.util.Comparator;
 
 /**
- * patched from liquibase.changelog.DatabaseChangeLog#getStandardChangeLogComparator()
+ * modified from liquibase.changelog.DatabaseChangeLog#getStandardChangeLogComparator()
  */
-public class CustomComparator implements Comparator<String> {
+public class LiquibaseChangelogComparator implements Comparator<String> {
     @Override
     public int compare(String o1, String o2) {
         //by ignoring WEB-INF/classes in path all changelog Files independent
