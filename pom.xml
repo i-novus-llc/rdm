@@ -34,7 +34,7 @@
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>5.0.0</security.admin.version>
+        <security.admin.version>6.1.1</security.admin.version>
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
     </properties>
