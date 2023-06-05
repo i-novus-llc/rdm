@@ -21,8 +21,8 @@
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
         <n2o.version>7.23.72</n2o.version>
-        <vds.version>3.21</vds.version>
-        <l10n.vds.version>3.25</l10n.vds.version>
+        <vds.version>3.22</vds.version>
+        <l10n.vds.version>3.26</l10n.vds.version>
 
         <jackson-databind.version>2.12.7.1</jackson-databind.version>
         <jackson-datatype.version>2.12.7</jackson-datatype.version>
