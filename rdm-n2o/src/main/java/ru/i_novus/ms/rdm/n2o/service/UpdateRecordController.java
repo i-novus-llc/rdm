@@ -63,12 +63,12 @@ public class UpdateRecordController {
         if (structure.isEmpty() || structure.getReferences().isEmpty())
             return null;
 
-        List<String> refFieldCodes = structure.getReferenceAttributeCodes();
-        List<RefBookConflict> conflicts = findDataConflicts(versionId, id, refFieldCodes);
+        final List<String> refFieldCodes = structure.getReferenceAttributeCodes();
+        final List<RefBookConflict> conflicts = findDataConflicts(versionId, id, refFieldCodes);
         if (isEmpty(conflicts))
             return null;
 
-        List<String> conflictTexts = conflicts.stream()
+        final List<String> conflictTexts = conflicts.stream()
                 .map(conflict -> getConflictText(conflict, structure))
                 .filter(Objects::nonNull)
                 .collect(toList());
@@ -98,14 +98,14 @@ public class UpdateRecordController {
     private List<RefBookConflict> findDataConflicts(Integer versionId,
                                                     Long id,
                                                     List<String> refFieldCodes) {
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        final RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(versionId);
         criteria.setIsLastPublishedVersion(true);
         criteria.setRefFieldCodes(refFieldCodes);
         criteria.setRefRecordId(id);
         criteria.setPageSize(refFieldCodes.size());
 
-        Page<RefBookConflict> conflicts = conflictService.search(criteria);
+        final Page<RefBookConflict> conflicts = conflictService.search(criteria);
         return (conflicts != null) ? conflicts.getContent() : emptyList();
     }
 
@@ -118,14 +118,14 @@ public class UpdateRecordController {
     /** Получение наименования атрибута с конфликтом. */
     private String getConflictRefFieldName(RefBookConflict conflict, Structure structure) {
 
-        Structure.Attribute attribute = structure.getAttribute(conflict.getRefFieldCode());
+        final Structure.Attribute attribute = structure.getAttribute(conflict.getRefFieldCode());
         return attribute != null ? attribute.getName() : null;
     }
 
     /** Получение описания конфликта для атрибута. */
     private String getConflictText(ConflictType type, Supplier<String> attributeName) {
 
-        String typeText = getConflictTypeText(type);
+        final String typeText = getConflictTypeText(type);
         if (typeText == null)
             return null;
 
@@ -135,11 +135,11 @@ public class UpdateRecordController {
     /** Получение описания конфликта по его типу. */
     private String getConflictTypeText(ConflictType type) {
 
-        return switch (type) {
-            case UPDATED -> CONFLICT_TEXT_UPDATED;
-            case DELETED -> CONFLICT_TEXT_DELETED;
-            case ALTERED -> CONFLICT_TEXT_ALTERED;
-            default -> null;
-        };
+        switch (type) {
+            case UPDATED: return CONFLICT_TEXT_UPDATED;
+            case DELETED: return CONFLICT_TEXT_DELETED;
+            case ALTERED: return CONFLICT_TEXT_ALTERED;
+            default: return null;
+        }
     }
 }

@@ -75,7 +75,7 @@ public class StructureController extends BaseController {
     public RestPage<ReadAttribute> getPage(AttributeCriteria criteria) {
 
         Integer versionId = criteria.getVersionId();
-        RefBookVersion version = versionService.getById(versionId);
+        final RefBookVersion version = versionService.getById(versionId);
         if (version.hasEmptyStructure()) {
             return new RestPage<>(emptyList(), Pageable.unpaged(), 0);
         }
@@ -84,8 +84,9 @@ public class StructureController extends BaseController {
             version.setOptLockValue(criteria.getOptLockValue());
         }
 
-        List<Structure.Attribute> attributes = version.getStructure().getAttributes();
-        List<AttributeValidation> validations = draftService.getAttributeValidations(versionId, criteria.getCode());
+        final List<Structure.Attribute> attributes = version.getStructure().getAttributes();
+        final List<AttributeValidation> validations = draftService
+                .getAttributeValidations(versionId, criteria.getCode());
 
         List<ReadAttribute> list;
         if (!isEmpty(attributes)) {
@@ -102,9 +103,9 @@ public class StructureController extends BaseController {
     // used in: attributeDefault.query.xml
     public ReadAttribute getDefault(AttributeCriteria criteria) {
 
-        Integer versionId = criteria.getVersionId();
+        final Integer versionId = criteria.getVersionId();
 
-        ReadAttribute readAttribute = new ReadAttribute();
+        final ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setVersionId(versionId);
         readAttribute.setOptLockValue(criteria.getOptLockValue());
         readAttribute.setCode(criteria.getCode());
@@ -126,8 +127,8 @@ public class StructureController extends BaseController {
     /** Проверка на соответствие атрибута критерию поиска. */
     private boolean isCriteriaAttribute(Structure.Attribute attribute, AttributeCriteria criteria) {
 
-        String code = criteria.getCode();
-        String name = criteria.getName();
+        final String code = criteria.getCode();
+        final String name = criteria.getName();
         return (StringUtils.isEmpty(code) || code.equals(attribute.getCode())) &&
                 (StringUtils.isEmpty(name) || containsIgnoreCase(attribute.getName(), name));
     }
@@ -136,10 +137,10 @@ public class StructureController extends BaseController {
     private ReadAttribute toReadAttribute(Structure.Attribute attribute, RefBookVersion version,
                                           List<AttributeValidation> validations) {
 
-        Structure.Reference reference = attribute.isReferenceType()
+        final Structure.Reference reference = attribute.isReferenceType()
                 ? version.getStructure().getReference(attribute.getCode())
                 : null;
-        ReadAttribute readAttribute = toReadAttribute(attribute, reference);
+        final ReadAttribute readAttribute = toReadAttribute(attribute, reference);
         enrichAttribute(readAttribute, getValidations(validations, attribute.getCode()));
 
         readAttribute.setVersionId(version.getId());
@@ -168,14 +169,14 @@ public class StructureController extends BaseController {
 
         for (AttributeValidation validation : validations) {
             switch (validation.getType()) {
-                case REQUIRED -> attribute.setRequired(true);
-                case UNIQUE -> attribute.setUnique(true);
-                case PLAIN_SIZE -> enrichPlainSize(attribute, (PlainSizeAttributeValidation) validation);
-                case FLOAT_SIZE -> enrichFloatSize(attribute, (FloatSizeAttributeValidation) validation);
-                case INT_RANGE -> enrichIntRange(attribute, (IntRangeAttributeValidation) validation);
-                case FLOAT_RANGE -> enrichFloatRange(attribute, (FloatRangeAttributeValidation) validation);
-                case DATE_RANGE -> enrichDateRange(attribute, (DateRangeAttributeValidation) validation);
-                case REG_EXP -> attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp());
+                case REQUIRED: attribute.setRequired(true); break;
+                case UNIQUE: attribute.setUnique(true); break;
+                case PLAIN_SIZE: enrichPlainSize(attribute, (PlainSizeAttributeValidation) validation); break;
+                case FLOAT_SIZE: enrichFloatSize(attribute, (FloatSizeAttributeValidation) validation); break;
+                case INT_RANGE: enrichIntRange(attribute, (IntRangeAttributeValidation) validation); break;
+                case FLOAT_RANGE: enrichFloatRange(attribute, (FloatRangeAttributeValidation) validation); break;
+                case DATE_RANGE: enrichDateRange(attribute, (DateRangeAttributeValidation) validation); break;
+                case REG_EXP: attribute.setRegExp(((RegExpAttributeValidation) validation).getRegExp()); break;
             }
         }
     }
@@ -214,16 +215,16 @@ public class StructureController extends BaseController {
 
         if (reference == null) return;
 
-        Integer referenceRefBookId = refBookService.getId(reference.getReferenceCode());
+        final Integer referenceRefBookId = refBookService.getId(reference.getReferenceCode());
         attribute.setReferenceRefBookId(referenceRefBookId);
 
         int displayType = DISPLAY_TYPE_ATTRIBUTE;
-        String displayExpression = reference.getDisplayExpression();
+        final String displayExpression = reference.getDisplayExpression();
         if (!StringUtils.isEmpty(displayExpression)) {
             attribute.setDisplayExpression(displayExpression);
 
             displayType = DISPLAY_TYPE_EXPRESSION;
-            String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
+            final String attributeCode = StructureUtils.displayExpressionToPlaceholder(displayExpression);
             if (attributeCode != null) {
                 displayType = DISPLAY_TYPE_ATTRIBUTE;
                 attribute.setDisplayAttribute(attributeCode);
@@ -235,15 +236,15 @@ public class StructureController extends BaseController {
 
     private String attributeCodeToName(String refBookCode, String attributeCode) {
 
-        RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
-        Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
+        final RefBookVersion version = versionService.getLastPublishedVersion(refBookCode);
+        final Structure.Attribute attribute = version.getStructure().getAttribute(attributeCode);
         return (attribute != null) ? attribute.getName() : null;
     }
 
     /** Заполнение атрибута (+ ссылки) для отображения по информации о справочнике. */
     private void enrichByRefBook(Integer versionId, ReadAttribute readAttribute) {
 
-        RefBook refBook = refBookService.getByVersionId(versionId);
+        final RefBook refBook = refBookService.getByVersionId(versionId);
         readAttribute.setHasReferrer(refBook.getHasReferrer());
 
         if (readAttribute.isReferenceType()) {
@@ -253,20 +254,20 @@ public class StructureController extends BaseController {
 
     private Boolean getHasStructureConflict(Integer versionId, String fieldCode) {
 
-        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
+        final RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setReferrerVersionId(versionId);
         conflictCriteria.setRefFieldCodes(List.of(fieldCode));
         conflictCriteria.setConflictTypes(ConflictUtils.getStructureConflictTypes());
         conflictCriteria.setIsLastPublishedVersion(true);
         conflictCriteria.setPageSize(1);
 
-        Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
+        final Page<RefBookConflict> conflicts = conflictService.search(conflictCriteria);
         return conflicts != null && !isEmpty(conflicts.getContent());
     }
 
     public void createAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        CreateAttributeRequest request = getCreateAttributeRequest(optLockValue, formAttribute);
+        final CreateAttributeRequest request = getCreateAttributeRequest(optLockValue, formAttribute);
         request.setValidations(createValidations(formAttribute));
 
         draftService.createAttribute(versionId, request);
@@ -274,7 +275,7 @@ public class StructureController extends BaseController {
 
     public void updateAttribute(Integer versionId, Integer optLockValue, FormAttribute formAttribute) {
 
-        UpdateAttributeRequest request = getUpdateAttributeRequest(optLockValue, formAttribute);
+        final UpdateAttributeRequest request = getUpdateAttributeRequest(optLockValue, formAttribute);
         request.setValidations(createValidations(formAttribute));
 
         draftService.updateAttribute(versionId, request);
@@ -282,7 +283,7 @@ public class StructureController extends BaseController {
 
     public void deleteAttribute(Integer versionId, Integer optLockValue, String attributeCode) {
 
-        DeleteAttributeRequest request = new DeleteAttributeRequest(optLockValue, attributeCode);
+        final DeleteAttributeRequest request = new DeleteAttributeRequest(optLockValue, attributeCode);
 
         draftService.deleteAttribute(versionId, request);
     }
@@ -290,7 +291,7 @@ public class StructureController extends BaseController {
     /** Заполнение валидаций атрибута из атрибута формы. */
     private List<AttributeValidation> createValidations(FormAttribute formAttribute) {
 
-        List<AttributeValidation> validations = new ArrayList<>(8);
+        final List<AttributeValidation> validations = new ArrayList<>(8);
 
         if (Boolean.TRUE.equals(formAttribute.getRequired())) {
             validations.add(new RequiredAttributeValidation());
@@ -327,7 +328,7 @@ public class StructureController extends BaseController {
     private ReadAttribute toReadAttribute(Structure.Attribute attribute,
                                           Structure.Reference reference) {
 
-        ReadAttribute readAttribute = new ReadAttribute();
+        final ReadAttribute readAttribute = new ReadAttribute();
         readAttribute.setCode(attribute.getCode());
         readAttribute.setName(attribute.getName());
         readAttribute.setType(attribute.getType());
@@ -380,7 +381,7 @@ public class StructureController extends BaseController {
     private UpdateAttributeRequest getUpdateAttributeRequest(Integer optLockValue,
                                                              FormAttribute formAttribute) {
 
-        UpdateAttributeRequest request = new UpdateAttributeRequest();
+        final UpdateAttributeRequest request = new UpdateAttributeRequest();
         request.setLastActionDate(TimeUtils.nowZoned());
 
         request.setOptLockValue(optLockValue);

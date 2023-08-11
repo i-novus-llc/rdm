@@ -177,11 +177,11 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        return switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX" -> createFromXlsx(refBookId, fileModel);
-            case "XML" -> createFromXml(refBookId, fileModel);
-            default -> throw new FileExtensionException();
-        };
+        switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX": return createFromXlsx(refBookId, fileModel);
+            case "XML": return createFromXml(refBookId, fileModel);
+            default: throw new FileExtensionException();
+        }
     }
 
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel) {

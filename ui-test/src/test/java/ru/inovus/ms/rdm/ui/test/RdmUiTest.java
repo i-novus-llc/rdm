@@ -407,13 +407,13 @@ public class RdmUiTest {
 
         row.forEach((key, value) -> {
             switch (key.getType()) {
-                case STRING -> fillInputControl(form.stringInput(key.getName()), value.toString());
-                case INTEGER -> fillInputControl(form.integerInput(key.getName()), value.toString());
-                case DOUBLE -> fillInputControl(form.doubleInput(key.getName()), value.toString());
-                case DATE -> fillInputControl(form.dateInput(key.getName()), (value.toString()));
-                case BOOLEAN -> fillCheckBox(form.booleanInput(key.getName()), true);
-                case REFERENCE -> fillReference(form.referenceInput(key.getName()), value);
-                default -> throw new IllegalArgumentException(key.getType() + " invalid field type");
+                case STRING: fillInputControl(form.stringInput(key.getName()), value.toString()); break;
+                case INTEGER: fillInputControl(form.integerInput(key.getName()), value.toString()); break;
+                case DOUBLE: fillInputControl(form.doubleInput(key.getName()), value.toString()); break;
+                case DATE: fillInputControl(form.dateInput(key.getName()), (value.toString())); break;
+                case BOOLEAN: fillCheckBox(form.booleanInput(key.getName()), true); break;
+                case REFERENCE: fillReference(form.referenceInput(key.getName()), value); break;
+                default: throw new IllegalArgumentException(key.getType() + " invalid field type");
             }
         });
 
@@ -566,32 +566,32 @@ public class RdmUiTest {
             Map<RefBookField, Object> row = new LinkedHashMap<>(fieldTypes.size());
             for (FieldType fieldType : fieldTypes) {
                 switch (fieldType) {
-                    case STRING -> row.put(
+                    case STRING: row.put(
                             new RefBookField("name", ATTR_NAME_NAME, fieldType, false),
                             RandomStringUtils.randomAlphabetic(5)
-                    );
-                    case INTEGER -> row.put(
+                    ); break;
+                    case INTEGER: row.put(
                             new RefBookField("id", ATTR_ID_NAME, fieldType, true),
                             String.valueOf(refBookDataIdSeq.getAndIncrement())
-                    );
-                    case DOUBLE -> row.put(
+                    ); break;
+                    case DOUBLE: row.put(
                             new RefBookField("some_double", "Некоторое дробное поле", fieldType, false),
                             String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
-                    );
-                    case DATE -> row.put(
+                    ); break;
+                    case DATE: row.put(
                             new RefBookField("some_date", "Некоторая дата", fieldType, false),
                             LocalDate.now().format(EDIT_FIELD_DATE_FORMATTER)
-                    );
-                    case BOOLEAN -> row.put(
+                    ); break;
+                    case BOOLEAN: row.put(
                             new RefBookField("some_boolean", "Некоторое логическое поле", fieldType,
                                     false), RandomUtils.nextBoolean()
-                    );
-                    case REFERENCE -> row.put(
+                    ); break;
+                    case REFERENCE: row.put(
                             new RefBookField("some_reference", ATTR_REFERENCE_NAME, fieldType, false,
                                     referredBook, new AbstractMap.SimpleEntry<>(1, ATTR_NAME_NAME)),
                             referredBook != null && referredBook.getRows().size() > i ? i : null
-                    );
-                    default -> throw new IllegalArgumentException(fieldType + " invalid field type");
+                    ); break;
+                    default: throw new IllegalArgumentException(fieldType + " invalid field type");
                 }
             }
             result.add(row);

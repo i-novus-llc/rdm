@@ -21,9 +21,15 @@ public class UiRefBookCriteria extends RefBookCriteria {
         setHasPublished(false);
 
         switch (status) {
-            case ARCHIVED -> setIsArchived(true);
-            case HAS_DRAFT -> setHasDraft(true);
-            case PUBLISHED -> setHasPublished(true);
+            case ARCHIVED:
+                setIsArchived(true);
+                break;
+            case HAS_DRAFT:
+                setHasDraft(true);
+                break;
+            case PUBLISHED:
+                setHasPublished(true);
+                break;
         }
     }
 }

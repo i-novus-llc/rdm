@@ -99,19 +99,18 @@ public class DiffFieldValueDeserializer extends StdDeserializer<DiffFieldValue> 
         if (id == null)
             throw new RdmException(String.format("Absent field identifier for field: %s", field));
 
-        return switch (id) {
-            case "BooleanField" -> Boolean.valueOf(value);
-            case "DateField" -> LocalDate.parse(value, DATE_PATTERN_ISO_FORMATTER);
-            case "FloatField" -> new BigDecimal(value);
-            case "IntegerField" -> new BigInteger(value);
-            case "StringField",
-                    "IntegerStringField" -> value;
+        switch (id) {
+            case "BooleanField": return Boolean.valueOf(value);
+            case "DateField": return LocalDate.parse(value, DATE_PATTERN_ISO_FORMATTER);
+            case "FloatField": return new BigDecimal(value);
+            case "IntegerField": return new BigInteger(value);
+            case "StringField":
+            case "IntegerStringField": return value;
 
             // NB: Строковые значения в составных полях!
-            case "ReferenceField",
-                    "TreeField" -> value;
-            default ->
-                    throw new RdmException(String.format("Unknown field identifier for field: %s", field));
-        };
+            case "ReferenceField":
+            case "TreeField": return value;
+            default: throw new RdmException(String.format("Unknown field identifier for field: %s", field));
+        }
     }
 }
