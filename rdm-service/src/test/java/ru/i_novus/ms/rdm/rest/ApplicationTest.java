@@ -3046,7 +3046,7 @@ public class ApplicationTest {
         return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
-            put("date", date != null ? parseLocalDate(date) : null);
+            put("date", parseLocalDate(date));
             put("boolean", bool);
             put("float", real);
         }});
