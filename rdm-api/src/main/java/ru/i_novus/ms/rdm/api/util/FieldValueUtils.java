@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.api.util;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
+import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
@@ -157,13 +158,13 @@ public final class FieldValueUtils {
      */
     public static Serializable castReferenceValue(String value, FieldType toFieldType) {
 
-        return switch (toFieldType) {
-            case BOOLEAN -> Boolean.valueOf(value);
-            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
-            case FLOAT -> Float.parseFloat(value);
-            case INTEGER -> new BigInteger(value);
-            default -> value;
-        };
+        switch (toFieldType) {
+            case BOOLEAN: return Boolean.valueOf(value);
+            case DATE: return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
+            case FLOAT: return Float.parseFloat(value);
+            case INTEGER: return new BigInteger(value);
+            default: return value;
+        }
     }
 
     /**
@@ -201,15 +202,16 @@ public final class FieldValueUtils {
     /** Преобразование значения в значение поля в соответствии с указанным типом поля. */
     public static FieldValue toFieldValue(Serializable value, String fieldCode, FieldType fieldType) {
 
-        return switch (fieldType) {
-            case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
-            case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
-            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
-            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
-            case STRING -> new StringFieldValue(fieldCode, (String) value);
-            case TREE -> new TreeFieldValue(fieldCode, (String) value);
-        };
+        switch (fieldType) {
+            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
+            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case TREE: return new TreeFieldValue(fieldCode, (String) value);
+            default: throw new RdmException(String.format("Unknown '%s' type: %s", fieldCode, fieldType));
+        }
     }
 
     /**

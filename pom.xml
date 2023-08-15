@@ -15,14 +15,14 @@
 
     <properties>
         <maven.compiler.version>3.8.1</maven.compiler.version>
-        <maven.compiler.source>14</maven.compiler.source>
-        <maven.compiler.target>14</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
 
         <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <n2o.version>7.23.72</n2o.version>
+        <n2o.version>7.23.79</n2o.version>
         <vds.version>3.22</vds.version>
-        <l10n.vds.version>3.26</l10n.vds.version>
+        <l10n.vds.version>3.27</l10n.vds.version>
 
         <jackson-databind.version>2.12.7.1</jackson-databind.version>
         <jackson-datatype.version>2.12.7</jackson-datatype.version>
@@ -34,7 +34,7 @@
         <lombok.version>1.18.4</lombok.version>
         <jaxws.version>2.3.2</jaxws.version>
         <javax.activation.version>1.1.1</javax.activation.version>
-        <security.admin.version>6.1.1</security.admin.version>
+        <security.admin.version>6.1.6</security.admin.version>
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <audit.version>2.4.25</audit.version>
     </properties>

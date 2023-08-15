@@ -311,47 +311,59 @@ public class StructureControllerTest extends TestCase {
     private void assertValidationEquals(AttributeValidation expected, AttributeValidation actual) {
 
         switch (expected.getType()) {
-            case REQUIRED -> assertEquals(REQUIRED, actual.getType());
-            case UNIQUE -> assertEquals(UNIQUE, actual.getType());
-            case PLAIN_SIZE -> {
+            case REQUIRED: {
+                assertEquals(REQUIRED, actual.getType());
+                break;
+            }
+            case UNIQUE: {
+                assertEquals(UNIQUE, actual.getType());
+                break;
+            }
+            case PLAIN_SIZE: {
                 assertEquals(PLAIN_SIZE, actual.getType());
                 assertEquals(((PlainSizeAttributeValidation) expected).getSize(),
                         ((PlainSizeAttributeValidation) expected).getSize());
+                break;
             }
-            case FLOAT_SIZE -> {
+            case FLOAT_SIZE: {
                 assertEquals(FLOAT_SIZE, actual.getType());
                 assertEquals(((FloatSizeAttributeValidation) expected).getIntPartSize(),
                         ((FloatSizeAttributeValidation) expected).getIntPartSize());
                 assertEquals(((FloatSizeAttributeValidation) expected).getFracPartSize(),
                         ((FloatSizeAttributeValidation) expected).getFracPartSize());
+                break;
             }
-            case INT_RANGE -> {
+            case INT_RANGE: {
                 assertEquals(INT_RANGE, actual.getType());
                 assertEquals(((IntRangeAttributeValidation) expected).getMin(),
                         ((IntRangeAttributeValidation) expected).getMin());
                 assertEquals(((IntRangeAttributeValidation) expected).getMax(),
                         ((IntRangeAttributeValidation) expected).getMax());
+                break;
             }
-            case FLOAT_RANGE -> {
+            case FLOAT_RANGE: {
                 assertEquals(FLOAT_RANGE, actual.getType());
                 assertEquals(((FloatRangeAttributeValidation) expected).getMin(),
                         ((FloatRangeAttributeValidation) expected).getMin());
                 assertEquals(((FloatRangeAttributeValidation) expected).getMax(),
                         ((FloatRangeAttributeValidation) expected).getMax());
+                break;
             }
-            case DATE_RANGE -> {
+            case DATE_RANGE: {
                 assertEquals(DATE_RANGE, actual.getType());
                 assertEquals(((DateRangeAttributeValidation) expected).getMin(),
                         ((DateRangeAttributeValidation) expected).getMin());
                 assertEquals(((DateRangeAttributeValidation) expected).getMax(),
                         ((DateRangeAttributeValidation) expected).getMax());
+                break;
             }
-            case REG_EXP -> {
+            case REG_EXP: {
                 assertEquals(REG_EXP, actual.getType());
                 assertEquals(((RegExpAttributeValidation) expected).getRegExp(),
                         ((RegExpAttributeValidation) expected).getRegExp());
+                break;
             }
-            default -> fail();
+            default: fail();
         }
     }
 

@@ -182,15 +182,17 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
 
     private RowValue createUpdatedRowValue(Integer id) {
 
-        return switch (id) {
-            case 1 -> createRowValue(id.longValue(), id);
-            case 2, 3 -> createRowValue(id.longValue(), BigInteger.valueOf(id),
-                    NAME_FIELD_VALUE_PREFIX + id + NAME_FIELD_RESTORED_VALUE_SUFFIX, TEXT_FIELD_VALUE_PREFIX + id);
-            case 4, 5 -> createRowValue(id.longValue(), BigInteger.valueOf(id),
-                    NAME_FIELD_VALUE_PREFIX + id + NAME_FIELD_CHANGED_VALUE_SUFFIX, TEXT_FIELD_VALUE_PREFIX + id);
-            case 6 -> createRowValue(id.longValue() + 1, BigInteger.valueOf(id),
-                                NAME_FIELD_CHANGED_VALUE_SUFFIX + id, TEXT_FIELD_VALUE_PREFIX + id);
-            default -> null;
-        };
+        switch (id) {
+            case 1: return createRowValue(id.longValue(), id);
+            case 2:
+            case 3: return createRowValue(id.longValue(), BigInteger.valueOf(id),
+                        NAME_FIELD_VALUE_PREFIX + id + NAME_FIELD_RESTORED_VALUE_SUFFIX, TEXT_FIELD_VALUE_PREFIX + id);
+            case 4:
+            case 5: return createRowValue(id.longValue(), BigInteger.valueOf(id),
+                        NAME_FIELD_VALUE_PREFIX + id + NAME_FIELD_CHANGED_VALUE_SUFFIX, TEXT_FIELD_VALUE_PREFIX + id);
+            case 6: return createRowValue(id.longValue() + 1, BigInteger.valueOf(id),
+                        NAME_FIELD_CHANGED_VALUE_SUFFIX + id, TEXT_FIELD_VALUE_PREFIX + id);
+            default: return null;
+        }
     }
 }

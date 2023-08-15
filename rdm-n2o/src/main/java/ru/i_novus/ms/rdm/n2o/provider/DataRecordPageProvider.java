@@ -19,7 +19,6 @@ import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -58,7 +57,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         if (context.contains("{") || context.contains("}"))
             return singletonList(new N2oSimplePage());
 
-        DataRecordRequest request = toRequest(context);
+        final DataRecordRequest request = toRequest(context);
         return singletonList(createPage(context, request));
     }
 
@@ -69,9 +68,8 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oSimplePage createPage(String context, DataRecordRequest request) {
 
-        N2oSimplePage page = new N2oSimplePage();
+        final N2oSimplePage page = new N2oSimplePage();
         page.setId(PAGE_PROVIDER_ID + "?" + context);
-
         page.setWidget(createForm(context, request));
 
         return page;
@@ -79,7 +77,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oForm createForm(String context, DataRecordRequest request) {
 
-        N2oForm form = new N2oForm();
+        final N2oForm form = new N2oForm();
         form.setDatasource(createDatasource(context));
         form.setItems(createPageFields(request));
 
@@ -88,10 +86,9 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oStandardDatasource createDatasource(String context) {
 
-        N2oStandardDatasource datasource = new N2oStandardDatasource();
+        final N2oStandardDatasource datasource = new N2oStandardDatasource();
         datasource.setQueryId(DataRecordQueryProvider.QUERY_PROVIDER_ID + "?" + context);
         datasource.setObjectId(DataRecordObjectProvider.OBJECT_PROVIDER_ID + "?" + context);
-
         datasource.setFilters(createPreFilters());
 
         return datasource;
@@ -111,7 +108,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
     @SuppressWarnings("SameParameterValue")
     private N2oPreFilter createParamFilter(String fieldId, String param, FilterType type) {
 
-        N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
+        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
         preFilter.setParam(param);
 
         return preFilter;
@@ -124,8 +121,9 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         }
 
         return Stream.concat(
-                createRegularFields(request).stream(),
-                createDynamicFields(request).stream())
+                        createRegularFields(request).stream(),
+                        createDynamicFields(request).stream()
+                )
                 .toArray(SourceComponent[]::new);
     }
 
@@ -133,31 +131,18 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
         return getSatisfiedResolvers(request.getDataAction())
                 .map(resolver -> resolver.createRegularFields(request))
-                .flatMap(Collection::stream).collect(toList());
+                .flatMap(Collection::stream)
+                .collect(toList());
     }
 
     private List<SourceComponent> createDynamicFields(DataRecordRequest request) {
 
-        Integer versionId = request.getVersionId();
-        Structure structure = request.getStructure();
+        final Integer versionId = request.getVersionId();
+        final Structure structure = request.getStructure();
 
-        List<SourceComponent> list = new ArrayList<>();
-        for (Structure.Attribute attribute : structure.getAttributes()) {
-
-            N2oStandardField n2oField;
-            if (attribute.isReferenceType()) {
-                n2oField = createReferenceField(versionId, attribute);
-
-            } else {
-                n2oField = createField(attribute);
-            }
-
-            if (attribute.hasIsPrimary()) {
-                n2oField.setRequired(Boolean.TRUE.toString());
-            }
-
-            list.add(n2oField);
-        }
+        final List<SourceComponent> list = structure.getAttributes().stream()
+                .map(attribute -> createDynamicField(versionId, attribute))
+                .collect(toList());
 
         getSatisfiedResolvers(request.getDataAction()).forEach(resolver ->
                 resolver.processDynamicFields(request, list)
@@ -166,10 +151,26 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         return list;
     }
 
+    private N2oStandardField createDynamicField(Integer versionId, Structure.Attribute attribute) {
+
+        final N2oStandardField n2oField;
+        if (attribute.isReferenceType()) {
+            n2oField = createReferenceField(versionId, attribute);
+
+        } else {
+            n2oField = createField(attribute);
+        }
+
+        if (attribute.hasIsPrimary()) {
+            n2oField.setRequired(Boolean.TRUE.toString());
+        }
+
+        return n2oField;
+    }
+
     private N2oStandardField createField(Structure.Attribute attribute) {
 
-        N2oStandardField n2oField = DataRecordPageUtils.createField(attribute.getType());
-
+        final N2oStandardField n2oField = DataRecordPageUtils.createField(attribute.getType());
         n2oField.setId(addPrefix(attribute.getCode()));
         n2oField.setLabel(attribute.getName());
 
@@ -180,7 +181,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
-        N2oInputSelect referenceField = new N2oInputSelect();
+        final N2oInputSelect referenceField = new N2oInputSelect();
         referenceField.setId(codeWithPrefix);
         referenceField.setLabel(attribute.getName());
 
@@ -190,12 +191,12 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceField.setLabelFieldId(REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
-        N2oPreFilter versionFilter = new N2oPreFilter();
+        final N2oPreFilter versionFilter = new N2oPreFilter();
         versionFilter.setType(FilterType.eq);
         versionFilter.setFieldId("versionId");
         versionFilter.setValueAttr(versionId.toString());
 
-        N2oPreFilter referenceFilter = new N2oPreFilter();
+        final N2oPreFilter referenceFilter = new N2oPreFilter();
         referenceFilter.setType(FilterType.eq);
         referenceFilter.setFieldId("reference");
         referenceFilter.setValueAttr(attribute.getCode());

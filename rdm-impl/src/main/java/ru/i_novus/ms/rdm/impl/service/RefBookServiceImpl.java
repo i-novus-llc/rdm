@@ -205,11 +205,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        return switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX" -> createByXlsx(fileModel);
-            case "XML" -> createByXml(fileModel);
-            default -> throw new FileExtensionException();
-        };
+        switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new FileExtensionException();
+        }
     }
 
     @SuppressWarnings("unused")

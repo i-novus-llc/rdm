@@ -3046,7 +3046,7 @@ public class ApplicationTest {
         return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
-            put("date", date != null ? parseLocalDate(date) : null);
+            put("date", parseLocalDate(date));
             put("boolean", bool);
             put("float", real);
         }});
@@ -3092,15 +3092,15 @@ public class ApplicationTest {
 
     private String getFieldTypeName(FieldType type) {
 
-        return switch (type) {
-            case STRING -> "Строчный";
-            case FLOAT -> "Дробный";
-            case REFERENCE -> "Ссылочный";
-            case INTEGER -> "Целочисленный";
-            case BOOLEAN -> "Логический";
-            case DATE -> "Дата";
-            default -> null;
-        };
+        switch (type) {
+            case STRING: return "Строчный";
+            case FLOAT: return "Дробный";
+            case REFERENCE: return "Ссылочный";
+            case INTEGER: return "Целочисленный";
+            case BOOLEAN: return "Логический";
+            case DATE: return "Дата";
+            default: return null;
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
