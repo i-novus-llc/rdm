@@ -28,8 +28,9 @@ public final class TimeUtils {
     public static final String DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
     public static final String DATE_TIME_PATTERN_ISO_WITH_MICROSEC_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9]).([0-9][0-9][0-9][0-9][0-9][0-9])$";
     public static final String DATE_TIME_PATTERN_ISO_WITH_MILLISEC_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9]).([0-9][0-9][0-9])$";
-    public static final String DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9]).([0-9][0-9])$";
+    public static final String DATE_TIME_PATTERN_ISO_WITH_CENTISEC_DELIMITER_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])T(0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9]).([0-9][0-9])$";
     public static final String DATE_TIME_PATTERN_EUROPEAN_REGEX = "^(0?[1-9]|[12][0-9]|3[01]).(0?[1-9]|1[012]).(\\d{4}) (0?[0-9]|[1][0-9]|2[0-3]):(0?[0-9]|[1-5][0-9]):(0?[0-9]|[1-5][0-9])$";
+
     public static final String DATE_PATTERN_ISO_REGEX = "^(\\d{4})-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])$";
     public static final String DATE_PATTERN_EUROPEAN_REGEX = "^(0?[1-9]|[12][0-9]|3[01]).(0?[1-9]|1[012]).(\\d{4})$";
 
@@ -37,8 +38,9 @@ public final class TimeUtils {
     public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_TIME_DELIMITER);
     public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_MICROSEC_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_MICROSEC_DELIMITER);
     public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_MILLISEC_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_MILLISEC_DELIMITER);
-    public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER);
+    public static final DateTimeFormatter DATE_TIME_PATTERN_ISO_WITH_CENTISEC_DELIMITER_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER);
     public static final DateTimeFormatter DATE_TIME_PATTERN_EUROPEAN_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN_EUROPEAN);
+
     public static final DateTimeFormatter DATE_PATTERN_ISO_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_ISO);
     public static final DateTimeFormatter DATE_PATTERN_ERA_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_ERA);
     public static final DateTimeFormatter DATE_PATTERN_EUROPEAN_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN_EUROPEAN);
@@ -51,6 +53,7 @@ public final class TimeUtils {
     private static final Logger logger = LoggerFactory.getLogger(TimeUtils.class);
 
     private TimeUtils() {
+        // Nothing to do.
     }
 
     public static OffsetDateTime parseOffsetDateTime(String str) {
@@ -69,8 +72,8 @@ public final class TimeUtils {
             if (str.matches(DATE_TIME_PATTERN_ISO_WITH_MILLISEC_DELIMITER_REGEX)) {
                 return LocalDateTime.parse(str, DATE_TIME_PATTERN_ISO_WITH_MILLISEC_DELIMITER_FORMATTER).atOffset(ZoneOffset.UTC);
             }
-            if (str.matches(DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER_REGEX)) {
-                return LocalDateTime.parse(str, DATE_TIME_PATTERN_ISO_WITH_CENTSEC_DELIMITER_FORMATTER).atOffset(ZoneOffset.UTC);
+            if (str.matches(DATE_TIME_PATTERN_ISO_WITH_CENTISEC_DELIMITER_REGEX)) {
+                return LocalDateTime.parse(str, DATE_TIME_PATTERN_ISO_WITH_CENTISEC_DELIMITER_FORMATTER).atOffset(ZoneOffset.UTC);
             }
             if (str.matches(DATE_TIME_PATTERN_EUROPEAN_REGEX)) {
                 return LocalDateTime.parse(str, DATE_TIME_PATTERN_EUROPEAN_FORMATTER).atOffset(ZoneOffset.UTC);
@@ -130,20 +133,25 @@ public final class TimeUtils {
     }
 
     public static LocalDate parseLocalDate(Object value) {
+
+        if (value == null)
+            return null;
+
         if (value instanceof Date)
             return ((Date) value).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
         if (value instanceof LocalDate)
             return (LocalDate) value;
+
         if (value instanceof LocalDateTime)
             return ((LocalDateTime) value).toLocalDate();
-        else {
-            return LocalDate.parse(
-                String.valueOf(value),
-                String.valueOf(value).contains(".")
-                    ? DATE_PATTERN_EUROPEAN_FORMATTER
-                    : DATE_PATTERN_ISO_FORMATTER
-            );
-        }
+
+        String result = String.valueOf(value);
+        return LocalDate.parse(result, toDateFormatter(result));
+    }
+
+    private static DateTimeFormatter toDateFormatter(String value) {
+        return value.contains(".") ? DATE_PATTERN_EUROPEAN_FORMATTER : DATE_PATTERN_ISO_FORMATTER;
     }
 
     public static String format(LocalDate localDate) {
