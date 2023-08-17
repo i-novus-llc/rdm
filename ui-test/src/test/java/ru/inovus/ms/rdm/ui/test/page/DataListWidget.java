@@ -11,21 +11,21 @@ import static net.n2oapp.framework.autotest.N2oSelenide.page;
 
 public class DataListWidget extends N2oTableWidget {
 
-    public DataFormModal addRowForm() {
+    public DataRowForm addRowForm() {
         toolbar()
                 .topRight()
                 .button("Добавить")
                 .click();
-        return N2oSelenide.modal(DataFormModal.class);
+        return N2oSelenide.modal(DataRowForm.class);
     }
 
-    public DataFormModal editRowForm(int rowNum) {
+    public DataRowForm editRowForm(int rowNum) {
         columns().rows().row(rowNum).click();
         toolbar()
                 .topRight()
                 .button("Изменить")
                 .click();
-        return N2oSelenide.modal(DataFormModal.class);
+        return N2oSelenide.modal(DataRowForm.class);
     }
 
     public void deleteRowForm(int rowNum) {

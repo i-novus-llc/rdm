@@ -19,13 +19,13 @@ public class RefBookListPage extends N2oSimplePage {
         n2oTableWidget.filters().shouldBeVisible();
     }
 
-    public RefBookCreateFormWidget openCreateFormPage() {
+    public CreateRefBookWidget openCreateFormPage() {
         N2oDropdownButton createRefBookButton = table().toolbar().topLeft()
                 .button("Создать справочник", N2oDropdownButton.class);
         createRefBookButton.click();
         createRefBookButton.menuItem("Создать справочник").click();
 
-        RefBookCreateFormWidget createForm = widget(RefBookCreateFormWidget.class);
+        CreateRefBookWidget createForm = widget(CreateRefBookWidget.class);
         createForm.setOpenedFromPage(this);
         return createForm;
     }

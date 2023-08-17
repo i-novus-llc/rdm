@@ -1,6 +1,9 @@
 package ru.inovus.ms.rdm.ui.test.page;
 
-import com.codeborne.selenide.*;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.api.component.region.RegionItems;
@@ -25,11 +28,11 @@ public class RefBookEditPage extends N2oStandardPage {
         getTabsRegion().tab(Condition.text("Структура")).shouldExists();
     }
 
-    public StructureListWidget structure() {
+    public StructureWidget structure() {
 
         TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Структура"));
         tabItem.click();
-        return tabItem.content().widget(StructureListWidget.class);
+        return tabItem.content().widget(StructureWidget.class);
     }
 
     public DataListWidget data() {
@@ -39,11 +42,11 @@ public class RefBookEditPage extends N2oStandardPage {
         return tabItem.content().widget(DataListWidget.class);
     }
 
-    public DataWithConflictsListWidget dataWithConflicts() {
+    public DataWithConflictsWidget dataWithConflicts() {
 
         TabsRegion.TabItem tabItem = getTabsRegion().tab(Condition.text("Данные с конфликтами"));
         tabItem.click();
-        return tabContent(tabItem, 4).widget(DataWithConflictsListWidget.class);
+        return tabContent(tabItem, 4).widget(DataWithConflictsWidget.class);
     }
 
     /**
