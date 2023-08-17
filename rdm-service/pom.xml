@@ -19,7 +19,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-rest-spring-boot-starter</artifactId>
@@ -124,7 +123,6 @@
                 </dependency>
             </dependencies>
         </profile>
-
     </profiles>
 
 </project>
