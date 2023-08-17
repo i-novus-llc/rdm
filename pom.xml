@@ -267,6 +267,7 @@
 
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
+
                 <module>rdm-rest-spring-boot-autoconfigure</module>
                 <module>rdm-rest-spring-boot-starter</module>
                 <module>rdm-service</module>
@@ -294,6 +295,10 @@
                 <module>rdm-l10n-api</module>
                 <module>rdm-l10n-impl</module>
                 <module>rdm-rest</module>
+
+                <module>rdm-rest-spring-boot-autoconfigure</module>
+                <module>rdm-rest-spring-boot-starter</module>
+                <module>rdm-service</module>
 
                 <module>rdm-n2o-api</module>
                 <module>rdm-n2o-l10n</module>
