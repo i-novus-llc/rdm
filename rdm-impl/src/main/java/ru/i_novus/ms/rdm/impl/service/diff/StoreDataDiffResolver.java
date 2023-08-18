@@ -194,6 +194,6 @@ public class StoreDataDiffResolver implements PublishResolver {
     private String toDataDiffPrimary(DiffFieldValue diffFieldValue) {
 
         Object value = diffFieldValue.getNewValue() != null ? diffFieldValue.getNewValue() : diffFieldValue.getOldValue();
-        return DataDiffUtil.toPrimaryString(diffFieldValue.getField().getName(), value);
+        return DataDiffUtil.toNamedStringValue(diffFieldValue.getField().getName(), value);
     }
 }

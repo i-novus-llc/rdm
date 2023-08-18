@@ -45,6 +45,7 @@ public class StringUtilsTest {
         assertEquals("\"a\\\"c\"", toDoubleQuotes("a\"c"));
     }
 
+
     @Test
     public void testToUuid() {
 

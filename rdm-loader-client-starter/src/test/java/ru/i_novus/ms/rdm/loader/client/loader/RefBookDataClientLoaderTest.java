@@ -8,7 +8,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import ru.i_novus.ms.rdm.loader.client.utils.ReflectionUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,7 +40,7 @@ public class RefBookDataClientLoaderTest extends BaseTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        FieldSetter.setField(loader, RestClientLoader.class.getDeclaredField("endpointPattern"), "/loaders/{subject}/{target}");
+        ReflectionUtils.setField(loader, RestClientLoader.class.getDeclaredField("endpointPattern"), "/loaders/{subject}/{target}");
     }
 
     @Test

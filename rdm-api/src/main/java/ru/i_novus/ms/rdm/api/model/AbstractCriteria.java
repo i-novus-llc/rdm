@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -75,7 +76,7 @@ public class AbstractCriteria extends RestCriteria {
 
     @Override
     public String toString() {
-        return JsonUtil.toJsonString(this);
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 
     public static boolean isEmptyOrders(List<Sort.Order> orders, List<Sort.Order> defaultOrders) {
@@ -83,6 +84,7 @@ public class AbstractCriteria extends RestCriteria {
         if (isEmpty(orders) && isEmpty(defaultOrders))
             return true;
 
-        return orders.size() == defaultOrders.size() && defaultOrders.containsAll(orders);
+        return orders.size() == defaultOrders.size() &&
+                new HashSet<>(defaultOrders).containsAll(orders);
     }
 }

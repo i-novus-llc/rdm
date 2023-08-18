@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.rest.BaseTest;
+import ru.i_novus.ms.rdm.rest.utils.ReflectionUtils;
 
 import javax.activation.DataSource;
 import javax.ws.rs.core.MediaType;
@@ -72,7 +72,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        FieldSetter.setField(runner, RefBookDataServerLoaderRunner.class.getDeclaredField("loaderEnabled"), true);
+        ReflectionUtils.setField(runner, RefBookDataServerLoaderRunner.class.getDeclaredField("loaderEnabled"), true);
     }
 
     @Test

@@ -10,20 +10,20 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toSet;
 import static ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum.*;
 
 public class DiffRowValueCalculator {
 
     private static final Logger logger = LoggerFactory.getLogger(DiffRowValueCalculator.class);
 
-    private DiffRowValue firstDiff;
-    private DiffRowValue lastDiff;
-    private Set<String> commonFields;
-    private boolean isBackward;
+    private final DiffRowValue firstDiff;
+    private final DiffRowValue lastDiff;
+    private final Set<String> commonFields;
+    private final boolean isBackward;
 
     public DiffRowValueCalculator(DiffRowValue firstDiff,
                                   DiffRowValue lastDiff,
@@ -50,7 +50,7 @@ public class DiffRowValueCalculator {
                 .map(DiffFieldValue::getField)
                 .map(Field::getName)
                 .filter(fieldName -> !excludedFields.contains(fieldName))
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     public DiffRowValue calculate() {
@@ -69,6 +69,7 @@ public class DiffRowValueCalculator {
     }
 
     private boolean noChangesInCommonFields() {
+
         return commonFields.stream().allMatch(fieldName -> {
             Object oldValue = getOldValue(fieldName);
             Object newValue = getNewValue(fieldName);

@@ -9,7 +9,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
@@ -27,6 +26,7 @@ import ru.i_novus.ms.rdm.impl.entity.diff.VersionDataDiffEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.RefBookVersionDiffRepository;
 import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
+import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
@@ -87,7 +87,7 @@ public class StoreDataDiffResolverTest extends BaseTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        FieldSetter.setField(resolver, StoreDataDiffResolver.class.getDeclaredField("dataDiffMaxSize"), 100);
+        ReflectionUtils.setField(resolver, StoreDataDiffResolver.class.getDeclaredField("dataDiffMaxSize"), 100);
     }
 
     @Test

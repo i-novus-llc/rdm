@@ -41,7 +41,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getVdsObjectMapper;
+import static ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil.getMapper;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"java:S5778"})
@@ -283,11 +283,12 @@ public class VersionDataDiffServiceTest extends BaseTest {
 
     private VersionDataDiff toVersionDataDiff(VersionDataDiffResult diff) {
 
+        final ObjectMapper objectMapper = getMapper();
         return new VersionDataDiff(
                 diff.getPrimaryValues(),
-                JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getFirstDiffValues(), DiffRowValue.class),
+                JsonUtil.fromJsonString(objectMapper, diff.getFirstDiffValues(), DiffRowValue.class),
                 (diff.getLastDiffValues() != null)
-                        ? JsonUtil.fromJsonString(getVdsObjectMapper(), diff.getLastDiffValues(), DiffRowValue.class)
+                        ? JsonUtil.fromJsonString(objectMapper, diff.getLastDiffValues(), DiffRowValue.class)
                         : null
         );
     }

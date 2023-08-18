@@ -48,6 +48,7 @@ public class StringUtils {
     }
 
     /** Преобразование строки в UUID. */
+    // used in: asyncLog.query.xml
     public static UUID toUuid(String s) {
 
         if (!isEmpty(s))
