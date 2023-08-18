@@ -46,7 +46,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        DataRecordRequest request = toRequest(context);
+        final DataRecordRequest request = toRequest(context);
         return singletonList(createObject(request));
     }
 
@@ -57,15 +57,15 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
     private N2oObject createObject(DataRecordRequest request) {
 
-        N2oObject n2oObject = new N2oObject();
-        n2oObject.setOperations(createOperations(request));
+        final N2oObject object = new N2oObject();
+        object.setOperations(createOperations(request));
 
-        return n2oObject;
+        return object;
     }
 
     private N2oObject.Operation[] createOperations(DataRecordRequest request) {
 
-        List<N2oObject.Operation> operations = getSatisfiedResolvers(request.getDataAction())
+        final List<N2oObject.Operation> operations = getSatisfiedResolvers(request.getDataAction())
                 .map(resolver -> createOperation(resolver, request))
                 .collect(toList());
 
@@ -74,64 +74,74 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
     private N2oObject.Operation createOperation(DataRecordObjectResolver resolver, DataRecordRequest request) {
 
-        N2oObject.Operation operation = resolver.createOperation(request);
-        operation.setInFields(Stream.concat(
-                resolver.createRegularParams(request).stream(),
-                createDynamicParams(request).stream())
-                .toArray(AbstractParameter[]::new));
+        final N2oObject.Operation operation = resolver.createOperation(request);
+        operation.setInFields(createOperationParams(resolver, request));
 
         return operation;
     }
 
+    private AbstractParameter[] createOperationParams(DataRecordObjectResolver resolver, DataRecordRequest request) {
+
+        return Stream.concat(
+                        resolver.createRegularParams(request).stream(),
+                        createDynamicParams(request).stream()
+                )
+                .toArray(AbstractParameter[]::new);
+    }
+
     private List<AbstractParameter> createDynamicParams(DataRecordRequest request) {
 
-        Structure structure = request.getStructure();
+        final Structure structure = request.getStructure();
         if (structure.isEmpty())
             return emptyList();
 
-        return structure.getAttributes().stream().map(this::createParam).collect(toList());
+        return structure.getAttributes().stream().map(this::createDynamicParam).collect(toList());
     }
 
-    private AbstractParameter createParam(Structure.Attribute attribute) {
-
-        final String mappingArgumentFormat = "['row'].data['%s']";
+    private AbstractParameter createDynamicParam(Structure.Attribute attribute) {
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
+        final ObjectSimpleField parameter = createDynamicParam(codeWithPrefix, attribute);
 
-        ObjectSimpleField parameter = switch (attribute.getType()) {
-
-            case STRING, INTEGER, FLOAT, DATE, BOOLEAN ->
-                createParam(codeWithPrefix, attribute.getType());
-
-            case REFERENCE ->
-                createReferenceParam(codeWithPrefix);
-
-            default -> throw new IllegalArgumentException("attribute type not supported");
-        };
-
+        final String mappingArgumentFormat = "['row'].data['%s']";
         parameter.setMapping(String.format(mappingArgumentFormat, attribute.getCode()));
 
         return parameter;
     }
 
+    private ObjectSimpleField createDynamicParam(String codeWithPrefix, Structure.Attribute attribute) {
+
+        switch (attribute.getType()) {
+
+            case STRING: case INTEGER: case FLOAT: case DATE: case BOOLEAN:
+                return createSimpleParam(codeWithPrefix, attribute.getType());
+
+            case REFERENCE:
+                return createReferenceParam(codeWithPrefix);
+
+            default: throw new IllegalArgumentException("attribute type not supported");
+        }
+    }
+
     /** Заполнение полей примитивного параметра. */
     @SuppressWarnings("java:S1199")
-    private ObjectSimpleField createParam(String codeWithPrefix, FieldType type) {
+    private ObjectSimpleField createSimpleParam(String codeWithPrefix, FieldType type) {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
-
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(codeWithPrefix);
         parameter.setDomain(N2oDomain.fieldTypeToDomain(type));
 
         switch (type) {
 
-            case DATE ->
+            case DATE:
                 parameter.setNormalize("T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
+                break;
 
-            case BOOLEAN ->
+            case BOOLEAN:
                 parameter.setDefaultValue("false");
+                break;
 
-            default -> {
+            default: {
                 // Nothing to do.
             }
         }
@@ -142,8 +152,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
     /** Заполнение полей параметра-ссылки. */
     private ObjectSimpleField createReferenceParam(String codeWithPrefix) {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
-
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
         parameter.setDomain(N2oDomain.STRING);
 

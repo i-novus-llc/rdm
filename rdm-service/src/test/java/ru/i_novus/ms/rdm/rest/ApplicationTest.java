@@ -3091,21 +3091,15 @@ public class ApplicationTest {
     }
 
     private String getFieldTypeName(FieldType type) {
+
         switch (type) {
-            case STRING:
-                return "Строчный";
-            case FLOAT:
-                return "Дробный";
-            case REFERENCE:
-                return "Ссылочный";
-            case INTEGER:
-                return "Целочисленный";
-            case BOOLEAN:
-                return "Логический";
-            case DATE:
-                return "Дата";
-            default:
-                return null;
+            case STRING: return "Строчный";
+            case FLOAT: return "Дробный";
+            case REFERENCE: return "Ссылочный";
+            case INTEGER: return "Целочисленный";
+            case BOOLEAN: return "Логический";
+            case DATE: return "Дата";
+            default: return null;
         }
     }
 

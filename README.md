@@ -1,6 +1,6 @@
 # Требования
 
-- OpenJDK 14
+- OpenJDK 11
 - PostgreSQL 11
 - Artemis или ActiveMQ
 - N2O Security Admin 4
@@ -8,7 +8,7 @@
 
 # Стек технологий
 
-- Java 14
+- Java 11
 - JDBC
 - JPA 2
 - JAX-RS

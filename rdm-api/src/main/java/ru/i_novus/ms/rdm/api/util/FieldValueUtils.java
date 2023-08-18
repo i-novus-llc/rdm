@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.api.util;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
 import ru.i_novus.ms.rdm.api.model.field.ReferenceFilterValue;
@@ -10,7 +11,10 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 
@@ -153,13 +157,13 @@ public class FieldValueUtils {
      */
     public static Serializable castReferenceValue(String value, FieldType toFieldType) {
 
-        return switch (toFieldType) {
-            case INTEGER -> new BigInteger(value);
-            case FLOAT -> Float.parseFloat(value);
-            case DATE -> LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
-            case BOOLEAN -> Boolean.valueOf(value);
-            default -> value;
-        };
+        switch (toFieldType) {
+            case INTEGER: return new BigInteger(value);
+            case FLOAT: return Float.parseFloat(value);
+            case DATE: return LocalDate.parse(value, DATE_PATTERN_ERA_FORMATTER);
+            case BOOLEAN: return Boolean.valueOf(value);
+            default: return value;
+        }
     }
 
     /**
@@ -214,15 +218,16 @@ public class FieldValueUtils {
 
     public static FieldValue toFieldValueByType(Object value, String fieldCode, FieldType fieldType) {
 
-        return switch (fieldType) {
-            case STRING -> new StringFieldValue(fieldCode, (String) value);
-            case INTEGER -> new IntegerFieldValue(fieldCode, (BigInteger) value);
-            case REFERENCE -> new ReferenceFieldValue(fieldCode, (Reference) value);
-            case FLOAT -> new FloatFieldValue(fieldCode, (BigDecimal) value);
-            case BOOLEAN -> new BooleanFieldValue(fieldCode, (Boolean) value);
-            case DATE -> new DateFieldValue(fieldCode, (LocalDate) value);
-            case TREE -> new TreeFieldValue(fieldCode, (String) value);
-        };
+        switch (fieldType) {
+            case STRING: return new StringFieldValue(fieldCode, (String) value);
+            case INTEGER: return new IntegerFieldValue(fieldCode, (BigInteger) value);
+            case REFERENCE: return new ReferenceFieldValue(fieldCode, (Reference) value);
+            case FLOAT: return new FloatFieldValue(fieldCode, (BigDecimal) value);
+            case BOOLEAN: return new BooleanFieldValue(fieldCode, (Boolean) value);
+            case DATE: return new DateFieldValue(fieldCode, (LocalDate) value);
+            case TREE: return new TreeFieldValue(fieldCode, (String) value);
+            default: throw new RdmException(String.format("Unknown '%s' type: %s", fieldCode, fieldType));
+        }
     }
 
     /**

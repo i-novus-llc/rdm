@@ -30,13 +30,13 @@ public class RefBookDataUtils {
         if (value == null)
             return null;
 
-        return switch (attribute.getType()) {
-            case INTEGER -> castInteger(value);
-            case FLOAT -> castFloat(value);
-            case DATE -> castDate(value);
-            case BOOLEAN -> castBoolean(value);
-            default -> value;
-        };
+        switch (attribute.getType()) {
+            case INTEGER: return castInteger(value);
+            case FLOAT: return castFloat(value);
+            case DATE: return castDate(value);
+            case BOOLEAN: return castBoolean(value);
+            default: return value;
+        }
     }
 
     public static BigInteger castInteger(Serializable value) {
