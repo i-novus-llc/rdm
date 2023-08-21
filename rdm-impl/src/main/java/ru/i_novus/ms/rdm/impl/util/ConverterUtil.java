@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.util;
 
 import net.n2oapp.criteria.api.Criteria;
-import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.criteria.api.SortingDirection;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
@@ -126,7 +126,7 @@ public final class ConverterUtil {
     @SuppressWarnings("unchecked")
     private static FieldValue toFieldValue(Map<String, Object> data, Field field) {
 
-        return field.valueOf(data.get(field.getName()));
+        return field.valueOf((Serializable) data.get(field.getName()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -137,7 +137,7 @@ public final class ConverterUtil {
 
         List<Sorting> sortings = new ArrayList<>();
         for (Sort.Order order : sort) {
-            sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
+            sortings.add(new Sorting(order.getProperty(), SortingDirection.valueOf(order.getDirection().name())));
         }
         return sortings;
     }

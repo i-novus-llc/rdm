@@ -11,9 +11,11 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.diff.DiffRowValueMixin;
 import ru.i_novus.ms.rdm.api.model.field.FieldValueMixin;
 import ru.i_novus.ms.rdm.api.model.refdata.RowValueMixin;
+import ru.i_novus.ms.rdm.impl.model.field.VdsDiffFieldValueDeserializer;
 import ru.i_novus.ms.rdm.impl.model.field.VdsFieldMixin;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
+import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
@@ -31,7 +33,7 @@ public class VdsMapperConfigurer implements MapperConfigurer {
         mapper.addMixIn(RowValue.class, RowValueMixin.class);
         mapper.writerFor(new TypeReference<PageImpl<RowValue>>() {});
 
-        //module.addDeserializer(DiffFieldValue.class, new VdsDiffFieldValueDeserializer());
+        module.addDeserializer(DiffFieldValue.class, new VdsDiffFieldValueDeserializer());
         mapper.addMixIn(DiffRowValue.class, DiffRowValueMixin.class);
 
         mapper.registerModule(module);

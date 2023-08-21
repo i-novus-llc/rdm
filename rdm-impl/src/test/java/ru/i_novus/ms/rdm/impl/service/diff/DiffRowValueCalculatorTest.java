@@ -6,11 +6,14 @@ import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
-import ru.i_novus.platform.versioned_data_storage.pg_impl.model.BooleanField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
-import java.util.*;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -23,7 +26,7 @@ public class DiffRowValueCalculatorTest {
     private static final String CODE = "code";
     private static final String HEX = "hex";
 
-    private static final Integer PK_VALUE = 2;
+    private static final BigInteger PK_VALUE = BigInteger.valueOf(2L);
     private static final String PURPLE = "purple";
     private static final String VIOLET = "violet";
 
@@ -91,7 +94,7 @@ public class DiffRowValueCalculatorTest {
         insertedPurpleEE82EE = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, INSERTED),
-                        new DiffFieldValue<>(new IntegerField(CODE), null, PURPLE, INSERTED),
+                        new DiffFieldValue<>(new StringField(CODE), null, PURPLE, INSERTED),
                         new DiffFieldValue<>(new StringField(HEX), null, EE82EE, INSERTED)
                 ),
                 INSERTED);
@@ -106,7 +109,7 @@ public class DiffRowValueCalculatorTest {
         updatedPurpleAToVioletA = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
-                        new DiffFieldValue<>(new BooleanField(CODE), PURPLE, VIOLET, UPDATED),
+                        new DiffFieldValue<>(new StringField(CODE), PURPLE, VIOLET, UPDATED),
                         new DiffFieldValue<>(new StringField(NAME), null, A, null)
                 ),
                 UPDATED);
@@ -114,7 +117,7 @@ public class DiffRowValueCalculatorTest {
         updatedNullBToPurpleA = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
-                        new DiffFieldValue<>(new BooleanField(CODE), null, PURPLE, UPDATED),
+                        new DiffFieldValue<>(new StringField(CODE), null, PURPLE, UPDATED),
                         new DiffFieldValue<>(new StringField(NAME), B, A, UPDATED)
                 ),
                 UPDATED);
@@ -122,7 +125,7 @@ public class DiffRowValueCalculatorTest {
         updatedVioletAToVioletB = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
-                        new DiffFieldValue<>(new BooleanField(CODE), null, VIOLET, null),
+                        new DiffFieldValue<>(new StringField(CODE), null, VIOLET, null),
                         new DiffFieldValue<>(new StringField(NAME), A, B, UPDATED)
                 ),
                 UPDATED);
@@ -130,7 +133,7 @@ public class DiffRowValueCalculatorTest {
         updatedPurpleAToVioletB = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
-                        new DiffFieldValue<>(new BooleanField(CODE), PURPLE, VIOLET, UPDATED),
+                        new DiffFieldValue<>(new StringField(CODE), PURPLE, VIOLET, UPDATED),
                         new DiffFieldValue<>(new StringField(NAME), A, B, UPDATED)
                 ),
                 UPDATED);
@@ -168,7 +171,7 @@ public class DiffRowValueCalculatorTest {
         updatedNullBToVioletA = new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), null, PK_VALUE, null),
-                        new DiffFieldValue<>(new BooleanField(CODE), null, VIOLET, UPDATED),
+                        new DiffFieldValue<>(new StringField(CODE), null, VIOLET, UPDATED),
                         new DiffFieldValue<>(new StringField(NAME), B, A, UPDATED)
                 ),
                 UPDATED);
