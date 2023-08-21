@@ -67,9 +67,9 @@ public class RefBookControllerTest {
         final List<RefBook> refBooks = singletonList(refBook);
 
         final UiRefBookCriteria uiCriteria = new UiRefBookCriteria();
-        final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
-        when(refBookService.search(eq(criteria)))
-                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
+        //final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
+        when(refBookService.search(eq(uiCriteria)))
+                .thenReturn(new PageImpl<>(refBooks, uiCriteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
@@ -127,9 +127,9 @@ public class RefBookControllerTest {
         final List<RefBook> refBooks = List.of(refBook, oldBook);
 
         final UiRefBookCriteria uiCriteria = new UiRefBookCriteria();
-        final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
-        when(refBookService.searchVersions(eq(criteria)))
-                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
+        //final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
+        when(refBookService.searchVersions(eq(uiCriteria)))
+                .thenReturn(new PageImpl<>(refBooks, uiCriteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
