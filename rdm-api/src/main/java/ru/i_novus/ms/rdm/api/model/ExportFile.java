@@ -3,6 +3,8 @@ package ru.i_novus.ms.rdm.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
@@ -11,7 +13,7 @@ import java.util.Objects;
  */
 @JsonIgnoreType
 @JsonIgnoreProperties
-public class ExportFile {
+public class ExportFile implements Closeable {
 
     private InputStream inputStream;
 
@@ -41,6 +43,14 @@ public class ExportFile {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    @Override
+    public void close() throws IOException {
+
+        if (inputStream != null) {
+            inputStream.close();
+        }
     }
 
     @Override
