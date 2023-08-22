@@ -31,9 +31,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static net.n2oapp.framework.autotest.N2oSelenide.open;
 
 public class RdmUiTest {
@@ -283,9 +283,7 @@ public class RdmUiTest {
     private void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
 
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
@@ -324,9 +322,7 @@ public class RdmUiTest {
     private void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
 
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
@@ -356,9 +352,7 @@ public class RdmUiTest {
     private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
 
         List<Map<RefBookField, Object>> existedRows = referrer.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
         List<String> nameColumnConflictedValues = nameColumnValues.subList(0, 2);
 
         refBookEditPage.shouldExists();
