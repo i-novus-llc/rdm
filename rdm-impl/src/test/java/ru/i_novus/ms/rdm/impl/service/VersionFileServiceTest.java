@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
@@ -24,6 +23,7 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.file.AllowStoreVersionFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
+import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -80,7 +80,7 @@ public class VersionFileServiceTest {
     public void setUp() throws Exception {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategiesMap());
-        FieldSetter.setField(versionFileService, VersionFileServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        ReflectionUtils.setField(versionFileService, VersionFileServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test

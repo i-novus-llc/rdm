@@ -56,7 +56,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     @SuppressWarnings("unchecked")
     public List<? extends SourceMetadata> read(String context) {
 
-        DataRecordRequest request = toRequest(context);
+        final DataRecordRequest request = toRequest(context);
         return singletonList(createQuery(request));
     }
 
@@ -65,59 +65,63 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         return singletonList(N2oQuery.class);
     }
 
+    /** Создание выборки. */
     private N2oQuery createQuery(DataRecordRequest request) {
 
-        N2oQuery n2oQuery = new N2oQuery();
-        n2oQuery.setUniques(new N2oQuery.Selection[]{ createSelection() });
-        n2oQuery.setFields(createQueryFields(request));
+        final N2oQuery query = new N2oQuery();
+        query.setUniques(new N2oQuery.Selection[]{ createSelection() });
+        query.setFields(createQueryFields(request));
 
-        return n2oQuery;
+        return query;
     }
 
+    /** Создание правила выборки. */
     private N2oQuery.Selection createSelection() {
 
-        N2oJavaDataProvider provider = new N2oJavaDataProvider();
+        final N2oJavaDataProvider provider = new N2oJavaDataProvider();
         provider.setClassName(CONTROLLER_CLASS_NAME);
         provider.setMethod(CONTROLLER_METHOD);
         provider.setSpringProvider(new SpringProvider());
 
-        Argument criteriaArgument = new Argument();
+        final Argument criteriaArgument = new Argument();
         criteriaArgument.setName(CRITERIA_NAME);
         criteriaArgument.setType(Argument.Type.CRITERIA);
         criteriaArgument.setClassName(CRITERIA_CLASS_NAME);
         provider.setArguments(new Argument[]{ criteriaArgument });
 
-        N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
+        final N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
         return selection;
     }
 
+    /** Создание полей для выборки. */
     private N2oQuery.Field[] createQueryFields(DataRecordRequest request) {
 
         return Stream.concat(
-                createRegularFields(request).stream(),
-                createDynamicFields(request.getStructure()).stream())
+                        createRegularFields(request).stream(),
+                        createDynamicFields(request.getStructure()).stream()
+                )
                 .toArray(N2oQuery.Field[]::new);
     }
 
     private List<N2oQuery.Field> createRegularFields(DataRecordRequest request) {
 
-        N2oQuery.Field idField = new N2oQuery.Field();
+        final N2oQuery.Field idField = new N2oQuery.Field();
         idField.setId(FIELD_SYSTEM_ID);
         idField.setSelectMapping("['" + FIELD_SYSTEM_ID + "']");
 
-        N2oQuery.Filter idFilter = new N2oQuery.Filter();
+        final N2oQuery.Filter idFilter = new N2oQuery.Filter();
         idFilter.setType(FilterType.eq);
         idFilter.setFilterField(FIELD_SYSTEM_ID);
         idFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_SYSTEM_ID);
         idFilter.setDomain(N2oDomain.INTEGER);
         idField.setFilterList(new N2oQuery.Filter[]{ idFilter });
 
-        N2oQuery.Field versionIdField = new N2oQuery.Field();
+        final N2oQuery.Field versionIdField = new N2oQuery.Field();
         versionIdField.setId(FIELD_VERSION_ID);
 
-        N2oQuery.Filter versionIdFilter = new N2oQuery.Filter();
+        final N2oQuery.Filter versionIdFilter = new N2oQuery.Filter();
         versionIdFilter.setType(FilterType.eq);
         versionIdFilter.setFilterField(FIELD_VERSION_ID);
         versionIdFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_VERSION_ID);
@@ -125,10 +129,10 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         versionIdFilter.setDefaultValue(String.valueOf(request.getVersionId()));
         versionIdField.setFilterList(new N2oQuery.Filter[]{ versionIdFilter });
 
-        N2oQuery.Field optLockValueField = new N2oQuery.Field();
+        final N2oQuery.Field optLockValueField = new N2oQuery.Field();
         optLockValueField.setId(FIELD_OPT_LOCK_VALUE);
 
-        N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter();
+        final N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter();
         optLockValueFilter.setType(FilterType.eq);
         optLockValueFilter.setFilterField(FIELD_OPT_LOCK_VALUE);
         optLockValueFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_OPT_LOCK_VALUE);
@@ -136,10 +140,10 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         optLockValueFilter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
         optLockValueField.setFilterList(new N2oQuery.Filter[]{ optLockValueFilter });
 
-        N2oQuery.Field localeCodeField = new N2oQuery.Field();
+        final N2oQuery.Field localeCodeField = new N2oQuery.Field();
         localeCodeField.setId(FIELD_LOCALE_CODE);
 
-        N2oQuery.Filter localeCodeFilter = new N2oQuery.Filter();
+        final N2oQuery.Filter localeCodeFilter = new N2oQuery.Filter();
         localeCodeFilter.setType(FilterType.eq);
         localeCodeFilter.setFilterField(FIELD_LOCALE_CODE);
         localeCodeFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_LOCALE_CODE);
@@ -147,17 +151,17 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         localeCodeFilter.setDefaultValue(DEFAULT_LOCALE_CODE);
         localeCodeField.setFilterList(new N2oQuery.Filter[]{ localeCodeFilter });
 
-        N2oQuery.Field dataActionField = new N2oQuery.Field();
+        final N2oQuery.Field dataActionField = new N2oQuery.Field();
         dataActionField.setId(FIELD_DATA_ACTION);
 
-        N2oQuery.Filter dataActionFilter = new N2oQuery.Filter();
+        final N2oQuery.Filter dataActionFilter = new N2oQuery.Filter();
         dataActionFilter.setType(FilterType.eq);
         dataActionFilter.setFilterField(FIELD_DATA_ACTION);
         dataActionFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_DATA_ACTION);
         dataActionFilter.setDomain(N2oDomain.STRING);
         dataActionField.setFilterList(new N2oQuery.Filter[]{ dataActionFilter });
 
-        List<N2oQuery.Field> list = new ArrayList<>(List.of(
+        final List<N2oQuery.Field> list = new ArrayList<>(List.of(
                 idField, versionIdField, optLockValueField, localeCodeField, dataActionField
         ));
 
@@ -174,25 +178,33 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         if (structure.isEmpty())
             return emptyList();
 
-        List<N2oQuery.Field> list = new ArrayList<>();
+        List<N2oQuery.Field> list = new ArrayList<>(getDynamicFieldCount(structure));
         for (Structure.Attribute attribute : structure.getAttributes()) {
 
             switch (attribute.getType()) {
 
-                case STRING, INTEGER, FLOAT, DATE, BOOLEAN ->
+                case STRING: case INTEGER: case FLOAT: case DATE: case BOOLEAN:
                     list.add(createField(attribute));
+                    break;
 
-                case REFERENCE ->
+                case REFERENCE:
                     list.addAll(createReferenceFields(attribute));
+                    break;
 
-                default ->
-                    throw new IllegalArgumentException("attribute type is not supported");
+                default:
+                    throw new IllegalArgumentException(String.format("Unknown attribute type in: %s", attribute));
             }
         }
         return list;
     }
 
-    private N2oQuery.Field createField(Structure.Attribute attribute) {
+    /** Определение количества динамических полей по структуре. */
+    private int getDynamicFieldCount(Structure structure) {
+
+        return structure.getAttributes().size() + structure.getReferences().size();
+    }
+
+    private  N2oQuery.Field createField(Structure.Attribute attribute) {
 
         final String codeWithPrefix = addPrefix(attribute.getCode());
 
@@ -210,12 +222,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         final String codeWithPrefix = addPrefix(attribute.getCode());
         final String attributeMapping = getAttributeMapping(codeWithPrefix);
 
-        N2oQuery.Field valueField = new N2oQuery.Field();
+        final N2oQuery.Field valueField = new N2oQuery.Field();
         valueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_VALUE));
         valueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_VALUE));
         valueField.setDomain(N2oDomain.STRING);
 
-        N2oQuery.Field displayValueField = new N2oQuery.Field();
+        final N2oQuery.Field displayValueField = new N2oQuery.Field();
         displayValueField.setId(addFieldProperty(codeWithPrefix, REFERENCE_DISPLAY_VALUE));
         displayValueField.setSelectMapping(addFieldProperty(attributeMapping, REFERENCE_DISPLAY_VALUE));
         displayValueField.setDomain(N2oDomain.STRING);

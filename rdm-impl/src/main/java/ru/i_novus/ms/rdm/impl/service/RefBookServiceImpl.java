@@ -21,18 +21,30 @@ import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.model.refdata.DeleteDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookModelData;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookModelDataRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateRefBookEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
 import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
@@ -193,11 +205,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        return switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX" -> createByXlsx(fileModel);
-            case "XML" -> createByXml(fileModel);
-            default -> throw new FileExtensionException();
-        };
+        switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX": return createByXlsx(fileModel);
+            case "XML": return createByXml(fileModel);
+            default: throw new FileExtensionException();
+        }
     }
 
     @SuppressWarnings("unused")

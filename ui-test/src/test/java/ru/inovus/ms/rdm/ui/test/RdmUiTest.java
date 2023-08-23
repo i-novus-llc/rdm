@@ -6,10 +6,16 @@ import com.codeborne.selenide.Selenide;
 import net.n2oapp.framework.autotest.api.component.control.Control;
 import net.n2oapp.framework.autotest.api.component.control.InputText;
 import net.n2oapp.framework.autotest.api.component.control.TextArea;
-import net.n2oapp.framework.autotest.impl.component.control.*;
+import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
+import net.n2oapp.framework.autotest.impl.component.control.N2oDateInput;
+import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
+import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.system.SystemProperties;
@@ -25,9 +31,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static net.n2oapp.framework.autotest.N2oSelenide.open;
 
 public class RdmUiTest {
@@ -208,8 +214,8 @@ public class RdmUiTest {
 
     private void search(RefBookListPage refBookListPage, RefBook refBook) {
 
-        fillInputText(refBookListPage.codeFilter(), refBook.getCode());
-        fillInputText(refBookListPage.nameFilter(), refBook.getName());
+        fillInputControl(refBookListPage.codeFilter(), refBook.getCode());
+        fillInputControl(refBookListPage.nameFilter(), refBook.getName());
         refBookListPage.shouldExists();
 
         refBookListPage.search();
@@ -217,18 +223,18 @@ public class RdmUiTest {
 
     private void createRefBook(RefBookListPage refBookListPage, RefBook refBook) {
 
-        RefBookCreateFormWidget refBookCreateFormWidget = refBookListPage.openCreateFormPage();
-        refBookCreateFormWidget.shouldExists();
+        CreateRefBookWidget createRefBookWidget = refBookListPage.openCreateFormPage();
+        createRefBookWidget.shouldExists();
 
-        fillRefBookForm(refBookCreateFormWidget, refBook);
-        RefBookEditPage refBookEditPage = refBookCreateFormWidget.save();
+        fillRefBookWidget(createRefBookWidget, refBook);
+        RefBookEditPage refBookEditPage = createRefBookWidget.save();
         refBookEditPage.shouldExists();
 
-        StructureListWidget structureListWidget = refBookEditPage.structure();
-        structureListWidget.shouldExists();
+        StructureWidget structureWidget = refBookEditPage.structure();
+        structureWidget.shouldExists();
 
         Set<RefBookField> fieldsToFirstRefBook = refBook.getRows().get(0).keySet();
-        createStructure(structureListWidget, fieldsToFirstRefBook);
+        createStructure(structureWidget, fieldsToFirstRefBook);
 
         DataListWidget dataListWidget = refBookEditPage.data();
         dataListWidget.shouldExists();
@@ -236,10 +242,10 @@ public class RdmUiTest {
         List<String> addedRowsNameColumnValues = new ArrayList<>();
         for (Map<RefBookField, Object> row : refBook.getRows()) {
 
-            DataFormModal dataForm = dataListWidget.addRowForm();
+            DataRowForm dataForm = dataListWidget.addRowForm();
             dataForm.shouldExists();
 
-            fillDataForm(dataForm, row);
+            fillDataRowForm(dataForm, row);
             dataForm.save();
 
             addedRowsNameColumnValues.add(getNameColumnValue(row));
@@ -253,50 +259,49 @@ public class RdmUiTest {
         }
     }
 
-    private void createStructure(StructureListWidget structureListWidget, Set<RefBookField> fieldsToFirstRefBook) {
+    private void createStructure(StructureWidget structureWidget, Set<RefBookField> fieldsToFirstRefBook) {
 
-        List<String> addedRowsCodeColumnValues = new ArrayList<>();
-        List<String> addedRowsNameColumnValues = new ArrayList<>();
+        List<String> addedRowsCodeColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
+        List<String> addedRowsNameColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
 
         fieldsToFirstRefBook.forEach(field -> {
 
-            StructureFormModal structureForm = structureListWidget.form();
-            structureForm.shouldExists();
+            StructureFormModal attributeForm = structureWidget.form();
+            attributeForm.shouldExists();
 
-            fillStructureForm(structureForm, field);
-            structureForm.save();
+            fillAttributeForm(attributeForm, field);
+            attributeForm.save();
 
             addedRowsCodeColumnValues.add(field.getCode());
             addedRowsNameColumnValues.add(field.getName());
-            structureListWidget.rowShouldHaveTexts(1, addedRowsCodeColumnValues);
-            structureListWidget.rowShouldHaveTexts(2, addedRowsNameColumnValues);
+
+            structureWidget.rowShouldHaveTexts(1, addedRowsCodeColumnValues);
+            structureWidget.rowShouldHaveTexts(2, addedRowsNameColumnValues);
         });
     }
 
     private void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
 
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
 
-        List<Map<RefBookField, Object>> refBookRows = generateRefBookRows(1, DEFAULT_FIELD_TYPES, null);
+        List<Map<RefBookField, Object>> refBookRows = generateRows(1, DEFAULT_FIELD_TYPES, null);
         Map<RefBookField, Object> row = refBookRows.get(0);
 
-        DataFormModal addForm = dataListWidget.addRowForm();
-        fillDataForm(addForm, row);
+        DataRowForm addForm = dataListWidget.addRowForm();
+        fillDataRowForm(addForm, row);
         addForm.save();
 
         nameColumnValues.add(getNameColumnValue(row));
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
         final int lastRowNum = nameColumnValues.size() - 1;
-        DataFormModal editForm = dataListWidget.editRowForm(lastRowNum);
+        DataRowForm editForm = dataListWidget.editRowForm(lastRowNum);
         String newNameValue = "Другое наименование";
-        fillInputText(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
+        fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
         nameColumnValues.set(lastRowNum, newNameValue);
@@ -317,9 +322,7 @@ public class RdmUiTest {
     private void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
 
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
@@ -331,9 +334,9 @@ public class RdmUiTest {
         dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
         // Конфликт UPDATED.
-        DataFormModal editForm = dataListWidget.editRowForm(0);
+        DataRowForm editForm = dataListWidget.editRowForm(0);
         String newNameValue = nameColumnValues.get(0) + "_updated";
-        fillInputText(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
+        fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
         nameColumnValues.set(0, newNameValue);
@@ -349,33 +352,31 @@ public class RdmUiTest {
     private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
 
         List<Map<RefBookField, Object>> existedRows = referrer.getRows();
-        List<String> nameColumnValues = existedRows.stream()
-                .map(this::getNameColumnValue)
-                .collect(Collectors.toList());
+        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
         List<String> nameColumnConflictedValues = nameColumnValues.subList(0, 2);
 
         refBookEditPage.shouldExists();
         //DataListWidget dataListWidget = refBookEditPage.data();
         //dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
 
-        DataWithConflictsListWidget dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
-        dataWithConflictsListWidget.rowShouldHaveSize(2); // Два конфликта
-        dataWithConflictsListWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        DataWithConflictsWidget dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
+        dataWithConflictsWidget.rowShouldHaveSize(2); // Два конфликта
+        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
 
         refBookEditPage.refreshReferrer();
-        waitActionResult();
+        waitActionResult(SLEEP_TIME);
 
         nameColumnConflictedValues.remove(1);
-        dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
-        dataWithConflictsListWidget.rowShouldHaveSize(1); // Один конфликт
-        dataWithConflictsListWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
+        dataWithConflictsWidget.rowShouldHaveSize(1); // Один конфликт
+        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
 
-        DataFormModal editForm = dataWithConflictsListWidget.fixRowForm(0);
+        DataRowForm editForm = dataWithConflictsWidget.fixRowForm(0);
         fillReference(editForm.referenceInput(ATTR_REFERENCE_NAME), 0);
         editForm.edit();
 
-        dataWithConflictsListWidget = refBookEditPage.dataWithConflicts();
-        dataWithConflictsListWidget.rowShouldHaveSize(0); // Нет конфликтов
+        dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
+        dataWithConflictsWidget.rowShouldHaveSize(0); // Нет конфликтов
 
         openRefBookListPage();
     }
@@ -393,43 +394,44 @@ public class RdmUiTest {
     private void publishRefBook(RefBookEditPage refBookEditPage) {
 
         refBookEditPage.publish();
-        waitActionResult();
+        waitActionResult(SLEEP_TIME);
     }
 
-    private void fillDataForm(DataFormModal dataForm, Map<RefBookField, Object> row) {
+    private void fillDataRowForm(DataRowForm form, Map<RefBookField, Object> row) {
 
         row.forEach((key, value) -> {
             switch (key.getType()) {
-                case STRING -> fillInputText(dataForm.stringInput(key.getName()), value.toString());
-                case INTEGER -> fillInputText(dataForm.integerInput(key.getName()), value.toString());
-                case DOUBLE -> fillInputText(dataForm.doubleInput(key.getName()), value.toString());
-                case DATE -> fillInputText(dataForm.dateInput(key.getName()), (value.toString()));
-                case BOOLEAN -> fillCheckBox(dataForm.booleanInput(key.getName()), true);
-                case REFERENCE -> fillReference(dataForm.referenceInput(key.getName()), value);
-                default -> throw new IllegalArgumentException(key.getType() + " invalid field type");
+                case STRING: fillInputControl(form.stringInput(key.getName()), value.toString()); break;
+                case INTEGER: fillInputControl(form.integerInput(key.getName()), value.toString()); break;
+                case DOUBLE: fillInputControl(form.doubleInput(key.getName()), value.toString()); break;
+                case DATE: fillInputControl(form.dateInput(key.getName()), (value.toString())); break;
+                case BOOLEAN: fillCheckBox(form.booleanInput(key.getName()), true); break;
+                case REFERENCE: fillReference(form.referenceInput(key.getName()), value); break;
+                default: throw new IllegalArgumentException(key.getType() + " invalid field type");
             }
         });
 
     }
 
-    private void fillStructureForm(StructureFormModal structureForm, RefBookField refBookField) {
+    private void fillAttributeForm(StructureFormModal form, RefBookField refBookField) {
 
-        fillInputText(structureForm.codeInput(), refBookField.getCode());
-        fillInputText(structureForm.nameInput(), refBookField.getName());
+        fillInputControl(form.codeInput(), refBookField.getCode());
+        fillInputControl(form.nameInput(), refBookField.getName());
 
-        N2oSelect typeInput = structureForm.typeInput();
+        N2oSelect typeInput = form.typeInput();
         typeInput.select(Condition.text(refBookField.getType().getTranslated()));
         typeInput.shouldHaveValue(refBookField.getType().getTranslated());
 
         if (refBookField.isReferenceType()) {
-            N2oInputSelect refBookInput = structureForm.refBookInput();
+
+            N2oInputSelect refBookInput = form.refBookInput();
             refBookInput.shouldBeEmpty();
             refBookInput.val(refBookField.getReferredBook().getCode());
             refBookInput.expand();
             refBookInput.select(Condition.text(refBookField.getReferredBook().getCode()));
             refBookInput.shouldSelected(refBookField.getReferredBook().getCode());
 
-            N2oInputSelect displayAttrInput = structureForm.displayAttrInput();
+            N2oInputSelect displayAttrInput = form.displayAttrInput();
             Map.Entry<Integer, String> referredField = refBookField.getReferredField();
             if (referredField != null) {
                 displayAttrInput.select(referredField.getKey());
@@ -438,20 +440,21 @@ public class RdmUiTest {
         }
 
         if (refBookField.isPrimary()) {
-            fillCheckBox(structureForm.primaryKeyInput(), true);
+
+            fillCheckBox(form.primaryKeyInput(), true);
         }
     }
 
-    private void fillRefBookForm(RefBookCreateFormWidget refBookCreateFormWidget, RefBook refBook) {
+    private void fillRefBookWidget(CreateRefBookWidget widget, RefBook refBook) {
 
-        fillInputText(refBookCreateFormWidget.codeInput(), refBook.getCode());
-        fillInputText(refBookCreateFormWidget.nameInput(), refBook.getName());
-        fillInputText(refBookCreateFormWidget.shortNameInput(), refBook.getShortName());
-        fillInputText(refBookCreateFormWidget.descriptionInput(), refBook.getDescription());
+        fillInputControl(widget.codeInput(), refBook.getCode());
+        fillInputControl(widget.nameInput(), refBook.getName());
+        fillInputControl(widget.shortNameInput(), refBook.getShortName());
+        fillInputControl(widget.descriptionInput(), refBook.getDescription());
 
         if (refBook.getType() != null) {
 
-            N2oInputSelect typeInput = refBookCreateFormWidget.typeInput();
+            N2oInputSelect typeInput = widget.typeInput();
             typeInput.shouldBeEmpty();
             typeInput.val(refBook.getType());
             typeInput.expand();
@@ -460,41 +463,40 @@ public class RdmUiTest {
         }
     }
 
-    private void fillInputText(Control inputText, String value) {
+    private void fillInputControl(Control control, String value) {
 
-        inputText.shouldExists();
+        control.shouldExists();
 
-        if (inputText instanceof InputText) {
-            ((InputText) inputText).val(value);
+        if (control instanceof InputText) {
+            ((InputText) control).val(value);
 
-        } else if(inputText instanceof TextArea) {
-            ((TextArea) inputText).val(value);
+        } else if(control instanceof TextArea) {
+            ((TextArea) control).val(value);
 
-        } else if(inputText instanceof N2oDateInput) {
-            ((N2oDateInput) inputText).val(value);
+        } else if(control instanceof N2oDateInput) {
+            ((N2oDateInput) control).val(value);
 
         } else {
-            throw new IllegalArgumentException("control is not text input");
+            throw new IllegalArgumentException("Control is not for input");
         }
 
-        inputText.shouldHaveValue(value);
+        control.shouldHaveValue(value);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void fillCheckBox(Control checkBox, boolean value) {
 
         checkBox.shouldExists();
 
         if (!(checkBox instanceof N2oCheckbox))
-            throw new IllegalArgumentException("control is not check box");
+            throw new IllegalArgumentException("Control is not check box");
 
         N2oCheckbox control = (N2oCheckbox) checkBox;
+        control.setChecked(value);
 
         if (value) {
-            control.setChecked(value);
             control.shouldBeChecked();
-
         } else {
-            control.setChecked(value);
             control.shouldBeEmpty();
         }
     }
@@ -504,9 +506,13 @@ public class RdmUiTest {
         referenceInput.shouldExists();
 
         if (!(referenceInput instanceof N2oInputSelect))
-            throw new IllegalArgumentException("control is not check box");
+            throw new IllegalArgumentException("Control is not reference input");
 
         N2oInputSelect control = (N2oInputSelect) referenceInput;
+        // to-do: Очищать только при наличии значения!
+        control.clear();
+        waitActionResult(SLEEP_TIME / 2);
+
         control.expand();
         control.select((int) value);
     }
@@ -519,11 +525,15 @@ public class RdmUiTest {
         return refBookListPage;
     }
 
-    private void waitActionResult() {
-        Selenide.sleep(SLEEP_TIME);
+    /** Ожидание результата действия. */
+    private void waitActionResult(long sleepTime) {
+
+        Selenide.sleep(sleepTime != 0 ? sleepTime : 1);
     }
 
-    private RefBook generateRefBook(String type, int rowsCount, List<FieldType> fieldTypes, RefBook referredBook) {
+    /** Формирование информации о справочнике для создания. */
+    @SuppressWarnings("SameParameterValue")
+    private RefBook generateRefBook(String type, int rowCount, List<FieldType> fieldTypes, RefBook referredBook) {
 
         return new RefBook(
                 "a_" + RandomStringUtils.randomAlphabetic(5),
@@ -534,43 +544,46 @@ public class RdmUiTest {
                 "system",
                 "description",
                 type,
-                generateRefBookRows(rowsCount, fieldTypes, referredBook)
+                generateRows(rowCount, fieldTypes, referredBook)
         );
     }
 
-    private List<Map<RefBookField, Object>> generateRefBookRows(int rowsCount, List<FieldType> fieldTypes, RefBook referredBook) {
+    /** Формирование информации о записях справочника. */
+    private List<Map<RefBookField, Object>> generateRows(int rowCount,
+                                                         List<FieldType> fieldTypes,
+                                                         RefBook referredBook) {
 
-        List<Map<RefBookField, Object>> result = new ArrayList<>(rowsCount);
-        for(int i = 0; i < rowsCount; i++) {
+        List<Map<RefBookField, Object>> result = new ArrayList<>(rowCount);
+        for(int i = 0; i < rowCount; i++) {
             Map<RefBookField, Object> row = new LinkedHashMap<>(fieldTypes.size());
             for (FieldType fieldType : fieldTypes) {
                 switch (fieldType) {
-                    case STRING -> row.put(
+                    case STRING: row.put(
                             new RefBookField("name", ATTR_NAME_NAME, fieldType, false),
                             RandomStringUtils.randomAlphabetic(5)
-                    );
-                    case INTEGER -> row.put(
+                    ); break;
+                    case INTEGER: row.put(
                             new RefBookField("id", ATTR_ID_NAME, fieldType, true),
                             String.valueOf(refBookDataIdSeq.getAndIncrement())
-                    );
-                    case DOUBLE -> row.put(
+                    ); break;
+                    case DOUBLE: row.put(
                             new RefBookField("some_double", "Некоторое дробное поле", fieldType, false),
                             String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
-                    );
-                    case DATE -> row.put(
+                    ); break;
+                    case DATE: row.put(
                             new RefBookField("some_date", "Некоторая дата", fieldType, false),
                             LocalDate.now().format(EDIT_FIELD_DATE_FORMATTER)
-                    );
-                    case BOOLEAN -> row.put(
-                            new RefBookField("some_boolean", "Некоторое булеан поле", fieldType,
+                    ); break;
+                    case BOOLEAN: row.put(
+                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType,
                                     false), RandomUtils.nextBoolean()
-                    );
-                    case REFERENCE -> row.put(
+                    ); break;
+                    case REFERENCE: row.put(
                             new RefBookField("some_reference", ATTR_REFERENCE_NAME, fieldType, false,
                                     referredBook, new AbstractMap.SimpleEntry<>(1, ATTR_NAME_NAME)),
                             referredBook != null && referredBook.getRows().size() > i ? i : null
-                    );
-                    default -> throw new IllegalArgumentException(fieldType + " invalid field type");
+                    ); break;
+                    default: throw new IllegalArgumentException(fieldType + " invalid field type");
                 }
             }
             result.add(row);

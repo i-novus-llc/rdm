@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.Messages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
+import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
@@ -58,9 +59,10 @@ public class RefBookAdapter {
         if (operation == null)
             return null;
 
-        return switch (operation) {
-            case PUBLISHING -> messages.getMessage(REFBOOK_OPERATION_PUBLISHING);
-            case UPDATING -> messages.getMessage(REFBOOK_OPERATION_UPDATING);
-        };
+        switch (operation) {
+            case PUBLISHING: return messages.getMessage(REFBOOK_OPERATION_PUBLISHING);
+            case UPDATING: return messages.getMessage(REFBOOK_OPERATION_UPDATING);
+            default: throw new RdmException(String.format("Unknown refbook operation: %s", operation));
+        }
     }
 }

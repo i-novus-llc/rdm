@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,15 +17,25 @@ import ru.i_novus.ms.rdm.api.model.refbook.*;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookModelData;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
-import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookModelDataRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstStorageStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateRefBookEntityStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
+import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
 import java.io.InputStream;
@@ -97,7 +106,7 @@ public class RefBookServiceTest {
     public void setUp() throws NoSuchFieldException {
 
         final StrategyLocator strategyLocator = new BaseStrategyLocator(getStrategies());
-        FieldSetter.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
+        ReflectionUtils.setField(refBookService, RefBookServiceImpl.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test

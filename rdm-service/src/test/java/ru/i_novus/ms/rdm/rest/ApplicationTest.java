@@ -3046,7 +3046,7 @@ public class ApplicationTest {
         return new Row(new HashMap<>() {{
             put("string", str);
             put("integer", bigInt);
-            put("date", date != null ? parseLocalDate(date) : null);
+            put("date", parseLocalDate(date));
             put("boolean", bool);
             put("float", real);
         }});
@@ -3091,21 +3091,15 @@ public class ApplicationTest {
     }
 
     private String getFieldTypeName(FieldType type) {
+
         switch (type) {
-            case STRING:
-                return "Строчный";
-            case FLOAT:
-                return "Дробный";
-            case REFERENCE:
-                return "Ссылочный";
-            case INTEGER:
-                return "Целочисленный";
-            case BOOLEAN:
-                return "Логический";
-            case DATE:
-                return "Дата";
-            default:
-                return null;
+            case STRING: return "Строчный";
+            case FLOAT: return "Дробный";
+            case REFERENCE: return "Ссылочный";
+            case INTEGER: return "Целочисленный";
+            case BOOLEAN: return "Логический";
+            case DATE: return "Дата";
+            default: return null;
         }
     }
 

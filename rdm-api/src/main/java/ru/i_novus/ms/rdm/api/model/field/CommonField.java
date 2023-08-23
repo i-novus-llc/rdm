@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
+import java.io.Serializable;
+
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class CommonField extends Field {
 
@@ -21,8 +23,14 @@ public class CommonField extends Field {
         return null;
     }
 
+    @JsonIgnore
     @Override
-    public FieldValue valueOf(Object value) {
+    public Class getFieldValueClass() {
+        return null;
+    }
+
+    @Override
+    public FieldValue valueOf(Serializable value) {
         return null;
     }
 

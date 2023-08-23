@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.util;
 
 import net.n2oapp.criteria.api.Criteria;
-import net.n2oapp.criteria.api.Direction;
 import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.criteria.api.SortingDirection;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
@@ -39,7 +39,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.DATE_PATTERN_ERA_FORMATTER;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class ConverterUtil {
+public final class ConverterUtil {
 
     private static final List<? extends Serializable> NOT_NULL_VALUES = List.of(0L);
 
@@ -126,7 +126,7 @@ public class ConverterUtil {
     @SuppressWarnings("unchecked")
     private static FieldValue toFieldValue(Map<String, Object> data, Field field) {
 
-        return field.valueOf(data.get(field.getName()));
+        return field.valueOf((Serializable) data.get(field.getName()));
     }
 
     public static Date date(LocalDateTime date) {
@@ -137,7 +137,7 @@ public class ConverterUtil {
 
         List<Sorting> sortings = new ArrayList<>();
         for (Sort.Order order : sort) {
-            sortings.add(new Sorting(order.getProperty(), Direction.valueOf(order.getDirection().name())));
+            sortings.add(new Sorting(order.getProperty(), SortingDirection.valueOf(order.getDirection().name())));
         }
         return sortings;
     }
@@ -358,7 +358,7 @@ public class ConverterUtil {
             return value;
         }
 
-        throw new RdmException("invalid field type");
+        throw new RdmException(String.format("Invalid field type in: %s", field));
     }
 
     /**

@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jms.core.JmsTemplate;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
@@ -16,6 +15,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.AuditLogService;
+import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -51,8 +51,8 @@ public class DefaultPublishEndStrategyTest {
     @Before
     public void setUp() throws NoSuchFieldException {
 
-        FieldSetter.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("publishTopic"), PUBLISH_TOPIC);
-        FieldSetter.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("enablePublishTopic"), true);
+        ReflectionUtils.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("publishTopic"), PUBLISH_TOPIC);
+        ReflectionUtils.setField(strategy, DefaultPublishEndStrategy.class.getDeclaredField("enablePublishTopic"), true);
     }
 
     @Test

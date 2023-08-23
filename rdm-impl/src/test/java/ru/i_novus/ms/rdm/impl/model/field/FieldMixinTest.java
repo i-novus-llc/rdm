@@ -6,12 +6,14 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.service.diff.DataDiffUtil;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
 
+import java.io.Serializable;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class FieldMixinTest {
 
-    private static final ObjectMapper vdsObjectMapper = DataDiffUtil.getVdsObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = DataDiffUtil.getMapper();
 
     @Test
     public void testJson() {
@@ -25,21 +27,21 @@ public class FieldMixinTest {
         testJson(IntegerStringField.class);
     }
 
-    private <T> void testJson(Class<T> clazz) {
+    private <T extends Serializable> void testJson(Class<T> clazz) {
 
         T field = createField(clazz);
         if (field == null)
             return;
 
-        String json = JsonUtil.toJsonString(vdsObjectMapper, field);
-        T restored = JsonUtil.fromJsonString(vdsObjectMapper, json, clazz);
+        String json = JsonUtil.toJsonString(OBJECT_MAPPER, field);
+        T restored = JsonUtil.fromJsonString(OBJECT_MAPPER, json, clazz);
         assertEquals(field.getClass(), restored.getClass());
         assertEquals(field, restored);
     }
 
-    private <T> T createField(Class<T> clazz) {
+    private <T extends Serializable> T createField(Class<T> clazz) {
         try {
-            return (T) clazz.getConstructor(String.class).newInstance("text");
+            return clazz.getConstructor(String.class).newInstance("text");
 
         } catch (ReflectiveOperationException e) {
             fail();

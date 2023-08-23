@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
-import static org.springframework.util.StringUtils.isEmpty;
 
 public class StringUtils {
 
@@ -16,12 +15,16 @@ public class StringUtils {
     public static final String DOUBLE_QUOTE_CHAR = "\"";
     public static final String SINGLE_QUOTE_CHAR = "'";
 
-    private static final UUID NULL_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    static final UUID NULL_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
     private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$";
     private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
     private StringUtils() {
         // Nothing to do.
+    }
+
+    public static boolean isEmpty(String s) {
+        return s == null || s.isEmpty();
     }
 
     public static String addDoubleQuotes(String value) {
@@ -45,6 +48,7 @@ public class StringUtils {
     }
 
     /** Преобразование строки в UUID. */
+    // used in: asyncLog.query.xml
     public static UUID toUuid(String s) {
 
         if (!isEmpty(s))

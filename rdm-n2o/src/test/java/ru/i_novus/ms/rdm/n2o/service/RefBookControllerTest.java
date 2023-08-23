@@ -17,7 +17,11 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
-import ru.i_novus.ms.rdm.n2o.model.*;
+import ru.i_novus.ms.rdm.n2o.criteria.UiRefBookCriteria;
+import ru.i_novus.ms.rdm.n2o.model.RefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
+import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.ArrayList;
@@ -59,56 +63,55 @@ public class RefBookControllerTest {
     @Test
     public void testGetList() {
 
-        RefBook refBook = createRefBook();
+        final RefBook refBook = createRefBook();
+        final List<RefBook> refBooks = singletonList(refBook);
 
-        List<RefBook> refBooks = singletonList(refBook);
-
-        RefBookCriteria criteria = new RefBookCriteria();
-        when(refBookService.search(eq(criteria)))
-                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
+        final UiRefBookCriteria uiCriteria = new UiRefBookCriteria();
+        //final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
+        when(refBookService.search(eq(uiCriteria)))
+                .thenReturn(new PageImpl<>(refBooks, uiCriteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
-        Page<UiRefBook> page = controller.getList(criteria);
+        final Page<UiRefBook> page = controller.getList(uiCriteria);
         assertNotNull(page.getContent());
         assertEquals(refBooks.size(), page.getTotalElements());
 
-        UiRefBook actual = page.getContent().get(0);
+        final UiRefBook actual = page.getContent().get(0);
         assertRefBookEquals(refBook, actual);
     }
 
     @Test
     public void testGetVersionRefBook() {
 
-        RefBook refBook = createRefBook();
+        final RefBook refBook = createRefBook();
         when(refBookService.getByVersionId(VERSION_ID)).thenReturn(refBook);
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
-        RefBookCriteria criteria = new RefBookCriteria();
+        final UiRefBookCriteria criteria = new UiRefBookCriteria();
         criteria.setVersionId(VERSION_ID);
 
-        UiRefBook actual = controller.getVersionRefBook(criteria);
+        final UiRefBook actual = controller.getVersionRefBook(criteria);
         assertRefBookEquals(refBook, actual);
     }
 
     @Test
     public void testGetVersionRefBookWhenExcludeDraft() {
 
-        RefBook refBook = createRefBook();
-
+        final RefBook refBook = createRefBook();
         when(refBookService.getByVersionId(VERSION_ID)).thenReturn(refBook);
 
-        RefBookCriteria criteria = new RefBookCriteria();
+        final UiRefBookCriteria criteria = new UiRefBookCriteria();
         criteria.setVersionId(VERSION_ID);
 
         when(rdmPermission.excludeDraft()).thenReturn(true);
 
-        RefBook changed = new RefBook(refBook);
+        final RefBook changed = new RefBook(refBook);
         changed.setDraftVersionId(null);
         when(refBookAdapter.toUiRefBook(eq(changed))).thenReturn(new UiRefBook(changed));
 
-        UiRefBook actual = controller.getVersionRefBook(criteria);
+        final UiRefBook actual = controller.getVersionRefBook(criteria);
         assertRefBookEquals(refBook, actual);
 
         assertNull(actual.getDraftVersionId());
@@ -118,29 +121,27 @@ public class RefBookControllerTest {
     @Test
     public void testGetLastVersion() {
 
-        RefBook refBook = createRefBook();
-
-        RefBook oldBook = createRefBook();
+        final RefBook refBook = createRefBook();
+        final RefBook oldBook = createRefBook();
         oldBook.setId(VERSION_ID + 1);
+        final List<RefBook> refBooks = List.of(refBook, oldBook);
 
-        List<RefBook> refBooks = List.of(refBook, oldBook);
-
-        RefBookCriteria criteria = new RefBookCriteria();
-        when(refBookService.searchVersions(eq(criteria)))
-                .thenReturn(new PageImpl<>(refBooks, criteria, refBooks.size()));
+        final UiRefBookCriteria uiCriteria = new UiRefBookCriteria();
+        //final RefBookCriteria criteria = new RefBookCriteria(uiCriteria);
+        when(refBookService.searchVersions(eq(uiCriteria)))
+                .thenReturn(new PageImpl<>(refBooks, uiCriteria, refBooks.size()));
 
         when(refBookAdapter.toUiRefBook(refBook)).thenReturn(new UiRefBook(refBook));
 
-        UiRefBook actual = controller.getLastVersion(criteria);
+        final UiRefBook actual = controller.getLastVersion(uiCriteria);
         assertRefBookEquals(refBook, actual);
     }
 
     @Test
     public void testSearchReferenceRefBooks() {
 
-        List<RefBook> refBooks = new ArrayList<>(1);
-
-        RefBook refBook = createRefBook();
+        final RefBook refBook = createRefBook();
+        final List<RefBook> refBooks = new ArrayList<>(1);
         refBooks.add(refBook);
 
         ArgumentCaptor<RefBookCriteria> captor = ArgumentCaptor.forClass(RefBookCriteria.class);
@@ -148,12 +149,12 @@ public class RefBookControllerTest {
                 new PageImpl<>(refBooks, (RefBookCriteria) v.getArguments()[0], 1)
         );
 
-        RefBookCriteria criteria = new RefBookCriteria();
-        Page<UiRefBook> page = controller.searchReferenceRefBooks(criteria);
+        final UiRefBookCriteria criteria = new UiRefBookCriteria();
+        final Page<UiRefBook> page = controller.searchReferenceRefBooks(criteria);
         assertNotNull(page.getContent());
         assertEquals(refBooks.size(), page.getTotalElements());
 
-        RefBookCriteria captured = captor.getValue();
+        final RefBookCriteria captured = captor.getValue();
         assertTrue(captured.getHasPublished());
         assertTrue(captured.getExcludeDraft());
         assertEquals(RefBookSourceType.LAST_PUBLISHED, captured.getSourceType());
@@ -162,7 +163,7 @@ public class RefBookControllerTest {
     @Test
     public void testGetTypeList() {
 
-        Page<UiRefBookType> page = controller.getTypeList();
+        final Page<UiRefBookType> page = controller.getTypeList();
         assertNotNull(page.getContent());
         assertEquals(RefBookTypeEnum.values().length, page.getTotalElements());
     }
@@ -170,12 +171,12 @@ public class RefBookControllerTest {
     @Test
     public void testGetTypeItem() {
 
-        when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(messages.getMessage(any(String.class))).thenAnswer(v -> v.getArguments()[0]);
 
-        RefBookTypeCriteria criteria = new RefBookTypeCriteria();
+        final RefBookTypeCriteria criteria = new RefBookTypeCriteria();
         criteria.setId(REFBOOK_TYPE_ID);
 
-        UiRefBookType item = controller.getTypeItem(criteria);
+        final UiRefBookType item = controller.getTypeItem(criteria);
         assertNotNull(item);
         assertEquals(criteria.getId(), item.getId());
         assertEquals(REFBOOK_TYPE_NAME, item.getName());
@@ -184,12 +185,12 @@ public class RefBookControllerTest {
     @Test
     public void testGetTypeItemByName() {
 
-        when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(messages.getMessage(any(String.class))).thenAnswer(v -> v.getArguments()[0]);
 
-        RefBookTypeCriteria criteria = new RefBookTypeCriteria();
+        final RefBookTypeCriteria criteria = new RefBookTypeCriteria();
         criteria.setName(REFBOOK_TYPE_NAME);
 
-        UiRefBookType item = controller.getTypeItem(criteria);
+        final UiRefBookType item = controller.getTypeItem(criteria);
         assertNotNull(item);
         assertEquals(REFBOOK_TYPE_ID, item.getId());
         assertEquals(criteria.getName(), item.getName());
@@ -198,7 +199,7 @@ public class RefBookControllerTest {
     @Test
     public void testGetStatusList() {
 
-        Page<UiRefBookStatus> page = controller.getStatusList(new RefBookStatusCriteria());
+        final Page<UiRefBookStatus> page = controller.getStatusList(new RefBookStatusCriteria());
         assertNotNull(page.getContent());
         assertEquals(RefBookStatus.values().length, page.getTotalElements());
     }
@@ -206,10 +207,10 @@ public class RefBookControllerTest {
     @Test
     public void testGetStatusListWithoutDraft() {
 
-        RefBookStatusCriteria criteria = new RefBookStatusCriteria();
+        final RefBookStatusCriteria criteria = new RefBookStatusCriteria();
         criteria.setExcludeDraft(true);
 
-        Page<UiRefBookStatus> page = controller.getStatusList(criteria);
+        final Page<UiRefBookStatus> page = controller.getStatusList(criteria);
         assertNotNull(page.getContent());
         assertEquals(RefBookStatus.values().length - 1, page.getTotalElements());
         assertTrue(page.getContent().stream().noneMatch(status -> Objects.equals(RefBookStatus.HAS_DRAFT, status.getId())));
@@ -218,10 +219,10 @@ public class RefBookControllerTest {
     @Test
     public void testGetStatusListWithoutArchived() {
 
-        RefBookStatusCriteria criteria = new RefBookStatusCriteria();
+        final RefBookStatusCriteria criteria = new RefBookStatusCriteria();
         criteria.setNonArchived(true);
 
-        Page<UiRefBookStatus> page = controller.getStatusList(criteria);
+        final Page<UiRefBookStatus> page = controller.getStatusList(criteria);
         assertNotNull(page.getContent());
         assertEquals(RefBookStatus.values().length - 1, page.getTotalElements());
         assertTrue(page.getContent().stream().noneMatch(status -> Objects.equals(RefBookStatus.ARCHIVED, status.getId())));
@@ -229,7 +230,7 @@ public class RefBookControllerTest {
 
     private RefBook createRefBook() {
 
-        RefBook result = new RefBook();
+        final RefBook result = new RefBook();
         result.setRefBookId(REFBOOK_ID);
         result.setCode(REF_BOOK_CODE);
         result.setId(VERSION_ID);

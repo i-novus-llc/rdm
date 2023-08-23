@@ -6,7 +6,7 @@ import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
 import net.n2oapp.framework.autotest.impl.component.control.N2oTextArea;
 import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
 
-public class RefBookCreateFormWidget extends N2oFormWidget {
+public class CreateRefBookWidget extends N2oFormWidget {
 
     private RefBookListPage openedFromPage;
 

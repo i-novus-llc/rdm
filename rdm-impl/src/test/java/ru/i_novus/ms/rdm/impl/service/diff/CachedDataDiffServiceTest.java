@@ -24,6 +24,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -406,15 +407,7 @@ public class CachedDataDiffServiceTest {
         return criteria;
     }
 
-    private DiffRowValue createInserted(Integer pkValue) {
-        return createDiffRowValue(pkValue, INSERTED);
-    }
-
-    private DiffRowValue createDeleted(Integer pkValue) {
-        return createDiffRowValue(pkValue, DELETED);
-    }
-
-    private DiffRowValue createDiffRowValue(Integer pkValue, DiffStatusEnum status) {
+    private DiffRowValue createDiffRowValue(BigInteger pkValue, DiffStatusEnum status) {
         return new DiffRowValue(
                 List.of(
                         new DiffFieldValue<>(new IntegerField(ID), status == INSERTED ? null : pkValue, status == INSERTED ? pkValue : null, status),
@@ -425,28 +418,35 @@ public class CachedDataDiffServiceTest {
     }
 
     private Page<VersionDataDiff> createPage(List<VersionDataDiff> versionDataDiffs, int pageNumber) {
+
         int toIndex = PAGE_SIZE * (pageNumber + 1);
         return new PageImpl<>(
-                versionDataDiffs.subList(PAGE_SIZE * pageNumber, toIndex > versionDataDiffs.size() ? versionDataDiffs.size() : toIndex),
-                PageRequest.of(pageNumber, PAGE_SIZE), versionDataDiffs.size());
+                versionDataDiffs.subList(PAGE_SIZE * pageNumber, Math.min(toIndex, versionDataDiffs.size())),
+                PageRequest.of(pageNumber, PAGE_SIZE), versionDataDiffs.size()
+        );
     }
 
     private PageImpl<VersionDataDiff> createPageWithEmptyContent(int totalElements) {
         return new PageImpl<>(emptyList(), PageRequest.of(1, PAGE_SIZE), totalElements);
     }
 
-    private VersionDataDiff createVersionDataDiff(String pkName, int pkValue, DiffStatusEnum firstRowValuesStatus, DiffStatusEnum lastRowValueStatus) {
+    private VersionDataDiff createVersionDataDiff(String pkName, int pkValue,
+                                                  DiffStatusEnum firstRowValuesStatus,
+                                                  DiffStatusEnum lastRowValueStatus) {
         return new VersionDataDiff(pkName + "=" + pkValue,
-                createDiffRowValue(pkValue, firstRowValuesStatus),
-                createDiffRowValue(pkValue, lastRowValueStatus));
+                createDiffRowValue(BigInteger.valueOf(pkValue), firstRowValuesStatus),
+                createDiffRowValue(BigInteger.valueOf(pkValue), lastRowValueStatus));
     }
 
-    private CompareDataCriteria createCriteria(Integer oldVersionId, Integer newVersionId, DiffStatusEnum status, Boolean countOnly) {
+    private CompareDataCriteria createCriteria(Integer oldVersionId, Integer newVersionId,
+                                               DiffStatusEnum status, Boolean countOnly) {
+
         CompareDataCriteria criteria = new CompareDataCriteria(oldVersionId, newVersionId);
         criteria.setDiffStatus(status);
         criteria.setCountOnly(countOnly);
         criteria.setPrimaryAttributesFilters(PRIMARY_ATTR_FILTER);
         criteria.setPageSize(PAGE_SIZE);
+
         return criteria;
     }
 }

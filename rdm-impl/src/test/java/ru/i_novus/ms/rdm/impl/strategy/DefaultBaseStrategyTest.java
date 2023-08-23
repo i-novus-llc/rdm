@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy;
 
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -9,6 +8,7 @@ import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
+import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
@@ -71,9 +71,10 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
         return entity;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected void fillOptLockValue(RefBookVersionEntity entity, int optLockValue) {
         try {
-            FieldSetter.setField(entity, RefBookVersionEntity.class.getDeclaredField("optLockValue"), optLockValue);
+            ReflectionUtils.setField(entity, RefBookVersionEntity.class.getDeclaredField("optLockValue"), optLockValue);
 
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);

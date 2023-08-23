@@ -32,11 +32,17 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
-import ru.i_novus.ms.rdm.impl.entity.*;
+import ru.i_novus.ms.rdm.impl.entity.AttributeValidationEntity;
+import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
+import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.file.process.*;
 import ru.i_novus.ms.rdm.impl.model.RefBookVersionEntityKit;
-import ru.i_novus.ms.rdm.impl.repository.*;
+import ru.i_novus.ms.rdm.impl.repository.AttributeValidationRepository;
+import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.data.*;
@@ -171,11 +177,11 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        return switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX" -> createFromXlsx(refBookId, fileModel);
-            case "XML" -> createFromXml(refBookId, fileModel);
-            default -> throw new FileExtensionException();
-        };
+        switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX": return createFromXlsx(refBookId, fileModel);
+            case "XML": return createFromXml(refBookId, fileModel);
+            default: throw new FileExtensionException();
+        }
     }
 
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel) {

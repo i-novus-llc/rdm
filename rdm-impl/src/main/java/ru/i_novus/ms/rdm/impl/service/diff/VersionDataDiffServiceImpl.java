@@ -140,7 +140,7 @@ public class VersionDataDiffServiceImpl implements VersionDataDiffService {
     }
 
     private String toAttributeFilterPrimary(AttributeFilter primaryAttributeFilter) {
-        return DataDiffUtil.toPrimaryString(primaryAttributeFilter.getAttributeName(), primaryAttributeFilter.getValue());
+        return DataDiffUtil.toNamedStringValue(primaryAttributeFilter.getAttributeName(), primaryAttributeFilter.getValue());
     }
 
     private String toExcludePrimaries(List<String> excludePrimaryValues) {

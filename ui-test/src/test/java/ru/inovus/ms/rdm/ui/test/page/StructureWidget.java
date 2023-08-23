@@ -5,7 +5,7 @@ import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 
 import java.util.List;
 
-public class StructureListWidget extends N2oTableWidget {
+public class StructureWidget extends N2oTableWidget {
 
     public StructureFormModal form() {
         toolbar()

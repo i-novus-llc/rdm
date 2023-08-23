@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -30,6 +29,7 @@ import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.n2o.utils.ReflectionUtils;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -86,7 +86,7 @@ public class CreateDraftControllerTest extends BaseTest {
     public void setUp() throws NoSuchFieldException {
 
         final UiStrategyLocator strategyLocator = new BaseUiStrategyLocator(getStrategies());
-        FieldSetter.setField(controller, CreateDraftController.class.getDeclaredField("strategyLocator"), strategyLocator);
+        ReflectionUtils.setField(controller, CreateDraftController.class.getDeclaredField("strategyLocator"), strategyLocator);
     }
 
     @Test
