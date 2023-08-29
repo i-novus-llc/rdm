@@ -7,7 +7,7 @@
     <parent>
         <artifactId>rdm</artifactId>
         <groupId>ru.i-novus.ms.rdm</groupId>
-        <version>4.11.5</version>
+        <version>4.11.6-SNAPSHOT</version>
     </parent>
 
     <dependencies>
