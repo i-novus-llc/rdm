@@ -43,7 +43,7 @@
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
 
                 <eq field-id="localeCode" value=""/>
-                <eq field-id="filter" param="filter"/>
+                <eq field-id="filter" param="filter"/> <!-- Фильтр данных по колонкам в DataGrid -->
             </filters>
         </datasource>
 
