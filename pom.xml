@@ -19,10 +19,10 @@
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
 
-        <npm.registry>https://registry.yarnpkg.com</npm.registry>
-        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
+        <npm.registry>https://npm.i-novus.ru</npm.registry>
+
         <n2o.version>7.23.79</n2o.version>
-        <vds.version>3.23-SNAPSHOT</vds.version>
+        <vds.version>3.23</vds.version>
         <l10n.vds.version>3.28-SNAPSHOT</l10n.vds.version>
 
         <!-- from jackson-bom in spring-boot-dependencies -->
@@ -40,10 +40,13 @@
         <itext.pdf.version>5.5.9</itext.pdf.version>
         <jaxws.version>2.3.2</jaxws.version>
 
-        <!--security -->
+        <!-- security -->
         <security.admin.version>6.1.6</security.admin.version>
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
-        <audit.version>2.4.25</audit.version>
+        <i-novus.audit.version>2.4.25</i-novus.audit.version>
+
+        <!-- test -->
+        <xmlunit.version>1.6</xmlunit.version>
     </properties>
 
     <name>rdm</name>
