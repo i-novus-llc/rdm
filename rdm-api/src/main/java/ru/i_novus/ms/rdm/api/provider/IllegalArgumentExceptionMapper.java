@@ -12,11 +12,11 @@ import javax.ws.rs.ext.Provider;
 @Provider
 public class IllegalArgumentExceptionMapper implements RestExceptionMapper<IllegalArgumentException> {
 
-    private static final String ARGUMENT_ERROR =  "arg.error";
-
     private static final Logger logger = LoggerFactory.getLogger(IllegalArgumentExceptionMapper.class);
 
-    private Messages messages;
+    private static final String ARGUMENT_ERROR = "arg.error";
+
+    private final Messages messages;
 
     public IllegalArgumentExceptionMapper(Messages messages) {
         this.messages = messages;

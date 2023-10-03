@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class MskUtcLocalDateTimeParamConverter implements TypedParamConverter<LocalDateTime> {
 
-    private TypedParamConverter<LocalDateTime> original;
+    private final TypedParamConverter<LocalDateTime> original;
 
     public MskUtcLocalDateTimeParamConverter(TypedParamConverter<LocalDateTime> original) {
         this.original = original;
@@ -25,6 +25,6 @@ public class MskUtcLocalDateTimeParamConverter implements TypedParamConverter<Lo
 
     @Override
     public String toString(LocalDateTime localDateTime) {
-        return  original.toString(TimeUtils.utcToZoned(localDateTime));
+        return original.toString(TimeUtils.utcToZoned(localDateTime));
     }
 }
