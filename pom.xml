@@ -23,7 +23,7 @@
 
         <n2o.version>7.23.79</n2o.version>
         <vds.version>3.23</vds.version>
-        <l10n.vds.version>3.28-SNAPSHOT</l10n.vds.version>
+        <l10n.vds.version>3.28</l10n.vds.version>
 
         <!-- from jackson-bom in spring-boot-dependencies -->
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
