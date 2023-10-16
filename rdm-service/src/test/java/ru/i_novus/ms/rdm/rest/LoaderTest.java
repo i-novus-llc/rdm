@@ -2,7 +2,7 @@ package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
+import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;

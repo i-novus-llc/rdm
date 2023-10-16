@@ -2,7 +2,7 @@ package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.EnableEmbeddedPg;
+import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
