@@ -1,8 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
 import com.querydsl.core.types.Predicate;
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -29,13 +27,17 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -82,7 +84,8 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(any()))
+                .thenReturn(new DataPage<>(0, emptyList(), new DataCriteria()));
 
         SearchDataCriteria searchDataCriteria = new SearchDataCriteria();
         searchDataCriteria.setAttributeFilters(new HashSet<>());
@@ -96,7 +99,7 @@ public class VersionServiceTest {
         StorageDataCriteria dataCriteria = new StorageDataCriteria(entity.getStorageCode(),
                 entity.getFromDate(), entity.getToDate(), new ArrayList<>(),
                 toFieldSearchCriterias(searchDataCriteria.getAttributeFilters()), searchDataCriteria.getCommonFilter());
-        dataCriteria.setPage(searchDataCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        dataCriteria.setPage(searchDataCriteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(searchDataCriteria.getPageSize());
 
         verify(searchDataService).getPagedData(eq(dataCriteria));

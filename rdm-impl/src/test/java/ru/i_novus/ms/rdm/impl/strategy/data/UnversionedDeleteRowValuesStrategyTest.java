@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -12,6 +11,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -59,8 +59,7 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
 
         LongRowValue rowValue = createRowValue(1L, referredId);
 
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, List.of(rowValue));
+        DataPage<RowValue> pagedData = new DataPage<>(1, List.of(rowValue), null);
 
         // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
@@ -69,13 +68,12 @@ public class UnversionedDeleteRowValuesStrategyTest extends UnversionedBaseStrat
 
         Long refSystemId = referredId * REFERRER_SYSTEM_ID_MULTIPLIER;
         LongRowValue refRowValue = createReferrerRowValue(refSystemId, referredId);
-        CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(1, List.of(refRowValue));
+        DataPage<RowValue> refPagedData = new DataPage<>(1, List.of(refRowValue), null);
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(pagedData) // page with entity data // .findDeletedRowValues
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // stop
 
         // .delete
         strategy.delete(entity, systemIds);

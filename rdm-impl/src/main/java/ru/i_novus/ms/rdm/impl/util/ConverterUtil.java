@@ -130,7 +130,10 @@ public final class ConverterUtil {
 
     public static List<DataSorting> dataSortings(Sort sort) {
 
-        List<DataSorting> result = new ArrayList<>();
+        if (sort == null || sort.isEmpty())
+            return null;
+
+        final List<DataSorting> result = new ArrayList<>();
         for (Sort.Order order : sort) {
             final DataSorting sorting = new DataSorting(order.getProperty(),
                     DataSortingDirection.valueOf(order.getDirection().name()));

@@ -167,7 +167,7 @@ public class VersionServiceImpl implements VersionService {
 
         dataCriteria.setPage(criteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
-        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(dataSortings(sort)));
+        dataCriteria.setSortings(dataSortings(criteria.getSort()));
 
         DataPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return RowValuePage.valueOf(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, entity.getId()));
