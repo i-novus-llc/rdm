@@ -44,7 +44,7 @@ public class ReferredDataCriteria extends StorageDataCriteria {
             setFieldFilters(toPrimarySearchCriterias(primaries, referenceValues));
         }
 
-        setPage(DataCriteria.MIN_PAGE);
+        setPage(DataCriteria.FIRST_PAGE);
         setSize(referenceValues != null ? referenceValues.size() : 0);
     }
 

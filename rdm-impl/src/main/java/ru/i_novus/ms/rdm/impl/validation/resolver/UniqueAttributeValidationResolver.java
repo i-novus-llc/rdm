@@ -81,7 +81,7 @@ public class UniqueAttributeValidationResolver implements AttributeValidationRes
                 null, null, // Черновик
                 singletonList(field), singletonList(fieldSearchCriteria), null
         );
-        criteria.setPage(DataCriteria.MIN_PAGE);
+        criteria.setPage(DataCriteria.FIRST_PAGE);
         criteria.setSize(value.getSystemId() != null ? 2 : 1);
 
         return criteria;

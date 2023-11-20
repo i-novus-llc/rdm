@@ -100,7 +100,7 @@ public class ReferenceValidation implements RdmValidation {
                 null, null, // Черновик
                 singletonList(draftField), emptySet(), null
         );
-        draftDataCriteria.setPage(DataCriteria.MIN_PAGE);
+        draftDataCriteria.setPage(DataCriteria.FIRST_PAGE);
         draftDataCriteria.setSize(bufferSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,

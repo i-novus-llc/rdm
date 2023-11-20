@@ -106,7 +106,7 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
                 entity.getStorageCode(), // Без учёта локализации
                 entity.getFromDate(), entity.getToDate(),
                 ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
-        dataCriteria.setPage(DataCriteria.MIN_PAGE);
+        dataCriteria.setPage(DataCriteria.FIRST_PAGE);
         dataCriteria.setSize(rowValues.size());
 
         return dataCriteria;

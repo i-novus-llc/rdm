@@ -90,7 +90,7 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
                 primaryFields);
         dataCriteria.setSystemIds(RowUtils.toLongSystemIds(systemIds));
 
-        dataCriteria.setPage(DataCriteria.MIN_PAGE);
+        dataCriteria.setPage(DataCriteria.FIRST_PAGE);
         dataCriteria.setSize(systemIds.size());
 
         return dataCriteria;

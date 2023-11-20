@@ -114,7 +114,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
                 null, null, // Черновик
                 fields, fieldFilters, null
         );
-        criteria.setPage(DataCriteria.MIN_PAGE);
+        criteria.setPage(DataCriteria.FIRST_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
 
         return criteria;
