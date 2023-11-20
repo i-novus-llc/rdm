@@ -22,8 +22,8 @@
         <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <n2o.version>7.23.79</n2o.version>
-        <vds.version>3.24</vds.version>
-        <l10n.vds.version>3.29</l10n.vds.version>
+        <vds.version>3.25</vds.version>
+        <l10n.vds.version>3.30</l10n.vds.version>
 
         <!-- from jackson-bom in spring-boot-dependencies -->
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
