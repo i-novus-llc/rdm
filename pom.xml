@@ -22,8 +22,8 @@
         <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <n2o.version>7.23.79</n2o.version>
-        <vds.version>3.23</vds.version>
-        <l10n.vds.version>3.28</l10n.vds.version>
+        <vds.version>3.24</vds.version>
+        <l10n.vds.version>3.29</l10n.vds.version>
 
         <!-- from jackson-bom in spring-boot-dependencies -->
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
@@ -41,7 +41,8 @@
         <jaxws.version>2.3.2</jaxws.version>
 
         <!-- security -->
-        <security.admin.version>6.1.6</security.admin.version>
+        <security.admin.version>7.0.7</security.admin.version>
+        <!--<security.admin.version>6.1.6</security.admin.version>-->
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
 
@@ -185,6 +186,12 @@
             <dependency>
                 <groupId>net.n2oapp.framework</groupId>
                 <artifactId>n2o-spring-boot-starter</artifactId>
+                <version>${n2o.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.n2oapp.criteria</groupId>
+                <artifactId>criteria-api</artifactId>
                 <version>${n2o.version}</version>
             </dependency>
 
