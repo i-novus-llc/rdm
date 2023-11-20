@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.rest;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
@@ -57,6 +56,7 @@ import ru.i_novus.ms.rdm.service.Application;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
@@ -3130,10 +3130,10 @@ public class ApplicationTest {
     private List<RefBookRowValue> getVersionAllRowContent(Integer versionId, String storageCode,
                                                           Structure structure,
                                                           LocalDateTime bdate, LocalDateTime edate) {
-        StorageDataCriteria criteria = new StorageDataCriteria(storageCode, bdate, edate, fields(structure));
+        final StorageDataCriteria criteria = new StorageDataCriteria(storageCode, bdate, edate, fields(structure));
         criteria.makeUnpaged();
 
-        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
+        final DataPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
             return null;
 
