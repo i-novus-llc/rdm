@@ -3,7 +3,10 @@ package ru.i_novus.ms.rdm.impl.model.refdata;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 
 import java.io.Serializable;
 import java.util.List;
@@ -41,7 +44,7 @@ public class ReferredDataCriteria extends StorageDataCriteria {
             setFieldFilters(toPrimarySearchCriterias(primaries, referenceValues));
         }
 
-        setPage(BaseDataCriteria.MIN_PAGE);
+        setPage(DataCriteria.MIN_PAGE);
         setSize(referenceValues != null ? referenceValues.size() : 0);
     }
 

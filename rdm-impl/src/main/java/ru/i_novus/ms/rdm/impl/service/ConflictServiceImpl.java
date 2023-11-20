@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -43,6 +42,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
@@ -337,14 +337,15 @@ public class ConflictServiceImpl implements ConflictService {
                                                           List<DiffRowValue> diffRowValues,
                                                           List<Structure.Attribute> refToPrimaries,
                                                           List<Structure.Attribute> refFromAttributes) {
-        Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
-        StorageDataCriteria criteria = new StorageDataCriteria(
+        final Set<List<FieldSearchCriteria>> filters = createDiffRowValuesFilters(diffRowValues, refToPrimaries, refFromAttributes);
+        final StorageDataCriteria criteria = new StorageDataCriteria(
                 refFromEntity.getStorageCode(), // Без учёта локализации
                 refFromEntity.getFromDate(), refFromEntity.getToDate(),
-                ConverterUtil.fields(refFromEntity.getStructure()), filters, null);
+                ConverterUtil.fields(refFromEntity.getStructure()), filters, null
+        );
         criteria.makeUnpaged(); // NB: Get all required rows since filters.size() <= REF_BOOK_DIFF_CONFLICT_PAGE_SIZE.
 
-        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
+        final DataPage<RowValue> pagedData = searchDataService.getPagedData(criteria);
         if (pagedData.getCollection() == null)
             return emptyList();
 

@@ -19,7 +19,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
+import ru.i_novus.platform.datastorage.temporal.util.DataPageIterator;
 
 import java.util.*;
 
@@ -141,8 +141,8 @@ public class UnversionedUpdateRowValuesStrategy implements UpdateRowValuesStrate
 
         // storageCode - Без учёта локализации
         ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), primaryValues);
-        CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
-                new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
+        DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
+                new DataPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
 
             // Если отображаемое значение восстановлено,

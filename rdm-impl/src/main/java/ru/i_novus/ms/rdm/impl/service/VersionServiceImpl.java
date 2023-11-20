@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,7 +30,8 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
@@ -45,6 +45,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.hasVersionId;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -164,12 +165,12 @@ public class VersionServiceImpl implements VersionService {
         dataCriteria.setHashList(criteria.getRowHashList());
         dataCriteria.setSystemIds(criteria.getRowSystemIds());
 
-        dataCriteria.setPage(criteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        dataCriteria.setPage(criteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
-        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
+        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(dataSortings(sort)));
 
-        CollectionPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
-        return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, entity.getId()));
+        DataPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
+        return RowValuePage.valueOf(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, entity.getId()));
     }
 
     @Override

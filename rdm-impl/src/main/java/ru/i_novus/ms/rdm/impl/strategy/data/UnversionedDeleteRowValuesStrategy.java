@@ -16,11 +16,11 @@ import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
+import ru.i_novus.platform.datastorage.temporal.util.DataPageIterator;
 
 import java.util.Collection;
 import java.util.List;
@@ -90,7 +90,7 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
                 primaryFields);
         dataCriteria.setSystemIds(RowUtils.toLongSystemIds(systemIds));
 
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
+        dataCriteria.setPage(DataCriteria.MIN_PAGE);
         dataCriteria.setSize(systemIds.size());
 
         return dataCriteria;
@@ -129,8 +129,8 @@ public class UnversionedDeleteRowValuesStrategy implements DeleteRowValuesStrate
 
         // storageCode - Без учёта локализации
         ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), primaryValues);
-        CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
-                new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
+        DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
+                new DataPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page -> {
 
             // Удалить существующие конфликты для найденных записей.
