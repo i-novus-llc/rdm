@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.impl.validation.resolver;
 
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.Message;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +10,8 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
@@ -40,15 +40,15 @@ public class UniqueAttributeValidationResolverTest {
     @Before
     public void init() {
         when(searchDataService.getPagedData(any()))
-                .thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+                .thenReturn(new DataPage<>(0, emptyList(), new DataCriteria()));
         when(searchDataService.getPagedData(
                 argThat(o -> DB_CONTAINS_STRING.equals(
                         o.getFieldFilters().iterator().next().get(0).getValues().get(0))
                 )
-        )).thenReturn(new CollectionPage<>(
+        )).thenReturn(new DataPage<>(
                 1,
                 singletonList(new LongRowValue(1L, singletonList(new StringField(TEST_ATTRIBUTE).valueOf(DB_CONTAINS_STRING)))),
-                new Criteria()));
+                new DataCriteria()));
     }
 
     @Test
@@ -60,5 +60,4 @@ public class UniqueAttributeValidationResolverTest {
         actual = resolver.resolve(new UniqueAttributeValue(null, DB_CONTAINS_STRING));
         assertEquals(DB_CONTAINS_VALUE_EXCEPTION_CODE, actual.getCode());
     }
-
 }

@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service.diff;
 
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +27,8 @@ import ru.i_novus.ms.rdm.impl.repository.diff.VersionDataDiffRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.BooleanField;
@@ -148,24 +148,24 @@ public class StoreDataDiffResolverTest extends BaseTest {
                 new DiffFieldValue(boolField, Boolean.FALSE, null, DiffStatusEnum.DELETED)
         ), DiffStatusEnum.DELETED);
 
-        Criteria vdsCriteria = new Criteria();
-        vdsCriteria.setPage(RestCriteria.FIRST_PAGE_NUMBER + 1);
+        DataCriteria vdsCriteria = new DataCriteria();
+        vdsCriteria.setPage(RestCriteria.FIRST_PAGE_NUMBER + DataCriteria.PAGE_SHIFT);
         vdsCriteria.setSize(100);
 
         final int diffRowValueCount = 3;
 
-        CollectionPage<DiffRowValue> vdsDiffRowValuePage = new CollectionPage<>(diffRowValueCount,
+        DataPage<DiffRowValue> vdsDiffRowValuePage = new DataPage<>(diffRowValueCount,
                 asList(updatedValue, insertedValue, deletedValue), vdsCriteria);
 
-        RefBookDataDiff dataDiff = new RefBookDataDiff(new DiffRowValuePage(vdsDiffRowValuePage), attributeDiff);
+        RefBookDataDiff dataDiff = new RefBookDataDiff(DiffRowValuePage.valueOf(vdsDiffRowValuePage), attributeDiff);
 
-        CollectionPage<DiffRowValue> emptyDiffRowValuePage = new CollectionPage<>(diffRowValueCount, emptyList(), vdsCriteria);
+        DataPage<DiffRowValue> emptyDiffRowValuePage = new DataPage<>(diffRowValueCount, emptyList(), vdsCriteria);
 
         when(compareService.compareData(any())).thenAnswer(invocation -> {
             CompareDataCriteria criteria = (CompareDataCriteria) (invocation.getArguments()[0]);
             return (criteria.getPageNumber() == RestCriteria.FIRST_PAGE_NUMBER)
                     ? dataDiff
-                    : new RefBookDataDiff(new DiffRowValuePage(emptyDiffRowValuePage), attributeDiff);
+                    : new RefBookDataDiff(DiffRowValuePage.valueOf(emptyDiffRowValuePage), attributeDiff);
         });
 
         resolver.saveLastVersionDataDiff(TEST_REFBOOK_CODE);

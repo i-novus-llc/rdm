@@ -1,12 +1,14 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -40,6 +42,7 @@ import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -58,6 +61,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -452,21 +456,27 @@ public class DraftServiceTest {
         );
 
         PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, List.of(row));
-        when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilters().isEmpty())))
+        DataPage<RowValue> pagedData = new DataPage<>(1, List.of(row), null);
+        when(versionService.search(eq(draft.getId()), argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilters().isEmpty())))
                 .thenReturn(dataPage);
 
         if (primaryType == FieldType.REFERENCE) {
+            Structure structure = new Structure(
+                    singletonList(Structure.Attribute.buildPrimary("-", "-", FieldType.STRING, "-")),
+                    emptyList()
+            );
+
             RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
             refToRefBookVersionEntity.setId(1234567890);
-            refToRefBookVersionEntity.setStructure(new Structure(singletonList(Structure.Attribute.buildPrimary("-", "-", FieldType.STRING, "-")), emptyList()));
+            refToRefBookVersionEntity.setStructure(structure);
+
             when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq("REF_TO_CODE"), eq(RefBookVersionStatus.PUBLISHED)))
                     .thenReturn(refToRefBookVersionEntity);
+
             RefBookVersion refToRefBookVersion = new RefBookVersion();
             refToRefBookVersion.setId(refToRefBookVersionEntity.getId());
             refToRefBookVersion.setCode("REF_TO_CODE");
-            refToRefBookVersion.setStructure(refToRefBookVersionEntity.getStructure());
+            refToRefBookVersion.setStructure(structure);
             when(versionService.getLastPublishedVersion(eq("REF_TO_CODE"))).thenReturn(refToRefBookVersion);
 
             PageImpl<RefBookRowValue> refToPage = new PageImpl<>(singletonList(

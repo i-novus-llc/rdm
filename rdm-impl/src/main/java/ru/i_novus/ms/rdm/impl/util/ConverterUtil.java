@@ -1,8 +1,5 @@
 package ru.i_novus.ms.rdm.impl.util;
 
-import net.n2oapp.criteria.api.Criteria;
-import net.n2oapp.criteria.api.Sorting;
-import net.n2oapp.criteria.api.SortingDirection;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.data.domain.Sort;
@@ -17,9 +14,7 @@ import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.BaseDataCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.*;
@@ -133,13 +128,18 @@ public final class ConverterUtil {
         return date != null ? Date.from(date.atZone(ZoneId.systemDefault()).toInstant()) : null;
     }
 
-    public static List<Sorting> sortings(Sort sort) {
+    public static List<DataSorting> dataSortings(Sort sort) {
 
-        List<Sorting> sortings = new ArrayList<>();
+        if (sort == null || sort.isEmpty())
+            return null;
+
+        final List<DataSorting> result = new ArrayList<>();
         for (Sort.Order order : sort) {
-            sortings.add(new Sorting(order.getProperty(), SortingDirection.valueOf(order.getDirection().name())));
+            final DataSorting sorting = new DataSorting(order.getProperty(),
+                    DataSortingDirection.valueOf(order.getDirection().name()));
+            result.add(sorting);
         }
-        return sortings;
+        return result;
     }
 
     /**
@@ -415,10 +415,10 @@ public final class ConverterUtil {
      * @param count        количество
      * @return Критерий vds
      */
-    public static Criteria toCriteria(RestCriteria restCriteria, Integer count) {
+    public static DataCriteria toCriteria(RestCriteria restCriteria, Integer count) {
 
-        Criteria criteria = new Criteria();
-        criteria.setPage(restCriteria.getPageNumber() + BaseDataCriteria.PAGE_SHIFT);
+        final DataCriteria criteria = new DataCriteria();
+        criteria.setPage(restCriteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         criteria.setSize(restCriteria.getPageSize());
         criteria.setCount(count);
 

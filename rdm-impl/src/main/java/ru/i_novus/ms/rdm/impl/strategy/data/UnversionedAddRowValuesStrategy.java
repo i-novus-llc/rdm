@@ -17,10 +17,13 @@ import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
+import ru.i_novus.platform.datastorage.temporal.util.DataPageIterator;
 
 import java.util.*;
 
@@ -103,7 +106,7 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
                 entity.getStorageCode(), // Без учёта локализации
                 entity.getFromDate(), entity.getToDate(),
                 ConverterUtil.fields(entity.getStructure()), primarySearchCriterias, null);
-        dataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
+        dataCriteria.setPage(DataCriteria.FIRST_PAGE);
         dataCriteria.setSize(rowValues.size());
 
         return dataCriteria;
@@ -141,8 +144,8 @@ public class UnversionedAddRowValuesStrategy implements AddRowValuesStrategy {
         // storageCode - Без учёта локализации
         ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references,
                 referrer.getStorageCode(), new ArrayList<>(rowValues.keySet()));
-        CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
-                new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
+        DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
+                new DataPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
 
             // При наличии конфликта DELETED:

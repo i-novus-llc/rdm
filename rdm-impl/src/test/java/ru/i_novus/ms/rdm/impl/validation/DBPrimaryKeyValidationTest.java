@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.impl.validation;
 
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.Message;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,19 +7,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static ru.i_novus.ms.rdm.api.util.TimeUtils.parseLocalDate;
@@ -73,7 +74,7 @@ public class DBPrimaryKeyValidationTest {
         pkRow = new Row(pkRowMap);
 
         noPkStructure = new Structure();
-        noPkStructure.setAttributes(Collections.singletonList(
+        noPkStructure.setAttributes(singletonList(
                 Structure.Attribute.build(NOT_PK, "not_pk", FieldType.INTEGER, "integer")
         ));
 
@@ -87,7 +88,8 @@ public class DBPrimaryKeyValidationTest {
         RowValue rowValue = ConverterUtil.rowValue(pkRow, pkStructure);
         rowValue.setSystemId(1L);
 
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(1, Collections.singletonList(rowValue), new Criteria()));
+        when(searchDataService.getPagedData(any()))
+                .thenReturn(new DataPage<>(1, singletonList(rowValue), new DataCriteria()));
 
         AppendRowValidation validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);
@@ -112,7 +114,8 @@ public class DBPrimaryKeyValidationTest {
         Assert.assertEquals(0, messages.size());
         Assert.assertEquals(1, errorAttributes.size());
 
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(any()))
+                .thenReturn(new DataPage<>(0, emptyList(), new DataCriteria()));
 
         validation = new DBPrimaryKeyValidation(searchDataService, STORAGE_CODE, pkStructure, pkRow);
         validation.appendRow(pkRow);

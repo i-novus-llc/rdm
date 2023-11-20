@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.validation;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,8 +98,9 @@ public class ReferenceValidation implements RdmValidation {
         StorageDataCriteria draftDataCriteria = new StorageDataCriteria(
                 draftEntity.getStorageCode(), // Без учёта локализации
                 null, null, // Черновик
-                singletonList(draftField), emptySet(), null);
-        draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
+                singletonList(draftField), emptySet(), null
+        );
+        draftDataCriteria.setPage(DataCriteria.FIRST_PAGE);
         draftDataCriteria.setSize(bufferSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,
@@ -116,15 +116,15 @@ public class ReferenceValidation implements RdmValidation {
     // NB: Странный рекурсивный проход по страницам.
     private void validateData(StorageDataCriteria draftDataCriteria, List<String> incorrectValues,
                               RefBookVersionEntity referredEntity, Field referredField) {
-        CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
+
+        final DataPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // Значения, которые приведены к типу атрибута из ссылки
-        List<Serializable> castedValues = new ArrayList<>();
+        final List<Serializable> castedValues = new ArrayList<>();
 
         (draftRowValues.getCollection()).forEach(rowValue -> {
-            String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
-            Serializable castedValue;
+            final String value = String.valueOf(rowValue.getFieldValue(reference.getAttribute()).getValue());
             try {
-                castedValue = ConverterUtil.castReferenceValue(referredField, value);
+                Serializable castedValue = ConverterUtil.castReferenceValue(referredField, value);
                 castedValues.add(castedValue);
 
             } catch (NumberFormatException | DateTimeParseException | RdmException e) {
@@ -134,13 +134,15 @@ public class ReferenceValidation implements RdmValidation {
         });
 
         if (!isEmpty(castedValues)) {
-            FieldSearchCriteria refFieldSearchCriteria = new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
-            StorageDataCriteria referredDataCriteria = new StorageDataCriteria(
+            final FieldSearchCriteria refFieldSearchCriteria =
+                    new FieldSearchCriteria(referredField, SearchTypeEnum.EXACT, castedValues);
+            final StorageDataCriteria referredDataCriteria = new StorageDataCriteria(
                     referredEntity.getStorageCode(), // Без учёта локализации
                     referredEntity.getFromDate(), referredEntity.getToDate(),
                     singletonList(referredField), singletonList(refFieldSearchCriteria), null);
-            CollectionPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
-            Collection<RowValue> refRowValues = (refRowValuePage.getCollection() != null) ? refRowValuePage.getCollection() : emptyList();
+            final DataPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
+            final Collection<RowValue> refRowValues =
+                    (refRowValuePage.getCollection() != null) ? refRowValuePage.getCollection() : emptyList();
 
             castedValues.forEach(castedValue -> {
                 if (refRowValues.stream()
@@ -151,12 +153,15 @@ public class ReferenceValidation implements RdmValidation {
             });
         }
 
-        int remainCount = draftRowValues.getCount() - (draftDataCriteria.getPage() - 1) * bufferSize - draftDataCriteria.getSize();
+        final int remainCount = draftRowValues.getCount() -
+                (draftDataCriteria.getPage() - 1) * bufferSize -
+                draftDataCriteria.getSize();
         if (remainCount <= 0)
             return;
 
         draftDataCriteria.setPage(draftDataCriteria.getPage() + 1);
         draftDataCriteria.setSize((remainCount >= bufferSize) ? bufferSize : remainCount);
+
         validateData(draftDataCriteria, incorrectValues, referredEntity, referredField);
     }
 }

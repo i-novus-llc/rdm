@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service.diff;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +14,19 @@ import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toCriteria;
 import static ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum.EXACT;
 
@@ -75,18 +78,24 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
                         .anyMatch(filter -> EXACT != filter.getSearchType()));
     }
 
-    private DataDifference buildDataDifference(List<DiffRowValue> pageContent, CompareDataCriteria criteria, int totalElements) {
-        return new DataDifference(new CollectionPage<>(totalElements, pageContent, toCriteria(criteria, totalElements)));
+    private DataDifference buildDataDifference(List<DiffRowValue> pageContent,
+                                               CompareDataCriteria criteria,
+                                               int totalElements) {
+        return new DataDifference(new DataPage<>(totalElements, pageContent, toCriteria(criteria, totalElements)));
     }
 
-    private List<DiffRowValue> getPageContent(List<VersionDataDiff> versionDataDiffs, Boolean isCountOnly,
-                                              Set<String> changedAttributeNames, boolean isBackwardComparison) {
+    private List<DiffRowValue> getPageContent(List<VersionDataDiff> versionDataDiffs,
+                                              Boolean isCountOnly,
+                                              Set<String> changedAttributeNames,
+                                              boolean isBackwardComparison) {
         List<DiffRowValue> result = new ArrayList<>();
-        if (!TRUE.equals(isCountOnly))
+        if (!TRUE.equals(isCountOnly)) {
             result = versionDataDiffs.stream()
-                    .map(dataDiff -> new DiffRowValueCalculator(dataDiff.getFirstDiffRowValue(), dataDiff.getLastDiffRowValue(), changedAttributeNames, isBackwardComparison))
+                    .map(dataDiff -> new DiffRowValueCalculator(dataDiff.getFirstDiffRowValue(),
+                            dataDiff.getLastDiffRowValue(), changedAttributeNames, isBackwardComparison))
                     .map(DiffRowValueCalculator::calculate)
-                    .collect(Collectors.toList());
+                    .collect(toList());
+        }
         return result;
     }
 
@@ -106,7 +115,7 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
             List<String> pageExcluded = page.getContent().stream()
                     .filter(dataDiff -> isExcluded(dataDiff, criteria, changedAttributeNames, isBackwardComparison))
                     .map(VersionDataDiff::getPrimaryValues)
-                    .collect(Collectors.toList());
+                    .collect(toList());
             excludedPrimaryValues.addAll(pageExcluded);
         });
         return excludedPrimaryValues;
