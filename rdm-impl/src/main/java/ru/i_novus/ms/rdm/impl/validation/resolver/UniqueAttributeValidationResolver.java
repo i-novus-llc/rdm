@@ -5,7 +5,10 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.version.UniqueAttributeValue;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.util.Collection;
@@ -75,7 +78,7 @@ public class UniqueAttributeValidationResolver implements AttributeValidationRes
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode,
                 null, null, // Черновик
                 singletonList(field), singletonList(fieldSearchCriteria), null);
-        criteria.setPage(BaseDataCriteria.MIN_PAGE);
+        criteria.setPage(DataCriteria.FIRST_PAGE);
         criteria.setSize(value.getSystemId() != null ? 2 : 1);
         return criteria;
     }

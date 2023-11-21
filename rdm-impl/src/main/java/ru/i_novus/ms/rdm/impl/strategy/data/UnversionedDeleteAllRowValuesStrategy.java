@@ -18,7 +18,7 @@ import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
-import ru.i_novus.platform.datastorage.temporal.util.CollectionPageIterator;
+import ru.i_novus.platform.datastorage.temporal.util.DataPageIterator;
 
 import java.util.Collection;
 import java.util.List;
@@ -87,8 +87,8 @@ public class UnversionedDeleteAllRowValuesStrategy implements DeleteAllRowValues
         ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), null);
         dataCriteria.setFieldFilters(ConverterUtil.toNotNullSearchCriterias(references));
 
-        CollectionPageIterator<RowValue, StorageDataCriteria> pageIterator =
-                new CollectionPageIterator<>(searchDataService::getPagedData, dataCriteria);
+        DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
+                new DataPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page -> {
 
             // Если есть значение ссылки на один из systemIds, создать конфликт DELETED.

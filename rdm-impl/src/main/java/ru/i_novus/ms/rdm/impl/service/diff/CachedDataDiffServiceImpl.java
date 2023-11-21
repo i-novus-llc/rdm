@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service.diff;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,13 @@ import ru.i_novus.ms.rdm.api.service.diff.VersionDataDiffService;
 import ru.i_novus.ms.rdm.api.util.PageIterator;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.DataDifference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.DiffRowValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
@@ -76,7 +79,7 @@ public class CachedDataDiffServiceImpl implements CachedDataDiffService {
     }
 
     private DataDifference buildDataDifference(List<DiffRowValue> pageContent, CompareDataCriteria criteria, int totalElements) {
-        return new DataDifference(new CollectionPage<>(totalElements, pageContent, toCriteria(criteria, totalElements)));
+        return new DataDifference(new DataPage<>(totalElements, pageContent, toCriteria(criteria, totalElements)));
     }
 
     private List<DiffRowValue> getPageContent(List<VersionDataDiff> versionDataDiffs, Boolean isCountOnly,
