@@ -128,13 +128,18 @@ public final class ConverterUtil {
         return date != null ? Date.from(date.atZone(ZoneId.systemDefault()).toInstant()) : null;
     }
 
-    public static List<DataSorting> sortings(Sort sort) {
+    public static List<DataSorting> dataSortings(Sort sort) {
 
-        List<DataSorting> sortings = new ArrayList<>();
+        if (sort == null || sort.isEmpty())
+            return null;
+
+        final List<DataSorting> result = new ArrayList<>();
         for (Sort.Order order : sort) {
-            sortings.add(new DataSorting(order.getProperty(), DataSortingDirection.valueOf(order.getDirection().name())));
+            final DataSorting sorting = new DataSorting(order.getProperty(),
+                    DataSortingDirection.valueOf(order.getDirection().name()));
+            result.add(sorting);
         }
-        return sortings;
+        return result;
     }
 
     /**

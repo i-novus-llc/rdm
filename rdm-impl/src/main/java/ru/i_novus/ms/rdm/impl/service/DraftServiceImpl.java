@@ -78,6 +78,7 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -706,7 +707,7 @@ public class DraftServiceImpl implements DraftService {
 
         dataCriteria.setPage(criteria.getPageNumber() + DataCriteria.PAGE_SHIFT);
         dataCriteria.setSize(criteria.getPageSize());
-        Optional.ofNullable(criteria.getSort()).ifPresent(sort -> dataCriteria.setSortings(ConverterUtil.sortings(sort)));
+        dataCriteria.setSortings(dataSortings(criteria.getSort()));
 
         DataPage<RowValue> pagedData = searchDataService.getPagedData(dataCriteria);
         return new RowValuePage(pagedData).map(rv -> new RefBookRowValue((LongRowValue) rv, draft.getId()));

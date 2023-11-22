@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,6 +40,7 @@ import ru.i_novus.ms.rdm.impl.validation.StructureChangeValidator;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -451,8 +451,7 @@ public class DraftServiceTest {
         );
 
         PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(1, List.of(row));
+        DataPage<RowValue> pagedData = new DataPage<>(1, List.of(row), null);
         when(versionService.search(eq(draft.getId()), ArgumentMatchers.argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilters().isEmpty())))
                 .thenReturn(dataPage);
 

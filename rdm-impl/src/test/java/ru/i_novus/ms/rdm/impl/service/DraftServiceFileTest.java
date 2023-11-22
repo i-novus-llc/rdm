@@ -1,7 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
-import net.n2oapp.criteria.api.Criteria;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,6 +36,8 @@ import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.ms.rdm.impl.utils.ReflectionUtils;
 import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
@@ -226,7 +226,7 @@ public class DraftServiceFileTest {
         PageImpl<RefBookRowValue> referenceRows = UploadFileTestData.createReferenceRows();
         when(versionService.search(eq(UploadFileTestData.REFERENCE_ENTITY_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(referenceRows);
 
-        when(searchDataService.getPagedData(any())).thenReturn(new CollectionPage<>(0, emptyList(), new Criteria()));
+        when(searchDataService.getPagedData(any())).thenReturn(new DataPage<>(0, emptyList(), new DataCriteria()));
 
         when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(uploadedDraftEntity);
         when(versionRepository.getOne(uploadedDraftId)).thenReturn(uploadedDraftEntity);

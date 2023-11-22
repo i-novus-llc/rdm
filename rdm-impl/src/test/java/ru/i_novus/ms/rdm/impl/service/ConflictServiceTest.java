@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +31,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.*;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
@@ -221,7 +221,7 @@ public class ConflictServiceTest {
 
         when(versionValidation.equalsPrimaries(anyList(), anyList())).thenReturn(true);
 
-        CollectionPage<RowValue> publishingRowValues = createCalculateStructureConflictsPublishedRowValues();
+        DataPage<RowValue> publishingRowValues = createCalculateStructureConflictsPublishedRowValues();
         when(searchDataService.getPagedData(any(StorageDataCriteria.class))).thenReturn(publishingRowValues);
 
         List<RefBookConflictEntity> expectedList = new ArrayList<>(10 + 10);
@@ -417,7 +417,7 @@ public class ConflictServiceTest {
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
     }
 
-    private CollectionPage<RowValue> createCalculateStructureConflictsPublishedRowValues() {
+    private DataPage<RowValue> createCalculateStructureConflictsPublishedRowValues() {
 
         List<RowValue> rowValues = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());
 
@@ -428,8 +428,7 @@ public class ConflictServiceTest {
             rowValues.add(longRowValue);
         });
 
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(rowValues.size(), rowValues);
+        DataPage<RowValue> pagedData = new DataPage<>(rowValues.size(), rowValues, null);
 
         return pagedData;
     }

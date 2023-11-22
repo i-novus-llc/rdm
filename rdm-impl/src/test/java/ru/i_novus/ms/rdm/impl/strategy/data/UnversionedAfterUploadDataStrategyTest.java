@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -16,6 +15,7 @@ import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.UnversionedChangeStructureStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -83,8 +83,7 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
                 })
                 .collect(toList());
 
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(addedRowValues.size(), addedRowValues);
+        DataPage<RowValue> pagedData = new DataPage<>(addedRowValues.size(), addedRowValues, null);
 
         // .processReferrers
         RefBookVersionEntity referrer = createReferrerVersionEntity();
@@ -106,13 +105,12 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
                     reference.setDisplayValue(reference.getDisplayValue() + NAME_FIELD_DELETED_VALUE_SUFFIX);
                 });
 
-        CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(refRowValues.size(), refRowValues);
+        DataPage<RowValue> refPagedData = new DataPage<>(refRowValues.size(), refRowValues, null);
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer
                 .thenReturn(pagedData) // page with entity data // .findReferredRowValues
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // stop
 
         // .recalculateDataConflicts
         List<RefBookConflictEntity> conflicts = List.of(

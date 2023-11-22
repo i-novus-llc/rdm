@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.strategy.data;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -13,6 +12,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.ms.rdm.impl.strategy.publish.EditPublishStrategy;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -66,12 +66,11 @@ public class UnversionedDeleteAllRowValuesStrategyTest extends UnversionedBaseSt
                 createReferrerRowValue(1L, 1),
                 createReferrerRowValue(2L, 2)
         );
-        CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(refRowValues.size(), refRowValues);
+        DataPage<RowValue> refPagedData = new DataPage<>(refRowValues.size(), refRowValues, null);
 
         when(searchDataService.getPagedData(any()))
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // stop
 
         // .deleteAll
         strategy.deleteAll(entity);
