@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.validation;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +99,7 @@ public class ReferenceValidation implements RdmValidation {
                 draftEntity.getStorageCode(), // Без учёта локализации
                 null, null, // Черновик
                 singletonList(draftField), emptySet(), null);
-        draftDataCriteria.setPage(BaseDataCriteria.MIN_PAGE);
+        draftDataCriteria.setPage(DataCriteria.FIRST_PAGE);
         draftDataCriteria.setSize(bufferSize);
 
         // Значения, не приводимые к типу атрибута, на который ссылаемся,
@@ -116,7 +115,7 @@ public class ReferenceValidation implements RdmValidation {
     // NB: Странный рекурсивный проход по страницам.
     private void validateData(StorageDataCriteria draftDataCriteria, List<String> incorrectValues,
                               RefBookVersionEntity referredEntity, Field referredField) {
-        CollectionPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
+        DataPage<RowValue> draftRowValues = searchDataService.getPagedData(draftDataCriteria);
         // Значения, которые приведены к типу атрибута из ссылки
         List<Serializable> castedValues = new ArrayList<>();
 
@@ -139,7 +138,7 @@ public class ReferenceValidation implements RdmValidation {
                     referredEntity.getStorageCode(), // Без учёта локализации
                     referredEntity.getFromDate(), referredEntity.getToDate(),
                     singletonList(referredField), singletonList(refFieldSearchCriteria), null);
-            CollectionPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
+            DataPage<RowValue> refRowValuePage = searchDataService.getPagedData(referredDataCriteria);
             Collection<RowValue> refRowValues = (refRowValuePage.getCollection() != null) ? refRowValuePage.getCollection() : emptyList();
 
             castedValues.forEach(castedValue -> {

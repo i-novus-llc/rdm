@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.strategy.structure;
 
-import net.n2oapp.criteria.api.CollectionPage;
 import net.n2oapp.platform.i18n.UserException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,6 +15,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataPage;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -137,7 +137,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         mockFindReferrers(versionRepository, referrers);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // no referrer data
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // no referrer data
 
         strategy.processReferrers(entity);
 
@@ -166,7 +166,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         mockFindReferrers(versionRepository, referrers);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // no referrer data
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // no referrer data
 
         strategy.processReferrers(entity);
 
@@ -204,7 +204,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 .thenReturn(conflicts);
 
         when(searchDataService.getPagedData(any()))
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // no referrer data
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // no referrer data
 
         strategy.processReferrers(entity);
 
@@ -239,8 +239,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 .filter(rowValue -> List.of(3L, 4L).contains((Long) rowValue.getSystemId()))
                 .collect(toList());
 
-        CollectionPage<RowValue> pagedData = new CollectionPage<>();
-        pagedData.init(existRowValues.size(), existRowValues);
+        DataPage<RowValue> pagedData = new DataPage<>(existRowValues.size(), existRowValues, null);
 
         RefBookVersionEntity referrer = createReferrerVersionEntity();
         List<RefBookVersionEntity> referrers = singletonList(referrer);
@@ -256,8 +255,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
                 .collect(toList());
         List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
 
-        CollectionPage<RowValue> refPagedData = new CollectionPage<>();
-        refPagedData.init(refRowValues.size(), refRowValues);
+        DataPage<RowValue> refPagedData = new DataPage<>(refRowValues.size(), refRowValues, null);
 
         List<RefBookConflictEntity> conflicts = Stream.of(2L, 4L)
                 .map(id -> id * REFERRER_SYSTEM_ID_MULTIPLIER)
@@ -274,7 +272,7 @@ public class UnversionedChangeStructureStrategyTest extends UnversionedBaseStrat
         when(searchDataService.getPagedData(any()))
                 .thenReturn(refPagedData) // page with referrer data // .processReferrer
                 .thenReturn(pagedData) // page with entity data // .findReferredRowValues
-                .thenReturn(new CollectionPage<>(1, emptyList(), null)); // stop
+                .thenReturn(new DataPage<>(1, emptyList(), null)); // stop
 
         strategy.processReferrers(entity);
 

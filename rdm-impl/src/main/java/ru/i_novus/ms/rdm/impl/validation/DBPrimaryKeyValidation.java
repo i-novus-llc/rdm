@@ -8,7 +8,10 @@ import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
-import ru.i_novus.platform.datastorage.temporal.model.criteria.*;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.FieldSearchCriteria;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
+import ru.i_novus.platform.datastorage.temporal.model.criteria.StorageDataCriteria;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
@@ -109,7 +112,7 @@ public class DBPrimaryKeyValidation extends AppendRowValidation {
         StorageDataCriteria criteria = new StorageDataCriteria(storageCode,
                 null, null, // Черновик
                 fields, fieldFilters, null);
-        criteria.setPage(BaseDataCriteria.MIN_PAGE);
+        criteria.setPage(DataCriteria.FIRST_PAGE);
         criteria.setSize(calculateCriteriaSize(rows));
         return criteria;
     }
