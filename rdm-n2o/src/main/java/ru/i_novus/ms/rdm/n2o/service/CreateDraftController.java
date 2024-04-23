@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Controller
 @SuppressWarnings("unused") // used in: *.object.xml, *RecordObjectResolver

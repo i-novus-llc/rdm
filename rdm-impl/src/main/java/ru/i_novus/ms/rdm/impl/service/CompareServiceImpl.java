@@ -42,7 +42,7 @@ import java.util.Objects;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.ComparableUtils.*;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 
@@ -295,7 +295,9 @@ public class CompareServiceImpl implements CompareService {
 
         RefBookAttributeDiff attributeDiff = refBookDataDiff.getAttributeDiff();
 
-        boolean hasUpdOrDelAttr = !isEmpty(attributeDiff.getUpdatedAttributes()) || !isEmpty(attributeDiff.getOldAttributes());
+        final boolean hasUpdOrDelAttr =
+                !isEmpty(attributeDiff.getUpdatedAttributes()) ||
+                !isEmpty(attributeDiff.getOldAttributes());
 
         Page<RefBookRowValue> oldData = null;
         if (hasUpdOrDelAttr) {

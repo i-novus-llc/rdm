@@ -18,7 +18,7 @@ import java.util.Objects;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
 
 @SuppressWarnings("java:S3740")
@@ -75,9 +75,12 @@ public class BufferedRowsPersister implements RowsProcessor {
 
     @Override
     public Result process() {
+
         save();
+
         if (!isEmpty(result.getErrors()))
             throw new UserException(result.getErrors());
+
         return result;
     }
 

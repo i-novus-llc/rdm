@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.impl.validation;
 
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.cxf.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -129,7 +128,7 @@ public class StructureChangeValidator {
         List<Message> errorMessages = new PrimaryKeyUniqueValidation(draftDataService, storageCode, primaryNames)
                 .validate();
 
-        if (!CollectionUtils.isEmpty(errorMessages))
+        if (!isEmpty(errorMessages))
             throw new UserException(errorMessages);
     }
 
@@ -145,7 +144,7 @@ public class StructureChangeValidator {
                 searchDataService, versionRepository, reference, draftId
         ).validate();
 
-        if (!CollectionUtils.isEmpty(errorMessages))
+        if (!isEmpty(errorMessages))
             throw new UserException(errorMessages);
     }
 

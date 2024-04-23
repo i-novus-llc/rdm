@@ -15,7 +15,7 @@ import ru.i_novus.ms.rdm.api.service.RefBookService;
 
 import java.util.List;
 
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /** Загрузчик справочника. */
 @Component
