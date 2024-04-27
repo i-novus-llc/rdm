@@ -25,11 +25,6 @@
             <artifactId>rdm-rest-spring-boot-starter</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>
@@ -55,6 +50,7 @@
             <artifactId>n2o-platform-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- / test -->
     </dependencies>
 
     <build>
