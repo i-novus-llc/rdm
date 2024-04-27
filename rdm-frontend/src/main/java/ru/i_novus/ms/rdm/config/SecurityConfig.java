@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm;
+package ru.i_novus.ms.rdm.config;
 
 import net.n2oapp.security.admin.rest.client.AccountServiceRestClient;
 import net.n2oapp.security.auth.OpenIdSecurityConfigurerAdapter;

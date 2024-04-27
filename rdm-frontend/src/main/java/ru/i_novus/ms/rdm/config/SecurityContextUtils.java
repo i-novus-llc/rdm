@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm;
+package ru.i_novus.ms.rdm.config;
 
 import net.n2oapp.security.auth.common.User;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
