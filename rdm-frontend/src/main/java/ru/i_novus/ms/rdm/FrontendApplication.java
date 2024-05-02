@@ -5,15 +5,22 @@ import net.n2oapp.security.admin.rest.client.AdminRestClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import ru.i_novus.ms.audit.client.UserAccessor;
+import ru.i_novus.ms.rdm.config.SecurityContextConfig;
 import ru.i_novus.ms.rdm.n2o.config.RdmWebConfiguration;
 
 import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_ID;
 import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_NAME;
 
-@SpringBootApplication (scanBasePackageClasses = { FrontendApplication.class, AdminRestClientConfiguration.class })
-@Import({ RdmWebConfiguration.class })
+@SpringBootApplication (scanBasePackageClasses = {
+        FrontendApplication.class, AdminRestClientConfiguration.class
+})
+@Import({
+        RdmWebConfiguration.class, SecurityContextConfig.class
+})
+@ComponentScan(basePackages = "ru.i_novus.ms.rdm.config")
 public class FrontendApplication {
 
     @Bean

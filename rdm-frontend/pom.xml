@@ -29,6 +29,7 @@
             <artifactId>rdm-web-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- SECURITY -->
         <dependency>
             <groupId>net.n2oapp.framework.security</groupId>
             <artifactId>security-admin-rest-client</artifactId>
@@ -53,6 +54,7 @@
         <!--    <groupId>net.n2oapp.framework.security</groupId>-->
         <!--    <artifactId>security-client-starter</artifactId>-->
         <!--</dependency>-->
+        <!-- / SECURITY -->
 
         <dependency>
             <groupId>com.sun.xml.ws</groupId>

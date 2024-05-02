@@ -51,6 +51,7 @@
             <artifactId>n2o-platform-i18n-autoconfigure</artifactId>
         </dependency>
 
+        <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
@@ -60,5 +61,6 @@
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
+        <!-- / JAX -->
     </dependencies>
 </project>

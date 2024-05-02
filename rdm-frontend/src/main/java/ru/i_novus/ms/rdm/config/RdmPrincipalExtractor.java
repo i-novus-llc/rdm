@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
  */
 //@Component
 public class RdmPrincipalExtractor {
-//public class RdmPrincipalExtractor extends GatewayPrincipalExtractor {
 
     private static final String NAME = "name";
     private static final String EMAIL = "email";
