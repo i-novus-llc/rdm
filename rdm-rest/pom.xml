@@ -85,31 +85,39 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
-        <!--<dependency>-->
-        <!--    <groupId>net.n2oapp.platform</groupId>-->
-        <!--    <artifactId>n2o-platform-starter-jwt</artifactId>-->
-        <!--</dependency>-->
+        <!-- SECURITY -->
 
         <!--<dependency>-->
         <!--    <groupId>net.n2oapp.platform</groupId>-->
         <!--    <artifactId>n2o-platform-security-autoconfigure</artifactId>-->
         <!--</dependency>-->
 
+        <!--<dependency>-->
+        <!--    <groupId>org.springframework.boot</groupId>-->
+        <!--    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>org.springframework.security.oauth.boot</groupId>-->
+        <!--    <artifactId>spring-security-oauth2-autoconfigure</artifactId>-->
+        <!--    <version>2.6.8</version>-->
+        <!--</dependency>-->
+
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-auth</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.security.oauth.boot</groupId>
-            <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-            <version>2.6.8</version>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-auth-common</artifactId>
         </dependency>
 
         <!--<dependency>-->
         <!--    <groupId>org.springframework.security</groupId>-->
         <!--    <artifactId>spring-security-oauth2-jose</artifactId>-->
         <!--</dependency>-->
+        <!-- / SECURITY -->
 
         <dependency>
             <groupId>ru.i-novus.ms.audit</groupId>
