@@ -19,12 +19,15 @@
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
 
-        <npm.registry>https://npm.i-novus.ru</npm.registry>
-        <!--<npm.registry>https://registry.yarnpkg.com/</npm.registry>-->
+        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
+        <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
-        <n2o.version>7.23.79</n2o.version>
+        <n2o.version>7.27.8</n2o.version>
+
+        <!-- STORAGE -->
         <vds.version>3.25</vds.version>
         <l10n.vds.version>3.30</l10n.vds.version>
+        <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
         <jackson-databind.version>2.13.4.2</jackson-databind.version>
