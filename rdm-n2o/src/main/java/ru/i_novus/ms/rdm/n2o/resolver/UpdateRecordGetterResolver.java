@@ -37,7 +37,7 @@ public class UpdateRecordGetterResolver implements DataRecordGetterResolver {
     @Override
     public Map<String, Serializable> createRegularValues(DataRecordCriteria criteria, RefBookVersion version) {
 
-        Map<String, Serializable> map = new HashMap<>(1);
+        final Map<String, Serializable> map = new HashMap<>(1);
 
         map.put(FIELD_SYSTEM_ID, criteria.getId());
 
@@ -47,16 +47,16 @@ public class UpdateRecordGetterResolver implements DataRecordGetterResolver {
     @Override
     public Map<String, Serializable> createDynamicValues(DataRecordCriteria criteria, RefBookVersion version) {
 
-        List<RefBookRowValue> rowValues = findRowValues(version.getId(), criteria.getId());
+        final List<RefBookRowValue> rowValues = findRowValues(version.getId(), criteria.getId());
         if (isEmpty(rowValues))
             return emptyMap();
 
-        List<FieldValue> fieldValues = rowValues.get(0).getFieldValues();
-        Map<String, Serializable> map = new HashMap<>(fieldValues.size());
+        final List<FieldValue> fieldValues = rowValues.get(0).getFieldValues();
+        final Map<String, Serializable> map = new HashMap<>(fieldValues.size());
+
         fieldValues.forEach(fieldValue ->
                 map.put(addPrefix(fieldValue.getField()), fieldValue.getValue())
         );
-
         return map;
     }
 

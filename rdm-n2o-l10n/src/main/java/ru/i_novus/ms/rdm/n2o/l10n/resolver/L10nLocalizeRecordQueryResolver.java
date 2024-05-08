@@ -28,7 +28,7 @@ public class L10nLocalizeRecordQueryResolver implements DataRecordQueryResolver 
 
     private QuerySimpleField createLocaleNameField() {
 
-        QuerySimpleField field = new QuerySimpleField();
+        final QuerySimpleField field = new QuerySimpleField();
         field.setId(FIELD_LOCALE_NAME);
 
         return field;

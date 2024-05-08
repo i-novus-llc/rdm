@@ -19,7 +19,7 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
     protected N2oJavaDataProvider createInvocation() {
 
-        N2oJavaDataProvider invocation = new N2oJavaDataProvider();
+        final N2oJavaDataProvider invocation = new N2oJavaDataProvider();
         invocation.setClassName(CONTROLLER_CLASS_NAME);
         invocation.setMethod(CONTROLLER_CLASS_METHOD);
         invocation.setSpringProvider(new SpringProvider());
@@ -30,41 +30,43 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
     protected Argument[] getArguments() {
 
-        Argument versionIdArgument = new Argument();
+        final Argument versionIdArgument = new Argument();
         versionIdArgument.setType(Argument.Type.PRIMITIVE);
         versionIdArgument.setName("versionId");
         versionIdArgument.setClassName(Integer.class.getName());
 
-        Argument optLockValueArgument = new Argument();
+        final Argument optLockValueArgument = new Argument();
         optLockValueArgument.setType(Argument.Type.PRIMITIVE);
         optLockValueArgument.setName("optLockValue");
         optLockValueArgument.setClassName(Integer.class.getName());
 
-        Argument rowArgument = new Argument();
+        final Argument rowArgument = new Argument();
         rowArgument.setType(Argument.Type.CLASS);
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
-        return new Argument[]{ versionIdArgument, optLockValueArgument, rowArgument };
+        return new Argument[] {versionIdArgument, optLockValueArgument, rowArgument};
     }
 
     protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
         parameter.setMapping("['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
+
         return parameter;
     }
 
     protected AbstractParameter createOptLockValueParameter() {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_OPT_LOCK_VALUE);
         parameter.setMapping("['optLockValue']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
+
         return parameter;
     }
 }

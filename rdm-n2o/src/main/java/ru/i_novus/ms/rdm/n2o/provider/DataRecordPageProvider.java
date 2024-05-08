@@ -96,19 +96,19 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oPreFilter[] createPreFilters() {
 
-        N2oPreFilter idFilter = createParamFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID, FilterType.eq);
+        final N2oPreFilter idFilter = createParamEqualFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID);
 
-        N2oPreFilter optLockValueFilter = createParamFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE, FilterType.eq);
-        N2oPreFilter localeCodeFilter = createParamFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE, FilterType.eq);
-        N2oPreFilter dataActionFilter = createParamFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION, FilterType.eq);
+        final N2oPreFilter optLockValueFilter = createParamEqualFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE);
+        final N2oPreFilter localeCodeFilter = createParamEqualFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE);
+        final N2oPreFilter dataActionFilter = createParamEqualFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION);
 
-        return new N2oPreFilter[]{idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
+        return new N2oPreFilter[] {idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
     }
 
     @SuppressWarnings("SameParameterValue")
-    private N2oPreFilter createParamFilter(String fieldId, String param, FilterType type) {
+    private N2oPreFilter createParamEqualFilter(String fieldId, String param) {
 
-        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, type);
+        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, FilterType.eq);
         preFilter.setParam(param);
 
         return preFilter;
@@ -201,7 +201,7 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceFilter.setFieldId("reference");
         referenceFilter.setValueAttr(attribute.getCode());
 
-        referenceField.setPreFilters(new N2oPreFilter[]{ versionFilter, referenceFilter });
+        referenceField.setPreFilters(new N2oPreFilter[] {versionFilter, referenceFilter});
 
         return referenceField;
     }

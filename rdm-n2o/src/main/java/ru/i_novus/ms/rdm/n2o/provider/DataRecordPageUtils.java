@@ -26,31 +26,35 @@ public final class DataRecordPageUtils {
 
     private static N2oInputText createIntegerField() {
 
-        N2oInputText field = new N2oInputText();
+        final N2oInputText field = new N2oInputText();
         field.setDomain(N2oDomain.INTEGER);
         field.setStep("1");
+
         return field;
     }
 
     private static N2oInputText createFloatField() {
 
-        N2oInputText field = new N2oInputText();
+        final N2oInputText field = new N2oInputText();
         field.setDomain(N2oDomain.FLOAT);
         field.setStep("0.0001");
+
         return field;
     }
 
     private static N2oDatePicker createDateField() {
 
-        N2oDatePicker field = new N2oDatePicker();
+        final N2oDatePicker field = new N2oDatePicker();
         field.setDateFormat("DD.MM.YYYY");
+
         return field;
     }
 
     private static N2oCheckbox createBooleanField() {
 
-        N2oCheckbox field = new N2oCheckbox();
-        field.setNoLabelBlock(Boolean.TRUE);
+        final N2oCheckbox field = new N2oCheckbox();
+        field.setNoLabelBlock(Boolean.TRUE.toString());
+
         return field;
     }
 }

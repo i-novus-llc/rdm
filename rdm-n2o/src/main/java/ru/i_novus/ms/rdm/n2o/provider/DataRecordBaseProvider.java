@@ -34,13 +34,13 @@ public class DataRecordBaseProvider {
      * @return Запрос
      */
     protected DataRecordRequest toRequest(String context) {
-        
-        DataRecordRequest request = new DataRecordRequest();
 
-        String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
+        final DataRecordRequest request = new DataRecordRequest();
 
-        Integer versionId = Integer.parseInt(params[0]);
-        Structure structure = getStructureOrEmpty(versionId);
+        final String[] params = context.split(CONTEXT_PARAM_SEPARATOR_REGEX);
+
+        final Integer versionId = Integer.parseInt(params[0]);
+        final Structure structure = getStructureOrEmpty(versionId);
 
         request.setVersionId(versionId);
         request.setStructure(structure);
