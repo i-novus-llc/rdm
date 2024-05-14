@@ -7,18 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.impl.entity.RefBookOperationEntity;
 
 import javax.persistence.LockModeType;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 public interface RefBookOperationRepository extends
         JpaRepository<RefBookOperationEntity, Integer>,
         QuerydslPredicateExecutor<RefBookOperationEntity> {
 
-        @Lock(value = LockModeType.PESSIMISTIC_WRITE)
-        RefBookOperationEntity findByRefBookId(Integer refBookId);
+    @Lock(value = LockModeType.PESSIMISTIC_WRITE)
+    RefBookOperationEntity findByRefBookId(Integer refBookId);
 
-        int deleteByRefBookId(Integer refBookId);
+    int deleteByRefBookId(Integer refBookId);
 
-        @Transactional
-        int deleteAllByLockIdIn(Set<String> lockIds);
-
+    @Transactional
+    int deleteAllByCreationDateLessThan(LocalDateTime creationDate);
 }
