@@ -212,13 +212,6 @@
             </dependency>
 
             <dependency>
-                <groupId>xmlunit</groupId>
-                <artifactId>xmlunit</artifactId>
-                <version>${xmlunit.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
                 <artifactId>security-auth</artifactId>
                 <version>${security.admin.version}</version>
@@ -271,6 +264,15 @@
                 <artifactId>audit-client-spring-boot-starter</artifactId>
                 <version>${i-novus.audit.version}</version>
             </dependency>
+
+            <!-- test -->
+            <dependency>
+                <groupId>xmlunit</groupId>
+                <artifactId>xmlunit</artifactId>
+                <version>${xmlunit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- / test -->
         </dependencies>
     </dependencyManagement>
 

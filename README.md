@@ -3,7 +3,7 @@
 - OpenJDK 11.0.18
 - PostgreSQL 11
 - Artemis или ActiveMQ
-- N2O Security Admin 6.1.6
+- N2O Security Admin 7.1.0
 - N2O Audit 2.4.25
 
 # Стек технологий
@@ -16,7 +16,7 @@
 - Spring Boot 2.1
 - Spring Cloud Greenwich
 - Liquibase 3.6.2
-- N2O Platform 4
+- N2O Platform 5
 - N2O UI Framework 7
 - React
 
