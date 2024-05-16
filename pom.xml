@@ -46,7 +46,6 @@
 
         <!-- security -->
         <security.admin.version>7.1.0</security.admin.version>
-        <!--<security.admin.version>6.1.7</security.admin.version>-->
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
 
@@ -234,12 +233,6 @@
                 <artifactId>spring-security-oauth2-autoconfigure</artifactId>
                 <version>${security.oauth2.autoconfigure.version}</version>
             </dependency>
-
-            <!--<dependency>-->
-            <!--    <groupId>net.n2oapp.framework.security</groupId>-->
-            <!--    <artifactId>security-client-starter</artifactId>-->
-            <!--    <version>${security.admin.version}</version>-->
-            <!--</dependency>-->
 
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
