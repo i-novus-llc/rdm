@@ -13,7 +13,7 @@ import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class RowsValidatorImpl implements RowsValidator {
 
@@ -21,7 +21,7 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private Integer errorCountLimit = 100;
     private int size = 100;
-    private List<Row> buffer = new ArrayList<>();
+    private final List<Row> buffer = new ArrayList<>();
 
     private Result result = new Result(0, 0, null);
 
@@ -158,8 +158,8 @@ public class RowsValidatorImpl implements RowsValidator {
 
     private void addResult(List<Message> errors) {
 
-        boolean isErrors = isEmpty(errors);
-        addResult(new Result(isErrors ? 1 : 0, 1, isErrors ? null : errors));
+        boolean hasErrors = isEmpty(errors);
+        addResult(new Result(hasErrors ? 1 : 0, 1, hasErrors ? null : errors));
     }
 
     private void addResult(Result result) {

@@ -32,7 +32,7 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
     @Override
     public N2oObject.Operation createOperation(DataRecordRequest request) {
 
-        N2oObject.Operation operation = new N2oObject.Operation();
+        final N2oObject.Operation operation = new N2oObject.Operation();
         operation.setId("localize");
         operation.setInvocation(createInvocation());
 
@@ -52,7 +52,7 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
     protected N2oJavaDataProvider createInvocation() {
 
-        N2oJavaDataProvider invocation = new N2oJavaDataProvider();
+        final N2oJavaDataProvider invocation = new N2oJavaDataProvider();
         invocation.setClassName(CONTROLLER_CLASS_NAME);
         invocation.setMethod(CONTROLLER_CLASS_METHOD);
         invocation.setSpringProvider(new SpringProvider());
@@ -63,65 +63,69 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
     protected Argument[] getArguments() {
 
-        Argument versionIdArgument = new Argument();
+        final Argument versionIdArgument = new Argument();
         versionIdArgument.setType(Argument.Type.PRIMITIVE);
         versionIdArgument.setName("versionId");
         versionIdArgument.setClassName(Integer.class.getName());
 
-        Argument optLockValueArgument = new Argument();
+        final Argument optLockValueArgument = new Argument();
         optLockValueArgument.setType(Argument.Type.PRIMITIVE);
         optLockValueArgument.setName("optLockValue");
         optLockValueArgument.setClassName(Integer.class.getName());
 
-        Argument localeCodeArgument = new Argument();
+        final Argument localeCodeArgument = new Argument();
         localeCodeArgument.setType(Argument.Type.PRIMITIVE);
         localeCodeArgument.setName("localeCode");
         localeCodeArgument.setClassName(String.class.getName());
 
-        Argument rowArgument = new Argument();
+        final Argument rowArgument = new Argument();
         rowArgument.setType(Argument.Type.CLASS);
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
-        return new Argument[]{ versionIdArgument, optLockValueArgument, localeCodeArgument, rowArgument };
+        return new Argument[] {versionIdArgument, optLockValueArgument, localeCodeArgument, rowArgument};
     }
 
     protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_VERSION_ID);
         parameter.setMapping("['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
+
         return parameter;
     }
 
     protected AbstractParameter createOptLockValueParameter() {
 
-        ObjectSimpleField optLockValueParameter = new ObjectSimpleField();
+        final ObjectSimpleField optLockValueParameter = new ObjectSimpleField();
         optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
         optLockValueParameter.setMapping("['optLockValue']");
         optLockValueParameter.setDomain(N2oDomain.INTEGER);
         optLockValueParameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
+
         return optLockValueParameter;
     }
 
     private AbstractParameter createLocaleCodeParameter() {
 
-        ObjectSimpleField localeCodeParameter = new ObjectSimpleField();
+        final ObjectSimpleField localeCodeParameter = new ObjectSimpleField();
         localeCodeParameter.setId(FIELD_LOCALE_CODE);
         localeCodeParameter.setMapping("['localeCode']");
         localeCodeParameter.setDomain(N2oDomain.STRING);
         localeCodeParameter.setDefaultValue(DEFAULT_LOCALE_CODE);
+
         return localeCodeParameter;
     }
 
     private AbstractParameter createSystemIdParameter() {
 
-        ObjectSimpleField parameter = new ObjectSimpleField();
+        final ObjectSimpleField parameter = new ObjectSimpleField();
         parameter.setId(FIELD_SYSTEM_ID);
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setMapping("['row'].systemId");
+
         return parameter;
     }
 }

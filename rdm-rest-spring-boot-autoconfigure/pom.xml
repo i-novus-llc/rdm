@@ -13,9 +13,7 @@
         <sonar.coverage.exclusions>**/AppConfig.java, **/BackendConfiguration.java, **/RdmRestAutoConfiguration.java</sonar.coverage.exclusions>
     </properties>
 
-
     <dependencies>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-rest</artifactId>
@@ -25,7 +23,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
     </dependencies>
 
 </project>

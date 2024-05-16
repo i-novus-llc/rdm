@@ -19,7 +19,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-api</artifactId>
@@ -74,7 +73,6 @@
             <scope>test</scope>
         </dependency>
         <!-- / test -->
-
     </dependencies>
 
     <profiles>

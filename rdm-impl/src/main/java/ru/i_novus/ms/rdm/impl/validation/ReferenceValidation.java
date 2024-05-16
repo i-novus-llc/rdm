@@ -4,7 +4,6 @@ import net.n2oapp.platform.i18n.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
@@ -24,7 +23,8 @@ import java.util.List;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
-import static org.apache.cxf.common.util.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus.PUBLISHED;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceValidation implements RdmValidation {
@@ -65,10 +65,11 @@ public class ReferenceValidation implements RdmValidation {
     @Transactional(readOnly = true)
     public List<Message> validate() {
 
-        RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        final RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
 
         // Использовать VersionValidationImpl.validateReferenceCode
-        RefBookVersionEntity referredEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), RefBookVersionStatus.PUBLISHED);
+        final RefBookVersionEntity referredEntity = versionRepository
+                .findFirstByRefBookCodeAndStatusOrderByFromDateDesc(reference.getReferenceCode(), PUBLISHED);
         if (referredEntity == null)
             return singletonList(new Message(LAST_PUBLISHED_NOT_FOUND_EXCEPTION_CODE, reference.getReferenceCode()));
         if (referredEntity.hasEmptyStructure())

@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
 import net.n2oapp.framework.api.metadata.SourceComponent;
+import net.n2oapp.framework.api.metadata.aware.FieldsetItem;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.N2oStandardField;
 import net.n2oapp.framework.api.metadata.control.plain.CheckboxDefaultValueEnum;
@@ -37,15 +38,15 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
     @Override
     public List<SourceComponent> createRegularFields(DataRecordRequest request) {
 
-        N2oFieldsetRow row = new N2oFieldsetRow();
+        final N2oFieldsetRow row = new N2oFieldsetRow();
         row.setItems(createLocalizeFields());
 
         return singletonList(row);
     }
 
-    private SourceComponent[] createLocalizeFields() {
+    private FieldsetItem[] createLocalizeFields() {
 
-        return new SourceComponent[]{
+        return new FieldsetItem[]{
                 createLocaleCodeField(),
                 createHideUnlocalizableField()
         };
@@ -53,10 +54,10 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     private N2oField createLocaleCodeField() {
 
-        N2oInputText n2oField = new N2oInputText();
+        final N2oInputText n2oField = new N2oInputText();
         n2oField.setId(FIELD_LOCALE_NAME);
         n2oField.setDomain(N2oDomain.STRING);
-        n2oField.setNoLabelBlock(Boolean.TRUE);
+        n2oField.setNoLabelBlock(Boolean.TRUE.toString());
         n2oField.setEnabled(Boolean.FALSE.toString());
 
         return n2oField;
@@ -64,9 +65,9 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     private N2oField createHideUnlocalizableField() {
 
-        N2oCheckbox n2oField = new N2oCheckbox();
+        final N2oCheckbox n2oField = new N2oCheckbox();
         n2oField.setId(FIELD_HIDE_UNLOCALIZABLE);
-        n2oField.setNoLabelBlock(Boolean.TRUE);
+        n2oField.setNoLabelBlock(Boolean.TRUE.toString());
         n2oField.setUnchecked(CheckboxDefaultValueEnum.FALSE);
         n2oField.setLabel(messages.getMessage(LABEL_HIDE_UNLOCALIZABLE));
 
@@ -91,21 +92,21 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
         if (!(component instanceof N2oStandardField))
             return false;
 
-        N2oStandardField field = (N2oStandardField) component;
+        final N2oStandardField field = (N2oStandardField) component;
         if (!DataRecordUtils.hasPrefix(field.getId()))
             return false;
 
-        String attributeCode = DataRecordUtils.deletePrefix(field.getId());
-        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        final String attributeCode = DataRecordUtils.deletePrefix(field.getId());
+        final Structure.Attribute attribute = structure.getAttribute(attributeCode);
         return attribute != null && !attribute.isLocalizable();
     }
 
     private void processUnlocalizable(SourceComponent component) {
 
-        N2oStandardField field = (N2oStandardField) component;
+        final N2oStandardField field = (N2oStandardField) component;
         field.setEnabled(Boolean.FALSE.toString());
 
-        N2oField.VisibilityDependency dependency = new N2oField.VisibilityDependency();
+        final N2oField.VisibilityDependency dependency = new N2oField.VisibilityDependency();
         dependency.setOn(new String[]{FIELD_HIDE_UNLOCALIZABLE});
         dependency.setValue("!" + FIELD_HIDE_UNLOCALIZABLE);
         dependency.setApplyOnInit(Boolean.FALSE);

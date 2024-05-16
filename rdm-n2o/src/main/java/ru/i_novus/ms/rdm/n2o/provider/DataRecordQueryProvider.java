@@ -70,7 +70,7 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private N2oQuery createQuery(DataRecordRequest request) {
 
         final N2oQuery query = new N2oQuery();
-        query.setUniques(new N2oQuery.Selection[]{ createSelection() });
+        query.setUniques(new N2oQuery.Selection[] {createSelection()});
         query.setFields(createQueryFields(request));
         query.setFilters(createQueryFilters(request));
 
@@ -89,11 +89,12 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
         criteriaArgument.setName(CRITERIA_NAME);
         criteriaArgument.setType(Argument.Type.CRITERIA);
         criteriaArgument.setClassName(CRITERIA_CLASS_NAME);
-        provider.setArguments(new Argument[]{ criteriaArgument });
+        provider.setArguments(new Argument[] {criteriaArgument});
 
         final N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
+
         return selection;
     }
 
@@ -109,13 +110,13 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
     private List<QuerySimpleField> createRegularFields(DataRecordRequest request) {
 
-        QuerySimpleField idField = new QuerySimpleField(FIELD_SYSTEM_ID);
+        final QuerySimpleField idField = new QuerySimpleField(FIELD_SYSTEM_ID);
         idField.setMapping("['" + FIELD_SYSTEM_ID + "']");
 
-        QuerySimpleField versionIdField = new QuerySimpleField(FIELD_VERSION_ID);
-        QuerySimpleField optLockValueField = new QuerySimpleField(FIELD_OPT_LOCK_VALUE);
-        QuerySimpleField localeCodeField = new QuerySimpleField(FIELD_LOCALE_CODE);
-        QuerySimpleField dataActionField = new QuerySimpleField(FIELD_DATA_ACTION);
+        final QuerySimpleField versionIdField = new QuerySimpleField(FIELD_VERSION_ID);
+        final QuerySimpleField optLockValueField = new QuerySimpleField(FIELD_OPT_LOCK_VALUE);
+        final QuerySimpleField localeCodeField = new QuerySimpleField(FIELD_LOCALE_CODE);
+        final QuerySimpleField dataActionField = new QuerySimpleField(FIELD_DATA_ACTION);
 
         final List<QuerySimpleField> list = new ArrayList<>(List.of(
                 idField, versionIdField, optLockValueField, localeCodeField, dataActionField

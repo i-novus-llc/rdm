@@ -46,11 +46,11 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
     @Override
     public Map<String, Serializable> createRegularValues(DataRecordCriteria criteria, RefBookVersion version) {
 
-        Map<String, Serializable> map = new HashMap<>(3);
+        final Map<String, Serializable> map = new HashMap<>(3);
 
         map.put(FIELD_SYSTEM_ID, criteria.getId());
 
-        String localeCode = criteria.getLocaleCode();
+        final String localeCode = criteria.getLocaleCode();
         map.put(FIELD_LOCALE_CODE, localeCode);
         map.put(FIELD_LOCALE_NAME, getLocaleName(localeCode));
 
@@ -69,16 +69,16 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
     @Override
     public Map<String, Serializable> createDynamicValues(DataRecordCriteria criteria, RefBookVersion version) {
 
-        List<RefBookRowValue> rowValues = findRowValues(criteria);
+        final List<RefBookRowValue> rowValues = findRowValues(criteria);
         if (isEmpty(rowValues))
             return emptyMap();
 
-        List<FieldValue> fieldValues = rowValues.get(0).getFieldValues();
-        Map<String, Serializable> map = new HashMap<>(fieldValues.size());
+        final List<FieldValue> fieldValues = rowValues.get(0).getFieldValues();
+        final Map<String, Serializable> map = new HashMap<>(fieldValues.size());
+
         fieldValues.forEach(fieldValue ->
                 map.put(addPrefix(fieldValue.getField()), fieldValue.getValue())
         );
-
         return map;
     }
 
@@ -87,17 +87,17 @@ public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolve
      */
     private List<RefBookRowValue> findRowValues(DataRecordCriteria criteria) {
 
-        SearchDataCriteria dataCriteria = new SearchDataCriteria();
+        final SearchDataCriteria dataCriteria = new SearchDataCriteria();
         dataCriteria.setLocaleCode(criteria.getLocaleCode());
         dataCriteria.setRowSystemIds(singletonList(criteria.getId()));
 
-        Page<RefBookRowValue> rowValues = searchRowValues(criteria.getVersionId(), dataCriteria);
+        final Page<RefBookRowValue> rowValues = searchRowValues(criteria.getVersionId(), dataCriteria);
         return !isEmpty(rowValues.getContent()) ? rowValues.getContent() : emptyList();
     }
 
     private Page<RefBookRowValue> searchRowValues(Integer versionId, SearchDataCriteria dataCriteria) {
 
-        Page<RefBookRowValue> rowValues = versionService.search(versionId, dataCriteria);
+        final Page<RefBookRowValue> rowValues = versionService.search(versionId, dataCriteria);
         if (!isEmpty(rowValues.getContent()))
             return rowValues;
 
