@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202405140953-RDM-1095_1.0" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <columnExists schemaName="n2o_rdm_management" tableName="ref_book_operation" columnName="lock_id"/>
+        </preConditions>
+        <comment>Пометка устаревшей колонки ref_book_operation.lock_id</comment>
+        <sql>
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_operation.lock_id IS '@deprecated Идентификатор блокировки';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

@@ -30,13 +30,7 @@ public class FrontendApplication {
 
     @Bean
     public UserAccessor auditUser() {
-        return () -> {
-            //User user = SecurityContextUtils.getPrincipal();
-            //return (user == null)
-            //        ? createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME)
-            //        : createAuditUser(user.getEmail(), user.getUsername());
-            return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
-        };
+        return () -> createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
     }
 
     private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {

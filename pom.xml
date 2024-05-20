@@ -46,7 +46,6 @@
 
         <!-- security -->
         <security.admin.version>7.1.0</security.admin.version>
-        <!--<security.admin.version>6.1.7</security.admin.version>-->
         <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
 
@@ -212,13 +211,6 @@
             </dependency>
 
             <dependency>
-                <groupId>xmlunit</groupId>
-                <artifactId>xmlunit</artifactId>
-                <version>${xmlunit.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
                 <artifactId>security-auth</artifactId>
                 <version>${security.admin.version}</version>
@@ -241,12 +233,6 @@
                 <artifactId>spring-security-oauth2-autoconfigure</artifactId>
                 <version>${security.oauth2.autoconfigure.version}</version>
             </dependency>
-
-            <!--<dependency>-->
-            <!--    <groupId>net.n2oapp.framework.security</groupId>-->
-            <!--    <artifactId>security-client-starter</artifactId>-->
-            <!--    <version>${security.admin.version}</version>-->
-            <!--</dependency>-->
 
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
@@ -271,6 +257,15 @@
                 <artifactId>audit-client-spring-boot-starter</artifactId>
                 <version>${i-novus.audit.version}</version>
             </dependency>
+
+            <!-- test -->
+            <dependency>
+                <groupId>xmlunit</groupId>
+                <artifactId>xmlunit</artifactId>
+                <version>${xmlunit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- / test -->
         </dependencies>
     </dependencyManagement>
 

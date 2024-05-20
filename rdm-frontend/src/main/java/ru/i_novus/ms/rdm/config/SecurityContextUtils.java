@@ -8,23 +8,4 @@ public final class SecurityContextUtils {
     private SecurityContextUtils() {
         // Nothing to do.
     }
-
-    //public static User getPrincipal() {
-    //
-    //    Authentication authentication = getAuthentication();
-    //    if (authentication == null)
-    //        return null;
-    //
-    //    return (User) authentication.getPrincipal();
-    //}
-    //
-    //private static Authentication getAuthentication() {
-    //
-    //    SecurityContext context = SecurityContextHolder.getContext();
-    //    if (context == null)
-    //        return null;
-    //
-    //    Authentication authentication = context.getAuthentication();
-    //    return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
-    //}
 }

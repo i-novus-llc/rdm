@@ -23,8 +23,9 @@ public class RefBookOperationEntity implements Serializable {
     @Enumerated(value = EnumType.STRING)
     private RefBookOperation operation;
 
+    @Deprecated
     @Column(name = "lock_id")
-    private String lockId;
+    private String lockId = null;
 
     @Column(name = "user_name")
     private String userName;
@@ -32,21 +33,22 @@ public class RefBookOperationEntity implements Serializable {
     @Column(name = "creation_date")
     private LocalDateTime creationDate;
 
-    public RefBookOperationEntity(Integer refBookId, RefBookOperation operation, String lockId, String userName) {
+    public RefBookOperationEntity(Integer refBookId, RefBookOperation operation, String userName) {
 
         this.refBookId = refBookId;
         this.operation = operation;
-        this.lockId = lockId;
         this.userName = userName;
     }
 
     public RefBookOperationEntity() {
+        // Nothing to do.
     }
 
     @PrePersist
     public void prePersist() {
-        if (creationDate == null)
+        if (creationDate == null) {
             creationDate = LocalDateTime.now(Clock.systemUTC());
+        }
     }
 
     public Integer getId() {
