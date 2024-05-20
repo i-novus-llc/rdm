@@ -3,7 +3,7 @@ import get from 'lodash/get'
 import isEmpty from 'lodash/isEmpty'
 import isObject from 'lodash/isObject'
 
-function DataGridCell({ children, hasSpan, record, valueKey }) {
+function DataGridCell({ children, hasSpan, record, valueKey, rowValue }) {
     const { span } = record;
     let colSpan = 1;
     let rowSpan = 1;
