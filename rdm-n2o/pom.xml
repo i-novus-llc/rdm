@@ -56,7 +56,7 @@
 
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-jaxrs-autoconfigure</artifactId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
 
         <!-- test -->
