@@ -22,7 +22,7 @@
         <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
         <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
-        <n2o.version>7.27.8</n2o.version>
+        <n2o.version>7.27.11</n2o.version>
 
         <!-- STORAGE -->
         <vds.version>3.25</vds.version>
@@ -46,7 +46,8 @@
 
         <!-- security -->
         <security.admin.version>7.1.0</security.admin.version>
-        <security.oauth2.autoconfigure.version>2.3.3.RELEASE</security.oauth2.autoconfigure.version>
+        <security.oauth2.autoconfigure.version>5.7.4</security.oauth2.autoconfigure.version>
+
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
 
         <!-- test -->
@@ -233,12 +234,15 @@
                 <artifactId>spring-security-oauth2-autoconfigure</artifactId>
                 <version>${security.oauth2.autoconfigure.version}</version>
             </dependency>
+            <!-- / SECURITY -->
 
+            <!-- JAX -->
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>rt</artifactId>
                 <version>${jaxws.version}</version>
             </dependency>
+            <!-- / JAX -->
 
             <dependency>
                 <groupId>javax.activation</groupId>
@@ -298,11 +302,9 @@
             </activation>
 
             <modules>
-                <module>rdm-esnsi</module>
-                <module>rdm-loader-client-starter</module>
-
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
+
                 <module>rdm-rest-spring-boot-autoconfigure</module>
                 <module>rdm-rest-spring-boot-starter</module>
                 <module>rdm-service</module>
@@ -313,6 +315,9 @@
                 <module>rdm-web-spring-boot-autoconfigure</module>
                 <module>rdm-web-spring-boot-starter</module>
                 <module>rdm-frontend</module>
+
+                <module>rdm-esnsi</module>
+                <module>rdm-loader-client-starter</module>
             </modules>
         </profile>
 
