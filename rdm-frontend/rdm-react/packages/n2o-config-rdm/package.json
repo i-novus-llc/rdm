@@ -28,7 +28,8 @@
     "react-avatar": "^3.5.0",
     "react-sticky": "^6.0.3",
     "reactstrap": "^8.0.1",
-    "recharts": "^1.4.2"
+    "recharts": "^1.4.2",
+    "net": "^1.0.2"
   },
 	"peerDependencies": {
     "n2o-framework": "*",
