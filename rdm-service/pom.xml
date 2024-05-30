@@ -83,7 +83,7 @@
         </profile>
 
         <profile>
-            <id>build-all-with-l10n</id>
+            <id>l10n</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
