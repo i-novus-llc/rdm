@@ -31,9 +31,10 @@
             <artifactId>rdm-n2o</artifactId>
         </dependency>
 
+        <!-- PLATFORM-->
         <dependency>
-            <groupId>net.n2oapp.framework</groupId>
-            <artifactId>n2o-spring-boot-starter</artifactId>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-ms</artifactId>
         </dependency>
 
         <dependency>
@@ -42,24 +43,20 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-ms</artifactId>
+            <groupId>net.n2oapp.framework</groupId>
+            <artifactId>n2o-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-i18n-autoconfigure</artifactId>
         </dependency>
+        <!-- / PLATFORM-->
 
         <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
         <!-- / JAX -->
     </dependencies>

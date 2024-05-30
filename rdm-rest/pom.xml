@@ -38,22 +38,7 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
         <!-- JAX -->
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-rs-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-jaxrs-commons</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
@@ -69,18 +54,6 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
-
-        <!-- SECURITY -->
-        <dependency>
-            <groupId>net.n2oapp.framework.security</groupId>
-            <artifactId>security-auth</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.framework.security</groupId>
-            <artifactId>security-auth-common</artifactId>
-        </dependency>
-        <!-- / SECURITY -->
 
         <dependency>
             <groupId>ru.i-novus.ms.audit</groupId>
