@@ -7,26 +7,45 @@ import { ModelPrefix } from "n2o-framework/lib/core/datasource/const";
 import { getColumnsFromDatasource, getDataFromDatasource } from "./utils";
 import DataGridCell from "./DataGridCell";
 
+import get from 'lodash/get'
 
 function DataGridWidget(props) {
+  console.log("DataGridWidget props")
+  console.log(props)
+
   const {
     table
   } = props
   const { datasource } = props
   const datasourceModel = useSelector(dataSourceModelByPrefixSelector(datasource, ModelPrefix.source))
+  console.log("datasourceModel")
+  console.log(datasourceModel)
+  console.log(get(datasourceModel, [0], {}))
+
   const tableConfig = useMemo(() => {
+//     console.log("datasourceModel")
+//     console.log(datasourceModel)
+//     console.log(get(datasourceModel, [0], {}))
+//     console.log(get(datasourceModel, [0, 'columnsConfig'], {}))
     const columns = getColumnsFromDatasource(datasourceModel)
+    console.log("columns")
+    console.log(columns)
+//     console.log(columns.cells)
+//     console.log(columns.headers)
 
     return ({
       ...table,
       body: {
-        cells: columns.body
+        cells: columns.cells
       },
       header: {
-        cells: columns.header
+        cells: columns.headers
       }
     })
   }, [datasourceModel, table])
+
+  console.log("tableConfig")
+  console.log(tableConfig)
 
   return (
     <AdvancedTableWidget
