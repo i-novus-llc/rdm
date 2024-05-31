@@ -4,6 +4,8 @@
 
     <table id="dataTable" src="DataGrid">
         <datasource query-id="data" object-id="data"/>
+
+        <!-- TODO: Раскраска строк: https://sandbox.n2oapp.net/editor/wFmgM/?file=index.page.xml -->
     </table>
 
 </simple-page>
