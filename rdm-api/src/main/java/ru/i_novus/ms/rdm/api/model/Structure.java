@@ -169,7 +169,7 @@ public class Structure implements Serializable {
                 StringUtils.isEmpty(newAttribute.getCode()))
             return;
 
-        int index = getAttributes().indexOf(oldAttribute);
+        final int index = getAttributes().indexOf(oldAttribute);
         getAttributes().set(index, newAttribute);
     }
 
@@ -193,7 +193,7 @@ public class Structure implements Serializable {
 
     public void remove(String attributeCode) {
 
-        Attribute attribute = getAttribute(attributeCode);
+        final Attribute attribute = getAttribute(attributeCode);
         if (attribute == null)
             return;
 
@@ -202,7 +202,7 @@ public class Structure implements Serializable {
         if (!attribute.isReferenceType())
             return;
 
-        Reference reference = getReference(attributeCode);
+        final Reference reference = getReference(attributeCode);
         if (reference == null)
             return;
 
@@ -267,7 +267,7 @@ public class Structure implements Serializable {
 
         if (that == null) return false;
 
-        List<Attribute> others = that.getAttributes();
+        final List<Attribute> others = that.getAttributes();
         return CollectionUtils.isEmpty(attributes)
                 ? CollectionUtils.isEmpty(others)
                 : attributes.size() == others.size()
@@ -279,7 +279,7 @@ public class Structure implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Structure that = (Structure) o;
+        final Structure that = (Structure) o;
         return  Objects.equals(attributes, that.attributes) &&
                 Objects.equals(references, that.references);
     }
@@ -346,22 +346,23 @@ public class Structure implements Serializable {
 
         public static Attribute buildPrimary(String code, String name, FieldType type, String description) {
 
-            Attribute attribute = create(code, name, type, description);
+            final Attribute attribute = create(code, name, type, description);
             attribute.setIsPrimary(Boolean.TRUE);
+
             return attribute;
         }
 
         public static Attribute buildLocalizable(String code, String name, FieldType type, String description) {
 
-            Attribute attribute = create(code, name, type, description);
+            final Attribute attribute = create(code, name, type, description);
             attribute.setLocalizable(Boolean.TRUE);
+
             return attribute;
         }
 
         private static Attribute create(String code, String name, FieldType type, String description) {
 
-            Attribute attribute = new Attribute();
-
+            final Attribute attribute = new Attribute();
             attribute.setCode(code);
             attribute.setName(name);
             attribute.setType(type);
@@ -451,7 +452,7 @@ public class Structure implements Serializable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Attribute that = (Attribute) o;
+            final Attribute that = (Attribute) o;
             return Objects.equals(code, that.code) &&
                     Objects.equals(name, that.name) &&
                     Objects.equals(type, that.type) &&
@@ -545,7 +546,7 @@ public class Structure implements Serializable {
          */
         public Attribute findReferenceAttribute(Structure referenceStructure) {
 
-            List<Attribute> primaries = referenceStructure.getPrimaries();
+            final List<Attribute> primaries = referenceStructure.getPrimaries();
             if (CollectionUtils.isEmpty(primaries))
                 throw new UserException(new Message(PRIMARY_ATTRIBUTE_NOT_FOUND_EXCEPTION_CODE));
 
@@ -567,7 +568,7 @@ public class Structure implements Serializable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Reference that = (Reference) o;
+            final Reference that = (Reference) o;
             return Objects.equals(attribute, that.attribute) &&
                     Objects.equals(referenceCode, that.referenceCode) &&
                     Objects.equals(displayExpression, that.displayExpression);

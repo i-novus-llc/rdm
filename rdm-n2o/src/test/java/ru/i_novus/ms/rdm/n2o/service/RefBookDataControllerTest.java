@@ -24,6 +24,7 @@ import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
+import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -119,7 +120,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
+        Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -166,7 +167,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
+        Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -185,7 +186,7 @@ public class RefBookDataControllerTest  {
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(0L);
 
         DataCriteria criteria = createCriteria(true);
-        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
+        Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         assertEquals(0, dataGridRows.getContent().size());
@@ -223,7 +224,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<RefBookDataController.DataGridRow> dataGridRows = controller.getList(criteria);
+        Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.

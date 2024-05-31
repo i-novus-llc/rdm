@@ -1,12 +1,17 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
 import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
+import net.n2oapp.framework.api.metadata.meta.cell.AbstractCell;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
+import net.n2oapp.framework.api.metadata.meta.widget.table.ColumnHeader;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
@@ -31,7 +36,8 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.api.constant.N2oDomain;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
-import ru.i_novus.ms.rdm.n2o.model.DataGridColumn;
+import ru.i_novus.ms.rdm.n2o.model.grid.DataGridColumnsConfig;
+import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -46,8 +52,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -112,8 +117,8 @@ public class RefBookDataController {
     @SuppressWarnings("unused") // used in: data.query.xml
     public Page<DataGridRow> getList(DataCriteria criteria) {
 
-        RefBookVersion version = versionService.getById(criteria.getVersionId());
-        Structure structure = version.getStructure();
+        final RefBookVersion version = versionService.getById(criteria.getVersionId());
+        final Structure structure = version.getStructure();
 
         if (criteria.getOptLockValue() != null) {
             version.setOptLockValue(criteria.getOptLockValue());
@@ -136,11 +141,13 @@ public class RefBookDataController {
             }
         }
 
-        List<Long> conflictedRowIds = (conflictedRowIdsPage == null) ? emptyList() : conflictedRowIdsPage.getContent();
-        SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
+        final List<Long> conflictedRowIds = (conflictedRowIdsPage == null)
+                ? emptyList()
+                : conflictedRowIdsPage.getContent();
+        final SearchDataCriteria searchDataCriteria = toSearchDataCriteria(criteria, structure, conflictedRowIds);
 
-        Page<RefBookRowValue> rowValues = searchRowValues(version.getId(), searchDataCriteria);
-        List<DataGridRow> result = getDataGridContent(criteria, version, rowValues.getContent());
+        final Page<RefBookRowValue> rowValues = searchRowValues(version.getId(), searchDataCriteria);
+        final List<DataGridRow> result = getDataGridContent(criteria, version, rowValues.getContent());
 
         long total;
         if (criteria.isHasDataConflict())
@@ -164,7 +171,7 @@ public class RefBookDataController {
     @SuppressWarnings("unused") // used in: dataDeleteAll.query.xml
     public RefBookVersion getVersion(Integer versionId, Integer optLockValue) {
 
-        RefBookVersion version = versionService.getById(versionId);
+        final RefBookVersion version = versionService.getById(versionId);
         if (optLockValue != null) {
             version.setOptLockValue(optLockValue);
         }
@@ -174,30 +181,33 @@ public class RefBookDataController {
 
     private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {
 
-        RefBookConflictCriteria conflictCriteria = toConflictCriteria(criteria);
+        final RefBookConflictCriteria conflictCriteria = toConflictCriteria(criteria);
         conflictCriteria.setPageSize(pageSize);
+
         return conflictService.searchConflictedRowIds(conflictCriteria);
     }
 
     private RefBookConflictCriteria toConflictCriteria(DataCriteria criteria) {
 
-        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
+        final RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         conflictCriteria.setReferrerVersionId(criteria.getVersionId());
         conflictCriteria.setConflictTypes(ConflictUtils.getDataConflictTypes());
         conflictCriteria.setIsLastPublishedVersion(true);
+
         return conflictCriteria;
     }
 
-    private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria, Structure structure,
+    private SearchDataCriteria toSearchDataCriteria(DataCriteria criteria,
+                                                    Structure structure,
                                                     List<Long> conflictedRowIds) {
 
-        SearchDataCriteria result = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
+        final SearchDataCriteria result = new SearchDataCriteria(criteria.getPageNumber(), criteria.getPageSize());
         result.setLocaleCode(criteria.getLocaleCode());
 
-        Set<List<AttributeFilter>> filters = toAttributeFilters(criteria, structure);
+        final Set<List<AttributeFilter>> filters = toAttributeFilters(criteria, structure);
         result.setAttributeFilters(filters);
 
-        List<Sort.Order> orders = toSortOrders(criteria.getOrders(), structure);
+        final List<Sort.Order> orders = toSortOrders(criteria.getOrders(), structure);
         if (!isEmpty(orders)) {
             result.setOrders(orders);
         }
@@ -211,11 +221,11 @@ public class RefBookDataController {
 
     protected Set<List<AttributeFilter>> toAttributeFilters(DataCriteria criteria, Structure structure) {
 
-        List<AttributeFilter> list = toAttributeFilterList(criteria, structure);
+        final List<AttributeFilter> list = toAttributeFilterList(criteria, structure);
         if (isEmpty(list))
             return emptySet();
 
-        Set<List<AttributeFilter>> set = new HashSet<>(1);
+        final Set<List<AttributeFilter>> set = new HashSet<>(1);
         set.add(list);
 
         return set;
@@ -256,18 +266,19 @@ public class RefBookDataController {
         if (filterValue == null || StringUtils.isEmpty(filterName) || !hasPrefix(filterName))
             return null;
 
-        String attributeCode = deletePrefix(filterName);
+        final String attributeCode = deletePrefix(filterName);
 
-        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        final Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
             throw new NotFoundException(new Message(DATA_FILTER_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, filterName));
 
-        Serializable attributeValue = castFilterValue(attribute, filterValue);
+        final Serializable attributeValue = castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
-        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
+        final AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
         attributeFilter.setSearchType(toSearchType(attribute));
+
         return attributeFilter;
     }
 
@@ -292,9 +303,9 @@ public class RefBookDataController {
 
     private Sort.Order toSortOrder(Structure structure, Sort.Order order) {
 
-        String orderName = order.getProperty();
-        String attributeCode = deletePrefix(orderName);
-        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        final String orderName = order.getProperty();
+        final String attributeCode = deletePrefix(orderName);
+        final Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
             throw new NotFoundException(new Message(DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, orderName));
 
@@ -311,29 +322,33 @@ public class RefBookDataController {
         return rowValues;
     }
 
-    private List<DataGridRow> getDataGridContent(DataCriteria criteria, RefBookVersion version,
+    private List<DataGridRow> getDataGridContent(DataCriteria criteria,
+                                                 RefBookVersion version,
                                                  List<RefBookRowValue> searchContent) {
 
-        Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
-        DataGridRow dataGridHead = new DataGridRow(createHead(dataStructure));
+        final Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
 
         List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
-        List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
+        if (isEmpty(dataContent)) {
+            dataContent = singletonList(new RefBookRowValue(null, emptyList(), null));
+        }
+        final List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
-        List<DataGridRow> resultRows = new ArrayList<>(dataGridRows.size() + 1);
-        resultRows.add(dataGridHead);
-        resultRows.addAll(dataGridRows);
-        return resultRows;
+        final DataGridRow firstRow = dataGridRows.get(0);
+        firstRow.setColumnsConfig(createColumnConfig(dataStructure));
+
+        return dataGridRows;
     }
 
-    private List<DataGridRow> getDataGridRows(DataCriteria criteria, RefBookVersion version,
-                                              List<RefBookRowValue> searchContent) {
+    private List<DataGridRow> getDataGridRows(DataCriteria criteria,
+                                              RefBookVersion version,
+                                              List<RefBookRowValue> dataContent) {
 
-        List<Long> conflictedRowsIds = criteria.isHasDataConflict() || (criteria.getLocaleCode() != null)
+        final List<Long> conflictedRowsIds = criteria.isHasDataConflict() || (criteria.getLocaleCode() != null)
                 ? emptyList()
-                : conflictService.getReferrerConflictedIds(version.getId(), getRowSystemIds(searchContent));
+                : conflictService.getReferrerConflictedIds(version.getId(), getRowSystemIds(dataContent));
 
-        return searchContent.stream()
+        return dataContent.stream()
                 .map(rowValue -> {
                     boolean isDataConflict = criteria.isHasDataConflict() ||
                             conflictedRowsIds.contains(rowValue.getSystemId());
@@ -348,16 +363,18 @@ public class RefBookDataController {
     }
 
     // NB: to-do: DataGridRowCriteria ?!
-    private DataGridRow toDataGridRow(RowValue<?> rowValue, RefBookVersion version,
-                                      DataCriteria criteria, boolean isDataConflict) {
+    private DataGridRow toDataGridRow(RowValue<?> rowValue,
+                                      RefBookVersion version,
+                                      DataCriteria criteria,
+                                      boolean isDataConflict) {
 
-        Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 4);
+        final Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 4);
 
         rowValue.getFieldValues().forEach(fieldValue ->
                 rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
         );
 
-        LongRowValue longRowValue = (LongRowValue) rowValue;
+        final LongRowValue longRowValue = (LongRowValue) rowValue;
         rowMap.put(FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
         rowMap.put(FIELD_VERSION_ID, String.valueOf(version.getId()));
         rowMap.put(FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
@@ -368,10 +385,10 @@ public class RefBookDataController {
 
     private static Map<String, Object> getDataConflictedCellOptions() {
 
-        Map<String, Object> cellOptions = new HashMap<>(2);
+        final Map<String, Object> cellOptions = new HashMap<>(2);
         cellOptions.put("src", "TextCell");
 
-        Map<String, Object> styleOptions = new HashMap<>(1);
+        final Map<String, Object> styleOptions = new HashMap<>(1);
         styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
         cellOptions.put("styles", styleOptions);
 
@@ -380,17 +397,13 @@ public class RefBookDataController {
 
     private Object fieldValueToCell(FieldValue<?> fieldValue, boolean isDataConflict) {
 
-        String stringValue = fieldValueToString(fieldValue);
-
-        if (isDataConflict)
-            return new DataGridCell(stringValue, DATA_CONFLICTED_CELL_OPTIONS);
-
-        return stringValue;
+        final String stringValue = fieldValueToString(fieldValue);
+        return !isDataConflict ? stringValue : new DataGridCell(stringValue, DATA_CONFLICTED_CELL_OPTIONS);
     }
 
     private String fieldValueToString(FieldValue<?> fieldValue) {
 
-        Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
+        final Optional<Object> valueOptional = ofNullable(fieldValue).map(FieldValue::getValue);
 
         if (fieldValue instanceof ReferenceFieldValue) {
             return valueOptional.filter(Reference.class::isInstance).map(o -> (Reference)o)
@@ -414,22 +427,43 @@ public class RefBookDataController {
         return localDate.format(ofPattern(TimeUtils.DATE_PATTERN_EUROPEAN));
     }
 
-    private List<DataGridColumn> createHead(Structure structure) {
-
-        return structure.getAttributes().stream().map(this::toDataColumn).collect(toList());
+    private DataGridColumnsConfig createColumnConfig(Structure structure) {
+        return new DataGridColumnsConfig(createColumnHeaders(structure), createColumnCells(structure));
     }
 
-    private DataGridColumn toDataColumn(Structure.Attribute attribute) {
+    //private Map<String, Object> createColumnConfig(Structure structure) {
+    //
+    //    final Map<String, Object> result = new HashMap<>(2);
+    //    result.put("header", createColumnHeaders(structure));
+    //    result.put("body", createColumnHeaderCells(structure));
+    //
+    //    return result;
+    //}
 
-        final String codeWithPrefix = addPrefix(attribute.getCode());
+    private List<ColumnHeader> createColumnHeaders(Structure structure) {
+        return structure.getAttributes().stream().map(this::toColumnHeader).collect(toList());
+    }
 
-        N2oField n2oField = toN2oField(attribute);
-        n2oField.setId(codeWithPrefix);
+    private List<AbstractCell> createColumnCells(Structure structure) {
+        return structure.getAttributes().stream().map(this::toColumnCell).collect(toList());
+    }
 
-        StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
+    private ColumnHeader toColumnHeader(Structure.Attribute attribute) {
 
-        return new DataGridColumn(codeWithPrefix, attribute.getName(),
-                true, true, true, filterField.getControl());
+        final String id = addPrefix(attribute.getCode());
+
+        final N2oField n2oField = toN2oField(attribute);
+        n2oField.setId(id);
+
+        final StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
+
+        return DataGridColumnsConfig.createHeader(id, attribute.getName(), filterField);
+    }
+
+    private AbstractCell toColumnCell(Structure.Attribute attribute) {
+
+        final String id = addPrefix(attribute.getCode());
+        return DataGridColumnsConfig.createTextCell(id);
     }
 
     /** Преобразование атрибута в поле для поиска значений по этому атрибуту. */
@@ -479,65 +513,11 @@ public class RefBookDataController {
     }
 
     /**
-     * Запись (строка) для DataGrid.
+     * Ячейка DataGrid (для особого оформления).
      */
-    @SuppressWarnings("WeakerAccess")
-    public static class DataGridRow {
-
-        /** Идентификатор записи. */
-        @JsonProperty
-        private Long id;
-
-        /** Колонки. */
-        @JsonProperty
-        private List<DataGridColumn> columns;
-
-        /** Содержимое (строка). */
-        @JsonProperty
-        private Map<String, Object> row;
-
-        @SuppressWarnings("unused")
-        public DataGridRow() {
-            // Nothing to do.
-        }
-
-        public DataGridRow(List<DataGridColumn> columns) {
-            this.columns = columns;
-        }
-
-        public DataGridRow(Long id, Map<String, Object> row) {
-            this.id = id;
-            this.row = row;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public List<DataGridColumn> getColumns() {
-            return columns;
-        }
-
-        public void setColumns(List<DataGridColumn> columns) {
-            this.columns = columns;
-        }
-
-        public Map<String, Object> getRow() {
-            return row;
-        }
-
-        public void setRow(Map<String, Object> row) {
-            this.row = row;
-        }
-    }
-
-    /**
-     * Ячейка для DataGrid.
-     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
     @SuppressWarnings("WeakerAccess")
     public static class DataGridCell {
 
@@ -549,30 +529,8 @@ public class RefBookDataController {
         @JsonProperty
         private Map<String, Object> cellOptions;
 
-        @SuppressWarnings("unused")
-        public DataGridCell() {
-            // Nothing to do.
-        }
-
         public DataGridCell(String value, Map<String, Object> cellOptions) {
             this.value = value;
-            this.cellOptions = cellOptions;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
-        }
-
-        public Map<String, Object> getCellOptions() {
-            return cellOptions;
-        }
-
-        @SuppressWarnings("unused")
-        public void setCellOptions(Map<String, Object> cellOptions) {
             this.cellOptions = cellOptions;
         }
     }
