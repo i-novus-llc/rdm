@@ -5,7 +5,11 @@
     <table id="dataTable" src="DataGrid">
         <datasource query-id="data" object-id="data"/>
 
-        <!-- TODO: Раскраска строк: https://sandbox.n2oapp.net/editor/wFmgM/?file=index.page.xml -->
+        <rows>
+            <switch value-field-id="rowType">
+                <case value="CONFLICTED">rdm-alert-conflict</case>
+            </switch>
+        </rows>
     </table>
 
 </simple-page>

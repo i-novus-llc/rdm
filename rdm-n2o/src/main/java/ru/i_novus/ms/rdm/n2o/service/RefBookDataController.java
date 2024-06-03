@@ -38,6 +38,7 @@ import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridColumnsConfig;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
+import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRowType;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -82,6 +83,17 @@ public class RefBookDataController {
 
     private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
     private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
+    private static Map<String, Object> getDataConflictedCellOptions() {
+
+        final Map<String, Object> cellOptions = new HashMap<>(2);
+        cellOptions.put("src", "TextCell");
+
+        final Map<String, Object> styleOptions = new HashMap<>(1);
+        styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
+        cellOptions.put("styles", styleOptions);
+
+        return cellOptions;
+    }
 
     private final VersionRestService versionService;
 
@@ -368,31 +380,23 @@ public class RefBookDataController {
                                       DataCriteria criteria,
                                       boolean isDataConflict) {
 
-        final Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 4);
+        final Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 5);
 
         rowValue.getFieldValues().forEach(fieldValue ->
                 rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
         );
 
         final LongRowValue longRowValue = (LongRowValue) rowValue;
-        rowMap.put(FIELD_SYSTEM_ID, String.valueOf(longRowValue.getSystemId()));
+        final Long systemId = longRowValue.getSystemId();
+
+        rowMap.put(FIELD_SYSTEM_ID, String.valueOf(systemId));
+        rowMap.put(FIELD_ROW_TYPE, toRowType(isDataConflict).name());
+
         rowMap.put(FIELD_VERSION_ID, String.valueOf(version.getId()));
         rowMap.put(FIELD_OPT_LOCK_VALUE, String.valueOf(version.getOptLockValue()));
         rowMap.put(FIELD_LOCALE_CODE, criteria.getLocaleCode());
 
-        return new DataGridRow(longRowValue.getSystemId(), rowMap);
-    }
-
-    private static Map<String, Object> getDataConflictedCellOptions() {
-
-        final Map<String, Object> cellOptions = new HashMap<>(2);
-        cellOptions.put("src", "TextCell");
-
-        final Map<String, Object> styleOptions = new HashMap<>(1);
-        styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
-        cellOptions.put("styles", styleOptions);
-
-        return cellOptions;
+        return new DataGridRow(systemId, rowMap);
     }
 
     private Object fieldValueToCell(FieldValue<?> fieldValue, boolean isDataConflict) {
@@ -427,6 +431,10 @@ public class RefBookDataController {
         return localDate.format(ofPattern(TimeUtils.DATE_PATTERN_EUROPEAN));
     }
 
+    private DataGridRowType toRowType(boolean isDataConflict) {
+        return isDataConflict ? DataGridRowType.CONFLICTED : DataGridRowType.DEFAULT;
+    }
+
     private DataGridColumnsConfig createColumnConfig(Structure structure) {
         return new DataGridColumnsConfig(createColumnHeaders(structure), createColumnCells(structure));
     }
@@ -454,7 +462,6 @@ public class RefBookDataController {
 
         final N2oField n2oField = toN2oField(attribute);
         n2oField.setId(id);
-
         final StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
 
         return DataGridColumnsConfig.createHeader(id, attribute.getName(), filterField);
