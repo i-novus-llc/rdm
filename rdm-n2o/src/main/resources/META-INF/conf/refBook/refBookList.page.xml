@@ -10,7 +10,7 @@
 
         <filters>
             <row>
-                <input-text id="name" label="Название справочника"/>
+                <input-text id="name" label="Наименование справочника"/>
                 <input-text id="code" label="Код справочника"/>
                 <date-interval id="lastPublishedDateInterval" label="Дата последней публикации"
                                date-format="DD.MM.YYYY"/>
