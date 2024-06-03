@@ -149,7 +149,7 @@ public class RefBookDataController {
 
             long dataCount = versionService.search(version.getId(), EMPTY_SEARCH_DATA_CRITERIA).getTotalElements();
             if (conflictsCount != dataCount) {
-                conflictedRowIdsPage = getConflictedRowIds(criteria, (int) conflictsCount);
+                conflictedRowIdsPage = searchConflictedRowIds(criteria, (int) conflictsCount);
             }
         }
 
@@ -167,11 +167,11 @@ public class RefBookDataController {
         else
             total = rowValues.getTotalElements();
 
-        // NB: (костыль)
+        // NB: (костыль) -- убран из-за изменения DataGrid!
         // Прибавляется 1 к количеству элементов
         // из-за особенности подсчёта количества для последней страницы.
         // На клиенте отнимается 1 для всех страниц.
-        return new RestPage<>(result, searchDataCriteria, total + 1);
+        return new RestPage<>(result, searchDataCriteria, total);
     }
 
     /**
@@ -191,7 +191,7 @@ public class RefBookDataController {
         return version;
     }
 
-    private Page<Long> getConflictedRowIds(DataCriteria criteria, int pageSize) {
+    private Page<Long> searchConflictedRowIds(DataCriteria criteria, int pageSize) {
 
         final RefBookConflictCriteria conflictCriteria = toConflictCriteria(criteria);
         conflictCriteria.setPageSize(pageSize);
@@ -340,11 +340,12 @@ public class RefBookDataController {
 
         final Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
 
-        List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
-        if (isEmpty(dataContent)) {
-            dataContent = singletonList(new RefBookRowValue(null, emptyList(), null));
+        final List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
+        List<DataGridRow> dataGridRows = toDataGridRows(criteria, version, dataContent);
+        if (isEmpty(dataGridRows)) {
+            final RefBookRowValue rowValue = new RefBookRowValue(null, emptyList(), null);
+            dataGridRows = singletonList(toDataGridRow(rowValue, version, criteria, false));
         }
-        final List<DataGridRow> dataGridRows = getDataGridRows(criteria, version, dataContent);
 
         final DataGridRow firstRow = dataGridRows.get(0);
         firstRow.setColumnsConfig(createColumnConfig(dataStructure));
@@ -352,9 +353,9 @@ public class RefBookDataController {
         return dataGridRows;
     }
 
-    private List<DataGridRow> getDataGridRows(DataCriteria criteria,
-                                              RefBookVersion version,
-                                              List<RefBookRowValue> dataContent) {
+    private List<DataGridRow> toDataGridRows(DataCriteria criteria,
+                                             RefBookVersion version,
+                                             List<RefBookRowValue> dataContent) {
 
         final List<Long> conflictedRowsIds = criteria.isHasDataConflict() || (criteria.getLocaleCode() != null)
                 ? emptyList()

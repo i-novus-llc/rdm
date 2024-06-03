@@ -27,7 +27,6 @@ public class DataGridRow {
      */
     @JsonProperty
     private DataGridColumnsConfig columnsConfig;
-    //private Map<String, Object> columnsConfig;
 
     /**
      * Содержимое (строка).
