@@ -10,7 +10,7 @@
             </filters>
         </datasource>
 
-        <!-- Модель паспорта версии справочника -->
+        <!-- Модель паспорта у версии справочника -->
         <datasource id="versionPassport" query-id="refBook" object-id="refBook">
             <dependencies>
                 <fetch on="refBookVersion" model="resolve"/>
@@ -162,6 +162,8 @@
                     </menu-item>
 
                     <menu-item label="Обновить ссылки">
+                        <confirm title="Предупреждение"
+                                 text="Вы уверены, что хотите обновить ссылки?"/>
                         <invoke operation-id="refreshReferrer"/>
 
                         <dependencies>
@@ -170,13 +172,21 @@
                     </menu-item>
 
                     <menu-item label="Загрузить из файла">
-                        <show-modal page-id="uploadFile"
-                                    submit-operation-id="uploadFromFile" upload="defaults"
-                                    redirect-target="application"
-                                    redirect-url-after-submit="${rdm.context-path}/main/:refBookId/edit">
+                        <show-modal page-id="uploadFile" upload="defaults">
                             <params>
                                 <query-param name="versionId" value="{id}"/>
                             </params>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Загрузить">
+                                        <confirm title="Предупреждение"
+                                                 text="Вы уверены, что хотите загрузить справочник?"/>
+                                        <invoke operation-id="uploadFromFile" />
+                                        <a href="${rdm.context-path}/main/:refBookId/edit" target="application"/>
+                                    </button>
+                                </toolbar>
+                            </toolbars>
                         </show-modal>
                     </menu-item>
 
@@ -265,6 +275,8 @@
 
                         <button label="Удалить" id="deleteAttribute" color="danger" icon="fa fa-trash"
                                 disable-on-empty-model="false">
+                            <confirm title="Предупреждение"
+                                     text="Вы действительно хотите удалить атрибут справочника?"/>
                             <invoke operation-id="deleteAttribute" object-id="attribute"
                                     route="/:versionId/attribute/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">
@@ -352,6 +364,8 @@
 
                         <button id="deleteRecord" label="Удалить" color="danger" icon="fa fa-trash"
                                 disable-on-empty-model="false">
+                            <confirm title="Предупреждение"
+                                     text="Вы действительно хотите удалить запись?"/>
                             <invoke operation-id="deleteRecord" object-id="data"
                                     route="/:versionId/record/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">
@@ -528,6 +542,8 @@
 
                         <button id="deleteConflictedRecord" label="Удалить" color="danger" icon="fa fa-trash"
                                 disable-on-empty-model="false">
+                            <confirm title="Предупреждение"
+                                     text="Вы действительно хотите удалить конфликтную запись?"/>
                             <invoke operation-id="deleteRecord" object-id="data"
                                     route="/:versionId/record/delete"
                                     refresh-datasources="refBookVersion" close-after-success="false">

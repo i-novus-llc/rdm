@@ -65,6 +65,8 @@
             </button>
 
             <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
+                <confirm title="Предупреждение"
+                         text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?"/>
                 <invoke operation-id="delete"/>
 
                 <dependencies>
@@ -73,6 +75,8 @@
             </button>
 
             <button id="toArchive" label="Отправить в архив" icon="fa fa-lock">
+                <confirm title="Предупреждение"
+                         text="Вы уверены, что хотите отправить этот справочник в архив?"/>
                 <invoke operation-id="toArchive"/>
 
                 <dependencies>
@@ -81,6 +85,8 @@
             </button>
 
             <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock">
+                <confirm title="Предупреждение"
+                         text="Вы уверены, что хотите вернуть этот справочник из архива?"/>
                 <invoke operation-id="fromArchive"/>
 
                 <dependencies>
