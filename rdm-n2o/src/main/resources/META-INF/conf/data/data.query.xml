@@ -30,10 +30,11 @@
         <field id="optLockValue" domain="integer" select="false"/>
 
         <field id="id"/>
+        <field id="rowType" domain="string"/>
         <field id="localeCode" domain="string" select="false"/>
         <field id="dataAction" domain="string" select="false"/>
 
-        <field id="columns" domain="object[]"/>
+        <field id="columnsConfig" domain="object"/>
         <field id="row" domain="object[]"/>
 
         <field id="filter" select="false"/>

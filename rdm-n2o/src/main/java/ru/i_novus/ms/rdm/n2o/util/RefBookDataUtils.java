@@ -100,7 +100,7 @@ public final class RefBookDataUtils {
 
     public static Boolean parseBoolean(String value) {
 
-        String stringValue = value.toLowerCase();
+        final String stringValue = value.toLowerCase();
         if (StringUtils.isEmpty(stringValue))
             return null;
 

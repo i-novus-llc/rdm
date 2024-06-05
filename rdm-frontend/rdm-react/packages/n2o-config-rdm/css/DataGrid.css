@@ -1,3 +1,7 @@
 .rdm-data-grid .n2o-advanced-table-header-cell-content {
   justify-content: space-between;
 }
+
+.rdm-alert-conflict {
+  background-color: #f8c8c6;
+}

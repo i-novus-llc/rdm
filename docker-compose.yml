@@ -98,8 +98,8 @@ services:
       SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
       RDM_BACKEND_PATH: http://backend:8080/rdm/api
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rdm
-      SPRING_DATASOURCE_USERNAME: rdm
-      SPRING_DATASOURCE_PASSWORD: rdm
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       JAVA_OPTS: -Xmx200m
       ESNSI_SYNC_DISABLE_MSG_FETCHER: "true" # Только чтобы отдебажиться
     depends_on:
