@@ -35,16 +35,36 @@
 
             <sub-menu label="Создать справочник" icon="fa fa-plus">
                 <menu-item label="Создать справочник" model="filter">
-                    <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults"
-                               submit-operation-id="create"
-                               redirect-url-after-submit="../:refBookId/edit"/>
+                    <open-page page-id="createRefBook" page-name="Создание справочника" upload="defaults">
+                        <toolbars>
+                            <toolbar>
+                                <button label="Сохранить" color="primary">
+                                    <invoke operation-id="create"
+                                            redirect-url="../:refBookId/edit"
+                                            redirect-target="application"/>
+                                    <!--<close/> &lt;!&ndash; Не работает a-href, поэтому пока просто закрываем. &ndash;&gt;-->
+                                    <!--<a href="../:refBookId/edit" target="application"/>-->
+                                </button>
+                                <button generate="close"/>
+                            </toolbar>
+                        </toolbars>
+                    </open-page>
                 </menu-item>
 
                 <menu-item label="Создать справочник из файла" model="filter">
-                    <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults"
-                                submit-operation-id="createFromFile"
-                                redirect-url-after-submit="${rdm.context-path}/:refBookId/edit"
-                                redirect-target="application">
+                    <show-modal page-id="createFromFile" page-name="Создание справочника из файла" upload="defaults">
+                        <toolbars>
+                            <toolbar>
+                                <button label="Сохранить" color="primary">
+                                    <invoke operation-id="createFromFile"
+                                            redirect-url="${rdm.context-path}/:refBookId/edit"
+                                            redirect-target="application"/>
+                                    <!--<close/> &lt;!&ndash; Не работает a-href, поэтому пока просто закрываем. &ndash;&gt;-->
+                                    <!--<a href="${rdm.context-path}/:refBookId/edit" target="application"/>-->
+                                </button>
+                                <button generate="close"/>
+                            </toolbar>
+                        </toolbars>
                     </show-modal>
                 </menu-item>
             </sub-menu>
@@ -64,8 +84,8 @@
                 </dependencies>
             </button>
 
-            <button id="delete" label="Удалить справочник" icon="fa fa-trash" color="danger">
-                <confirm title="Предупреждение"
+            <button id="delete" label="Удалить справочник" color="danger" icon="fa fa-trash">
+                <confirm title="Удалить"
                          text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?"/>
                 <invoke operation-id="delete"/>
 
@@ -75,7 +95,7 @@
             </button>
 
             <button id="toArchive" label="Отправить в архив" icon="fa fa-lock">
-                <confirm title="Предупреждение"
+                <confirm title="Отправить в архив"
                          text="Вы уверены, что хотите отправить этот справочник в архив?"/>
                 <invoke operation-id="toArchive"/>
 
@@ -85,7 +105,7 @@
             </button>
 
             <button id="fromArchive" label="Вернуть из архива" icon="fa fa-unlock">
-                <confirm title="Предупреждение"
+                <confirm title="Вернуть из архива"
                          text="Вы уверены, что хотите вернуть этот справочник из архива?"/>
                 <invoke operation-id="fromArchive"/>
 

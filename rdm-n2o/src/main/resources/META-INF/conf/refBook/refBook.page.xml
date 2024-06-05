@@ -179,9 +179,11 @@
 
                             <toolbars>
                                 <toolbar>
-                                    <button label="Загрузить" color="primary">
-                                        <invoke operation-id="uploadFromFile"/>
-                                        <a href="${rdm.context-path}/main/:refBookId/edit" target="application"/>
+                                    <button label="Загрузить из файла" color="primary">
+                                        <invoke operation-id="uploadFromFile"
+                                                redirect-url="${rdm.context-path}/main/:refBookId/edit"
+                                                redirect-target="application"/>
+                                        <!--<a href="${rdm.context-path}/main/:refBookId/edit" target="application"/>-->
                                     </button>
                                     <button generate="close"/>
                                 </toolbar>
@@ -221,9 +223,7 @@
                         <button id="createAttribute" label="Добавить"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="attribute"
-                                        route="/:versionId/attribute/create"
-                                        submit-operation-id="createAttribute" submit-model="resolve"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/attribute/create">
                                 <datasources>
                                     <datasource query-id="attributeDefault" object-id="attribute">
                                         <filters>
@@ -237,6 +237,16 @@
                                     <path-param name="versionId" value="{id}" datasource="refBookVersion"/>
                                     <query-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Сохранить" color="primary" model="resolve">
+                                            <invoke operation-id="createAttribute"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
@@ -247,9 +257,7 @@
                         <button id="editAttribute" label="Изменить"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="attribute"
-                                        route="/:versionId/attribute/update"
-                                        submit-operation-id="updateAttribute" submit-model="resolve"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/attribute/update">
                                 <datasources>
                                     <datasource query-id="attribute" object-id="attribute">
                                         <filters>
@@ -265,6 +273,16 @@
                                     <query-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
                                     <query-param name="code" value="{code}" datasource="versionStructure"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Сохранить" color="primary" model="resolve">
+                                            <invoke operation-id="updateAttribute"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
@@ -299,9 +317,7 @@
                         <button id="createRecord" label="Добавить" icon="fa fa-plus"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="dataRecordPage?{id}_create" page-name="Добавление новой записи"
-                                        route="/:versionId/record/create"
-                                        submit-operation-id="create" submit-label="Сохранить"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/record/create">
                                 <datasources>
                                     <datasource>
                                         <filters>
@@ -326,15 +342,23 @@
                             <dependencies>
                                 <enabling datasource="refBookVersion">version.hasStructure</enabling>
                             </dependencies>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Сохранить" color="primary" model="resolve">
+                                        <invoke operation-id="create"
+                                                refresh-datasources="refBookVersion" close-on-success="true"/>
+                                    </button>
+                                    <button generate="close"/>
+                                </toolbar>
+                            </toolbars>
                         </button>
 
                         <button id="updateRecord" label="Изменить" icon="fa fa-pencil"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <!-- NB: id для page-id берётся из :versionId в route с учётом datasource в button -->
                             <show-modal page-id="dataRecordPage?{id}_update" page-name="Редактирование записи"
-                                        route="/:versionId/record/update"
-                                        submit-operation-id="update" submit-label="Изменить"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/record/update">
                                 <datasources>
                                     <datasource>
                                         <filters>
@@ -359,11 +383,21 @@
                             <dependencies>
                                 <enabling datasource="versionData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Изменить" color="primary" model="resolve">
+                                        <invoke operation-id="update"
+                                                refresh-datasources="refBookVersion" close-on-success="true"/>
+                                    </button>
+                                    <button generate="close"/>
+                                </toolbar>
+                            </toolbars>
                         </button>
 
                         <button id="deleteRecord" label="Удалить" color="danger" icon="fa fa-trash"
                                 disable-on-empty-model="false">
-                            <confirm title="Предупреждение"
+                            <confirm title="Удалить"
                                      text="Вы действительно хотите удалить запись?"/>
                             <invoke operation-id="deleteRecord" object-id="data"
                                     route="/:versionId/record/delete"
@@ -381,9 +415,7 @@
                         <button id="deleteAllRecords" label="Удалить все" color="danger" icon="fa fa-trash"
                                 datasource="refBookVersion" disable-on-empty-model="false">
                             <show-modal page-id="dataDeleteAll"
-                                        route="/:versionId/record/deleteAll"
-                                        submit-operation-id="deleteAllRecords"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/record/deleteAll">
                                 <params>
                                     <path-param name="versionId" value="{id}" datasource="refBookVersion"/>
                                     <query-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
@@ -393,6 +425,16 @@
                             <dependencies>
                                 <enabling datasource="versionData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Удалить все" color="primary">
+                                        <invoke operation-id="deleteAllRecords"
+                                                refresh-datasources="refBookVersion" close-on-success="true"/>
+                                    </button>
+                                    <button generate="close"/>
+                                </toolbar>
+                            </toolbars>
                         </button>
 
                         <button id="uploadData" label="Загрузить данные"
@@ -464,9 +506,7 @@
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <!-- NB: id для page-id берётся из :versionId в route с учётом datasource в button -->
                             <show-modal page-id="dataRecordPage?{id}_localize" page-name="Добавление перевода записи"
-                                        route="/:versionId/record/localize"
-                                        submit-operation-id="localize" submit-label="Сохранить"
-                                        refresh-datasources="localizedData">
+                                        route="/:versionId/record/localize">
                                 <datasources>
                                     <datasource>
                                         <filters>
@@ -494,6 +534,16 @@
                                 <visibility>${rdm.l10n.support}</visibility>
                                 <enabling datasource="localizedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Сохранить" color="primary" model="resolve">
+                                        <invoke operation-id="localize"
+                                                refresh-datasources="localizedData" close-on-success="true"/>
+                                    </button>
+                                    <button generate="close"/>
+                                </toolbar>
+                            </toolbars>
                         </button>
                     </toolbar>
 
@@ -509,9 +559,7 @@
                         <button id="updateConflictedRecord" label="Исправить" icon="fa fa-pencil"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="dataRecordPage?{id}_update" page-name="Исправление конфликтов в записи"
-                                        route="/:versionId/record/update"
-                                        submit-operation-id="update" submit-label="Изменить"
-                                        refresh-datasources="refBookVersion">
+                                        route="/:versionId/record/update">
                                 <datasources>
                                     <datasource>
                                         <filters>
@@ -537,6 +585,16 @@
                                 <visibility datasource="refBookVersion">isLast</visibility>
                                 <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
+
+                            <toolbars>
+                                <toolbar>
+                                    <button label="Изменить" color="primary" model="resolve">
+                                        <invoke operation-id="update"
+                                                refresh-datasources="refBookVersion" close-on-success="true"/>
+                                    </button>
+                                    <button generate="close"/>
+                                </toolbar>
+                            </toolbars>
                         </button>
 
                         <button id="deleteConflictedRecord" label="Удалить" color="danger" icon="fa fa-trash"
