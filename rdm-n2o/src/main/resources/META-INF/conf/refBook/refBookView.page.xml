@@ -120,7 +120,7 @@
 
             <toolbar place="bottomLeft">
 
-                <button label="Скачать">
+                <button id="downloadFile" label="Скачать">
                     <show-modal page-id="downloadFile">
                         <params>
                             <query-param name="versionId" value="{id}"/>

@@ -179,12 +179,11 @@
 
                             <toolbars>
                                 <toolbar>
-                                    <button label="Загрузить">
-                                        <confirm title="Предупреждение"
-                                                 text="Вы уверены, что хотите загрузить справочник?"/>
-                                        <invoke operation-id="uploadFromFile" />
+                                    <button label="Загрузить" color="primary">
+                                        <invoke operation-id="uploadFromFile"/>
                                         <a href="${rdm.context-path}/main/:refBookId/edit" target="application"/>
                                     </button>
+                                    <button generate="close"/>
                                 </toolbar>
                             </toolbars>
                         </show-modal>
@@ -219,7 +218,7 @@
             <tab id="tab_structure" name="Структура">
                 <table id="version_structure" ref-id="structure" datasource="versionStructure">
                     <toolbar place="bottomRight">
-                        <button label="Добавить" id="createAttribute"
+                        <button id="createAttribute" label="Добавить"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="attribute"
                                         route="/:versionId/attribute/create"
@@ -245,7 +244,7 @@
                             </dependencies>
                         </button>
 
-                        <button label="Изменить" id="editAttribute"
+                        <button id="editAttribute" label="Изменить"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
                             <show-modal page-id="attribute"
                                         route="/:versionId/attribute/update"
@@ -273,7 +272,7 @@
                             </dependencies>
                         </button>
 
-                        <button label="Удалить" id="deleteAttribute" color="danger" icon="fa fa-trash"
+                        <button id="deleteAttribute" label="Удалить" color="danger" icon="fa fa-trash"
                                 disable-on-empty-model="false">
                             <confirm title="Предупреждение"
                                      text="Вы действительно хотите удалить атрибут справочника?"/>
