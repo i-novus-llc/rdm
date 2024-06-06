@@ -12,7 +12,8 @@ import { rdmUpdateConfigField } from "../store";
 function DataGridWidget(props) {
   const {
     table,
-    datasource
+    datasource,
+    id,
   } = props
   const dispatch = useDispatch()
   const datasourceModel = useSelector(dataSourceModelByPrefixSelector(datasource, ModelPrefix.source))
@@ -25,9 +26,9 @@ function DataGridWidget(props) {
 
     if (isEqualBodyCells && isEqualHeaderCells) { return }
 
-    dispatch(rdmUpdateConfigField(datasource, 'table.body.cells', bodyCells))
-    dispatch(rdmUpdateConfigField(datasource, 'table.header.cells', headerCells))
-  }, [datasourceModel, table.body, table.header]);
+    dispatch(rdmUpdateConfigField(id, 'table.body.cells', bodyCells))
+    dispatch(rdmUpdateConfigField(id, 'table.header.cells', headerCells))
+  }, [datasourceModel, table.body, table.header, id]);
 
   return (
     <AdvancedTableWidget
