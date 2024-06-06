@@ -16,7 +16,7 @@
     "n2o-framework": "*",
     "react": "*",
     "react-dom": "*",
-    "n2o-config-rdm": "*"
+    "n2o-config-rdm": "2.1.0"
   },
   "eslintConfig": {
     "extends": "react-app"
