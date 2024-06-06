@@ -337,21 +337,21 @@
                                     <query-param name="id" value="0"/>
                                     <query-param name="dataAction" value="create"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Сохранить" color="primary" model="resolve">
+                                            <invoke operation-id="create"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
                                 <enabling datasource="refBookVersion">version.hasStructure</enabling>
                             </dependencies>
-
-                            <toolbars>
-                                <toolbar>
-                                    <button label="Сохранить" color="primary" model="resolve">
-                                        <invoke operation-id="create"
-                                                refresh-datasources="refBookVersion" close-on-success="true"/>
-                                    </button>
-                                    <button generate="close"/>
-                                </toolbar>
-                            </toolbars>
                         </button>
 
                         <button id="updateRecord" label="Изменить" icon="fa fa-pencil"
@@ -378,21 +378,21 @@
                                     <query-param name="id" value="{id}" datasource="versionData"/>
                                     <query-param name="dataAction" value="update"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Изменить" color="primary" model="resolve">
+                                            <invoke operation-id="update"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
                                 <enabling datasource="versionData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
-
-                            <toolbars>
-                                <toolbar>
-                                    <button label="Изменить" color="primary" model="resolve">
-                                        <invoke operation-id="update"
-                                                refresh-datasources="refBookVersion" close-on-success="true"/>
-                                    </button>
-                                    <button generate="close"/>
-                                </toolbar>
-                            </toolbars>
                         </button>
 
                         <button id="deleteRecord" label="Удалить" color="danger" icon="fa fa-trash"
@@ -420,21 +420,21 @@
                                     <path-param name="versionId" value="{id}" datasource="refBookVersion"/>
                                     <query-param name="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Удалить все" color="primary">
+                                            <invoke operation-id="deleteAllRecords"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
                                 <enabling datasource="versionData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
-
-                            <toolbars>
-                                <toolbar>
-                                    <button label="Удалить все" color="primary">
-                                        <invoke operation-id="deleteAllRecords"
-                                                refresh-datasources="refBookVersion" close-on-success="true"/>
-                                    </button>
-                                    <button generate="close"/>
-                                </toolbar>
-                            </toolbars>
                         </button>
 
                         <button id="uploadData" label="Загрузить данные"
@@ -528,22 +528,22 @@
                                     <query-param name="id" value="{id}" datasource="localizedData"/>
                                     <query-param name="dataAction" value="localize"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Сохранить" color="primary" model="resolve">
+                                            <invoke operation-id="localize"
+                                                    refresh-datasources="localizedData" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
                                 <visibility>${rdm.l10n.support}</visibility>
                                 <enabling datasource="localizedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
-
-                            <toolbars>
-                                <toolbar>
-                                    <button label="Сохранить" color="primary" model="resolve">
-                                        <invoke operation-id="localize"
-                                                refresh-datasources="localizedData" close-on-success="true"/>
-                                    </button>
-                                    <button generate="close"/>
-                                </toolbar>
-                            </toolbars>
                         </button>
                     </toolbar>
 
@@ -579,22 +579,22 @@
                                     <query-param name="id" value="{id}" datasource="conflictedData"/>
                                     <query-param name="dataAction" value="update"/>
                                 </params>
+
+                                <toolbars>
+                                    <toolbar>
+                                        <button label="Изменить" color="primary" model="resolve">
+                                            <invoke operation-id="update"
+                                                    refresh-datasources="refBookVersion" close-on-success="true"/>
+                                        </button>
+                                        <button generate="close"/>
+                                    </toolbar>
+                                </toolbars>
                             </show-modal>
 
                             <dependencies>
                                 <visibility datasource="refBookVersion">isLast</visibility>
                                 <enabling datasource="conflictedData">!$.isEmptyModel(this)</enabling>
                             </dependencies>
-
-                            <toolbars>
-                                <toolbar>
-                                    <button label="Изменить" color="primary" model="resolve">
-                                        <invoke operation-id="update"
-                                                refresh-datasources="refBookVersion" close-on-success="true"/>
-                                    </button>
-                                    <button generate="close"/>
-                                </toolbar>
-                            </toolbars>
                         </button>
 
                         <button id="deleteConflictedRecord" label="Удалить" color="danger" icon="fa fa-trash"
