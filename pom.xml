@@ -19,9 +19,10 @@
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
 
-        <npm.registry>https://npm.i-novus.ru</npm.registry>
+        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
+        <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
-        <n2o.version>7.27.11</n2o.version>
+        <n2o.version>7.27.12</n2o.version>
 
         <!-- STORAGE -->
         <vds.version>3.25</vds.version>
@@ -33,6 +34,7 @@
         <jackson-datatype.version>2.13.4</jackson-datatype.version>
 
         <!-- from spring-boot-dependencies -->
+        <spring.boot.version>2.7.5</spring.boot.version>
         <hibernate.version>5.6.12.Final</hibernate.version>
         <lombok.version>1.18.24</lombok.version>
         <javax.activation.version>1.1.1</javax.activation.version>
