@@ -1,61 +1,39 @@
-import React, { useMemo } from 'react'
-import { useSelector } from "react-redux";
+import React, { useLayoutEffect } from "react";
+import {useDispatch, useSelector} from "react-redux";
+import isEqual from 'lodash/isEqual'
 import { AdvancedTableWidget } from "n2o-framework/lib/components/widgets/AdvancedTable";
 import { dataSourceModelByPrefixSelector } from "n2o-framework/lib/ducks/datasource/selectors";
 import { ModelPrefix } from "n2o-framework/lib/core/datasource/const";
 
 import { getColumnsFromDatasource, getDataFromDatasource } from "./utils";
-import DataGridCell from "./DataGridCell";
+import { rdmUpdateConfigField } from "../store";
 
-import get from 'lodash/get'
 
 function DataGridWidget(props) {
-  console.log("DataGridWidget props")
-  console.log(props)
-
   const {
-    table
+    table,
+    datasource
   } = props
-  const { datasource } = props
+  const dispatch = useDispatch()
   const datasourceModel = useSelector(dataSourceModelByPrefixSelector(datasource, ModelPrefix.source))
-  console.log("datasourceModel")
-  console.log(datasourceModel)
-  console.log(get(datasourceModel, [0], {}))
 
-  const tableConfig = useMemo(() => {
-//     console.log("datasourceModel")
-//     console.log(datasourceModel)
-//     console.log(get(datasourceModel, [0], {}))
-//     console.log(get(datasourceModel, [0, 'columnsConfig'], {}))
+  useLayoutEffect(() => {
     const columns = getColumnsFromDatasource(datasourceModel)
-    console.log("columns")
-    console.log(columns)
-//     console.log(columns.cells)
-//     console.log(columns.headers)
+    const { cells: bodyCells, headers: headerCells } = columns
+    const isEqualBodyCells = isEqual(table.body.cells, bodyCells)
+    const isEqualHeaderCells = isEqual(table.header.cells, headerCells)
 
-    return ({
-      ...table,
-      body: {
-        cells: columns.cells
-      },
-      header: {
-        cells: columns.headers
-      }
-    })
-  }, [datasourceModel, table])
+    if (isEqualBodyCells && isEqualHeaderCells) { return }
 
-  console.log("tableConfig")
-  console.log(tableConfig)
+    dispatch(rdmUpdateConfigField(datasource, 'table.body.cells', bodyCells))
+    dispatch(rdmUpdateConfigField(datasource, 'table.header.cells', headerCells))
+  }, [datasourceModel, table.body, table.header]);
 
   return (
     <AdvancedTableWidget
       {...props}
       className="rdm-data-grid"
       dataMapper={getDataFromDatasource}
-      table={tableConfig}
-      components={{
-        CellContainer: DataGridCell
-      }}
     />
   );
 }

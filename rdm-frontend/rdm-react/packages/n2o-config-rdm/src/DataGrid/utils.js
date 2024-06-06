@@ -9,6 +9,5 @@ const defaultColumns = {
 const defaultData = []
 
 export const getColumnsFromDatasource = datasource => get(datasource, [0, 'columnsConfig'], defaultColumns)
-//export const getColumnsFromDatasource = datasource => datasource ? map(datasource, item => item.columnsConfig) : defaultColumns
 
 export const getDataFromDatasource = datasource => datasource ? map(datasource, item => item.row) : defaultData
