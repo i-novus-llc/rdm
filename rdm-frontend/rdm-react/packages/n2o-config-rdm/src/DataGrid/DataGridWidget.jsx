@@ -15,7 +15,7 @@ import { rdmUpdateConfigField } from "../store";
 
 
 function DataGridWidget(props) {
-  const { datasource, fetchData } = props
+  const { datasource, id, fetchData } = props
 
   const dispatch = useDispatch()
   const datasourceModel = useSelector(dataSourceModelByPrefixSelector(datasource, ModelPrefix.source))
@@ -28,12 +28,12 @@ function DataGridWidget(props) {
     if (columns) {
       const { cells: bodyCells, headers: headerCells } = columns
 
-      dispatch(rdmUpdateConfigField(datasource, 'table.body.cells', bodyCells))
-      dispatch(rdmUpdateConfigField(datasource, 'table.header.cells', headerCells))
+      dispatch(rdmUpdateConfigField(id, 'table.body.cells', bodyCells))
+      dispatch(rdmUpdateConfigField(id, 'table.header.cells', headerCells))
 
       dispatch(setModel(ModelPrefix.source, datasource, data))
     }
-  }, [datasourceModel]);
+  }, [datasourceModel, id]);
 
   useLayoutEffect(() => {
     if (filterModel) {
