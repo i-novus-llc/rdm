@@ -10,4 +10,7 @@ const defaultData = []
 
 export const getColumnsFromDatasource = datasource => get(datasource, [0, 'columnsConfig'], defaultColumns)
 
-export const getDataFromDatasource = datasource => datasource ? map(datasource, item => item.row) : defaultData
+export const getDataFromDatasource = datasource => {
+    // console.log('mapModel', map(datasource, item => item.row))
+    return datasource ? map(datasource, item => Object.keys(item.row).length ? item.row : null).filter(Boolean) : defaultData
+}
