@@ -202,7 +202,8 @@
             </toolbar>
         </form> <!-- version_select -->
 
-        <tabs routable="false" always-refresh="true">
+        <!-- routable="false" -->
+        <tabs always-refresh="true">
             <tab id="tab_passport" name="Паспорт">
                 <form id="version_passport" ref-id="passport" datasource="versionPassport" fetch-on-init="true">
                     <toolbar place="bottomRight">
