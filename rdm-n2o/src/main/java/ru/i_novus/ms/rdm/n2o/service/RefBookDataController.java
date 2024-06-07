@@ -145,7 +145,7 @@ public class RefBookDataController {
 
             long conflictsCount = conflictService.countConflictedRowIds(toConflictCriteria(criteria));
             if (conflictsCount == 0)
-                return new RestPage<>(emptyList(), EMPTY_SEARCH_DATA_CRITERIA, 0);
+                return new RestPage<>(getEmptyContent(), EMPTY_SEARCH_DATA_CRITERIA, 0);
 
             long dataCount = versionService.search(version.getId(), EMPTY_SEARCH_DATA_CRITERIA).getTotalElements();
             if (conflictsCount != dataCount) {
@@ -167,10 +167,6 @@ public class RefBookDataController {
         else
             total = rowValues.getTotalElements();
 
-        // NB: (костыль) -- убран из-за изменения DataGrid!
-        // Прибавляется 1 к количеству элементов
-        // из-за особенности подсчёта количества для последней страницы.
-        // На клиенте отнимается 1 для всех страниц.
         return new RestPage<>(result, searchDataCriteria, total);
     }
 
@@ -343,14 +339,18 @@ public class RefBookDataController {
         final List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
         List<DataGridRow> dataGridRows = toDataGridRows(criteria, version, dataContent);
         if (isEmpty(dataGridRows)) {
-            final RefBookRowValue rowValue = new RefBookRowValue(null, emptyList(), null);
-            dataGridRows = singletonList(toDataGridRow(rowValue, version, criteria, false));
+            dataGridRows = getEmptyContent();
         }
 
         final DataGridRow firstRow = dataGridRows.get(0);
         firstRow.setColumnsConfig(createColumnConfig(dataStructure));
 
         return dataGridRows;
+    }
+
+    private List<DataGridRow> getEmptyContent() {
+
+        return singletonList(new DataGridRow(null, emptyMap()));
     }
 
     private List<DataGridRow> toDataGridRows(DataCriteria criteria,
@@ -440,15 +440,6 @@ public class RefBookDataController {
         return new DataGridColumnsConfig(createColumnHeaders(structure), createColumnCells(structure));
     }
 
-    //private Map<String, Object> createColumnConfig(Structure structure) {
-    //
-    //    final Map<String, Object> result = new HashMap<>(2);
-    //    result.put("header", createColumnHeaders(structure));
-    //    result.put("body", createColumnHeaderCells(structure));
-    //
-    //    return result;
-    //}
-
     private List<ColumnHeader> createColumnHeaders(Structure structure) {
         return structure.getAttributes().stream().map(this::toColumnHeader).collect(toList());
     }
@@ -463,6 +454,7 @@ public class RefBookDataController {
 
         final N2oField n2oField = toN2oField(attribute);
         n2oField.setId(id);
+        //n2oField.setFilterId("filter." + id);
         final StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
 
         return DataGridColumnsConfig.createHeader(id, attribute.getName(), filterField);
