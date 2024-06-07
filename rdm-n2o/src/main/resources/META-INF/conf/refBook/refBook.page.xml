@@ -312,6 +312,10 @@
 
             <tab id="tab_data" name="Данные">
                 <table id="dataTable" src="DataGrid" datasource="versionData">
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
+
                     <toolbar place="topRight">
                         <!-- to-do: Сделать отдельные кнопки без refresh для редактирования черновика -->
                         <button id="createRecord" label="Добавить" icon="fa fa-plus"
@@ -456,7 +460,7 @@
             </tab>
 
             <tab id="tab_localized" name="Переведённые данные">
-                <form id="locale_select" datasource="refBookVersion">
+                <form id="locale_select" datasource="refBookVersion" fetch-on-init="true">
                     <fields>
                         <set field-label-location="left">
                             <row>
@@ -472,7 +476,7 @@
                                     </dependencies>
                                 </output-text>
 
-                                <output-text id="localeCode" depends-on="locale" default-value="-" visible="false">
+                                <output-text id="localeCode" depends-on="locale" visible="false">
                                     <dependencies>
                                         <set-value on="locale">locale.id</set-value>
                                     </dependencies>
@@ -501,6 +505,10 @@
                 </form> <!-- locale_select -->
 
                 <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
+
                     <toolbar place="topRight">
                         <button id="localizeRecord" label="Задать перевод" icon="fa fa-pencil"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
@@ -555,6 +563,10 @@
 
             <tab id="tab_conflicted" name="Данные с конфликтами">
                 <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData">
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
+
                     <toolbar place="topRight">
                         <button id="updateConflictedRecord" label="Исправить" icon="fa fa-pencil"
                                 datasource="refBookVersion" model="resolve" disable-on-empty-model="false">
