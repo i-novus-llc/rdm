@@ -1,18 +1,12 @@
 package ru.i_novus.ms.rdm;
 
-import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
 import net.n2oapp.security.admin.rest.client.AdminRestClientConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.config.SecurityConfig;
 import ru.i_novus.ms.rdm.n2o.config.RdmWebConfiguration;
-
-import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_ID;
-import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_NAME;
 
 @SpringBootApplication(scanBasePackageClasses = {
         FrontendApplication.class,
@@ -24,20 +18,6 @@ import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_NAME;
 })
 @ComponentScan(basePackages = "ru.i_novus.ms.rdm.config")
 public class FrontendApplication {
-
-    @Bean
-    public XmlInfoScanner myInfoScanner() {
-        return new XmlInfoScanner("classpath*:/access/**/*.xml");
-    }
-
-    @Bean
-    public UserAccessor auditUser() {
-        return () -> createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
-    }
-
-    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
-        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
-    }
 
     public static void main(String[] args) {
         SpringApplication.run(FrontendApplication.class, args);
