@@ -38,6 +38,13 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- SECURITY -->
+        <dependency>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-userinfo-starter</artifactId>
+        </dependency>
+        <!-- / SECURITY -->
+
         <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
@@ -99,7 +106,7 @@
 
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
+            <artifactId>n2o-platform-starter-feign-client</artifactId>
             <scope>test</scope>
         </dependency>
 
