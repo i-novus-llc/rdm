@@ -10,9 +10,9 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
 import ru.i_novus.ms.rdm.n2o.model.Category;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -40,20 +40,20 @@ public class CategoryControllerTest {
     private CategoryController controller;
 
     @Mock
-    private VersionRestService versionService;
+    private VersionRestServiceRestClient versionService;
 
     @Test
     public void testGetListAll() {
 
-        CategoryCriteria criteria = new CategoryCriteria();
+        final CategoryCriteria criteria = new CategoryCriteria();
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
 
-        List<RefBookRowValue> rowValues = createContent();
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent();
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getList(criteria);
+        final Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());
@@ -64,19 +64,19 @@ public class CategoryControllerTest {
 
         final String categoryName = "some_name";
 
-        CategoryCriteria criteria = new CategoryCriteria();
+        final CategoryCriteria criteria = new CategoryCriteria();
         criteria.setName(categoryName);
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
                 categoryName, FieldType.STRING, SearchTypeEnum.LIKE);
         searchDataCriteria.addAttributeFilterList(singletonList(filter));
 
-        List<RefBookRowValue> rowValues = createContent().subList(0, 1);
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent().subList(0, 1);
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getList(criteria);
+        final Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());

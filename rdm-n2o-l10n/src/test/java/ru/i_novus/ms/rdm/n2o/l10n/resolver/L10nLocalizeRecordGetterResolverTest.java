@@ -11,10 +11,10 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.l10n.VersionLocaleServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -61,10 +61,10 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     private L10nLocalizeRecordGetterResolver resolver;
 
     @Mock
-    private VersionRestService versionService;
+    private VersionRestServiceRestClient versionService;
 
     @Mock
-    private VersionLocaleService versionLocaleService;
+    private VersionLocaleServiceRestClient versionLocaleService;
 
     @Test
     public void testIsSatisfied() {
@@ -79,10 +79,10 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
         when(versionLocaleService.getLocaleName(eq(TEST_LOCALE_CODE))).thenReturn(TEST_LOCALE_NAME);
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
         assertNotNull(values);
         assertEquals(REGULAR_VALUE_NAMES.size(), values.size());
 
@@ -95,9 +95,9 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     @SuppressWarnings("java:S5778")
     public void testCreateRegularValuesFailed() {
 
-        DataRecordCriteria criteria = createCriteria();
+        final DataRecordCriteria criteria = createCriteria();
         criteria.setLocaleCode(null);
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
 
         try {
             resolver.createRegularValues(criteria, version);
@@ -112,18 +112,18 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateDynamicValues() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        RefBookRowValue rowValue = createRowValue();
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(singletonList(rowValue), searchDataCriteria, 1);
+        final RefBookRowValue rowValue = createRowValue();
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(singletonList(rowValue), searchDataCriteria, 1);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
-        Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
 
-        Structure structure = version.getStructure();
+        final Structure structure = version.getStructure();
         values.forEach((fieldCode, value) ->{
             String code = deletePrefix(fieldCode);
 
@@ -135,21 +135,21 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateDynamicValuesWhenEmpty() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
         Page<RefBookRowValue> rowValuesPage = new PageImpl<>(emptyList(), searchDataCriteria, 0);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
-        Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
         assertEmpty(values);
     }
 
     private DataRecordCriteria createCriteria() {
 
-        DataRecordCriteria criteria = new DataRecordCriteria();
+        final DataRecordCriteria criteria = new DataRecordCriteria();
 
         criteria.setId(TEST_SYSTEM_ID);
         criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
@@ -162,7 +162,7 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
     private RefBookVersion createVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(TEST_REFBOOK_VERSION_ID);
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
 
@@ -181,7 +181,7 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
     private RefBookRowValue createRowValue() {
 
-        LongRowValue longRowValue = new LongRowValue(TEST_SYSTEM_ID, asList(
+        final LongRowValue longRowValue = new LongRowValue(TEST_SYSTEM_ID, asList(
                 new IntegerFieldValue(ID_ATTRIBUTE_CODE, BigInteger.valueOf(TEST_SYSTEM_ID)),
                 new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + TEST_SYSTEM_ID),
                 new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + TEST_SYSTEM_ID)
@@ -192,7 +192,7 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
 
     private SearchDataCriteria createSearchDataCriteria() {
 
-        SearchDataCriteria searchDataCriteria = new SearchDataCriteria(0, 1);
+        final SearchDataCriteria searchDataCriteria = new SearchDataCriteria(0, 1);
 
         searchDataCriteria.setRowSystemIds(singletonList(TEST_SYSTEM_ID));
         searchDataCriteria.setLocaleCode(TEST_LOCALE_CODE);

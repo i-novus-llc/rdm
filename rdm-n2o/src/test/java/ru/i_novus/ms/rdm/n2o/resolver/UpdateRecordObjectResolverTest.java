@@ -41,28 +41,28 @@ public class UpdateRecordObjectResolverTest {
     @Test
     public void testCreateOperation() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
         request.setVersionId(TEST_REFBOOK_VERSION_ID);
 
-        N2oObject.Operation operation = resolver.createOperation(request);
+        final N2oObject.Operation operation = resolver.createOperation(request);
         assertNotNull(operation);
         assertEquals("update", operation.getId());
 
-        Serializable invocation = operation.getInvocation();
+        final Serializable invocation = operation.getInvocation();
         assertNotNull(invocation);
         assertTrue(invocation instanceof N2oJavaDataProvider);
 
-        N2oJavaDataProvider provider = (N2oJavaDataProvider) invocation;
+        final N2oJavaDataProvider provider = (N2oJavaDataProvider) invocation;
         assertEquals(TEST_ARGUMENT_COUNT, provider.getArguments().length);
     }
 
     @Test
     public void testCreateRegularParams() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
         request.setVersionId(TEST_REFBOOK_VERSION_ID);
 
-        List<AbstractParameter> parameters = resolver.createRegularParams(request);
+        final List<AbstractParameter> parameters = resolver.createRegularParams(request);
         assertNotNull(parameters);
         assertEquals(TEST_PARAMETER_COUNT - 1, parameters.size());
     }

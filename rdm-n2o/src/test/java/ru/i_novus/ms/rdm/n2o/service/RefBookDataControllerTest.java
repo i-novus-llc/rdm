@@ -18,14 +18,14 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
+import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -72,10 +72,10 @@ public class RefBookDataControllerTest  {
     private DataFieldFilterProvider dataFieldFilterProvider;
 
     @Mock
-    private VersionRestService versionService;
+    private VersionRestServiceRestClient versionService;
 
     @Mock
-    private ConflictService conflictService;
+    private ConflictServiceRestClient conflictService;
 
     @Mock
     private RefBookDataDecorator refBookDataDecorator;
@@ -93,26 +93,26 @@ public class RefBookDataControllerTest  {
     @Test
     public void testGetList() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(REFBOOK_VERSION_ID))).thenReturn(version);
 
-        DataCriteria criteria = createCriteria(false);
+        final DataCriteria criteria = createCriteria(false);
         criteria.setFilter(createCriteriaFilter());
         criteria.setOrders(createSortOrders());
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
 
-        List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
+        final List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
                 .map(e -> toAttributeFilter(version.getStructure(), e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
                 .collect(toList());
         searchDataCriteria.addAttributeFilterList(filters);
 
-        Sort.Order order = new Sort.Order(Sort.Direction.ASC, ID_ATTRIBUTE_CODE);
+        final Sort.Order order = new Sort.Order(Sort.Direction.ASC, ID_ATTRIBUTE_CODE);
         searchDataCriteria.setOrders(singletonList(order));
 
-        List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(REFBOOK_VERSION_ID), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
         when(refBookDataDecorator.getDataStructure(eq(REFBOOK_VERSION_ID), eq(criteria))).thenReturn(version.getStructure());
@@ -120,7 +120,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<DataGridRow> dataGridRows = controller.getList(criteria);
+        final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -133,28 +133,28 @@ public class RefBookDataControllerTest  {
     @Test
     public void testGetListWithLocaleCode() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(REFBOOK_VERSION_ID))).thenReturn(version);
 
-        DataCriteria criteria = createCriteria(false);
+        final DataCriteria criteria = createCriteria(false);
         criteria.setLocaleCode(TEST_LOCALE_CODE);
         criteria.setFilter(createCriteriaFilter());
 
-        SearchDataCriteria localeDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria localeDataCriteria = createSearchDataCriteria(criteria);
         localeDataCriteria.setLocaleCode(TEST_LOCALE_CODE);
 
-        List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
+        final List<AttributeFilter> filters = criteria.getFilter().entrySet().stream()
                 .map(e -> toAttributeFilter(version.getStructure(), e.getKey(), e.getValue()))
                 .filter(Objects::nonNull)
                 .collect(toList());
         localeDataCriteria.addAttributeFilterList(filters);
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         searchDataCriteria.setLocaleCode(TEST_LOCALE_CODE);
         searchDataCriteria.addAttributeFilterList(filters);
 
-        List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(emptyList())) // origin storage
                 .thenReturn(rowValuesPage); // locale storage
@@ -167,7 +167,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<DataGridRow> dataGridRows = controller.getList(criteria);
+        final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -180,13 +180,13 @@ public class RefBookDataControllerTest  {
     @Test
     public void testGetConflictedListWithoutConflicts() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(REFBOOK_VERSION_ID))).thenReturn(version);
 
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(0L);
 
-        DataCriteria criteria = createCriteria(true);
-        Page<DataGridRow> dataGridRows = controller.getList(criteria);
+        final DataCriteria criteria = createCriteria(true);
+        final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         assertEquals(0, dataGridRows.getContent().size());
@@ -195,27 +195,27 @@ public class RefBookDataControllerTest  {
     @Test
     public void testGetConflictedListWithConflict() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(REFBOOK_VERSION_ID))).thenReturn(version);
 
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(1L);
 
-        List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, EMPTY_SEARCH_DATA_CRITERIA, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent(REFBOOK_VERSION_ID);
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, EMPTY_SEARCH_DATA_CRITERIA, rowValues.size());
         when(versionService.search(eq(REFBOOK_VERSION_ID), eq(EMPTY_SEARCH_DATA_CRITERIA))).thenReturn(rowValuesPage);
 
-        List<Long> conflictedRowIds = List.of(1L);
-        RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
+        final List<Long> conflictedRowIds = List.of(1L);
+        final RefBookConflictCriteria conflictCriteria = new RefBookConflictCriteria();
         when(conflictService.searchConflictedRowIds(any(RefBookConflictCriteria.class)))
                 .thenReturn(new PageImpl<>(conflictedRowIds, conflictCriteria, 1));
 
-        DataCriteria criteria = createCriteria(true);
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final DataCriteria criteria = createCriteria(true);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         searchDataCriteria.setAttributeFilters(emptySet());
         searchDataCriteria.setRowSystemIds(conflictedRowIds);
 
-        List<RefBookRowValue> conflictedRowValues = List.of(rowValues.get(0));
-        Page<RefBookRowValue> conflictedRowValuesPage = new PageImpl<>(conflictedRowValues, searchDataCriteria, conflictedRowValues.size());
+        final List<RefBookRowValue> conflictedRowValues = List.of(rowValues.get(0));
+        final Page<RefBookRowValue> conflictedRowValuesPage = new PageImpl<>(conflictedRowValues, searchDataCriteria, conflictedRowValues.size());
         when(versionService.search(eq(REFBOOK_VERSION_ID), eq(searchDataCriteria))).thenReturn(conflictedRowValuesPage);
 
         when(refBookDataDecorator.getDataStructure(eq(REFBOOK_VERSION_ID), eq(criteria))).thenReturn(version.getStructure());
@@ -224,7 +224,7 @@ public class RefBookDataControllerTest  {
 
         when(dataFieldFilterProvider.toFilterField(any(N2oField.class))).thenReturn(new StandardField<>());
 
-        Page<DataGridRow> dataGridRows = controller.getList(criteria);
+        final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
         // За вычетом "записи"-заголовка.
@@ -234,28 +234,27 @@ public class RefBookDataControllerTest  {
     @Test
     public void testGetVersion() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         when(versionService.getById(eq(REFBOOK_VERSION_ID))).thenReturn(version);
 
-        RefBookVersion expected = new RefBookVersion(version);
+        final RefBookVersion expected = new RefBookVersion(version);
 
-        RefBookVersion actual1 = controller.getVersion(REFBOOK_VERSION_ID, null);
-        assertVersions(expected, actual1);
-        assertEquals(expected.getOptLockValue(), actual1.getOptLockValue());
+        final RefBookVersion actual = controller.getVersion(REFBOOK_VERSION_ID, null);
+        assertVersions(expected, actual);
+        assertEquals(expected.getOptLockValue(), actual.getOptLockValue());
         assertVersions(expected, version);
-        assertEquals(expected.getOptLockValue(), actual1.getOptLockValue());
+        assertEquals(expected.getOptLockValue(), actual.getOptLockValue());
 
-        RefBookVersion actual2 = controller.getVersion(REFBOOK_VERSION_ID, NEW_OPT_LOCK_VALUE);
-        assertVersions(expected, actual2);
-        assertNotEquals(expected.getOptLockValue(), actual2.getOptLockValue());
+        final RefBookVersion actualWithOptLock = controller.getVersion(REFBOOK_VERSION_ID, NEW_OPT_LOCK_VALUE);
+        assertVersions(expected, actualWithOptLock);
+        assertNotEquals(expected.getOptLockValue(), actualWithOptLock.getOptLockValue());
         assertVersions(expected, version);
         assertNotEquals(expected.getOptLockValue(), version.getOptLockValue());
     }
 
     private DataCriteria createCriteria(boolean hasDataConflict) {
 
-        DataCriteria criteria = new DataCriteria();
-
+        final DataCriteria criteria = new DataCriteria();
         criteria.setVersionId(REFBOOK_VERSION_ID);
         criteria.setOptLockValue(OPT_LOCK_VALUE);
         criteria.setHasDataConflict(hasDataConflict);
@@ -265,7 +264,7 @@ public class RefBookDataControllerTest  {
 
     private Map<String, Serializable> createCriteriaFilter() {
 
-        Map<String, Serializable> filter = new HashMap<>(10);
+        final Map<String, Serializable> filter = new HashMap<>(10);
         filter.put("", "empty");
         filter.put(addPrefix(ID_ATTRIBUTE_CODE), "1");
         filter.put(addPrefix(NAME_ATTRIBUTE_CODE), null);
@@ -282,7 +281,7 @@ public class RefBookDataControllerTest  {
 
     private List<Sort.Order> createSortOrders() {
 
-        Sort.Order order = new Sort.Order(Sort.Direction.ASC, DataRecordUtils.addPrefix(ID_ATTRIBUTE_CODE));
+        final Sort.Order order = new Sort.Order(Sort.Direction.ASC, DataRecordUtils.addPrefix(ID_ATTRIBUTE_CODE));
         return singletonList(order);
     }
 
@@ -297,27 +296,27 @@ public class RefBookDataControllerTest  {
             return null;
 
         final String attributeCode = deletePrefix(filterName);
-        Structure.Attribute attribute = structure.getAttribute(attributeCode);
+        final Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null)
             return null;
 
-        Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
+        final Serializable attributeValue = RefBookDataUtils.castFilterValue(attribute, filterValue);
         if (attributeValue == null)
             return null;
 
-        AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
+        final AttributeFilter attributeFilter = new AttributeFilter(attributeCode, attributeValue, attribute.getType());
         attributeFilter.setSearchType(toSearchType(attribute));
         return attributeFilter;
     }
 
     private SearchTypeEnum toSearchType(Structure.Attribute attribute) {
+
         return LIKE_FIELD_TYPES.contains(attribute.getType()) ? LIKE : EXACT;
     }
 
     private RefBookVersion createRefBookVersion() {
 
-        RefBookVersion version = new RefBookVersion();
-
+        final RefBookVersion version = new RefBookVersion();
         version.setId(REFBOOK_VERSION_ID);
         version.setOptLockValue(OPT_LOCK_VALUE);
         version.setStructure(createStructure());
@@ -338,9 +337,8 @@ public class RefBookDataControllerTest  {
 
     private List<RefBookRowValue> createContent(int versionId) {
 
-        int rowValueCount = 10;
-
-        List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
+        final int rowValueCount = 10;
+        final List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
 
         LongStream.range(1, rowValueCount + 1).forEach(systemId ->
                 rowValues.add(new RefBookRowValue(createLongRowValue(systemId), versionId))

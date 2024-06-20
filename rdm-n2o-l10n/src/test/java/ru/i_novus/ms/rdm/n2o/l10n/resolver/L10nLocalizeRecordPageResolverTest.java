@@ -55,16 +55,16 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
 
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
 
-        List<SourceComponent> fields = resolver.createRegularFields(request);
+        final List<SourceComponent> fields = resolver.createRegularFields(request);
         assertNotNull(fields);
         assertEquals(1, fields.size());
 
-        SourceComponent l10nField = fields.get(0);
+        final SourceComponent l10nField = fields.get(0);
         assertTrue(l10nField instanceof N2oFieldsetRow);
 
-        N2oFieldsetRow n2oRow = (N2oFieldsetRow) l10nField;
+        final N2oFieldsetRow n2oRow = (N2oFieldsetRow) l10nField;
         assertEquals(REGULAR_FIELD_IDS.size(), n2oRow.getItems().length);
 
         REGULAR_FIELD_IDS.forEach(id ->
@@ -85,11 +85,12 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
     @Test
     public void testProcessDynamicFields() {
 
-        DataRecordRequest request = new DataRecordRequest();
-        Structure structure = createStructure();
+        final Structure structure = createStructure();
+
+        final DataRecordRequest request = new DataRecordRequest();
         request.setStructure(structure);
 
-        List<SourceComponent> fields = createFields(structure);
+        final List<SourceComponent> fields = createFields(structure);
 
         resolver.processDynamicFields(request, fields);
         assertEquals(structure.getAttributes().size() + 3, fields.size());
@@ -98,10 +99,10 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
     @Test
     public void testProcessDynamicFieldsWithEmpty() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
         request.setStructure(Structure.EMPTY);
 
-        List<SourceComponent> fields = emptyList();
+        final List<SourceComponent> fields = emptyList();
 
         resolver.processDynamicFields(request, fields);
         assertEmpty(fields);
@@ -114,16 +115,16 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
 
     private List<SourceComponent> createFields(Structure structure) {
 
-        List<SourceComponent> fields = structure.getAttributes().stream().map(this::createField).collect(toList());
+        final List<SourceComponent> fields = structure.getAttributes().stream().map(this::createField).collect(toList());
 
-        N2oFieldsetRow notN2oField = new N2oFieldsetRow();
+        final N2oFieldsetRow notN2oField = new N2oFieldsetRow();
         fields.add(notN2oField);
 
-        N2oCheckbox notPrefixed = new N2oCheckbox();
+        final N2oCheckbox notPrefixed = new N2oCheckbox();
         notPrefixed.setId("123");
         fields.add(notPrefixed);
 
-        N2oCheckbox notAttribute = new N2oCheckbox();
+        final N2oCheckbox notAttribute = new N2oCheckbox();
         notAttribute.setId(addPrefix("123"));
         fields.add(notAttribute);
 
@@ -132,7 +133,7 @@ public class L10nLocalizeRecordPageResolverTest extends BaseTest {
 
     private SourceComponent createField(Structure.Attribute attribute) {
 
-        N2oOutputText field = new N2oOutputText();
+        final N2oOutputText field = new N2oOutputText();
         field.setId(addPrefix(attribute.getCode()));
         field.setLabel(attribute.getName());
 

@@ -17,13 +17,13 @@ import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
-import ru.i_novus.ms.rdm.api.rest.DraftRestService;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
+import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.math.BigDecimal;
@@ -31,10 +31,10 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -53,21 +53,21 @@ public class StructureControllerTest extends TestCase {
     private StructureController structureController;
 
     @Mock
-    private RefBookService refBookService;
+    private RefBookServiceRestClient refBookService;
     @Mock
-    private VersionRestService versionService;
+    private VersionRestServiceRestClient versionService;
     @Mock
-    private DraftRestService draftService;
+    private DraftRestServiceRestClient draftService;
     @Mock
-    private ConflictService conflictService;
+    private ConflictServiceRestClient conflictService;
 
     @Mock
     private Messages messages;
 
     @Captor
-    ArgumentCaptor<UpdateAttributeRequest> updateAttributeArgumentCaptor;
+    private ArgumentCaptor<UpdateAttributeRequest> updateAttributeArgumentCaptor;
     @Captor
-    ArgumentCaptor<CreateAttributeRequest> createAttributeArgumentCaptor;
+    private ArgumentCaptor<CreateAttributeRequest> createAttributeArgumentCaptor;
 
     private final int refBookId = -2;
     private final int versionId = 15;
@@ -97,6 +97,7 @@ public class StructureControllerTest extends TestCase {
 
     @Before
     public void init() {
+
         expectedValidations = of(
                 new RequiredAttributeValidation(),
                 new UniqueAttributeValidation(),
@@ -105,8 +106,9 @@ public class StructureControllerTest extends TestCase {
                 new IntRangeAttributeValidation(minInteger, maxInteger),
                 new FloatRangeAttributeValidation(minFloat, maxFloat),
                 new DateRangeAttributeValidation(minDate, maxDate),
-                new RegExpAttributeValidation(regExp))
-                .peek(v -> v.setAttribute(testCode)).collect(Collectors.toList());
+                new RegExpAttributeValidation(regExp)
+        )
+                .peek(v -> v.setAttribute(testCode)).collect(toList());
     }
 
     /**
@@ -116,18 +118,18 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadSimple() {
 
-        Structure structure = createStructure(FieldType.INTEGER);
-        RefBookVersion version = createVersion(versionId, structure);
+        final Structure structure = createStructure(FieldType.INTEGER);
+        final RefBookVersion version = createVersion(versionId, structure);
         when(versionService.getById(eq(versionId))).thenReturn(version);
 
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        AttributeCriteria criteria = new AttributeCriteria(versionId);
+        final AttributeCriteria criteria = new AttributeCriteria(versionId);
         criteria.setOptLockValue(optLockValue);
 
-        RestPage<ReadAttribute> page = structureController.getPage(criteria);
-        ReadAttribute actual = page.getContent().get(0);
+        final RestPage<ReadAttribute> page = structureController.getPage(criteria);
+        final ReadAttribute actual = page.getContent().get(0);
 
         assertEquals(testCode, actual.getCode());
         assertEquals(FieldType.INTEGER, actual.getType());
@@ -140,19 +142,19 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadValidations() {
 
-        Structure structure = createStructure(null);
-        RefBookVersion version = createVersion(versionId, structure);
+        final Structure structure = createStructure(null);
+        final RefBookVersion version = createVersion(versionId, structure);
         when(versionService.getById(eq(versionId))).thenReturn(version);
 
-        FormAttribute expectedValidation = createAllValidationAttribute();
+        final FormAttribute expectedValidation = createAllValidationAttribute();
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(expectedValidations);
 
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
-        ReadAttribute actual = page.getContent().get(0);
-
+        final RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
         assertEquals(1, page.getTotalElements());
+
+        final ReadAttribute actual = page.getContent().get(0);
         assertEquals(testCode, actual.getCode());
         assertValidationPartEquals(expectedValidation, actual);
     }
@@ -163,13 +165,12 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadDefault() {
 
-        AttributeCriteria criteria = new AttributeCriteria(versionId);
+        final AttributeCriteria criteria = new AttributeCriteria(versionId);
         criteria.setOptLockValue(optLockValue);
 
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook());
 
-        ReadAttribute actual = structureController.getDefault(criteria);
-
+        final ReadAttribute actual = structureController.getDefault(criteria);
         assertNotNull(actual);
         assertEquals(Integer.valueOf(versionId), actual.getVersionId());
         assertEquals(Integer.valueOf(optLockValue), actual.getOptLockValue());
@@ -182,13 +183,13 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testUpdateAttributeWithValidations() {
 
-        FormAttribute formAttribute = createAllValidationAttribute();
+        final FormAttribute formAttribute = createAllValidationAttribute();
         structureController.updateAttribute(versionId, null, formAttribute);
 
         verify(draftService, times(1))
                 .updateAttribute(eq(versionId), updateAttributeArgumentCaptor.capture());
 
-        UpdateAttributeRequest request = updateAttributeArgumentCaptor.getValue();
+        final UpdateAttributeRequest request = updateAttributeArgumentCaptor.getValue();
         assertEquals(testCode, request.getCode());
         assertValidationListEquals(expectedValidations, request.getValidations());
     }
@@ -199,7 +200,7 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testCreateReference() {
 
-        FormAttribute formAttribute = new FormAttribute();
+        final FormAttribute formAttribute = new FormAttribute();
         formAttribute.setCode(testCode);
         formAttribute.setName(testName);
         formAttribute.setType(FieldType.REFERENCE);
@@ -216,9 +217,9 @@ public class StructureControllerTest extends TestCase {
         verify(draftService, times(1))
                 .createAttribute(eq(versionId), createAttributeArgumentCaptor.capture());
 
-        CreateAttributeRequest request = createAttributeArgumentCaptor.getValue();
+        final CreateAttributeRequest request = createAttributeArgumentCaptor.getValue();
 
-        Structure.Attribute attribute = request.getAttribute();
+        final Structure.Attribute attribute = request.getAttribute();
         assertEquals(testCode, attribute.getCode());
         assertEquals(testName, attribute.getName());
         assertEquals(testDescription, attribute.getDescription());
@@ -226,7 +227,7 @@ public class StructureControllerTest extends TestCase {
         assertFalse(attribute.hasIsPrimary());
         assertFalse(attribute.isLocalizable());
 
-        Structure.Reference reference = request.getReference();
+        final Structure.Reference reference = request.getReference();
         assertEquals(testCode, reference.getAttribute());
         assertEquals(referenceDisplayExpression, reference.getDisplayExpression());
         assertEquals(referenceCode, reference.getReferenceCode());
@@ -238,35 +239,37 @@ public class StructureControllerTest extends TestCase {
     @Test
     public void testReadReference() {
 
-        RefBook referenceRefbook = new RefBook();
+        final RefBook referenceRefbook = new RefBook();
         referenceRefbook.setRefBookId(refBookId);
 
-        Structure structure = new Structure(
+        final Structure structure = new Structure(
                 singletonList(build(testCode, null, FieldType.REFERENCE, null)),
                 singletonList(new Structure.Reference(testCode, referenceCode, referenceDisplayExpression))
         );
-        RefBookVersion version = createVersion(versionId, structure);
+
+        final RefBookVersion version = createVersion(versionId, structure);
         when(versionService.getById(eq(versionId))).thenReturn(version);
 
         when(draftService.getAttributeValidations(eq(versionId), isNull())).thenReturn(emptyList());
         when(refBookService.getId(eq(referenceCode))).thenReturn(refBookId);
 
-        RefBookVersion referenceVersion = new RefBookVersion();
+        final RefBookVersion referenceVersion = new RefBookVersion();
         referenceVersion.setId(referenceVersionId);
         referenceVersion.setStructure(new Structure(singletonList(build(referenceAttribute, null, FieldType.INTEGER, null)), null));
         when(versionService.getLastPublishedVersion(eq(referenceCode))).thenReturn(referenceVersion);
         when(refBookService.getByVersionId(eq(versionId))).thenReturn(new RefBook(referenceVersion));
 
-        RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
-        ReadAttribute actual = page.getContent().get(0);
+        final RestPage<ReadAttribute> page = structureController.getPage(new AttributeCriteria(versionId));
+        assertEquals(1, page.getTotalElements());
 
+        final ReadAttribute actual = page.getContent().get(0);
         assertEquals(testCode, actual.getCode());
         assertEquals(FieldType.REFERENCE, actual.getType());
     }
 
     private FormAttribute createAllValidationAttribute() {
 
-        FormAttribute formAttribute = new FormAttribute();
+        final FormAttribute formAttribute = new FormAttribute();
         formAttribute.setCode(testCode);
         formAttribute.setRequired(true);
         formAttribute.setUnique(true);
@@ -302,7 +305,7 @@ public class StructureControllerTest extends TestCase {
 
     private void assertValidationListEquals(List<AttributeValidation> expected, List<AttributeValidation> actual) {
 
-        Iterator<AttributeValidation> actualIterator = actual.iterator();
+        final Iterator<AttributeValidation> actualIterator = actual.iterator();
         for (AttributeValidation validation : expected) {
             assertValidationEquals(validation, actualIterator.next());
         }
@@ -378,7 +381,7 @@ public class StructureControllerTest extends TestCase {
     @SuppressWarnings("SameParameterValue")
     private RefBookVersion createVersion(Integer versionId, Structure structure) {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(versionId);
         version.setStructure(structure);
 

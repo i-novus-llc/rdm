@@ -8,9 +8,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
@@ -36,7 +36,7 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.SYS_LOCALI
 @RunWith(MockitoJUnitRunner.class)
 public class L10nRefBookDataDecoratorTest extends BaseTest {
 
-    private static final int TEST_REFBOOK_VERSION_ID = -10;
+    private static final int TEST_VERSION_ID = -10;
 
     private static final String TEST_LOCALE_CODE = "test";
 
@@ -45,10 +45,10 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     private static final String ATTRIBUTE_TEXT_CODE = "text";
 
     @InjectMocks
-    L10nRefBookDataDecorator refBookDataService;
+    private L10nRefBookDataDecorator refBookDataService;
 
     @Mock
-    private VersionRestService versionService;
+    private VersionRestServiceRestClient versionService;
 
     @Mock
     private Messages messages;
@@ -56,16 +56,17 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     @Test
     public void testGetDataStructure() {
 
-        Structure structure = createStructure();
-        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
+        final Structure structure = createStructure();
+        when(versionService.getStructure(eq(TEST_VERSION_ID))).thenReturn(structure);
 
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        final Structure dataStructure = refBookDataService.getDataStructure(TEST_VERSION_ID, createLocaleCriteria());
         assertEquals(structure.getAttributes().size() + 1, dataStructure.getAttributes().size());
+        assertTrue(dataStructure.getAttributes().stream()
+                .anyMatch(attribute -> SYS_LOCALIZED.equals(attribute.getCode())));
 
-        assertTrue(dataStructure.getAttributes().stream().anyMatch(attribute -> SYS_LOCALIZED.equals(attribute.getCode())));
-        Structure originStructure = new Structure(dataStructure);
+        final Structure originStructure = new Structure(dataStructure);
         originStructure.getAttributes().removeIf(attribute -> SYS_LOCALIZED.equals(attribute.getCode()));
         assertEquals(structure, originStructure);
     }
@@ -73,42 +74,42 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     @Test
     public void testGetDataStructureOnSpecials() {
 
-        Structure structure = createStructure();
-        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
+        final Structure structure = createStructure();
+        when(versionService.getStructure(eq(TEST_VERSION_ID))).thenReturn(structure);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, null);
-        assertEquals(structure, dataStructure);
+        final Structure dataStructureOnNull = refBookDataService.getDataStructure(TEST_VERSION_ID, null);
+        assertEquals(structure, dataStructureOnNull);
 
-        dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, new DataCriteria());
-        assertEquals(structure, dataStructure);
+        final Structure dataStructureOnEmpty = refBookDataService.getDataStructure(TEST_VERSION_ID, new DataCriteria());
+        assertEquals(structure, dataStructureOnEmpty);
     }
 
     @Test
     public void testGetDataStructureWhenNull() {
 
-        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(null);
+        when(versionService.getStructure(eq(TEST_VERSION_ID))).thenReturn(null);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        final Structure dataStructure = refBookDataService.getDataStructure(TEST_VERSION_ID, createLocaleCriteria());
         assertNull(dataStructure);
     }
 
     @Test
     public void testGetDataStructureWhenEmpty() {
 
-        when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(Structure.EMPTY);
+        when(versionService.getStructure(eq(TEST_VERSION_ID))).thenReturn(Structure.EMPTY);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, createLocaleCriteria());
+        final Structure dataStructure = refBookDataService.getDataStructure(TEST_VERSION_ID, createLocaleCriteria());
         assertEquals(Structure.EMPTY, dataStructure);
     }
 
     @Test
     public void testGetDataContent() {
 
-        List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
+        final List<RefBookRowValue> searchContent = createContent(TEST_VERSION_ID);
 
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, createLocaleCriteria());
+        final List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, createLocaleCriteria());
         assertEquals(searchContent.size(), dataContent.size());
         assertEquals(searchContent, dataContent);
         assertTrue(dataContent.stream().allMatch(
@@ -121,16 +122,16 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     @Test
     public void testGetDataContentOnSpecials() {
 
-        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(emptyList(), createLocaleCriteria());
-        assertEmpty(dataContent);
+        final List<RefBookRowValue> emptyContent = refBookDataService.getDataContent(emptyList(), createLocaleCriteria());
+        assertEmpty(emptyContent);
 
-        List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
+        final List<RefBookRowValue> searchContent = createContent(TEST_VERSION_ID);
 
-        dataContent = refBookDataService.getDataContent(searchContent, null);
-        assertEquals(searchContent, dataContent);
+        final List<RefBookRowValue> contentOnNull = refBookDataService.getDataContent(searchContent, null);
+        assertEquals(searchContent, contentOnNull);
 
-        dataContent = refBookDataService.getDataContent(searchContent, new DataCriteria());
-        assertEquals(searchContent, dataContent);
+        final List<RefBookRowValue> contentOnEmpty = refBookDataService.getDataContent(searchContent, new DataCriteria());
+        assertEquals(searchContent, contentOnEmpty);
     }
 
     private Structure createStructure() {
@@ -145,9 +146,8 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     @SuppressWarnings("SameParameterValue")
     private List<RefBookRowValue> createContent(int versionId) {
 
-        int rowValueCount = 10;
-
-        List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
+        final int rowValueCount = 10;
+        final List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
 
         LongStream.range(1, rowValueCount + 1).forEach(systemId -> {
             LongRowValue longRowValue = new LongRowValue(systemId, asList(
@@ -164,7 +164,7 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
 
     private DataCriteria createLocaleCriteria() {
 
-        DataCriteria criteria = new DataCriteria();
+        final DataCriteria criteria = new DataCriteria();
         criteria.setLocaleCode(TEST_LOCALE_CODE);
 
         return criteria;

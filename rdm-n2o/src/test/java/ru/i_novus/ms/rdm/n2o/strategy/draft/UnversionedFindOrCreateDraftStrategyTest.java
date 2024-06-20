@@ -24,17 +24,17 @@ public class UnversionedFindOrCreateDraftStrategyTest {
     @Test
     public void testFindOrCreate() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
 
-        UiDraft expected = new UiDraft(version);
+        final UiDraft expected = new UiDraft(version);
 
-        UiDraft actual = strategy.findOrCreate(version);
+        final UiDraft actual = strategy.findOrCreate(version);
         assertEquals(expected, actual);
     }
 
     private RefBookVersion createRefBookVersion() {
 
-        RefBookVersion result = new RefBookVersion();
+        final RefBookVersion result = new RefBookVersion();
         result.setId(VERSION_ID);
         result.setRefBookId(REFBOOK_ID);
         result.setCode(REFBOOK_CODE);

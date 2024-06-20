@@ -12,9 +12,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordObjectResolver;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
     private DataRecordObjectProvider provider;
 
     @Mock
-    protected VersionRestService versionService;
+    protected VersionRestServiceRestClient versionService;
 
     @Spy
     private final Collection<DataRecordObjectResolver> resolvers = new ArrayList<>(1);
@@ -45,14 +45,14 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
     @Before
     public void setUp() {
 
-        DataRecordObjectResolver resolver = new TestRecordObjectResolver();
+        final DataRecordObjectResolver resolver = new TestRecordObjectResolver();
         resolvers.add(resolver);
     }
 
     @Test
     public void testGetCode() {
 
-        String providerCode = provider.getCode();
+        final String providerCode = provider.getCode();
         assertFalse(isEmpty(providerCode));
     }
 
@@ -72,20 +72,20 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
             when(versionService.getStructure(eq(TEST_REFBOOK_DRAFT_ID))).thenThrow(new IllegalArgumentException());
         }
 
-        List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
+        final List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        SourceMetadata metadata = list.get(0);
+        final SourceMetadata metadata = list.get(0);
         assertTrue(metadata instanceof N2oObject);
 
-        N2oObject object = (N2oObject) metadata;
+        final N2oObject object = (N2oObject) metadata;
         assertNotNull(object.getOperations());
         assertEquals(1, object.getOperations().length);
 
-        N2oObject.Operation operation = object.getOperations()[0];
+        final N2oObject.Operation operation = object.getOperations()[0];
 
-        List<AbstractParameter> items = Arrays.asList(operation.getInFields());
+        final List<AbstractParameter> items = Arrays.asList(operation.getInFields());
         assertNotNull(items);
         assertTrue(items.size() >= structure.getAttributes().size());
 
@@ -115,7 +115,7 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
     @Test
     public void getMetadataClasses() {
 
-        Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
+        final Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
         assertNotNull(list);
     }
 
@@ -131,7 +131,7 @@ public class DataRecordObjectProviderTest extends BaseRecordProviderTest {
         @Override
         public N2oObject.Operation createOperation(DataRecordRequest request) {
 
-            N2oObject.Operation operation = new N2oObject.Operation();
+            final N2oObject.Operation operation = new N2oObject.Operation();
             operation.setId(TEST_OPERATION);
             operation.setInvocation(new N2oJavaDataProvider());
 

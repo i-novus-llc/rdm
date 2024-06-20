@@ -32,11 +32,11 @@ public class DefaultGetDisplayNumberStrategyTest {
 
         final String versionNumber = "1.2";
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setStatus(RefBookVersionStatus.PUBLISHED);
         refBook.setVersion(versionNumber);
 
-        String actual = strategy.get(refBook);
+        final String actual = strategy.get(refBook);
         assertEquals(versionNumber, actual);
 
         verifyNoMoreInteractions(messages);
@@ -48,7 +48,7 @@ public class DefaultGetDisplayNumberStrategyTest {
         final String versionNumber = "0.0";
         final String editDate = "01.02.2003";
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setStatus(RefBookVersionStatus.DRAFT);
         refBook.setVersion(versionNumber);
         refBook.setEditDate(LocalDateTime.of(LocalDate.of(2003, 2, 1), LocalTime.MIDNIGHT));
@@ -56,7 +56,7 @@ public class DefaultGetDisplayNumberStrategyTest {
         when(messages.getMessage(any(String.class), eq(editDate)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        String actual = strategy.get(refBook);
+        final String actual = strategy.get(refBook);
         assertEquals("refbook.display.number.draft", actual);
 
         verify(messages).getMessage(any(String.class), eq(editDate));
