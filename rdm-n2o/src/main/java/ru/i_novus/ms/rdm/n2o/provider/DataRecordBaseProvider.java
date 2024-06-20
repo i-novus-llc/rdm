@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 /**
  * Провайдер для формирования метаданных.
@@ -18,10 +18,10 @@ public class DataRecordBaseProvider {
 
     private static final String CONTEXT_PARAM_SEPARATOR_REGEX = "_";
 
-    protected VersionRestService versionService;
+    protected VersionRestServiceRestClient versionService;
 
     @Autowired
-    public void setVersionService(VersionRestService versionService) {
+    public void setVersionService(VersionRestServiceRestClient versionService) {
         this.versionService = versionService;
     }
 

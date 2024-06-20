@@ -2,12 +2,11 @@ package ru.i_novus.ms.rdm.n2o.l10n.service;
 
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
-import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
+import ru.i_novus.ms.rdm.rest.client.impl.l10n.L10nServiceRestClient;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.api.util.RowUtils.prepareRowValues;
@@ -18,9 +17,12 @@ public class L10nLocalizeVersionController {
 
     private static final String DATA_ROW_IS_EMPTY_EXCEPTION_CODE = "data.row.is.empty";
 
+    private final L10nServiceRestClient l10nService;
+
     @Autowired
-    @Qualifier("l10nServiceJaxRsProxyClient")
-    private L10nService l10nService;
+    public L10nLocalizeVersionController(L10nServiceRestClient l10nService) {
+        this.l10nService = l10nService;
+    }
 
     public void localizeDataRecord(Integer versionId, Integer optLockValue, String localeCode, Row row) {
 

@@ -7,9 +7,9 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.VersionCriteria;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.util.List;
 
@@ -18,12 +18,12 @@ import static java.util.stream.Collectors.toList;
 @Controller
 public class VersionController {
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
     private final RefBookAdapter refBookAdapter;
 
     @Autowired
-    public VersionController(VersionRestService versionService,
+    public VersionController(VersionRestServiceRestClient versionService,
                              RefBookAdapter refBookAdapter) {
 
         this.versionService = versionService;

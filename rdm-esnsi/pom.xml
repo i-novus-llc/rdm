@@ -61,7 +61,17 @@
             <version>1.19</version>
         </dependency>
 
-        <!-- JAX -->
+        <!-- FEIGN -->
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-feign-client</artifactId>
+        </dependency>
+
+        <!--<dependency>-->
+        <!--    <groupId>net.n2oapp.platform</groupId>-->
+        <!--    <artifactId>n2o-platform-starter-jaxrs-server</artifactId>-->
+        <!--</dependency>-->
+
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
@@ -73,16 +83,16 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-features-logging</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.jws</groupId>
             <artifactId>jakarta.jws-api</artifactId>
             <version>1.1.1</version>
         </dependency>
-
-        <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
-        </dependency>
-        <!-- / JAX -->
+        <!-- / FEIGN -->
 
         <!-- test -->
         <dependency>

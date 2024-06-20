@@ -8,9 +8,9 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
+import ru.i_novus.ms.rdm.rest.client.impl.CompareServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.*;
@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 @Controller
 public class CompareStructureController {
 
-    private final CompareService compareService;
+    private final CompareServiceRestClient compareService;
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
     @Autowired
-    public CompareStructureController(CompareService compareService,
-                                      VersionRestService versionService) {
+    public CompareStructureController(CompareServiceRestClient compareService,
+                                      VersionRestServiceRestClient versionService) {
 
         this.compareService = compareService;
         this.versionService = versionService;

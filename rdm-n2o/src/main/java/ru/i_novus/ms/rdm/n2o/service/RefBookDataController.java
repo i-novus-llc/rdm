@@ -28,8 +28,6 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
@@ -39,6 +37,8 @@ import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridColumnsConfig;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRowType;
+import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -95,9 +95,9 @@ public class RefBookDataController {
         return cellOptions;
     }
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
-    private final ConflictService conflictService;
+    private final ConflictServiceRestClient conflictService;
 
     private final DataFieldFilterProvider dataFieldFilterProvider;
 
@@ -106,8 +106,8 @@ public class RefBookDataController {
     private final Messages messages;
 
     @Autowired
-    public RefBookDataController(VersionRestService versionService,
-                                 ConflictService conflictService,
+    public RefBookDataController(VersionRestServiceRestClient versionService,
+                                 ConflictServiceRestClient conflictService,
                                  DataFieldFilterProvider dataFieldFilterProvider,
                                  RefBookDataDecorator refBookDataDecorator,
                                  Messages messages) {

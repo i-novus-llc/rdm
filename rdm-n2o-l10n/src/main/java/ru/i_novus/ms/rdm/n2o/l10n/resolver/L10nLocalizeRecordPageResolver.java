@@ -27,8 +27,12 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
 
     private static final String LABEL_HIDE_UNLOCALIZABLE = "label.hide.unlocalizable";
 
+    private final Messages messages;
+
     @Autowired
-    private Messages messages;
+    public L10nLocalizeRecordPageResolver(Messages messages) {
+        this.messages = messages;
+    }
 
     @Override
     public boolean isSatisfied(String dataAction) {

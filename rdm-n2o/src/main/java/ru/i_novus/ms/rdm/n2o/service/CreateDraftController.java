@@ -13,9 +13,6 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.DraftRestService;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
@@ -23,6 +20,9 @@ import ru.i_novus.ms.rdm.n2o.model.UiPassport;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
+import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,9 +46,9 @@ public class CreateDraftController {
     private static final String PASSPORT_REFBOOK_SHORT_NAME = "shortName";
     private static final String PASSPORT_REFBOOK_DESCRIPTION = "description";
 
-    private final RefBookService refBookService;
-    private final VersionRestService versionService;
-    private final DraftRestService draftService;
+    private final RefBookServiceRestClient refBookService;
+    private final VersionRestServiceRestClient versionService;
+    private final DraftRestServiceRestClient draftService;
 
     private final StructureController structureController;
     private final DataRecordController dataRecordController;
@@ -56,9 +56,11 @@ public class CreateDraftController {
     private final UiStrategyLocator strategyLocator;
 
     @Autowired
-    public CreateDraftController(RefBookService refBookService,
-                                 VersionRestService versionService, DraftRestService draftService,
-                                 StructureController structureController, DataRecordController dataRecordController,
+    public CreateDraftController(RefBookServiceRestClient refBookService,
+                                 VersionRestServiceRestClient versionService,
+                                 DraftRestServiceRestClient draftService,
+                                 StructureController structureController,
+                                 DataRecordController dataRecordController,
                                  UiStrategyLocator strategyLocator) {
         this.refBookService = refBookService;
         this.versionService = versionService;

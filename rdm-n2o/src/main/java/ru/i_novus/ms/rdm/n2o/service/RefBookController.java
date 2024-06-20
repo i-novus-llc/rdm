@@ -12,7 +12,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookStatusCriteria;
 import ru.i_novus.ms.rdm.n2o.criteria.RefBookTypeCriteria;
@@ -21,6 +20,7 @@ import ru.i_novus.ms.rdm.n2o.model.UiRefBook;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookStatus;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookType;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
+import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,14 +36,14 @@ public class RefBookController extends BaseController {
     private static final String REFBOOK_TYPE_PREFIX = "refbook.type.";
     private static final String REFBOOK_STATUS_PREFIX = "refbook.status.";
 
-    private final RefBookService refBookService;
+    private final RefBookServiceRestClient refBookService;
 
     private final RefBookAdapter refBookAdapter;
 
     private final RdmPermission rdmPermission;
 
     @Autowired
-    public RefBookController(RefBookService refBookService,
+    public RefBookController(RefBookServiceRestClient refBookService,
                              RefBookAdapter refBookAdapter,
                              Messages messages,
                              RdmPermission rdmPermission) {

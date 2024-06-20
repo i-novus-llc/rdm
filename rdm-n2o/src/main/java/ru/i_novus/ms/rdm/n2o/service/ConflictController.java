@@ -2,15 +2,15 @@ package ru.i_novus.ms.rdm.n2o.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import ru.i_novus.ms.rdm.api.service.ReferenceService;
+import ru.i_novus.ms.rdm.rest.client.impl.ReferenceServiceRestClient;
 
 @Controller
 public class ConflictController {
 
-    private final ReferenceService referenceService;
+    private final ReferenceServiceRestClient referenceService;
 
     @Autowired
-    public ConflictController(ReferenceService referenceService) {
+    public ConflictController(ReferenceServiceRestClient referenceService) {
 
         this.referenceService = referenceService;
     }

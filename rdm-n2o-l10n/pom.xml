@@ -18,20 +18,9 @@
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-api</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-n2o-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-l10n-api</artifactId>
         </dependency>
 
         <dependency>
@@ -59,6 +48,23 @@
             <artifactId>n2o-access</artifactId>
         </dependency>
 
+        <!-- FEIGN -->
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-feign-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-rest-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-l10n-rest-client</artifactId>
+        </dependency>
+        <!-- / FEIGN -->
+
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>
@@ -78,7 +84,6 @@
             <scope>test</scope>
         </dependency>
         <!-- / test -->
-
     </dependencies>
 
 </project>

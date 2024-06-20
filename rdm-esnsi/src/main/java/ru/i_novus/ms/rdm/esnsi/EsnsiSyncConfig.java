@@ -1,9 +1,9 @@
 package ru.i_novus.ms.rdm.esnsi;
 
-import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,10 +12,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import ru.i_novus.ms.rdm.api.service.DraftService;
-import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.api.service.PublishService;
-import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.i_novus.ms.rdm.esnsi.smev.MsgFetcher;
 import ru.i_novus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
@@ -32,10 +28,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 @Configuration
 @DependsOn("liquibase")
-@EnableJaxRsProxyClient(
-    classes = {RefBookService.class, DraftService.class, FileStorageService.class, PublishService.class},
-    address = "${rdm.backend.path}"
-)
+@EnableFeignClients("ru.i_novus.ms.rdm.rest.client.feign")
 public class EsnsiSyncConfig {
 
     private static final String ESNSI_INTERNAL = "ESNSI-INTERNAL";

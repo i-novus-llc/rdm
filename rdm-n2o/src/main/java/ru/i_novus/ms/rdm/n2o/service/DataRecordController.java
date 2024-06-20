@@ -5,11 +5,11 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.DraftRestService;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
+import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -25,15 +25,15 @@ import static ru.i_novus.ms.rdm.n2o.api.constant.DataRecordConstants.*;
 @Controller
 public class DataRecordController {
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
-    private final DraftRestService draftService;
+    private final DraftRestServiceRestClient draftService;
 
     private final Collection<DataRecordGetterResolver> resolvers;
 
     @Autowired
-    public DataRecordController(VersionRestService versionService,
-                                DraftRestService draftService,
+    public DataRecordController(VersionRestServiceRestClient versionService,
+                                DraftRestServiceRestClient draftService,
                                 Collection<DataRecordGetterResolver> resolvers) {
         this.versionService = versionService;
         this.draftService = draftService;

@@ -10,8 +10,8 @@ import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,15 +32,15 @@ public class UpdateRecordController {
     private static final String CONFLICT_TEXT_DELETED = "conflict.text.deleted";
     private static final String CONFLICT_TEXT_ALTERED = "conflict.text.altered";
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
-    private final ConflictService conflictService;
+    private final ConflictServiceRestClient conflictService;
 
     private final Messages messages;
 
     @Autowired
-    public UpdateRecordController(VersionRestService versionService,
-                                  ConflictService conflictService,
+    public UpdateRecordController(VersionRestServiceRestClient versionService,
+                                  ConflictServiceRestClient conflictService,
                                   Messages messages) {
 
         this.versionService = versionService;

@@ -7,9 +7,9 @@ import org.springframework.stereotype.Controller;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
 import ru.i_novus.ms.rdm.n2o.model.Category;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -25,10 +25,10 @@ public class CategoryController {
     static final String CATEGORY_CODE_FIELD_CODE = "code";
     static final String CATEGORY_NAME_FIELD_CODE = "name"; // NB: this is id
 
-    private final VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
 
     @Autowired
-    public CategoryController(VersionRestService versionService) {
+    public CategoryController(VersionRestServiceRestClient versionService) {
 
         this.versionService = versionService;
     }

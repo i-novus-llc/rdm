@@ -1,17 +1,16 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
-import ru.i_novus.ms.rdm.api.rest.VersionRestService;
-import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
+import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
+import ru.i_novus.ms.rdm.rest.client.impl.l10n.VersionLocaleServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
 import java.io.Serializable;
@@ -31,12 +30,16 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.FIELD_LOCA
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolver {
 
-    @Autowired
-    private VersionRestService versionService;
+    private final VersionRestServiceRestClient versionService;
+
+    private final VersionLocaleServiceRestClient versionLocaleService;
 
     @Autowired
-    @Qualifier("versionLocaleServiceJaxRsProxyClient")
-    private VersionLocaleService versionLocaleService;
+    public L10nLocalizeRecordGetterResolver(VersionRestServiceRestClient versionService,
+                                            VersionLocaleServiceRestClient versionLocaleService) {
+        this.versionService = versionService;
+        this.versionLocaleService = versionLocaleService;
+    }
 
     @Override
     public boolean isSatisfied(String dataAction) {
