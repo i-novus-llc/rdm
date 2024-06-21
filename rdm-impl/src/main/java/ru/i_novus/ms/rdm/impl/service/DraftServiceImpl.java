@@ -456,30 +456,38 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateData(Integer draftId, UpdateDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final Integer refBookId = draftEntity.getRefBook().getId();
 
         List<Object> addedData = null;
         List<RowDiff> updatedDiffData = null;
-        refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
+
+        List<RowValue> addedRowValues;
+        List<RowValue> currentRowValues = emptyList();
+        List<RowValue> updatedRowValues;
+
+        refBookLockService.setRefBookUpdating(refBookId);
         try {
             validateOptLockValue(draftEntity, request);
 
-            List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
+            final List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
             validateDataByStructure(draftEntity, rows);
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
+            final List<RowValue> rowValues = rows.stream()
+                    .map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
 
-            List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
+            addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                getStrategy(draftEntity, AddRowValuesStrategy.class).add(draftEntity, addedRowValues);
+                getStrategy(draftEntity, AddRowValuesStrategy.class)
+                        .add(draftEntity, addedRowValues);
                 addedData = getAddedData(rowValues);
             }
 
-            List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
+            updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                List<RowValue> currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
+                currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
                 getStrategy(draftEntity, UpdateRowValuesStrategy.class)
                         .update(draftEntity, currentRowValues, updatedRowValues);
                 updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
@@ -490,13 +498,16 @@ public class DraftServiceImpl implements DraftService {
             }
 
         } finally {
-            refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
+            refBookLockService.deleteRefBookOperation(refBookId);
         }
 
         auditEditData(draftEntity, Map.of(
                 "create_rows", isEmpty(addedData) ? "-" : addedData,
                 "update_rows", isEmpty(updatedDiffData) ? "-" : updatedDiffData
         ));
+
+        getStrategy(draftEntity, AfterUpdateRowValuesStrategy.class)
+                .apply(draftEntity, addedRowValues, currentRowValues, updatedRowValues);
     }
 
     private List<Object> getAddedData(List<RowValue> rowValues) {
