@@ -314,6 +314,12 @@
             <tab id="tab_data" name="Данные">
                 <table id="dataTable" src="DataGrid" datasource="versionData">
 
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
+
                     <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
                     <columns><column id="id" visible="false"/></columns>
 
@@ -507,6 +513,12 @@
 
                 <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
 
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
+
                     <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
                     <columns><column id="id" visible="false"/></columns>
 
@@ -564,6 +576,12 @@
 
             <tab id="tab_conflicted" name="Данные с конфликтами">
                 <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData">
+
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
 
                     <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
                     <columns><column id="id" visible="false"/></columns>
