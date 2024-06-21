@@ -1,9 +1,5 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import net.n2oapp.framework.api.metadata.control.N2oField;
 import net.n2oapp.framework.api.metadata.control.list.N2oInputSelect;
 import net.n2oapp.framework.api.metadata.control.plain.N2oDatePicker;
@@ -80,20 +76,6 @@ public class RefBookDataController {
 
     private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
     private static final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
-
-    private static final String DATA_CONFLICTED_CELL_BG_COLOR = "#f8c8c6";
-    private static final Map<String, Object> DATA_CONFLICTED_CELL_OPTIONS = getDataConflictedCellOptions();
-    private static Map<String, Object> getDataConflictedCellOptions() {
-
-        final Map<String, Object> cellOptions = new HashMap<>(2);
-        cellOptions.put("src", "TextCell");
-
-        final Map<String, Object> styleOptions = new HashMap<>(1);
-        styleOptions.put("backgroundColor", DATA_CONFLICTED_CELL_BG_COLOR);
-        cellOptions.put("styles", styleOptions);
-
-        return cellOptions;
-    }
 
     private final VersionRestService versionService;
 
@@ -384,7 +366,7 @@ public class RefBookDataController {
         final Map<String, Object> rowMap = new HashMap<>(rowValue.getFieldValues().size() + 5);
 
         rowValue.getFieldValues().forEach(fieldValue ->
-                rowMap.put(addPrefix(fieldValue.getField()), fieldValueToCell(fieldValue, isDataConflict))
+                rowMap.put(addPrefix(fieldValue.getField()), fieldValueToString(fieldValue))
         );
 
         final LongRowValue longRowValue = (LongRowValue) rowValue;
@@ -398,12 +380,6 @@ public class RefBookDataController {
         rowMap.put(FIELD_LOCALE_CODE, criteria.getLocaleCode());
 
         return new DataGridRow(systemId, rowMap);
-    }
-
-    private Object fieldValueToCell(FieldValue<?> fieldValue, boolean isDataConflict) {
-
-        final String stringValue = fieldValueToString(fieldValue);
-        return !isDataConflict ? stringValue : new DataGridCell(stringValue, DATA_CONFLICTED_CELL_OPTIONS);
     }
 
     private String fieldValueToString(FieldValue<?> fieldValue) {
@@ -510,28 +486,5 @@ public class RefBookDataController {
     /** Наименование значения boolean. */
     private String getBooleanValueName(Boolean value) {
         return value != null ? messages.getMessage(DATA_BOOLEAN_VALUE_PREFIX + value) : null;
-    }
-
-    /**
-     * Ячейка DataGrid (для особого оформления).
-     */
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @SuppressWarnings("WeakerAccess")
-    public static class DataGridCell {
-
-        /** Значение. */
-        @JsonProperty
-        private String value;
-
-        /** Настройки. */
-        @JsonProperty
-        private Map<String, Object> cellOptions;
-
-        public DataGridCell(String value, Map<String, Object> cellOptions) {
-            this.value = value;
-            this.cellOptions = cellOptions;
-        }
     }
 }
