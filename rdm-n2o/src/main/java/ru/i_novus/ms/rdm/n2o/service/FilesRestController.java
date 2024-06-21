@@ -16,9 +16,9 @@ import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
-import ru.i_novus.ms.rdm.rest.client.impl.FileStorageServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.io.IOException;
 
@@ -29,15 +29,15 @@ public class FilesRestController {
 
     private static final String FILE_IS_TOO_BIG_EXCEPTION_CODE = "file.is.too.big";
 
-    private final FileStorageServiceRestClient fileStorageService;
+    private final FileStorageService fileStorageService;
 
-    private final VersionRestServiceRestClient versionService;
+    private final VersionRestService versionService;
 
     private final int maxFileSizeMb;
 
     @Autowired
-    public FilesRestController(FileStorageServiceRestClient fileStorageService,
-                               VersionRestServiceRestClient versionService,
+    public FilesRestController(FileStorageService fileStorageService,
+                               VersionRestService versionService,
                                @Value("${rdm.max-file-size-mb:55}") int maxFileSizeMb) {
 
         this.fileStorageService = fileStorageService;

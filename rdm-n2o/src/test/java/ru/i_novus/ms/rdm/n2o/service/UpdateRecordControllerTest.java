@@ -11,8 +11,8 @@ import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflict;
 import ru.i_novus.ms.rdm.api.model.conflict.RefBookConflictCriteria;
-import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.time.LocalDateTime;
@@ -36,10 +36,10 @@ public class UpdateRecordControllerTest {
     private UpdateRecordController controller;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Mock
-    private ConflictServiceRestClient conflictService;
+    private ConflictService conflictService;
 
     @Mock
     private Messages messages;

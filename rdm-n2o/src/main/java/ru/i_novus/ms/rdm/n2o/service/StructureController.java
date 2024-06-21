@@ -16,6 +16,10 @@ import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.ConflictUtils;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.StructureUtils;
@@ -23,10 +27,6 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
-import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.DisplayExpression;
 
 import java.util.ArrayList;
@@ -48,19 +48,19 @@ public class StructureController extends BaseController {
     private static final int DISPLAY_TYPE_ATTRIBUTE = 1;
     private static final int DISPLAY_TYPE_EXPRESSION = 2;
 
-    private final RefBookServiceRestClient refBookService;
+    private final RefBookService refBookService;
 
-    private final VersionRestServiceRestClient versionService;
+    private final VersionRestService versionService;
 
-    private final DraftRestServiceRestClient draftService;
+    private final DraftRestService draftService;
 
-    private final ConflictServiceRestClient conflictService;
+    private final ConflictService conflictService;
 
     @Autowired
-    public StructureController(RefBookServiceRestClient refBookService,
-                               VersionRestServiceRestClient versionService,
-                               DraftRestServiceRestClient draftService,
-                               ConflictServiceRestClient conflictService,
+    public StructureController(RefBookService refBookService,
+                               VersionRestService versionService,
+                               DraftRestService draftService,
+                               ConflictService conflictService,
                                Messages messages) {
         super(messages);
 

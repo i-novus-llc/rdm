@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
@@ -30,12 +30,12 @@ public class L10nRefBookDataDecorator implements RefBookDataDecorator {
     private static final String ATTRIBUTE_LOCALIZED_NONE = "attribute.localized.none";
     private static final String ATTRIBUTE_LOCALIZED_MADE = "attribute.localized.made";
 
-    private final VersionRestServiceRestClient versionService;
+    private final VersionRestService versionService;
 
     private final Messages messages;
 
     @Autowired
-    public L10nRefBookDataDecorator(VersionRestServiceRestClient versionService,
+    public L10nRefBookDataDecorator(VersionRestService versionService,
                                     Messages messages) {
         this.versionService = versionService;
 

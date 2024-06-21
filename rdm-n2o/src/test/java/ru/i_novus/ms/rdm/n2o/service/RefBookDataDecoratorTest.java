@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
@@ -39,7 +39,7 @@ public class RefBookDataDecoratorTest {
     PlainRefBookDataDecorator refBookDataService;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Test
     public void testGetDataStructure() {

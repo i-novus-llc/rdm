@@ -10,9 +10,9 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.CategoryCriteria;
 import ru.i_novus.ms.rdm.n2o.model.Category;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -40,7 +40,7 @@ public class CategoryControllerTest {
     private CategoryController controller;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Test
     public void testGetListAll() {

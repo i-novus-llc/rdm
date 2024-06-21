@@ -23,7 +23,6 @@
         <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
         <!-- N2O -->
-        <n2o-platform.version>5.3.3</n2o-platform.version>
         <n2o.version>7.27.12</n2o.version>
         <!-- / N2O -->
 
@@ -110,12 +109,6 @@
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest</artifactId>
-                <version>4.19.0-SNAPSHOT</version>
-            </dependency>
-
-            <dependency>
-                <groupId>ru.i-novus.ms.rdm</groupId>
-                <artifactId>rdm-rest-client</artifactId>
                 <version>4.19.0-SNAPSHOT</version>
             </dependency>
 
@@ -234,19 +227,13 @@
             </dependency>
             <!-- / SECURITY -->
 
-            <!-- FEIGN -->
-            <dependency>
-                <groupId>net.n2oapp.platform</groupId>
-                <artifactId>n2o-platform-starter-feign-client</artifactId>
-                <version>${n2o-platform.version}</version>
-            </dependency>
-
+            <!-- JAX -->
             <dependency>
                 <groupId>com.sun.xml.ws</groupId>
                 <artifactId>rt</artifactId>
                 <version>${jaxws.version}</version>
             </dependency>
-            <!-- / FEIGN -->
+            <!-- / JAX -->
 
             <dependency>
                 <groupId>javax.activation</groupId>
@@ -308,7 +295,6 @@
             <modules>
                 <module>rdm-impl</module>
                 <module>rdm-rest</module>
-                <module>rdm-rest-client</module>
 
                 <module>rdm-rest-spring-boot-autoconfigure</module>
                 <module>rdm-rest-spring-boot-starter</module>
@@ -335,7 +321,6 @@
             <modules>
                 <module>rdm-l10n-api</module>
                 <module>rdm-l10n-impl</module>
-                <module>rdm-l10n-rest-client</module>
 
                 <module>rdm-n2o-l10n</module>
             </modules>

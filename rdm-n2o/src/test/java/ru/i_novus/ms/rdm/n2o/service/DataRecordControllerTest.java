@@ -12,11 +12,11 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.refdata.UpdateDataRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,10 +50,10 @@ public class DataRecordControllerTest extends BaseTest {
     private DataRecordController controller;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Mock
-    private DraftRestServiceRestClient draftService;
+    private DraftRestService draftService;
 
     @Spy
     private final Collection<DataRecordGetterResolver> resolvers = new ArrayList<>(1);

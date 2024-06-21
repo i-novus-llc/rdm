@@ -9,8 +9,8 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.criteria.ReferenceCriteria;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
@@ -27,10 +27,10 @@ import static ru.i_novus.ms.rdm.api.util.StructureUtils.hasAbsentPlaceholder;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class ReferenceController {
 
-    private final VersionRestServiceRestClient versionService;
+    private final VersionRestService versionService;
 
     @Autowired
-    public ReferenceController(VersionRestServiceRestClient versionService) {
+    public ReferenceController(VersionRestService versionService) {
 
         this.versionService = versionService;
     }

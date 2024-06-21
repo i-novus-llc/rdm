@@ -11,9 +11,9 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -50,7 +50,7 @@ public class UpdateRecordGetterResolverTest extends BaseTest {
     private UpdateRecordGetterResolver resolver;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Test
     public void testIsSatisfied() {

@@ -8,9 +8,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.BooleanFieldValue;
@@ -48,7 +48,7 @@ public class L10nRefBookDataDecoratorTest extends BaseTest {
     private L10nRefBookDataDecorator refBookDataService;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Mock
     private Messages messages;

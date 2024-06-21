@@ -11,10 +11,10 @@ import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.l10n.VersionLocaleService;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.l10n.VersionLocaleServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -61,10 +61,10 @@ public class L10nLocalizeRecordGetterResolverTest extends BaseTest {
     private L10nLocalizeRecordGetterResolver resolver;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Mock
-    private VersionLocaleServiceRestClient versionLocaleService;
+    private VersionLocaleService versionLocaleService;
 
     @Test
     public void testIsSatisfied() {

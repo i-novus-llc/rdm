@@ -4,14 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
 
 @Component
 public class DefaultFindOrCreateDraftStrategy implements FindOrCreateDraftStrategy {
 
     @Autowired
-    private DraftRestServiceRestClient draftService;
+    private DraftRestService draftService;
 
     @Override
     public UiDraft findOrCreate(RefBookVersion version) {

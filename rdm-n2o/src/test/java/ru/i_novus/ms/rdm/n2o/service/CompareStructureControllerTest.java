@@ -11,9 +11,9 @@ import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeDiff;
-import ru.i_novus.ms.rdm.rest.client.impl.CompareServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
@@ -31,9 +31,9 @@ public class CompareStructureControllerTest {
     private CompareStructureController compareStructureController;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
     @Mock
-    private CompareServiceRestClient compareService;
+    private CompareService compareService;
 
     private final static Integer oldId = 1;
     private final static Integer newId = 2;

@@ -18,8 +18,8 @@ import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
-import ru.i_novus.ms.rdm.rest.client.impl.CompareServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
@@ -43,9 +43,9 @@ public class CompareDataControllerTest {
     private CompareDataController compareDataController;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
     @Mock
-    private CompareServiceRestClient compareService;
+    private CompareService compareService;
 
     private static final Integer OLD_ID = 1;
     private static final Integer NEW_ID = 2;

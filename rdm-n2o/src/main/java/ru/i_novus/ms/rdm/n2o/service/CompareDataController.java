@@ -10,9 +10,9 @@ import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
 import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.CompareService;
 import ru.i_novus.ms.rdm.api.util.ComparableUtils;
-import ru.i_novus.ms.rdm.rest.client.impl.CompareServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 
 import java.util.ArrayList;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 @SuppressWarnings("WeakerAccess")
 public class CompareDataController {
 
-    private final CompareServiceRestClient compareService;
+    private final CompareService compareService;
 
-    private final VersionRestServiceRestClient versionService;
+    private final VersionRestService versionService;
 
     @Autowired
-    public CompareDataController(CompareServiceRestClient compareService,
-                                 VersionRestServiceRestClient versionService) {
+    public CompareDataController(CompareService compareService,
+                                 VersionRestService versionService) {
 
         this.compareService = compareService;
         this.versionService = versionService;

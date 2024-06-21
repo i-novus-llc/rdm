@@ -36,6 +36,13 @@
         </dependency>
         <!-- / SECURITY -->
 
+        <!-- JAX -->
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>rt</artifactId>
+        </dependency>
+        <!-- / JAX -->
+
         <dependency>
             <groupId>javax.activation</groupId>
             <artifactId>activation</artifactId>

@@ -17,6 +17,9 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.BaseTest;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
@@ -26,9 +29,6 @@ import ru.i_novus.ms.rdm.n2o.strategy.UiStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.DefaultFindOrCreateDraftStrategy;
 import ru.i_novus.ms.rdm.n2o.strategy.draft.FindOrCreateDraftStrategy;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
@@ -67,11 +67,11 @@ public class CreateDraftControllerTest extends BaseTest {
     private CreateDraftController controller;
 
     @Mock
-    private RefBookServiceRestClient refBookService;
+    private RefBookService refBookService;
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
     @Mock
-    private DraftRestServiceRestClient draftService;
+    private DraftRestService draftService;
 
     @Mock
     private StructureController structureController;

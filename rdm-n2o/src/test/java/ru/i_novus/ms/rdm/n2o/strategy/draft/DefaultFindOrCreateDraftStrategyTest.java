@@ -8,8 +8,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.UiDraft;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,7 +28,7 @@ public class DefaultFindOrCreateDraftStrategyTest {
     private DefaultFindOrCreateDraftStrategy strategy;
 
     @Mock
-    private DraftRestServiceRestClient draftService;
+    private DraftRestService draftService;
 
     @Test
     public void testFindOrCreateWithVersion() {

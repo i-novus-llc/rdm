@@ -10,13 +10,13 @@ import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookPublish;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
-import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.PublishServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
 
 import java.util.Map;
 import java.util.UUID;
@@ -43,20 +43,20 @@ public class RefBookPublishController {
     private static final String REFERRER_NAME_SEPARATOR = ", ";
     private static final String REFERRER_NAME_LIST_END = ".";
 
-    private final RefBookServiceRestClient refBookService;
-    private final DraftRestServiceRestClient draftService;
-    private final PublishServiceRestClient publishService;
-    private final ConflictServiceRestClient conflictService;
+    private final RefBookService refBookService;
+    private final DraftRestService draftService;
+    private final PublishService publishService;
+    private final ConflictService conflictService;
 
     private final RefBookAdapter refBookAdapter;
 
     private final Messages messages;
 
     @Autowired
-    public RefBookPublishController(RefBookServiceRestClient refBookService,
-                                    DraftRestServiceRestClient draftService,
-                                    PublishServiceRestClient publishService,
-                                    ConflictServiceRestClient conflictService,
+    public RefBookPublishController(RefBookService refBookService,
+                                    DraftRestService draftService,
+                                    PublishService publishService,
+                                    ConflictService conflictService,
                                     RefBookAdapter refBookAdapter,
                                     Messages messages) {
         this.refBookService = refBookService;

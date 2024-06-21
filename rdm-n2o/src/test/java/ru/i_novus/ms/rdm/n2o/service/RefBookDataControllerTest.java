@@ -18,14 +18,14 @@ import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.api.criteria.DataCriteria;
 import ru.i_novus.ms.rdm.n2o.api.service.RefBookDataDecorator;
 import ru.i_novus.ms.rdm.n2o.api.util.DataRecordUtils;
 import ru.i_novus.ms.rdm.n2o.model.grid.DataGridRow;
 import ru.i_novus.ms.rdm.n2o.util.RefBookDataUtils;
-import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
@@ -72,10 +72,10 @@ public class RefBookDataControllerTest  {
     private DataFieldFilterProvider dataFieldFilterProvider;
 
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
 
     @Mock
-    private ConflictServiceRestClient conflictService;
+    private ConflictService conflictService;
 
     @Mock
     private RefBookDataDecorator refBookDataDecorator;

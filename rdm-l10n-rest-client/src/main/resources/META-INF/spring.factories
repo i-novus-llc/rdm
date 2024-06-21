@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-ru.i_novus.ms.rdm.rest.client.config.l10n.L10nRestClientConfiguration

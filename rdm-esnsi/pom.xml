@@ -61,16 +61,11 @@
             <version>1.19</version>
         </dependency>
 
-        <!-- FEIGN -->
+        <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-feign-client</artifactId>
+            <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
         </dependency>
-
-        <!--<dependency>-->
-        <!--    <groupId>net.n2oapp.platform</groupId>-->
-        <!--    <artifactId>n2o-platform-starter-jaxrs-server</artifactId>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -92,7 +87,7 @@
             <artifactId>jakarta.jws-api</artifactId>
             <version>1.1.1</version>
         </dependency>
-        <!-- / FEIGN -->
+        <!-- / JAX -->
 
         <!-- test -->
         <dependency>

@@ -8,9 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.ms.rdm.api.service.l10n.L10nService;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
 import ru.i_novus.ms.rdm.n2o.l10n.BaseTest;
-import ru.i_novus.ms.rdm.rest.client.impl.l10n.L10nServiceRestClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
     private L10nLocalizeVersionController controller;
 
     @Mock
-    private L10nServiceRestClient l10nService;
+    private L10nService l10nService;
 
     @Test
     public void testLocalizeDataRecord() {

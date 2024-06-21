@@ -21,6 +21,11 @@
     <dependencies>
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
+            <artifactId>rdm-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-n2o-api</artifactId>
         </dependency>
 
@@ -49,17 +54,12 @@
             <artifactId>n2o-access</artifactId>
         </dependency>
 
-        <!-- FEIGN -->
+        <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-feign-client</artifactId>
+            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>ru.i-novus.ms.rdm</groupId>
-            <artifactId>rdm-rest-client</artifactId>
-        </dependency>
-        <!-- / FEIGN -->
+        <!-- / JAX -->
 
         <!-- test -->
         <dependency>
@@ -92,7 +92,7 @@
             <dependencies>
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
-                    <artifactId>rdm-l10n-rest-client</artifactId>
+                    <artifactId>rdm-l10n-api</artifactId>
                 </dependency>
 
                 <dependency>

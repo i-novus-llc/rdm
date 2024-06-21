@@ -15,9 +15,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordPageResolver;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,7 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
     private DataRecordPageProvider provider;
 
     @Mock
-    protected VersionRestServiceRestClient versionService;
+    protected VersionRestService versionService;
 
     @Spy
     private final Collection<DataRecordPageResolver> resolvers = new ArrayList<>(1);

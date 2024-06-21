@@ -17,13 +17,13 @@ import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.VersionRestService;
+import ru.i_novus.ms.rdm.api.service.ConflictService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.n2o.model.AttributeCriteria;
 import ru.i_novus.ms.rdm.n2o.model.FormAttribute;
 import ru.i_novus.ms.rdm.n2o.model.ReadAttribute;
-import ru.i_novus.ms.rdm.rest.client.impl.ConflictServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.DraftRestServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.RefBookServiceRestClient;
-import ru.i_novus.ms.rdm.rest.client.impl.VersionRestServiceRestClient;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.math.BigDecimal;
@@ -53,13 +53,13 @@ public class StructureControllerTest extends TestCase {
     private StructureController structureController;
 
     @Mock
-    private RefBookServiceRestClient refBookService;
+    private RefBookService refBookService;
     @Mock
-    private VersionRestServiceRestClient versionService;
+    private VersionRestService versionService;
     @Mock
-    private DraftRestServiceRestClient draftService;
+    private DraftRestService draftService;
     @Mock
-    private ConflictServiceRestClient conflictService;
+    private ConflictService conflictService;
 
     @Mock
     private Messages messages;
