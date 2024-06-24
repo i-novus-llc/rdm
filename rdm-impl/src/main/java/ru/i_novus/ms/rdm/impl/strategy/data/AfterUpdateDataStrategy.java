@@ -7,7 +7,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import java.util.List;
 
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public interface AfterUpdateRowValuesStrategy extends Strategy {
+public interface AfterUpdateDataStrategy extends Strategy {
 
     void apply(RefBookVersionEntity entity,
                List<RowValue> addedRowValues,

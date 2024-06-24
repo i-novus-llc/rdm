@@ -32,13 +32,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static ru.i_novus.ms.rdm.impl.util.StructureTestConstants.ID_ATTRIBUTE_CODE;
 
-public class UnversionedAfterUpdateRowValuesStrategyTest extends UnversionedBaseStrategyTest {
+public class UnversionedAfterUpdateDataStrategyTest extends UnversionedBaseStrategyTest {
 
     protected static final String NAME_FIELD_RESTORED_VALUE_SUFFIX = "_restored";
     protected static final String NAME_FIELD_CHANGED_VALUE_SUFFIX = "_changed";
 
     @InjectMocks
-    private UnversionedAfterUpdateRowValuesStrategy strategy;
+    private UnversionedAfterUpdateDataStrategy strategy;
 
     @Mock
     private RefBookVersionRepository versionRepository;

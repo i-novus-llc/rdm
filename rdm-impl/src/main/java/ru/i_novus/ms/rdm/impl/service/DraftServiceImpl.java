@@ -506,7 +506,7 @@ public class DraftServiceImpl implements DraftService {
                 "update_rows", isEmpty(updatedDiffData) ? "-" : updatedDiffData
         ));
 
-        getStrategy(draftEntity, AfterUpdateRowValuesStrategy.class)
+        getStrategy(draftEntity, AfterUpdateDataStrategy.class)
                 .apply(draftEntity, addedRowValues, currentRowValues, updatedRowValues);
     }
 
@@ -528,14 +528,14 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteData(Integer draftId, DeleteDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
 
         List<Object> systemIds;
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
             validateOptLockValue(draftEntity, request);
 
-            List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
+            final List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
             if (rows.isEmpty()) return;
 
             systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());

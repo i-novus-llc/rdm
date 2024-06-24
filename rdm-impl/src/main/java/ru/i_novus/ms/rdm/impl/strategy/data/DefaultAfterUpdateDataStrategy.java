@@ -8,7 +8,7 @@ import java.util.List;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740","java:S1172"})
-public class DefaultAfterUpdateRowValuesStrategy implements AfterUpdateRowValuesStrategy {
+public class DefaultAfterUpdateDataStrategy implements AfterUpdateDataStrategy {
 
     @Override
     public void apply(RefBookVersionEntity entity,

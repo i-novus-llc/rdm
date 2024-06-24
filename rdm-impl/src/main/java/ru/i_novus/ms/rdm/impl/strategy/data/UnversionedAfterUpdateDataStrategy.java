@@ -29,7 +29,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @SuppressWarnings({"rawtypes", "java:S3740"})
-public class UnversionedAfterUpdateRowValuesStrategy implements AfterUpdateRowValuesStrategy {
+public class UnversionedAfterUpdateDataStrategy implements AfterUpdateDataStrategy {
 
     @Autowired
     private RefBookVersionRepository versionRepository;

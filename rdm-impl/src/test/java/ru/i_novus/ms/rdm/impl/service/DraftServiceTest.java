@@ -32,7 +32,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.data.AfterUpdateRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.AfterUpdateDataStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.data.DeleteAllRowValuesStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.data.UpdateRowValuesStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
@@ -135,7 +135,7 @@ public class DraftServiceTest {
     @Mock
     private UpdateRowValuesStrategy updateRowValuesStrategy;
     @Mock
-    private AfterUpdateRowValuesStrategy afterUpdateRowValuesStrategy;
+    private AfterUpdateDataStrategy afterUpdateDataStrategy;
     @Mock
     private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
@@ -432,7 +432,7 @@ public class DraftServiceTest {
 
             testUpdateByPrimaryKey(primaryAllowedType[i], primaryValues[i]);
             Mockito.reset(versionService, versionRepository,
-                    searchDataService, updateRowValuesStrategy, afterUpdateRowValuesStrategy);
+                    searchDataService, updateRowValuesStrategy, afterUpdateDataStrategy);
         }
     }
 
@@ -504,7 +504,7 @@ public class DraftServiceTest {
         draftService.updateData(draft.getId(), new UpdateDataRequest(null, new Row(null, map)));
 
         verify(updateRowValuesStrategy).update(any(RefBookVersionEntity.class), any(), any());
-        verify(afterUpdateRowValuesStrategy).apply(any(RefBookVersionEntity.class), any(), any(), any());
+        verify(afterUpdateDataStrategy).apply(any(RefBookVersionEntity.class), any(), any(), any());
     }
 
     private RefBookVersionEntity createDraftEntity() {
@@ -601,7 +601,7 @@ public class DraftServiceTest {
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
         // Data:
         result.put(UpdateRowValuesStrategy.class, updateRowValuesStrategy);
-        result.put(AfterUpdateRowValuesStrategy.class, afterUpdateRowValuesStrategy);
+        result.put(AfterUpdateDataStrategy.class, afterUpdateDataStrategy);
         result.put(DeleteAllRowValuesStrategy.class, deleteAllRowValuesStrategy);
 
         return result;

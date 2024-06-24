@@ -12,10 +12,10 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 
-public class DefaultAfterUpdateRowValuesStrategyTest extends DefaultBaseStrategyTest {
+public class DefaultAfterUpdateDataStrategyTest extends DefaultBaseStrategyTest {
 
     @InjectMocks
-    private DefaultAfterUpdateRowValuesStrategy strategy;
+    private DefaultAfterUpdateDataStrategy strategy;
 
     @Test
     public void testApply() {

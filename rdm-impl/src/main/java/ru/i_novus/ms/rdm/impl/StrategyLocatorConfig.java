@@ -66,7 +66,7 @@ public class StrategyLocatorConfig {
     @Autowired
     private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
     @Autowired
-    private DefaultAfterUpdateRowValuesStrategy defaultAfterUpdateRowValuesStrategy;
+    private DefaultAfterUpdateDataStrategy defaultAfterUpdateDataStrategy;
 
     // Structure:
     @Autowired
@@ -108,7 +108,7 @@ public class StrategyLocatorConfig {
     @Autowired
     private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
     @Autowired
-    private UnversionedAfterUpdateRowValuesStrategy unversionedAfterUpdateRowValuesStrategy;
+    private UnversionedAfterUpdateDataStrategy unversionedAfterUpdateDataStrategy;
 
     // Structure:
     @Autowired
@@ -160,7 +160,7 @@ public class StrategyLocatorConfig {
         result.put(DeleteRowValuesStrategy.class, defaultDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, defaultAfterUploadDataStrategy);
-        result.put(AfterUpdateRowValuesStrategy.class, defaultAfterUpdateRowValuesStrategy);
+        result.put(AfterUpdateDataStrategy.class, defaultAfterUpdateDataStrategy);
 
         // Structure:
         result.put(CreateAttributeStrategy.class, defaultCreateAttributeStrategy);
@@ -192,7 +192,7 @@ public class StrategyLocatorConfig {
         result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, unversionedDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, unversionedAfterUploadDataStrategy);
-        result.put(AfterUpdateRowValuesStrategy.class, unversionedAfterUpdateRowValuesStrategy);
+        result.put(AfterUpdateDataStrategy.class, unversionedAfterUpdateDataStrategy);
 
         // Structure:
         result.put(CreateAttributeStrategy.class, unversionedCreateAttributeStrategy);
