@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.DeleteRowValuesStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 
 import java.util.List;

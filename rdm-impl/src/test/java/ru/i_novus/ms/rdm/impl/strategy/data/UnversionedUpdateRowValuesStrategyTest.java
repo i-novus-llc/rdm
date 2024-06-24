@@ -5,6 +5,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.strategy.UnversionedBaseStrategyTest;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.UpdateRowValuesStrategy;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 
 import java.math.BigInteger;
