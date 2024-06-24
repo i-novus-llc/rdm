@@ -1483,10 +1483,10 @@
     gud "^1.0.0"
     warning "^4.0.3"
 
-"@i-novus/n2o-components@7.27.12":
-  version "7.27.12"
-  resolved "https://registry.npmjs.org/@i-novus/n2o-components/-/n2o-components-7.27.12.tgz#1d89f7f95b15c4720f3fa4aca5f581d7f62be75e"
-  integrity sha512-B6E2CuHo69gsOmQRsgA21tbmqO2k0BN9stkpsOACNYim0mlNwjwlBlBsG42N74Zzxwdq+PcnHrrBpFyAgrhBYQ==
+"@i-novus/n2o-components@7.27.13":
+  version "7.27.13"
+  resolved "https://registry.npmjs.org/@i-novus/n2o-components/-/n2o-components-7.27.13.tgz#912da2176c7e40729b6dbfa99c7d8a54d447efac"
+  integrity sha512-+F+kTfAwkbCcxDpSs+68g5f9mEi6ZTvgPAk7PpHZXj28FZx5PKjLSQFInhMF9lIiWje6bXhWTaLlN0HQTP92pw==
   dependencies:
     "@fontsource/exo-2" "^4.3.0"
     "@fortawesome/fontawesome-free" "^6.4.2"
@@ -11008,10 +11008,10 @@ mz@^2.5.0, mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-framework@7.27.12:
-  version "7.27.12"
-  resolved "https://registry.npmjs.org/n2o-framework/-/n2o-framework-7.27.12.tgz#32e2e7abfd13e79b18e58b339d741c5fcf1643a8"
-  integrity sha512-+WviGoZ7FZ+2RMAxQkGO824ifL/xRAc4Izi3WnEHWlGFj1MXwPOUr7Ait13Qhxf7fJsPXLrb14vqoQ+XEbSWrA==
+n2o-framework@7.27.13:
+  version "7.27.13"
+  resolved "https://registry.npmjs.org/n2o-framework/-/n2o-framework-7.27.13.tgz#546117cdf1bc9700df786ab7d0764dbe371f2e17"
+  integrity sha512-h6G+qzBYW2LfL/ePsHQczWWPCB+XmwUh/siVTOHeOx51aBCK9dscAZC0uOK4XpwqaWuGs/5ZeWBIW+HLEIwN3A==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11020,7 +11020,7 @@ n2o-framework@7.27.12:
     "@fortawesome/fontawesome-svg-core" "^6.4.2"
     "@fortawesome/free-solid-svg-icons" "^6.4.2"
     "@fortawesome/react-fontawesome" "^0.2.0"
-    "@i-novus/n2o-components" "7.27.12"
+    "@i-novus/n2o-components" "7.27.13"
     "@popperjs/core" "^2.2.1"
     "@reduxjs/toolkit" "^1.5.1"
     axios "^0.19.0"
