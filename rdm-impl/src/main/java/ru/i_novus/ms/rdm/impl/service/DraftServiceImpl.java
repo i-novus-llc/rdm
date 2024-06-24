@@ -412,8 +412,10 @@ public class DraftServiceImpl implements DraftService {
         Map<String, Object> passport = new HashMap<>();
         versionEntity.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
 
-        Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream()
-                .collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
+        Map<String, List<AttributeValidation>> validations =
+                attributeValidationRepository.findAllByVersionId(versionId).stream()
+                .collect(groupingBy(AttributeValidationEntity::getAttribute,
+                        mapping(DraftServiceImpl::newAttributeValidation, toList())));
         CreateDraftRequest draftRequest = new CreateDraftRequest(versionEntity.getRefBook().getId(), versionEntity.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
@@ -423,6 +425,11 @@ public class DraftServiceImpl implements DraftService {
         }
 
         return draft;
+    }
+
+    private static AttributeValidation newAttributeValidation(AttributeValidationEntity entity) {
+
+        return entity.getType().getValidationInstance().valueFromString(entity.getValue());
     }
 
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
@@ -480,16 +487,14 @@ public class DraftServiceImpl implements DraftService {
 
             addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
-                getStrategy(draftEntity, AddRowValuesStrategy.class)
-                        .add(draftEntity, addedRowValues);
+                getStrategy(draftEntity, AddRowValuesStrategy.class).add(draftEntity, addedRowValues);
                 addedData = getAddedData(rowValues);
             }
 
             updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
                 currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
-                getStrategy(draftEntity, UpdateRowValuesStrategy.class)
-                        .update(draftEntity, currentRowValues, updatedRowValues);
+                getStrategy(draftEntity, UpdateRowValuesStrategy.class).update(draftEntity, currentRowValues, updatedRowValues);
                 updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
             }
 
@@ -501,13 +506,13 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
+        getStrategy(draftEntity, AfterUpdateDataStrategy.class)
+                .apply(draftEntity, addedRowValues, currentRowValues, updatedRowValues);
+
         auditEditData(draftEntity, Map.of(
                 "create_rows", isEmpty(addedData) ? "-" : addedData,
                 "update_rows", isEmpty(updatedDiffData) ? "-" : updatedDiffData
         ));
-
-        getStrategy(draftEntity, AfterUpdateDataStrategy.class)
-                .apply(draftEntity, addedRowValues, currentRowValues, updatedRowValues);
     }
 
     private List<Object> getAddedData(List<RowValue> rowValues) {
@@ -529,24 +534,26 @@ public class DraftServiceImpl implements DraftService {
     public void deleteData(Integer draftId, DeleteDataRequest request) {
 
         final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        validateOptLockValue(draftEntity, request);
 
-        List<Object> systemIds;
+        final List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
+        if (rows.isEmpty()) return;
+
+        final List<Object> systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
+        if (systemIds.isEmpty()) return;
+
+        getStrategy(draftEntity, BeforeDeleteDataStrategy.class).apply(draftEntity, systemIds);
+
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, request);
+            getStrategy(draftEntity, DeleteRowValuesStrategy.class).delete(draftEntity, systemIds);
+            forceUpdateOptLockValue(draftEntity);
 
-            final List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
-            if (rows.isEmpty()) return;
-
-            systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
-            if (!systemIds.isEmpty()) {
-                getStrategy(draftEntity, DeleteRowValuesStrategy.class).delete(draftEntity, systemIds);
-
-                forceUpdateOptLockValue(draftEntity);
-            }
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
         }
+
+        getStrategy(draftEntity, AfterDeleteDataStrategy.class).apply(draftEntity, systemIds);
 
         auditEditData(draftEntity, "delete_rows", systemIds);
     }
@@ -647,18 +654,21 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAllData(Integer draftId, DeleteAllDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        validateOptLockValue(draftEntity, request);
+
+        getStrategy(draftEntity, BeforeDeleteAllDataStrategy.class).apply(draftEntity);
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, request);
-
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);
 
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
         }
+
+        getStrategy(draftEntity, AfterDeleteAllDataStrategy.class).apply(draftEntity);
 
         auditEditData(draftEntity, "delete_all_rows", "-");
     }
@@ -711,7 +721,6 @@ public class DraftServiceImpl implements DraftService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
 
         String storageCode = toStorageCode(draft, criteria);
-
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode,
                 null, null, // Черновик
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -737,8 +746,8 @@ public class DraftServiceImpl implements DraftService {
     public void remove(Integer draftId) {
 
         RefBookVersionEntity draftEntity = findForUpdate(draftId);
-
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
+
         removeDraftEntity(draftEntity);
     }
 
@@ -781,14 +790,12 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, CreateAttributeStrategy.class)
                 .create(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         updateAttributeValidations(draftEntity,
                 null,
                 new RefBookVersionAttribute(draftId, attribute, structure),
-                request.getValidations()
-        );
+                request.getValidations());
 
         auditStructureEdit(draftEntity, "create_attribute", attribute);
     }
@@ -808,7 +815,6 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, UpdateAttributeStrategy.class)
                 .update(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         updateAttributeValidations(draftEntity,
@@ -830,7 +836,6 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, DeleteAttributeStrategy.class)
                 .delete(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         attributeValidationRepository.deleteByVersionIdAndAttribute(draftEntity.getId(), attribute.getCode());

@@ -40,7 +40,7 @@ public class UnversionedUpdateRowValuesStrategyTest extends UnversionedBaseStrat
                 createRowValue(4L, 4), // Изменение записи без конфликта обновления
                 createRowValue(5L, 5), // Изменение записи с конфликтом обновления
                 // С изменением значения первичного ключа:
-                createRowValue(6L, 6)  // Изменение записи в виде удаление + добавление
+                createRowValue(6L, 6)  // Изменение записи в виде: удаление + добавление
         );
 
         final List<RowValue> newRowValues = oldRowValues.stream()
