@@ -459,7 +459,7 @@
                             </show-modal>
 
                             <dependencies>
-                                <enabling datasource="refBookVersion">version.hasStructure &amp;&amp; isDraft</enabling>
+                                <enabling datasource="refBookVersion">version.hasStructure &amp;&amp; (isDraft || version.isVersioned)</enabling>
                             </dependencies>
                         </button>
                     </toolbar>
