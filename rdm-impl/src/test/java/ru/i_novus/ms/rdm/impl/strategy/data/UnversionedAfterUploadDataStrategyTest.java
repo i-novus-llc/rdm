@@ -67,7 +67,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
     @SuppressWarnings("unchecked")
     public void testApply() {
 
-        RefBookVersionEntity entity = createUnversionedEntity();
+        final RefBookVersionEntity entity = createUnversionedEntity();
+        when(versionRepository.getOne(entity.getId())).thenReturn(entity);
 
         List<RowValue> rowValues = List.of(
                 // Без существующего конфликта:
@@ -131,6 +132,8 @@ public class UnversionedAfterUploadDataStrategyTest extends UnversionedBaseStrat
         strategy.apply(entity);
 
         verify(afterUploadDataStrategy).apply(eq(entity));
+
+        verify(versionRepository).getOne(entity.getId());
         verify(editPublishStrategy).publish(entity);
 
         verifyFindReferrers(versionRepository);
