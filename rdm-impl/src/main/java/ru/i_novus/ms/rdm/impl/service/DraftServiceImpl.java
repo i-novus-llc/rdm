@@ -170,6 +170,9 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
+        final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+        getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
+
         auditLogService.addAction(AuditAction.UPLOAD_VERSION_FROM_FILE, () -> versionRepository.getOne(draft.getId()));
 
         return draft;
@@ -187,32 +190,29 @@ public class DraftServiceImpl implements DraftService {
 
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel) {
 
-        RefBookVersionEntityKit kit = findEntityKit(refBookId);
-        RefBookEntity refBookEntity = kit.getRefBook();
+        final RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        final RefBookEntity refBookEntity = kit.getRefBook();
 
-        Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
-        BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
+        final Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
+        final BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
+        final RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
         versionFileService.processRows(fileModel, rowsProcessor, new PlainRowMapper());
 
-        RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
-                .find(refBookEntity);
-        getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
-
+        final RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class).find(refBookEntity);
         return createdEntity.toDraft();
     }
 
     private Draft createFromXml(Integer refBookId, FileModel fileModel) {
 
-        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
+        final Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
 
-            Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
-            RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+            final Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
+            final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+
             uploadDataFromFile(createdEntity, fileModel);
-            getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
 
             return draft;
         }
@@ -221,7 +221,7 @@ public class DraftServiceImpl implements DraftService {
     /** Обновление данных черновика из файла. */
     private void uploadDataFromFile(RefBookVersionEntity draftEntity, FileModel fileModel) {
 
-        Structure structure = draftEntity.getStructure();
+        final Structure structure = draftEntity.getStructure();
 
         validateRows(fileModel, structure, draftEntity.getStorageCode(), // Без учёта локализации
                 attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
@@ -680,24 +680,24 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional(timeout = 1200000)
     public void updateFromFile(Integer draftId, UpdateFromFileRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
-
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
         if (draftEntity.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, draftEntity.getId()));
 
-        Integer refBookId = draftEntity.getRefBook().getId();
+        final Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
             uploadDataFromFile(draftEntity, request.getFileModel());
             forceUpdateOptLockValue(versionRepository.findById(draftId).orElse(null));
 
-            getStrategy(draftEntity, AfterUploadDataStrategy.class).apply(draftEntity);
-
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
+
+        getStrategy(draftEntity, AfterUploadDataStrategy.class).apply(draftEntity);
 
         // В аудите подтягиваются значения паспорта справочника (а у них lazy-инициализация),
         // поэтому нужна транзакция (которой в этом методе нет) для их получения.
@@ -1002,7 +1002,7 @@ public class DraftServiceImpl implements DraftService {
 
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
-        RefBookVersionEntity entity = findChangeableOrThrow(id);
+        final RefBookVersionEntity entity = findChangeableOrThrow(id);
         getStrategy(entity, ValidateVersionNotArchivedStrategy.class).validate(entity);
 
         return entity;

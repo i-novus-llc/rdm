@@ -58,16 +58,18 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
     public void apply(RefBookVersionEntity entity) {
 
         afterUploadDataStrategy.apply(entity);
-        editPublishStrategy.publish(entity);
 
-        processReferrers(entity);
+        final RefBookVersionEntity draftEntity = versionRepository.getOne(entity.getId());
+        editPublishStrategy.publish(draftEntity);
 
-        unversionedChangeStructureStrategy.processReferrers(entity);
+        processReferrers(draftEntity);
+
+        unversionedChangeStructureStrategy.processReferrers(draftEntity);
     }
 
     private void processReferrers(RefBookVersionEntity entity) {
 
-        List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
+        final List<Structure.Attribute> primaries = entity.getStructure().getPrimaries();
         if (primaries.isEmpty())
             return;
 
@@ -88,14 +90,14 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
     private void processReferrer(RefBookVersionEntity referrer, RefBookVersionEntity entity,
                                  List<Structure.Attribute> primaries) {
 
-        String refBookCode = entity.getRefBook().getCode();
-        List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
+        final String refBookCode = entity.getRefBook().getCode();
+        final List<Structure.Reference> references = referrer.getStructure().getRefCodeReferences(refBookCode);
 
         // storageCode - Без учёта локализации
-        ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), null);
+        final ReferrerDataCriteria dataCriteria = new ReferrerDataCriteria(referrer, references, referrer.getStorageCode(), null);
         dataCriteria.setFieldFilters(ConverterUtil.toNotNullSearchCriterias(references));
 
-        DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
+        final DataPageIterator<RowValue, StorageDataCriteria> pageIterator =
                 new DataPageIterator<>(searchDataService::getPagedData, dataCriteria);
         pageIterator.forEachRemaining(page ->
 
@@ -123,33 +125,34 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                           Collection<? extends RowValue> refRowValues) {
 
         // Найти существующие конфликты DELETED для текущей ссылки.
-        String referenceCode = reference.getAttribute();
-        List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
-        List<RefBookConflictEntity> conflicts =
+        final String referenceCode = reference.getAttribute();
+        final List<Long> refRecordIds = RowUtils.toSystemIds(refRowValues);
+        final List<RefBookConflictEntity> conflicts =
                 conflictRepository.findByReferrerVersionIdAndRefFieldCodeAndConflictTypeAndRefRecordIdIn(
                         referrer.getId(), referenceCode, ConflictType.DELETED, refRecordIds
                 );
         if (isEmpty(conflicts))
             return;
 
-        Collection<RowValue> rowValues = findReferredRowValues(entity, primaries, referenceCode, refRowValues);
+        final Collection<RowValue> rowValues = findReferredRowValues(entity, primaries, referenceCode, refRowValues);
         if (isEmpty(rowValues))
             return;
 
-        Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, rowValues);
+        final Map<String, RowValue> referredRowValues = RowUtils.toReferredRowValues(primaries, rowValues);
 
         // Определить действия над конфликтами по результату сравнения отображаемых значений.
-        List<RefBookConflictEntity> toUpdate = new ArrayList<>(conflicts.size());
-        List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
+        final List<RefBookConflictEntity> toUpdate = new ArrayList<>(conflicts.size());
+        final List<RefBookConflictEntity> toDelete = new ArrayList<>(conflicts.size());
 
         for (RefBookConflictEntity conflict : conflicts) {
 
-            Reference fieldReference = RowUtils.getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
-            RowValue referredRowValue = (fieldReference != null) ? referredRowValues.get(fieldReference.getValue()) : null;
+            final Reference fieldReference = RowUtils.getFieldReference(refRowValues, conflict.getRefRecordId(), referenceCode);
+            final RowValue referredRowValue = (fieldReference != null) ? referredRowValues.get(fieldReference.getValue()) : null;
             if (referredRowValue == null) continue;
 
-            String newDisplayValue = FieldValueUtils.toDisplayValue(
-                    reference.getDisplayExpression(), referredRowValue, null);
+            final String newDisplayValue = FieldValueUtils.toDisplayValue(
+                    reference.getDisplayExpression(), referredRowValue, null
+            );
 
             if (Objects.equals(fieldReference.getDisplayValue(), newDisplayValue)) {
 
@@ -187,14 +190,14 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
                                                        String referenceCode,
                                                        Collection<? extends RowValue> refRowValues) {
 
-        List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
+        final List<String> referenceValues = RowUtils.getFieldReferenceValues(refRowValues, referenceCode);
         if (isEmpty(referenceValues))
             return emptyList();
 
         // Нужны все поля для проверки изменения значения ссылки:
-        List<Structure.Attribute> fieldAttributes = entity.getStructure().getAttributes();
+        final List<Structure.Attribute> fieldAttributes = entity.getStructure().getAttributes();
 
-        StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
+        final StorageDataCriteria dataCriteria = new ReferredDataCriteria(entity, primaries,
                 entity.getStorageCode(), fieldAttributes, referenceValues); // Без учёта локализации
         return searchDataService.getPagedData(dataCriteria).getCollection();
     }
