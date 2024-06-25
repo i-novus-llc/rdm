@@ -48,8 +48,10 @@
         <field id="version.refBookId" domain="integer" mapping="refBookId"/>
         <field id="version.code" domain="string" mapping="code"/>
         <field id="version.name" domain="string" mapping="passport['name']"/>
+        <field id="version.type" domain="string" mapping="type"/>
+        <field id="version.isVersioned" domain="string" mapping="type?.name()?.equals('UNVERSIONED')"/>
 
-            <!-- Structure -->
+        <!-- Structure -->
         <field id="version.hasStructure" domain="boolean" mapping="!hasEmptyStructure()"/>
         <field id="version.isLocalizable" domain="boolean" mapping="!structure.getLocalizables().isEmpty()"/>
             <!-- / Structure -->

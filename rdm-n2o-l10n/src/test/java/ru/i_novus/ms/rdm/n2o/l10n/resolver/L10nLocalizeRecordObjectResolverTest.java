@@ -38,27 +38,27 @@ public class L10nLocalizeRecordObjectResolverTest {
     @Test
     public void testCreateOperation() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
         request.setVersionId(TEST_REFBOOK_VERSION_ID);
 
-        N2oObject.Operation operation = resolver.createOperation(request);
+        final N2oObject.Operation operation = resolver.createOperation(request);
         assertNotNull(operation);
         assertEquals("localize", operation.getId());
 
         assertNotNull(operation.getInvocation());
         assertTrue(operation.getInvocation() instanceof N2oJavaDataProvider);
 
-        N2oJavaDataProvider invocation = (N2oJavaDataProvider) operation.getInvocation();
+        final N2oJavaDataProvider invocation = (N2oJavaDataProvider) operation.getInvocation();
         assertEquals(TEST_ARGUMENT_COUNT, invocation.getArguments().length);
     }
 
     @Test
     public void testCreateRegularParams() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
         request.setVersionId(TEST_REFBOOK_VERSION_ID);
 
-        List<AbstractParameter> parameters = resolver.createRegularParams(request);
+        final List<AbstractParameter> parameters = resolver.createRegularParams(request);
         assertNotNull(parameters);
         assertEquals(TEST_PARAMETER_COUNT - 1, parameters.size());
     }

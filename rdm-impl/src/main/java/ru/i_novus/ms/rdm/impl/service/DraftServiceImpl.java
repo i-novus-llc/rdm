@@ -44,7 +44,7 @@ import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.data.*;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
@@ -170,6 +170,9 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
+        final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+        getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
+
         auditLogService.addAction(AuditAction.UPLOAD_VERSION_FROM_FILE, () -> versionRepository.getOne(draft.getId()));
 
         return draft;
@@ -187,32 +190,29 @@ public class DraftServiceImpl implements DraftService {
 
     private Draft createFromXlsx(Integer refBookId, FileModel fileModel) {
 
-        RefBookVersionEntityKit kit = findEntityKit(refBookId);
-        RefBookEntity refBookEntity = kit.getRefBook();
+        final RefBookVersionEntityKit kit = findEntityKit(refBookId);
+        final RefBookEntity refBookEntity = kit.getRefBook();
 
-        Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
-        BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
-        RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
+        final Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
+        final BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
+        final RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
         versionFileService.processRows(fileModel, rowsProcessor, new PlainRowMapper());
 
-        RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class)
-                .find(refBookEntity);
-        getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
-
+        final RefBookVersionEntity createdEntity = getStrategy(refBookEntity, FindDraftEntityStrategy.class).find(refBookEntity);
         return createdEntity.toDraft();
     }
 
     private Draft createFromXml(Integer refBookId, FileModel fileModel) {
 
-        Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
+        final Supplier<InputStream> fileSource = versionFileService.supply(fileModel.getPath());
 
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
 
-            Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
-            RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+            final Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
+            final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+
             uploadDataFromFile(createdEntity, fileModel);
-            getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
 
             return draft;
         }
@@ -221,7 +221,7 @@ public class DraftServiceImpl implements DraftService {
     /** Обновление данных черновика из файла. */
     private void uploadDataFromFile(RefBookVersionEntity draftEntity, FileModel fileModel) {
 
-        Structure structure = draftEntity.getStructure();
+        final Structure structure = draftEntity.getStructure();
 
         validateRows(fileModel, structure, draftEntity.getStorageCode(), // Без учёта локализации
                 attributeValidationRepository.findAllByVersionId(draftEntity.getId()));
@@ -412,8 +412,10 @@ public class DraftServiceImpl implements DraftService {
         Map<String, Object> passport = new HashMap<>();
         versionEntity.getPassportValues().forEach(passportValueEntity -> passport.put(passportValueEntity.getAttribute().getCode(), passportValueEntity.getValue()));
 
-        Map<String, List<AttributeValidation>> validations = attributeValidationRepository.findAllByVersionId(versionId).stream()
-                .collect(groupingBy(AttributeValidationEntity::getAttribute, mapping(entity -> entity.getType().getValidationInstance().valueFromString(entity.getValue()), toList())));
+        Map<String, List<AttributeValidation>> validations =
+                attributeValidationRepository.findAllByVersionId(versionId).stream()
+                .collect(groupingBy(AttributeValidationEntity::getAttribute,
+                        mapping(DraftServiceImpl::newAttributeValidation, toList())));
         CreateDraftRequest draftRequest = new CreateDraftRequest(versionEntity.getRefBook().getId(), versionEntity.getStructure(), passport, validations);
         Draft draft = create(draftRequest);
 
@@ -423,6 +425,11 @@ public class DraftServiceImpl implements DraftService {
         }
 
         return draft;
+    }
+
+    private static AttributeValidation newAttributeValidation(AttributeValidationEntity entity) {
+
+        return entity.getType().getValidationInstance().valueFromString(entity.getValue());
     }
 
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity, Structure structure,
@@ -456,32 +463,38 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void updateData(Integer draftId, UpdateDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final Integer refBookId = draftEntity.getRefBook().getId();
 
         List<Object> addedData = null;
         List<RowDiff> updatedDiffData = null;
-        refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
+
+        List<RowValue> addedRowValues;
+        List<RowValue> currentRowValues = emptyList();
+        List<RowValue> updatedRowValues;
+
+        refBookLockService.setRefBookUpdating(refBookId);
         try {
             validateOptLockValue(draftEntity, request);
 
-            List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
+            final List<Row> rows = prepareRows(request.getRows(), draftEntity, true);
             if (rows.isEmpty()) return;
 
             validateDataByStructure(draftEntity, rows);
 
-            List<RowValue> rowValues = rows.stream().map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
+            final List<RowValue> rowValues = rows.stream()
+                    .map(row -> ConverterUtil.rowValue(row, draftEntity.getStructure())).collect(toList());
 
-            List<RowValue> addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
+            addedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() == null).collect(toList());
             if (!isEmpty(addedRowValues)) {
                 getStrategy(draftEntity, AddRowValuesStrategy.class).add(draftEntity, addedRowValues);
                 addedData = getAddedData(rowValues);
             }
 
-            List<RowValue> updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
+            updatedRowValues = rowValues.stream().filter(rowValue -> rowValue.getSystemId() != null).collect(toList());
             if (!isEmpty(updatedRowValues)) {
-                List<RowValue> currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
-                getStrategy(draftEntity, UpdateRowValuesStrategy.class)
-                        .update(draftEntity, currentRowValues, updatedRowValues);
+                currentRowValues = getCurrentRowValues(draftEntity, updatedRowValues);
+                getStrategy(draftEntity, UpdateRowValuesStrategy.class).update(draftEntity, currentRowValues, updatedRowValues);
                 updatedDiffData = getUpdatedDiffData(currentRowValues, updatedRowValues);
             }
 
@@ -490,8 +503,11 @@ public class DraftServiceImpl implements DraftService {
             }
 
         } finally {
-            refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
+            refBookLockService.deleteRefBookOperation(refBookId);
         }
+
+        getStrategy(draftEntity, AfterUpdateDataStrategy.class)
+                .apply(draftEntity, addedRowValues, currentRowValues, updatedRowValues);
 
         auditEditData(draftEntity, Map.of(
                 "create_rows", isEmpty(addedData) ? "-" : addedData,
@@ -517,25 +533,27 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteData(Integer draftId, DeleteDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        validateOptLockValue(draftEntity, request);
 
-        List<Object> systemIds;
+        final List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
+        if (rows.isEmpty()) return;
+
+        final List<Object> systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
+        if (systemIds.isEmpty()) return;
+
+        getStrategy(draftEntity, BeforeDeleteDataStrategy.class).apply(draftEntity, systemIds);
+
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, request);
+            getStrategy(draftEntity, DeleteRowValuesStrategy.class).delete(draftEntity, systemIds);
+            forceUpdateOptLockValue(draftEntity);
 
-            List<Row> rows = prepareRows(request.getRows(), draftEntity, false);
-            if (rows.isEmpty()) return;
-
-            systemIds = rows.stream().map(Row::getSystemId).filter(Objects::nonNull).collect(toList());
-            if (!systemIds.isEmpty()) {
-                getStrategy(draftEntity, DeleteRowValuesStrategy.class).delete(draftEntity, systemIds);
-
-                forceUpdateOptLockValue(draftEntity);
-            }
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
         }
+
+        getStrategy(draftEntity, AfterDeleteDataStrategy.class).apply(draftEntity, systemIds);
 
         auditEditData(draftEntity, "delete_rows", systemIds);
     }
@@ -636,18 +654,21 @@ public class DraftServiceImpl implements DraftService {
     @Transactional
     public void deleteAllData(Integer draftId, DeleteAllDataRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
+        validateOptLockValue(draftEntity, request);
+
+        getStrategy(draftEntity, BeforeDeleteAllDataStrategy.class).apply(draftEntity);
 
         refBookLockService.setRefBookUpdating(draftEntity.getRefBook().getId());
         try {
-            validateOptLockValue(draftEntity, request);
-
             deleteDraftAllRows(draftEntity);
             forceUpdateOptLockValue(draftEntity);
 
         } finally {
             refBookLockService.deleteRefBookOperation(draftEntity.getRefBook().getId());
         }
+
+        getStrategy(draftEntity, AfterDeleteAllDataStrategy.class).apply(draftEntity);
 
         auditEditData(draftEntity, "delete_all_rows", "-");
     }
@@ -659,24 +680,24 @@ public class DraftServiceImpl implements DraftService {
     }
 
     @Override
+    @Transactional(timeout = 1200000)
     public void updateFromFile(Integer draftId, UpdateFromFileRequest request) {
 
-        RefBookVersionEntity draftEntity = findForUpdate(draftId);
-
+        final RefBookVersionEntity draftEntity = findForUpdate(draftId);
         if (draftEntity.hasEmptyStructure())
             throw new UserException(new Message(VERSION_HAS_NOT_STRUCTURE_EXCEPTION_CODE, draftEntity.getId()));
 
-        Integer refBookId = draftEntity.getRefBook().getId();
+        final Integer refBookId = draftEntity.getRefBook().getId();
         refBookLockService.setRefBookUpdating(refBookId);
         try {
             uploadDataFromFile(draftEntity, request.getFileModel());
             forceUpdateOptLockValue(versionRepository.findById(draftId).orElse(null));
 
-            getStrategy(draftEntity, AfterUploadDataStrategy.class).apply(draftEntity);
-
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
+
+        getStrategy(draftEntity, AfterUploadDataStrategy.class).apply(draftEntity);
 
         // В аудите подтягиваются значения паспорта справочника (а у них lazy-инициализация),
         // поэтому нужна транзакция (которой в этом методе нет) для их получения.
@@ -700,7 +721,6 @@ public class DraftServiceImpl implements DraftService {
         fieldSearchCriterias.addAll(toFieldSearchCriterias(criteria.getPlainAttributeFilters(), draft.getStructure()));
 
         String storageCode = toStorageCode(draft, criteria);
-
         StorageDataCriteria dataCriteria = new StorageDataCriteria(storageCode,
                 null, null, // Черновик
                 fields, fieldSearchCriterias, criteria.getCommonFilter());
@@ -726,8 +746,8 @@ public class DraftServiceImpl implements DraftService {
     public void remove(Integer draftId) {
 
         RefBookVersionEntity draftEntity = findForUpdate(draftId);
-
         refBookLockService.validateRefBookNotBusy(draftEntity.getRefBook().getId());
+
         removeDraftEntity(draftEntity);
     }
 
@@ -770,14 +790,12 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, CreateAttributeStrategy.class)
                 .create(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         updateAttributeValidations(draftEntity,
                 null,
                 new RefBookVersionAttribute(draftId, attribute, structure),
-                request.getValidations()
-        );
+                request.getValidations());
 
         auditStructureEdit(draftEntity, "create_attribute", attribute);
     }
@@ -797,7 +815,6 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, UpdateAttributeStrategy.class)
                 .update(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         updateAttributeValidations(draftEntity,
@@ -819,7 +836,6 @@ public class DraftServiceImpl implements DraftService {
 
         Structure.Attribute attribute = getStrategy(draftEntity, DeleteAttributeStrategy.class)
                 .delete(draftEntity, request);
-
         forceUpdateOptLockValue(draftEntity);
 
         attributeValidationRepository.deleteByVersionIdAndAttribute(draftEntity.getId(), attribute.getCode());
@@ -986,7 +1002,7 @@ public class DraftServiceImpl implements DraftService {
 
     protected RefBookVersionEntity findForUpdate(Integer id) {
 
-        RefBookVersionEntity entity = findChangeableOrThrow(id);
+        final RefBookVersionEntity entity = findChangeableOrThrow(id);
         getStrategy(entity, ValidateVersionNotArchivedStrategy.class).validate(entity);
 
         return entity;

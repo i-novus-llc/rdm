@@ -30,7 +30,7 @@ public class RdmPermissionImpl implements RdmPermission {
     // Исключение черновика из списка версий справочника.
     @Override
     public boolean excludeDraft() {
-        return  isEmpty(rdmPermissionsDraftVersion) ||
+        return isEmpty(rdmPermissionsDraftVersion) ||
                 rdmPermissionsDraftVersion.stream()
                         .noneMatch(permission ->
                                 ANY_PERMISSION.equals(permission)

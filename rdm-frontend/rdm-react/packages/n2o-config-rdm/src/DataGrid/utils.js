@@ -1,13 +1,19 @@
 import get from 'lodash/get'
-import map from 'lodash/map'
-
-const defaultColumns = {
-  body: [],
-  header: []
-}
 
 const defaultData = []
 
-export const getColumnsFromDatasource = datasource => get(datasource, [0, 'columns'], defaultColumns)
+export const getColumnsFromDatasource = datasource => get(datasource, [0, 'columnsConfig'])
 
-export const getDataFromDatasource = datasource => datasource ? map(datasource, item => item.row) : defaultData
+export const getDataFromDatasource = model => {
+  if (!model) return defaultData;
+
+  return (
+    model.reduce((out, item) => {
+      if (item.row && Object.keys(item.row).length) {
+        out.push(item.row)
+      }
+
+      return out
+    }, [])
+  )
+}

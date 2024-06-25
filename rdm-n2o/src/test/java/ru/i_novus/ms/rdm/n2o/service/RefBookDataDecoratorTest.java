@@ -44,19 +44,19 @@ public class RefBookDataDecoratorTest {
     @Test
     public void testGetDataStructure() {
 
-        Structure structure = createStructure();
+        final Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, null);
+        final Structure dataStructure = refBookDataService.getDataStructure(TEST_REFBOOK_VERSION_ID, null);
         assertEquals(structure, dataStructure);
     }
 
     @Test
     public void testGetDataContent() {
 
-        List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
+        final List<RefBookRowValue> searchContent = createContent(TEST_REFBOOK_VERSION_ID);
 
-        List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, null);
+        final List<RefBookRowValue> dataContent = refBookDataService.getDataContent(searchContent, null);
         assertEquals(searchContent, dataContent);
     }
 
@@ -72,9 +72,8 @@ public class RefBookDataDecoratorTest {
     @SuppressWarnings("SameParameterValue")
     private List<RefBookRowValue> createContent(int versionId) {
 
-        int rowValueCount = 10;
-
-        List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
+        final int rowValueCount = 10;
+        final List<RefBookRowValue> rowValues = new ArrayList<>(rowValueCount);
 
         LongStream.range(1, rowValueCount + 1).forEach(systemId -> {
             LongRowValue longRowValue = new LongRowValue(systemId, asList(

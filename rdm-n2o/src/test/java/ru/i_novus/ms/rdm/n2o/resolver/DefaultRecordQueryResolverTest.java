@@ -35,9 +35,9 @@ public class DefaultRecordQueryResolverTest extends BaseTest {
     @Test
     public void testCreateRegularFields() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
 
-        List<QuerySimpleField> fields = resolver.createRegularFields(request);
+        final List<QuerySimpleField> fields = resolver.createRegularFields(request);
         assertEmpty(fields);
     }
 }

@@ -47,30 +47,30 @@ public class UpdateRecordControllerTest {
     @Test
     public void getDataConflicts() {
 
-        Structure structure = createStructure();
+        final Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        RefBookConflictCriteria criteria = new RefBookConflictCriteria();
+        final RefBookConflictCriteria criteria = new RefBookConflictCriteria();
         criteria.setReferrerVersionId(TEST_REFBOOK_VERSION_ID);
         criteria.setIsLastPublishedVersion(true);
         criteria.setRefFieldCodes(List.of(REFERENCE_ATTRIBUTE_CODE));
         criteria.setRefRecordId(TEST_SYSTEM_ID);
 
-        List<RefBookConflict> conflicts = createDataConflicts();
+        final List<RefBookConflict> conflicts = createDataConflicts();
         when(conflictService.search(any(RefBookConflictCriteria.class)))
                 .thenReturn(new PageImpl<>(conflicts, criteria, conflicts.size()));
 
         when(messages.getMessage(any(String.class))).thenAnswer(invocation -> invocation.getArguments()[0]);
         when(messages.getMessage(eq("conflict.text"), eq(REFERENCE_ATTRIBUTE_CODE.toLowerCase()), any(String.class))).thenAnswer(invocation -> invocation.getArguments()[2]);
 
-        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        final String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
         assertNotNull(actual);
 
-        String[] lines = actual.split("\n");
+        final String[] lines = actual.split("\n");
         assertNotNull(lines);
 
-        long expectedLength = conflicts.stream().filter(conflict -> conflict.getRefRecordId() > 0).count();
-        assertEquals(expectedLength, lines.length);
+        final long expectedCount = conflicts.stream().filter(conflict -> conflict.getRefRecordId() > 0).count();
+        assertEquals(expectedCount, lines.length);
 
         for (String line : lines) {
             assertTrue(line.contains("conflict.text"));
@@ -80,10 +80,10 @@ public class UpdateRecordControllerTest {
     @Test
     public void getDataConflictsWhenEmpty() {
 
-        Structure structure = new Structure();
+        final Structure structure = new Structure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        final String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
         assertNull(actual);
     }
 
@@ -92,28 +92,28 @@ public class UpdateRecordControllerTest {
 
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenThrow(new IllegalArgumentException());
 
-        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        final String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
         assertNull(actual);
     }
 
     @Test
     public void getDataConflictsWithoutReferences() {
 
-        Structure structure = new Structure();
+        final Structure structure = new Structure();
         structure.add(Structure.Attribute.buildPrimary("single", "одиночный", FieldType.INTEGER, null), null);
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        final String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
         assertNull(actual);
     }
 
     @Test
     public void getDataConflictsWithoutConflicts() {
 
-        Structure structure = createStructure();
+        final Structure structure = createStructure();
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(structure);
 
-        String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
+        final String actual = controller.getDataConflicts(TEST_REFBOOK_VERSION_ID, TEST_SYSTEM_ID);
         assertNull(actual);
     }
 
@@ -125,27 +125,27 @@ public class UpdateRecordControllerTest {
 
     private List<RefBookConflict> createDataConflicts() {
 
-        RefBookConflict updatedConflict = new RefBookConflict(
+        final RefBookConflict updatedConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, 1L,
                 REFERENCE_ATTRIBUTE_CODE, ConflictType.UPDATED, LocalDateTime.now()
         );
 
-        RefBookConflict deletedConflict = new RefBookConflict(
+        final RefBookConflict deletedConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, 2L,
                 REFERENCE_ATTRIBUTE_CODE, ConflictType.DELETED, LocalDateTime.now()
         );
 
-        RefBookConflict alteredConflict = new RefBookConflict(
+        final RefBookConflict alteredConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -3L,
                 SELF_REFER_ATTRIBUTE_CODE, ConflictType.ALTERED, LocalDateTime.now()
         );
 
-        RefBookConflict nullConflict = new RefBookConflict(
+        final RefBookConflict nullConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -4L,
                 SELF_REFER_ATTRIBUTE_CODE, ConflictType.DISPLAY_DAMAGED, LocalDateTime.now()
         );
 
-        RefBookConflict unknownConflict = new RefBookConflict(
+        final RefBookConflict unknownConflict = new RefBookConflict(
                 TEST_REFBOOK_VERSION_ID, TEST_REFERRED_VERSION_ID, -5L,
                 UNKNOWN_ATTRIBUTE_CODE, ConflictType.DELETED, LocalDateTime.now()
         );

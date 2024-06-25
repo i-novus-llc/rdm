@@ -14,10 +14,10 @@
     </list>
 
     <filters>
+        <eq filter-id="id" field-id="id" mapping="['criteria'].id"/>
+
         <eq filter-id="versionId" field-id="versionId" mapping="['criteria'].versionId"/>
         <eq filter-id="optLockValue" field-id="optLockValue" mapping="['criteria'].optLockValue"/>
-
-        <eq filter-id="id" field-id="id" mapping="['criteria'].id"/>
         <eq filter-id="localeCode" field-id="localeCode" mapping="['criteria'].localeCode"/>
         <eq filter-id="dataAction" field-id="dataAction" mapping="['criteria'].dataAction"/>
 
@@ -26,18 +26,18 @@
     </filters>
 
     <fields>
+        <field id="id"/>
+        <field id="rowType" domain="string" mapping="row['rowType']"/>
+
+        <field id="columnsConfig" domain="object"/>
+        <field id="row" domain="object[]"/>
+
         <field id="versionId" domain="integer" select="false"/>
         <field id="optLockValue" domain="integer" select="false"/>
-
-        <field id="id"/>
         <field id="localeCode" domain="string" select="false"/>
         <field id="dataAction" domain="string" select="false"/>
 
-        <field id="columns" domain="object[]"/>
-        <field id="row" domain="object[]"/>
-
         <field id="filter" select="false"/>
-
         <field id="hasDataConflict" domain="boolean" select="false"/>
     </fields>
 

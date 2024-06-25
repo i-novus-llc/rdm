@@ -51,13 +51,12 @@ public class RefBookAdapterTest {
     @Test
     public void testToUiRefBook() {
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
 
         final String displayNumber = "1.2";
         when(getDisplayNumberStrategy.get(eq(refBook))).thenReturn(displayNumber);
 
-        UiRefBook actual = adapter.toUiRefBook(refBook);
-
+        final UiRefBook actual = adapter.toUiRefBook(refBook);
         assertEquals(displayNumber, actual.getDisplayNumber());
         assertNull(actual.getDisplayStatus());
         assertNull(actual.getDisplayOperation());
@@ -66,11 +65,10 @@ public class RefBookAdapterTest {
     @Test
     public void testToUiRefBookWhenArchived() {
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setArchived(Boolean.TRUE);
 
-        UiRefBook actual = adapter.toUiRefBook(refBook);
-
+        final UiRefBook actual = adapter.toUiRefBook(refBook);
         assertEquals("refbook.display.status.archived", actual.getDisplayStatus());
     }
 
@@ -86,18 +84,18 @@ public class RefBookAdapterTest {
 
     private void testToUiRefBookWhenOperation(RefBookOperation operation) {
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setCurrentOperation(operation);
 
-        UiRefBook actual = adapter.toUiRefBook(refBook);
+        final String expectedDisplayOperation = "refbook.operation." + operation.name().toLowerCase();
 
-        String expectedDisplayOperation = "refbook.operation." + operation.name().toLowerCase();
+        final UiRefBook actual = adapter.toUiRefBook(refBook);
         assertEquals(expectedDisplayOperation, actual.getDisplayOperation());
     }
 
     private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        final Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
@@ -105,7 +103,7 @@ public class RefBookAdapterTest {
 
     private Map<Class<? extends UiStrategy>, UiStrategy> getDefaultStrategies() {
 
-        Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
+        final Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         // Version + Draft:
         result.put(GetDisplayNumberStrategy.class, getDisplayNumberStrategy);
 

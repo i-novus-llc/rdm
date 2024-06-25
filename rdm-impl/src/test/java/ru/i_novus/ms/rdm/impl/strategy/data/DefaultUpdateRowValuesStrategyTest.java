@@ -32,14 +32,14 @@ public class DefaultUpdateRowValuesStrategyTest extends DefaultBaseStrategyTest 
     @Test
     public void testUpdate() {
 
-        RefBookVersionEntity entity = createDraftEntity();
+        final RefBookVersionEntity entity = createDraftEntity();
 
-        List<RowValue> oldRowValues = List.of(
+        final List<RowValue> oldRowValues = List.of(
                 createRowValue(1L, 1, "old"),
                 createRowValue(2L, 2, "old")
         );
 
-        List<RowValue> newRowValues = List.of(
+        final List<RowValue> newRowValues = List.of(
                 createRowValue(1L, 1, "new"),
                 createRowValue(2L, 2, "new")
         );
@@ -48,7 +48,7 @@ public class DefaultUpdateRowValuesStrategyTest extends DefaultBaseStrategyTest 
 
         verify(draftDataService).updateRows(eq(DRAFT_CODE), eq(newRowValues));
 
-        List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
+        final List<Long> systemIds = RowUtils.toSystemIds(newRowValues);
         verify(conflictRepository)
                 .deleteByReferrerVersionIdAndRefRecordIdIn(eq(entity.getId()), eq(systemIds));
 

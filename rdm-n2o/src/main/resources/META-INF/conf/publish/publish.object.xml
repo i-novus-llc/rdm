@@ -3,7 +3,7 @@
         name="Публикация справочника">
 
     <operations>
-        <operation id="publishDraft" submit-label="Опубликовать" confirm="false">
+        <operation id="publishDraft">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishDraft">
@@ -26,7 +26,7 @@
             </out>
         </operation>
 
-        <operation id="publishAndRefresh" submit-label="Опубликовать и обновить ссылки" confirm="false">
+        <operation id="publishAndRefresh">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.RefBookPublishController"
                       method="publishAndRefresh">

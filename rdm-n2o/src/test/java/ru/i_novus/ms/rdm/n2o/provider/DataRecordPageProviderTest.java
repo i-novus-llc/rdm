@@ -46,14 +46,14 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
     @Before
     public void setUp() {
 
-        DataRecordPageResolver resolver = new TestRecordPageResolver();
+        final DataRecordPageResolver resolver = new TestRecordPageResolver();
         resolvers.add(resolver);
     }
 
     @Test
     public void testGetCode() {
 
-        String providerCode = provider.getCode();
+        final String providerCode = provider.getCode();
         assertFalse(isEmpty(providerCode));
     }
 
@@ -73,27 +73,27 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
             when(versionService.getStructure(eq(TEST_REFBOOK_DRAFT_ID))).thenThrow(new IllegalArgumentException());
         }
 
-        List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
+        final List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        SourceMetadata metadata = list.get(0);
+        final SourceMetadata metadata = list.get(0);
         assertTrue(metadata instanceof N2oSimplePage);
 
-        N2oSimplePage page = (N2oSimplePage) metadata;
+        final N2oSimplePage page = (N2oSimplePage) metadata;
         assertEquals(provider.getCode() + "?" + TEST_CONTEXT, page.getId());
 
-        N2oWidget widget = page.getWidget();
+        final N2oWidget widget = page.getWidget();
         assertNotNull(widget);
         assertTrue(widget instanceof N2oForm);
 
-        N2oForm form = (N2oForm) widget;
-        N2oStandardDatasource datasource = form.getDatasource();
+        final N2oForm form = (N2oForm) widget;
+        final N2oStandardDatasource datasource = form.getDatasource();
         assertNotNull(datasource);
         assertNotNull(datasource.getQueryId());
         assertNotNull(datasource.getObjectId());
 
-        List<SourceComponent> items = Arrays.asList(form.getItems());
+        final List<SourceComponent> items = Arrays.asList(form.getItems());
         assertNotNull(items);
         assertTrue(items.size() >= structure.getAttributes().size());
 
@@ -124,14 +124,14 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
 
     private void testReadOnTransform(String context) {
 
-        List<? extends SourceMetadata> list = provider.read(context);
+        final List<? extends SourceMetadata> list = provider.read(context);
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        SourceMetadata metadata = list.get(0);
+        final SourceMetadata metadata = list.get(0);
         assertTrue(metadata instanceof N2oSimplePage);
 
-        N2oSimplePage page = (N2oSimplePage) metadata;
+        final N2oSimplePage page = (N2oSimplePage) metadata;
         assertNull(page.getId());
         assertNull(page.getWidget());
     }
@@ -139,7 +139,7 @@ public class DataRecordPageProviderTest extends BaseRecordProviderTest {
     @Test
     public void testGetMetadataClasses() {
 
-        Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
+        final Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
         assertNotNull(list);
     }
 

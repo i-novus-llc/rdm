@@ -53,8 +53,10 @@ public class RefBookPublishController {
     private final Messages messages;
 
     @Autowired
-    public RefBookPublishController(RefBookService refBookService, DraftRestService draftService,
-                                    PublishService publishService, ConflictService conflictService,
+    public RefBookPublishController(RefBookService refBookService,
+                                    DraftRestService draftService,
+                                    PublishService publishService,
+                                    ConflictService conflictService,
                                     RefBookAdapter refBookAdapter,
                                     Messages messages) {
         this.refBookService = refBookService;

@@ -4,6 +4,12 @@
 
     <table id="dataTable" src="DataGrid">
         <datasource query-id="data" object-id="data"/>
+
+        <rows>
+            <switch value-field-id="rowType">
+                <case value="CONFLICTED">rdm-alert-conflict</case>
+            </switch>
+        </rows>
     </table>
 
 </simple-page>

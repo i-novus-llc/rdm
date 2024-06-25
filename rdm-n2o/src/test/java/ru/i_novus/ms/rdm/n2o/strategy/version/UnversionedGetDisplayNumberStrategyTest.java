@@ -28,7 +28,7 @@ public class UnversionedGetDisplayNumberStrategyTest {
     @Test
     public void testGet() {
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setType(RefBookTypeEnum.UNVERSIONED);
         refBook.setStatus(RefBookVersionStatus.PUBLISHED);
         refBook.setVersion(USED_VERSION);
@@ -36,7 +36,7 @@ public class UnversionedGetDisplayNumberStrategyTest {
         when(messages.getMessage(any(String.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        String actual = strategy.get(refBook);
+        final String actual = strategy.get(refBook);
         assertEquals("refbook.display.number.unversioned", actual);
 
         verify(messages).getMessage(any(String.class));
@@ -48,12 +48,12 @@ public class UnversionedGetDisplayNumberStrategyTest {
 
         final String versionNumber = "1.0";
 
-        RefBook refBook = new RefBook();
+        final RefBook refBook = new RefBook();
         refBook.setType(RefBookTypeEnum.UNVERSIONED);
         refBook.setStatus(RefBookVersionStatus.PUBLISHED);
         refBook.setVersion(versionNumber);
 
-        String actual = strategy.get(refBook);
+        final String actual = strategy.get(refBook);
         assertEquals(versionNumber, actual);
 
         verifyNoMoreInteractions(messages);

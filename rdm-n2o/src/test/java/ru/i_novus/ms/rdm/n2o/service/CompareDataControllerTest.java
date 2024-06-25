@@ -12,7 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.*;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
+import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
@@ -24,6 +27,7 @@ import ru.i_novus.platform.datastorage.temporal.model.value.IntegerFieldValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.StringFieldValue;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -67,6 +71,7 @@ public class CompareDataControllerTest {
 
     @Before
     public void init() {
+
         initAttributes();
         initFields();
 
@@ -79,6 +84,7 @@ public class CompareDataControllerTest {
     }
 
     private void initAttributes() {
+
         id = Structure.Attribute.buildPrimary("ID", "id", FieldType.INTEGER, "id");
         code = Structure.Attribute.buildPrimary("CODE", "code", FieldType.STRING, "code");
         common = Structure.Attribute.build("COMMON", "common", FieldType.STRING, "common");
@@ -91,6 +97,7 @@ public class CompareDataControllerTest {
     }
 
     private void initFields() {
+
         idFieldComp = new ComparableField(id.getCode(), id.getName(), null);
         codeFieldComp = new ComparableField(code.getCode(), code.getName(), null);
         commonFieldComp = new ComparableField(common.getCode(), common.getName(), null);
@@ -102,7 +109,8 @@ public class CompareDataControllerTest {
     }
 
     private void prepareOldVersionData() {
-        PageImpl<RefBookRowValue> oldVersionRows = new PageImpl<>( asList(
+
+        final PageImpl<RefBookRowValue> oldVersionRows = new PageImpl<>( asList(
                 new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(1)),
                         new StringFieldValue(code.getCode(), "001"),
@@ -133,7 +141,8 @@ public class CompareDataControllerTest {
     }
 
     private void prepareNewVersionData() {
-        PageImpl<RefBookRowValue> newVersionRows = new PageImpl<>( asList(
+
+        final PageImpl<RefBookRowValue> newVersionRows = new PageImpl<>( asList(
                 new RefBookRowValue(new LongRowValue(
                         new IntegerFieldValue(id.getCode(), BigInteger.valueOf(2)),
                         new StringFieldValue(code.getCode(), "002"),
@@ -164,8 +173,9 @@ public class CompareDataControllerTest {
     }
 
     private void prepareCommonComparableRows() {
-        CompareDataCriteria criteria = createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID);
-        Page<ComparableRow> commonComparableRows = new RestPage<>(asList(
+
+        final CompareDataCriteria criteria = createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID);
+        final Page<ComparableRow> commonComparableRows = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2), null),
                         new ComparableFieldValue(codeFieldComp, "002", "002", null),
@@ -207,7 +217,9 @@ public class CompareDataControllerTest {
                 ),
                         DiffStatusEnum.DELETED)
         ), criteria, 4);
-        when(compareService.getCommonComparableRows(argThat(new CompareDataCriteriaMatcher(criteria)))).thenReturn(commonComparableRows);
+
+        final TestCompareDataCriteriaMatcher criteriaMatcher = new TestCompareDataCriteriaMatcher(criteria);
+        when(compareService.getCommonComparableRows(argThat(criteriaMatcher))).thenReturn(commonComparableRows);
     }
 
     /*
@@ -217,7 +229,8 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetOldWithDiff() {
-        Page<ComparableRow> expectedOldRowsWithDiff = new RestPage<>(asList(
+
+        final Page<ComparableRow> expectedOldRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(1), null, DiffStatusEnum.DELETED),
                         new ComparableFieldValue(codeFieldComp, "001", null, DiffStatusEnum.DELETED),
@@ -246,7 +259,9 @@ public class CompareDataControllerTest {
                 ),
                         DiffStatusEnum.UPDATED)
         ), createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID), 3);
-        Page<ComparableRow> actualOldRowsWithDiff = compareDataController.getOldWithDiff(new CompareDataCriteria(OLD_ID, NEW_ID));
+
+        final CompareDataCriteria compareDataCriteria = new CompareDataCriteria(OLD_ID, NEW_ID);
+        final Page<ComparableRow> actualOldRowsWithDiff = compareDataController.getOldWithDiff(compareDataCriteria);
         assertComparableRowsEquals(expectedOldRowsWithDiff, actualOldRowsWithDiff);
     }
 
@@ -255,7 +270,8 @@ public class CompareDataControllerTest {
      */
     @Test
     public void testGetNewWithDiff() {
-        Page<ComparableRow> expectedNewRowsWithDiff = new RestPage<>(asList(
+
+        final Page<ComparableRow> expectedNewRowsWithDiff = new RestPage<>(asList(
                 new ComparableRow(asList(
                         new ComparableFieldValue(idFieldComp, BigInteger.valueOf(2), BigInteger.valueOf(2), null),
                         new ComparableFieldValue(codeFieldComp, "002", "002", null),
@@ -284,13 +300,17 @@ public class CompareDataControllerTest {
                 ),
                         DiffStatusEnum.INSERTED)
         ), createRdmDefaultCompareDataCriteria(OLD_ID, NEW_ID), 3);
-        Page<ComparableRow> actualNewRowsWithDiff = compareDataController.getNewWithDiff(new CompareDataCriteria(OLD_ID, NEW_ID));
+
+        final CompareDataCriteria compareDataCriteria = new CompareDataCriteria(OLD_ID, NEW_ID);
+        final Page<ComparableRow> actualNewRowsWithDiff = compareDataController.getNewWithDiff(compareDataCriteria);
         assertComparableRowsEquals(expectedNewRowsWithDiff, actualNewRowsWithDiff);
     }
 
     private CompareDataCriteria createRdmDefaultCompareDataCriteria(Integer oldId, Integer newId) {
-        CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
+
+        final CompareDataCriteria compareDataCriteria = new CompareDataCriteria(oldId, newId);
         compareDataCriteria.setPageSize(10);
+
         return compareDataCriteria;
     }
 
@@ -298,40 +318,40 @@ public class CompareDataControllerTest {
      * assert that right rows are in the right order
      */
     private void assertComparableRowsEquals(Page<ComparableRow> expectedRowsWithDiff, Page<ComparableRow> actualRowsWithDiff) {
+
         assertEquals(expectedRowsWithDiff.getContent().size(), actualRowsWithDiff.getContent().size());
         assertEquals(expectedRowsWithDiff.getTotalElements(), actualRowsWithDiff.getTotalElements());
 
         for (int i = 0; i < expectedRowsWithDiff.getContent().size(); i++) {
-            ComparableRow expectedRow = expectedRowsWithDiff.getContent().get(i);
-            ComparableRow actualRow = actualRowsWithDiff.getContent().get(i);
-            assertTrue(statusEquals(actualRow.getStatus(), expectedRow.getStatus())
+
+            final ComparableRow expectedRow = expectedRowsWithDiff.getContent().get(i);
+            final ComparableRow actualRow = actualRowsWithDiff.getContent().get(i);
+
+            assertTrue(Objects.equals(actualRow.getStatus(), expectedRow.getStatus())
                     && actualRow.getFieldValues().size() == expectedRow.getFieldValues().size()
                     && actualRow.getFieldValues().containsAll(expectedRow.getFieldValues()));
         }
     }
 
-    private boolean statusEquals(DiffStatusEnum status1, DiffStatusEnum status2) {
-        return status1 == null
-                ? status2 == null
-                : status1.equals(status2);
-    }
-
     /*
-     * suppose that two rdm CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
-     * ignore page size and page number (from Criteria)
+     * Suppose that two rdm CompareDataCriteria values are equal for mocking
+     * if equal version ids, countOnly flag and diffStatus.
+     * ignore page size and page number (from Criteria).
      */
-    private static class CompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {
+    private static class TestCompareDataCriteriaMatcher implements ArgumentMatcher<CompareDataCriteria> {
 
-        private CompareDataCriteria expected;
+        private final CompareDataCriteria expected;
 
-        CompareDataCriteriaMatcher(CompareDataCriteria criteria) {
+        TestCompareDataCriteriaMatcher(CompareDataCriteria criteria) {
             this.expected = criteria;
         }
 
         @Override
         public boolean matches(CompareDataCriteria actual) {
+
             if (expected == null)
                 return false;
+
             return expected.getOldVersionId().equals(actual.getOldVersionId()) &&
                     expected.getNewVersionId().equals(actual.getNewVersionId()) &&
                     expected.getPageNumber() == actual.getPageNumber() &&

@@ -47,10 +47,10 @@ public class CreateRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateRegularValues() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
         assertNotNull(values);
         assertEmpty(values);
     }
@@ -58,20 +58,21 @@ public class CreateRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateDynamicValues() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
 
-        Structure structure = version.getStructure();
+        final Structure structure = version.getStructure();
         values.forEach((fieldCode, value) ->{
-            String code = deletePrefix(fieldCode);
 
-            Structure.Attribute attribute = structure.getAttribute(code);
+            final String code = deletePrefix(fieldCode);
+
+            final Structure.Attribute attribute = structure.getAttribute(code);
             assertNotNull(attribute);
 
-            Structure.Reference reference = structure.getReference(code);
+            final Structure.Reference reference = structure.getReference(code);
             if (reference != null) {
                 assertEquals(new Reference(), value);
             }
@@ -80,8 +81,7 @@ public class CreateRecordGetterResolverTest extends BaseTest {
 
     private DataRecordCriteria createCriteria() {
 
-        DataRecordCriteria criteria = new DataRecordCriteria();
-
+        final DataRecordCriteria criteria = new DataRecordCriteria();
         criteria.setId(TEST_SYSTEM_ID);
         criteria.setVersionId(TEST_REFBOOK_VERSION_ID);
         criteria.setOptLockValue(TEST_OPT_LOCK_VALUE);
@@ -92,7 +92,7 @@ public class CreateRecordGetterResolverTest extends BaseTest {
 
     private RefBookVersion createVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(TEST_REFBOOK_VERSION_ID);
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
 

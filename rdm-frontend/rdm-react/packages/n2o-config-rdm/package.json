@@ -1,16 +1,16 @@
 {
-	"name": "n2o-config-rdm",
-	"version": "2.0.7",
-	"description": "N2O конфигурация для проекта RDM",
-	"author": "emamoshin",
-	"license": "MIT",
-	"main": "dist/commonjs/index.js",
-	"module": "dist/es/index.js",
-	"jsnext:main": "dist/es/index.js",
-	"engines": {
-		"node": ">=8",
-		"npm": ">=5"
-	},
+  "name": "n2o-config-rdm",
+  "version": "2.1.0",
+  "description": "N2O конфигурация для проекта RDM",
+  "author": "emamoshin",
+  "license": "MIT",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/es/index.js",
+  "jsnext:main": "dist/es/index.js",
+  "engines": {
+    "node": ">=8",
+    "npm": ">=5"
+  },
   "scripts": {
     "build": "yarnpkg run build:commonjs && yarnpkg run build:es",
     "build:commonjs": "yarnpkg run clean:commonjs && yarnpkg run compile:commonjs",
@@ -31,20 +31,21 @@
     "recharts": "^1.4.2",
     "net": "^1.0.2"
   },
-	"peerDependencies": {
+  "peerDependencies": {
+    "@reduxjs/toolkit": "^2.2.5",
     "n2o-framework": "*",
     "classnames": "*",
     "lodash": "*",
     "prop-types": "*",
-	"react": "*",
-	"react-dom": "*",
+    "react": "*",
+    "react-dom": "*",
     "react-redux": "*",
     "react-router": "*",
     "react-router-dom": "*",
     "recompose": "*",
     "reselect": "*"
   },
-	"files": [
-		"dist"
-	]
+  "files": [
+    "dist"
+  ]
 }

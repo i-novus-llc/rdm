@@ -45,15 +45,15 @@ public class CategoryControllerTest {
     @Test
     public void testGetListAll() {
 
-        CategoryCriteria criteria = new CategoryCriteria();
+        final CategoryCriteria criteria = new CategoryCriteria();
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
 
-        List<RefBookRowValue> rowValues = createContent();
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent();
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getList(criteria);
+        final Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());
@@ -64,19 +64,19 @@ public class CategoryControllerTest {
 
         final String categoryName = "some_name";
 
-        CategoryCriteria criteria = new CategoryCriteria();
+        final CategoryCriteria criteria = new CategoryCriteria();
         criteria.setName(categoryName);
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria(criteria);
         AttributeFilter filter = new AttributeFilter(CATEGORY_NAME_FIELD_CODE,
                 categoryName, FieldType.STRING, SearchTypeEnum.LIKE);
         searchDataCriteria.addAttributeFilterList(singletonList(filter));
 
-        List<RefBookRowValue> rowValues = createContent().subList(0, 1);
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
+        final List<RefBookRowValue> rowValues = createContent().subList(0, 1);
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(rowValues, searchDataCriteria, rowValues.size());
         when(versionService.search(eq(CATEGORY_REFBOOK_CODE), eq(searchDataCriteria))).thenReturn(rowValuesPage);
 
-        Page<Category> categories = controller.getList(criteria);
+        final Page<Category> categories = controller.getList(criteria);
         assertNotNull(categories);
         assertNotNull(categories.getContent());
         assertEquals(rowValues.size(), categories.getContent().size());

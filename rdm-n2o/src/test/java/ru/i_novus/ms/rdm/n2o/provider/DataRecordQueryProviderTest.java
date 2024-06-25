@@ -46,14 +46,14 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
     @Before
     public void setUp() {
 
-        DataRecordQueryResolver resolver = new TestRecordQueryResolver();
+        final DataRecordQueryResolver resolver = new TestRecordQueryResolver();
         resolvers.add(resolver);
     }
 
     @Test
     public void testGetCode() {
 
-        String providerCode = provider.getCode();
+        final String providerCode = provider.getCode();
         assertFalse(isEmpty(providerCode));
     }
 
@@ -73,18 +73,18 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
             when(versionService.getStructure(eq(TEST_REFBOOK_DRAFT_ID))).thenThrow(new IllegalArgumentException());
         }
 
-        List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
+        final List<? extends SourceMetadata> list = provider.read(TEST_CONTEXT);
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        SourceMetadata metadata = list.get(0);
+        final SourceMetadata metadata = list.get(0);
         assertTrue(metadata instanceof N2oQuery);
 
-        N2oQuery query = (N2oQuery) metadata;
+        final N2oQuery query = (N2oQuery) metadata;
         assertNotNull(query.getUniques());
         assertEquals(1, query.getUniques().length);
 
-        List<AbstractField> items = Arrays.asList(query.getFields());
+        final List<AbstractField> items = Arrays.asList(query.getFields());
         assertNotNull(items);
         assertTrue(items.size() >= structure.getAttributes().size());
 
@@ -115,7 +115,7 @@ public class DataRecordQueryProviderTest extends BaseRecordProviderTest {
     @Test
     public void testGetMetadataClasses() {
 
-        Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
+        final Collection<Class<? extends SourceMetadata>> list = provider.getMetadataClasses();
         assertNotNull(list);
     }
 

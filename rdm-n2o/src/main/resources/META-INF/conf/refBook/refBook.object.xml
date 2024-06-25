@@ -3,7 +3,8 @@
         name="Справочник">
 
     <operations>
-        <operation id="create" submit-label="Сохранить" success-text="Справочник успешно сохранен">
+        <operation id="create"
+                   success-text="Справочник успешно сохранен">
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook</rest>
             </invocation>
@@ -22,7 +23,8 @@
             </out>
         </operation>
 
-        <operation id="edit" submit-label="Изменить" success-text="Справочник успешно изменен">
+        <operation id="edit"
+                   success-text="Справочник успешно изменен">
             <invocation>
                 <java method="editPassport" class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController">
                     <spring/>
@@ -52,10 +54,7 @@
             </out>
         </operation>
 
-        <!-- WARN: confirm + confirm-text должен заработать после NNO-3132 -->
-        <operation id="delete" submit-label="Удалить" success-text="Справочник удален"
-                   confirm="true"
-                   confirm-text="Вы уверены, что хотите удалить справочник &quot;{name}&quot; [{code}]?">
+        <operation id="delete" success-text="Справочник удален">
             <invocation>
                 <rest method="DELETE">${rdm.backend.path}/refBook?refBookId={refBookId}</rest>
             </invocation>
@@ -65,9 +64,7 @@
             </in>
         </operation>
 
-        <operation id="refreshReferrer" submit-label="Обновить ссылки"
-                   success-text="Обновлены ссылки по первичным ключам"
-                   confirm="true" confirm-text="Вы уверены, что хотите обновить ссылки?">
+        <operation id="refreshReferrer" success-text="Обновлены ссылки по первичным ключам">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.ConflictController"
                       method="refreshReferrer">
@@ -86,7 +83,7 @@
             </in>
         </operation>
 
-        <operation id="createFromFile" submit-label="Создать из файла" success-text="Справочник успешно сохранен">
+        <operation id="createFromFile" success-text="Справочник успешно сохранен">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="createFromFile">
@@ -109,8 +106,7 @@
             </out>
         </operation>
 
-        <operation id="uploadFromFile" submit-label="Загрузить из файла" success-text="Файл загружен"
-                   confirm="true" confirm-text="Вы уверены, что хотите загрузить справочник?">
+        <operation id="uploadFromFile" success-text="Файл загружен">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadFromFile">
@@ -136,7 +132,7 @@
             </out>
         </operation>
 
-        <operation id="uploadData" submit-label="Загрузить данные" success-text="Данные загружены">
+        <operation id="uploadData" success-text="Данные загружены">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="uploadData">
@@ -164,8 +160,7 @@
             </out>
         </operation>
 
-        <operation id="toArchive" submit-label="Отправить в архив" success-text="Справочник отправлен в архив"
-                   confirm="true" confirm-text="Вы уверены, что хотите отправить этот справочник в архив?">
+        <operation id="toArchive" success-text="Справочник отправлен в архив">
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/toArchive</rest>
             </invocation>
@@ -175,33 +170,13 @@
             </in>
         </operation>
 
-        <operation id="fromArchive" submit-label="Вернуть из архива" success-text="Справочник возвращён из архива"
-                   confirm="true" confirm-text="Вы уверены, что хотите вернуть этот справочник из архива?">
+        <operation id="fromArchive" success-text="Справочник возвращён из архива">
             <invocation>
                 <rest method="POST">${rdm.backend.path}/refBook/{refBookId}/fromArchive</rest>
             </invocation>
 
             <in>
                 <field id="refBookId" mapping="['refBookId']" domain="integer"/>
-            </in>
-        </operation>
-
-        <operation id="noOperation" name="Без выполнения действия" success-text="Данные не изменены">
-            <invocation>
-                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
-                      method="noOperation">
-                    <spring/>
-
-                    <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                    </arguments>
-                </java>
-            </invocation>
-
-            <in>
-                <field id="versionId" mapping="['versionId']" domain="integer"/>
-                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
         </operation>
     </operations>

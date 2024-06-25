@@ -32,8 +32,9 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.data.DeleteAllRowValuesStrategy;
-import ru.i_novus.ms.rdm.impl.strategy.data.UpdateRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.AfterUpdateDataStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.DeleteAllRowValuesStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.UpdateRowValuesStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;
@@ -134,6 +135,8 @@ public class DraftServiceTest {
     @Mock
     private UpdateRowValuesStrategy updateRowValuesStrategy;
     @Mock
+    private AfterUpdateDataStrategy afterUpdateDataStrategy;
+    @Mock
     private DeleteAllRowValuesStrategy deleteAllRowValuesStrategy;
 
     private static final String UPD_SUFFIX = "_upd";
@@ -187,13 +190,13 @@ public class DraftServiceTest {
     @Test
     public void testCreateWhenDraftWithSameStructure() {
 
-        RefBookVersionEntity draftEntity = createDraftEntity();
+        final RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
                 .thenReturn(draftEntity);
         when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(draftEntity);
 
-        Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
-        Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
+        final Draft expected = new Draft(DRAFT_ID, DRAFT_CODE, draftEntity.getOptLockValue());
+        final Draft actual = draftService.create(new CreateDraftRequest(REFBOOK_ID, draftEntity.getStructure()));
 
         verify(deleteAllRowValuesStrategy).deleteAll(eq(draftEntity));
         assertEquals(expected, actual);
@@ -202,25 +205,25 @@ public class DraftServiceTest {
     @Test
     public void testCreateWhenDraftWithDifferentStructure() {
 
-        RefBookVersionEntity draftEntity = createDraftEntity();
+        final RefBookVersionEntity draftEntity = createDraftEntity();
         draftEntity.getStructure().add(
                 Structure.Attribute.build("temp_attr", "temp_attr", FieldType.STRING, null),
                 null);
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
         when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenAnswer(v -> {
-            RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
+
+            final RefBookVersionEntity saved = (RefBookVersionEntity)(v.getArguments()[0]);
             saved.setId(draftEntity.getId() + 1);
             return saved;
         });
 
-        Structure structure = new Structure();
+        final Structure structure = new Structure();
         structure.setAttributes(singletonList(Structure.Attribute.build("name", "name", FieldType.STRING, "description")));
 
         mockCreateDraftEntityStrategy(draftEntity.getRefBook(), structure);
 
-        Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
-
+        final Draft draftActual = draftService.create(new CreateDraftRequest(REFBOOK_ID, structure));
         assertNotEquals(draftEntity.getId(), draftActual.getId());
         assertNotEquals(DRAFT_CODE, draftActual.getStorageCode());
     }
@@ -230,13 +233,13 @@ public class DraftServiceTest {
 
         when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(null);
 
-        RefBookVersionEntity publishedEntity = createPublishedEntity();
+        final RefBookVersionEntity publishedEntity = createPublishedEntity();
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(eq(REFBOOK_ID), eq(RefBookVersionStatus.PUBLISHED)))
                 .thenReturn(publishedEntity);
 
         mockCreateDraftEntityStrategy(publishedEntity.getRefBook(), publishedEntity.getStructure());
 
-        RefBookVersionEntity savedDraftEntity = createDraftEntity();
+        final RefBookVersionEntity savedDraftEntity = createDraftEntity();
         savedDraftEntity.setId(null);
         savedDraftEntity.setStorageCode(NEW_DRAFT_CODE);
         when(versionRepository.saveAndFlush(eq(savedDraftEntity))).thenReturn(savedDraftEntity);
@@ -250,25 +253,25 @@ public class DraftServiceTest {
     public void testCreateFromVersion() {
 
         // .createFromVersion
-        RefBookVersionEntity versionEntity = createPublishedEntity();
+        final RefBookVersionEntity versionEntity = createPublishedEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
         when(attributeValidationRepository.findAllByVersionId(versionEntity.getId())).thenReturn(emptyList());
 
         // .create
-        RefBookEntity refBookEntity = versionEntity.getRefBook();
+        final RefBookEntity refBookEntity = versionEntity.getRefBook();
         when(versionRepository.findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookEntity.getId(), RefBookVersionStatus.PUBLISHED))
                 .thenReturn(versionEntity);
 
         mockCreateDraftEntityStrategy(refBookEntity, versionEntity.getStructure());
 
-        ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
+        final ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
         when(versionRepository.saveAndFlush(captor.capture())).thenReturn(new RefBookVersionEntity());
 
-        Draft draft = draftService.createFromVersion(versionEntity.getId());
+        final Draft draft = draftService.createFromVersion(versionEntity.getId());
         assertNotNull(draft);
 
         assertNotNull(captor);
-        RefBookVersionEntity draftEntity = captor.getValue();
+        final RefBookVersionEntity draftEntity = captor.getValue();
         assertNotNull(draftEntity);
         assertNull(draftEntity.getId());
         assertEquals(NEW_DRAFT_CODE, draftEntity.getStorageCode());
@@ -279,10 +282,10 @@ public class DraftServiceTest {
     @Test
     public void testCreateFromVersionWhenDraft() {
 
-        RefBookVersionEntity versionEntity = createDraftEntity();
+        final RefBookVersionEntity versionEntity = createDraftEntity();
         when(versionRepository.findById(versionEntity.getId())).thenReturn(Optional.of(versionEntity));
 
-        Draft draft = draftService.createFromVersion(versionEntity.getId());
+        final Draft draft = draftService.createFromVersion(versionEntity.getId());
         assertNotNull(draft);
         assertEquals(versionEntity.getId(), draft.getId());
         assertEquals(versionEntity.getStorageCode(), draft.getStorageCode());
@@ -291,7 +294,7 @@ public class DraftServiceTest {
 
     private void mockCreateDraftEntityStrategy(RefBookEntity refBookEntity, Structure structure) {
 
-        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
+        final RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
         createdEntity.setId(null);
         createdEntity.setStructure(structure);
         createdEntity.setStorageCode(null);
@@ -303,7 +306,7 @@ public class DraftServiceTest {
     @Test
     public void testRemove() {
 
-        RefBookVersionEntity draftEntity = createDraftEntity();
+        final RefBookVersionEntity draftEntity = createDraftEntity();
         when(versionRepository.findById(draftEntity.getId())).thenReturn(Optional.of(draftEntity));
 
         draftService.remove(draftEntity.getId());
@@ -332,8 +335,8 @@ public class DraftServiceTest {
                                      String message,
                                      Class expectedExceptionClass) {
 
-        Structure.Attribute attribute = request.getAttribute();
-        Structure.Reference reference = request.getReference();
+        final Structure.Attribute attribute = request.getAttribute();
+        final Structure.Reference reference = request.getReference();
         try {
             draftService.createAttribute(draftId, request);
             fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
@@ -357,8 +360,8 @@ public class DraftServiceTest {
                                      String message,
                                      Class expectedExceptionClass) {
 
-        Structure.Attribute oldAttribute = oldStructure.getAttribute(oldCode);
-        Structure.Reference oldReference = oldStructure.getReference(oldCode);
+        final Structure.Attribute oldAttribute = oldStructure.getAttribute(oldCode);
+        final Structure.Reference oldReference = oldStructure.getReference(oldCode);
         try {
             draftService.updateAttribute(draftId, request);
             fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
@@ -367,7 +370,7 @@ public class DraftServiceTest {
             assertEquals(expectedExceptionClass, e.getClass());
             assertEquals(message, getExceptionMessage(e));
 
-            Structure newStructure = versionService.getStructure(draftId);
+            final Structure newStructure = versionService.getStructure(draftId);
             String newCode = request.getCode();
             if (StringUtils.isEmpty(newCode)) {
                 assertNull("Не должно быть атрибута без кода", newStructure.getAttribute(newCode));
@@ -387,9 +390,9 @@ public class DraftServiceTest {
                                      String message,
                                      Class expectedExceptionClass) {
 
-        Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
-        Structure.Reference reference = oldStructure.getReference(attributeCode);
-        DeleteAttributeRequest request = new DeleteAttributeRequest(null, attributeCode);
+        final Structure.Attribute attribute = oldStructure.getAttribute(attributeCode);
+        final Structure.Reference reference = oldStructure.getReference(attributeCode);
+        final DeleteAttributeRequest request = new DeleteAttributeRequest(null, attributeCode);
         try {
             draftService.deleteAttribute(draftId, request);
             fail(ERROR_WAITING + expectedExceptionClass.getSimpleName());
@@ -398,7 +401,7 @@ public class DraftServiceTest {
             assertEquals(expectedExceptionClass, e.getClass());
             assertEquals(message, getExceptionMessage(e));
 
-            Structure newStructure = versionService.getStructure(draftId);
+            final Structure newStructure = versionService.getStructure(draftId);
             assertNotNull("Атрибут не должен удалиться", newStructure.getAttribute(attribute.getCode()));
             if (reference != null) {
                 assertNotNull("Ссылка не должна удалиться", newStructure.getReference(reference.getAttribute()));
@@ -411,13 +414,14 @@ public class DraftServiceTest {
     @Test
     public void testUpdateVersionRowsByPrimaryKey() {
 
-        FieldType[] primaryAllowedType = {
+        final FieldType[] primaryAllowedType = {
                 FieldType.STRING,
                 FieldType.INTEGER, FieldType.FLOAT,
                 FieldType.REFERENCE,
                 FieldType.DATE
         };
-        Serializable[] primaryValues = {
+
+        final Serializable[] primaryValues = {
                 "abc",
                 BigInteger.valueOf(123L), BigDecimal.valueOf(123.123),
                 new Reference("2", "-"),
@@ -425,61 +429,65 @@ public class DraftServiceTest {
         };
 
         for (int i = 0; i < primaryAllowedType.length; i++) {
+
             testUpdateByPrimaryKey(primaryAllowedType[i], primaryValues[i]);
-            Mockito.reset(versionService, searchDataService, versionRepository, searchDataService, updateRowValuesStrategy);
+            Mockito.reset(versionService, versionRepository,
+                    searchDataService, updateRowValuesStrategy, afterUpdateDataStrategy);
         }
     }
 
     private void testUpdateByPrimaryKey(FieldType primaryType, Serializable primaryValue) {
 
-        String primaryCode = "Primary";
-        String notPrimaryCode = "NotPrimary";
-        FieldType nonPrimaryType = FieldType.INTEGER;
-        Structure draftStructure = new Structure(
+        final String primaryCode = "Primary";
+        final String notPrimaryCode = "NotPrimary";
+        final FieldType nonPrimaryType = FieldType.INTEGER;
+
+        final Structure draftStructure = new Structure(
                 List.of(
                         Structure.Attribute.buildPrimary(primaryCode, "-", primaryType, "-"),
                         Structure.Attribute.build(notPrimaryCode, "-", nonPrimaryType, "-")
                 ),
                 primaryType == FieldType.REFERENCE ? singletonList(new Structure.Reference(primaryCode, "REF_TO_CODE", "-")) : emptyList()
         );
-        RefBookVersionEntity draft = createDraftEntity();
+        final RefBookVersionEntity draft = createDraftEntity();
         draft.setStructure(draftStructure);
 
-        long systemId = 123L;
-        int notPrimaryInitValue = 667;
-        int notPrimaryUpdatedValue = 668;
-        RefBookRowValue row = new RefBookRowValue();
+        final long systemId = 123L;
+        final int notPrimaryInitValue = 667;
+        final int notPrimaryUpdatedValue = 668;
+
+        final RefBookRowValue row = new RefBookRowValue();
         row.setSystemId(systemId);
         row.setFieldValues(List.of(
                 FieldValueUtils.toFieldValue(primaryValue, primaryCode, primaryType),
                 new IntegerFieldValue(notPrimaryCode, notPrimaryInitValue))
         );
 
-        PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
-        DataPage<RowValue> pagedData = new DataPage<>(1, List.of(row), null);
+        final PageImpl<RefBookRowValue> dataPage = new PageImpl<>(List.of(row));
+        final DataPage<RowValue> pagedData = new DataPage<>(1, List.of(row), null);
         when(versionService.search(eq(draft.getId()), argThat(searchDataCriteria -> !searchDataCriteria.getAttributeFilters().isEmpty())))
                 .thenReturn(dataPage);
 
         if (primaryType == FieldType.REFERENCE) {
-            Structure structure = new Structure(
+
+            final Structure structure = new Structure(
                     singletonList(Structure.Attribute.buildPrimary("-", "-", FieldType.STRING, "-")),
                     emptyList()
             );
 
-            RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
+            final RefBookVersionEntity refToRefBookVersionEntity = new RefBookVersionEntity();
             refToRefBookVersionEntity.setId(1234567890);
             refToRefBookVersionEntity.setStructure(structure);
-
             when(versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(eq("REF_TO_CODE"), eq(RefBookVersionStatus.PUBLISHED)))
                     .thenReturn(refToRefBookVersionEntity);
 
-            RefBookVersion refToRefBookVersion = new RefBookVersion();
+            final RefBookVersion refToRefBookVersion = new RefBookVersion();
             refToRefBookVersion.setId(refToRefBookVersionEntity.getId());
             refToRefBookVersion.setCode("REF_TO_CODE");
             refToRefBookVersion.setStructure(structure);
             when(versionService.getLastPublishedVersion(eq("REF_TO_CODE"))).thenReturn(refToRefBookVersion);
 
-            PageImpl<RefBookRowValue> refToPage = new PageImpl<>(singletonList(
+            final PageImpl<RefBookRowValue> refToPage = new PageImpl<>(singletonList(
                     new RefBookRowValue(1L, singletonList(new StringFieldValue("-", "2")), null)
             ));
             when(versionService.search(eq(refToRefBookVersionEntity.getId()), any())).thenReturn(refToPage);
@@ -490,12 +498,13 @@ public class DraftServiceTest {
         when(versionRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
         when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
 
-        Map<String, Object> map = new HashMap<>();
+        final Map<String, Object> map = new HashMap<>();
         map.put(primaryCode, primaryValue);
         map.put(notPrimaryCode, notPrimaryUpdatedValue);
         draftService.updateData(draft.getId(), new UpdateDataRequest(null, new Row(null, map)));
 
         verify(updateRowValuesStrategy).update(any(RefBookVersionEntity.class), any(), any());
+        verify(afterUpdateDataStrategy).apply(any(RefBookVersionEntity.class), any(), any(), any());
     }
 
     private RefBookVersionEntity createDraftEntity() {
@@ -505,7 +514,7 @@ public class DraftServiceTest {
 
     private RefBookVersionEntity createDraftEntity(RefBookEntity refBookEntity) {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        final RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(DRAFT_ID);
         entity.setRefBook(refBookEntity);
         entity.setStructure(new Structure());
@@ -518,7 +527,7 @@ public class DraftServiceTest {
 
     private RefBookVersionEntity createPublishedEntity() {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        final RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(PUBLISHED_VERSION_ID);
         entity.setRefBook(createRefBookEntity());
         entity.setStructure(new Structure());
@@ -531,7 +540,7 @@ public class DraftServiceTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new DefaultRefBookEntity();
+        final RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REF_BOOK_CODE);
 
@@ -540,10 +549,11 @@ public class DraftServiceTest {
 
     private List<PassportValueEntity> createPassportValues(RefBookVersionEntity version) {
 
-        List<PassportValueEntity> passportValues = new ArrayList<>();
+        final List<PassportValueEntity> passportValues = new ArrayList<>();
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("fullName"), "full_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("shortName"), "short_name", version));
         passportValues.add(new PassportValueEntity(new PassportAttributeEntity("annotation"), "annotation", version));
+
         return passportValues;
     }
 
@@ -561,7 +571,7 @@ public class DraftServiceTest {
     private static String getExceptionMessage(Exception e) {
 
         if (e instanceof UserException) {
-            UserException ue = (UserException) e;
+            final UserException ue = (UserException) e;
 
             if (!isEmpty(ue.getMessages()))
                 return ue.getMessages().get(0).getCode();
@@ -575,7 +585,7 @@ public class DraftServiceTest {
 
     private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategies() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
+        final Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
@@ -583,7 +593,7 @@ public class DraftServiceTest {
 
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
-        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        final Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
         // Version + Draft:
         result.put(ValidateVersionNotArchivedStrategy.class, validateVersionNotArchivedStrategy);
         result.put(FindDraftEntityStrategy.class, findDraftEntityStrategy);
@@ -591,6 +601,7 @@ public class DraftServiceTest {
         result.put(CreateDraftStorageStrategy.class, createDraftStorageStrategy);
         // Data:
         result.put(UpdateRowValuesStrategy.class, updateRowValuesStrategy);
+        result.put(AfterUpdateDataStrategy.class, afterUpdateDataStrategy);
         result.put(DeleteAllRowValuesStrategy.class, deleteAllRowValuesStrategy);
 
         return result;

@@ -19,9 +19,9 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -41,18 +41,21 @@ public class CompareStructureControllerTest {
 
     @Before
     public void init() {
+
         when(versionService.getStructure(oldId)).thenReturn(new Structure(Arrays.asList(
                 Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"),
                 Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
                 Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"),
                 Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4")
         ), null));
+
         when(versionService.getStructure(newId)).thenReturn(new Structure(Arrays.asList(
                 Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"),
                 Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"),
                 Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"),
                 Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4")
         ), null));
+
         when(compareService.compareStructures(oldId, newId)).thenReturn(new StructureDiff(
                 singletonList(
                         new StructureDiff.AttributeDiff(
@@ -74,7 +77,8 @@ public class CompareStructureControllerTest {
 
     @Test
     public void testGetCommonDiff() {
-        List<AttributeDiff> expectedCommon = Arrays.asList(
+
+        final List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
                         Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
@@ -82,145 +86,174 @@ public class CompareStructureControllerTest {
                 createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null),
                 createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"), null, DiffStatusEnum.DELETED)
         );
-        List<AttributeDiff> expectedInserted = expectedCommon.stream()
+
+        final List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedUpdated = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedUpdated = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.UPDATED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedDeleted = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedDeleted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.DELETED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedSecondPage = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedPaged = expectedCommon.stream()
                 .skip(2)
                 .limit(2)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, null));
-        Assert.assertEquals(5, actual.getTotalElements());
-        Assert.assertEquals(expectedCommon, actual.getContent());
+        final Page<AttributeDiff> actualCommon = compareStructureController
+                .getCommonDiff(new CompareCriteria(oldId, newId, null));
+        Assert.assertEquals(5, actualCommon.getTotalElements());
+        Assert.assertEquals(expectedCommon, actualCommon.getContent());
 
-        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedInserted, actual.getContent());
+        final Page<AttributeDiff> actualInserted = compareStructureController
+                .getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        Assert.assertEquals(1, actualInserted.getTotalElements());
+        Assert.assertEquals(expectedInserted, actualInserted.getContent());
 
-        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedUpdated, actual.getContent());
+        final Page<AttributeDiff> actualUpdated = compareStructureController
+                .getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        Assert.assertEquals(1, actualUpdated.getTotalElements());
+        Assert.assertEquals(expectedUpdated, actualUpdated.getContent());
 
-        actual = compareStructureController.getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedDeleted, actual.getContent());
+        final Page<AttributeDiff> actualDeleted = compareStructureController
+                .getCommonDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        Assert.assertEquals(1, actualDeleted.getTotalElements());
+        Assert.assertEquals(expectedDeleted, actualDeleted.getContent());
 
-        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
+        final CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
-        actual = compareStructureController.getCommonDiff(criteria);
-        Assert.assertEquals(5, actual.getTotalElements());
-        Assert.assertEquals(expectedSecondPage, actual.getContent());
 
+        final Page<AttributeDiff> actualPaged = compareStructureController.getCommonDiff(criteria);
+        Assert.assertEquals(5, actualPaged.getTotalElements());
+        Assert.assertEquals(expectedPaged, actualPaged.getContent());
     }
 
     @Test
     public void testGetOldWithDiff() {
-        List<AttributeDiff> expectedCommon = Arrays.asList(
+
+        final List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null, null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
                         Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
                 createDiff(Structure.Attribute.build("code3", "Код3", FieldType.STRING, "Описание3"), null, DiffStatusEnum.DELETED),
                 createDiff(Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null, null)
         );
-        List<AttributeDiff> expectedInserted = expectedCommon.stream()
+
+        final List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedUpdated = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedUpdated = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.UPDATED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedDeleted = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedDeleted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.DELETED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedSecondPage = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedPaged = expectedCommon.stream()
                 .skip(2)
                 .limit(2)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, null));
-        Assert.assertEquals(4, actual.getTotalElements());
-        Assert.assertEquals(expectedCommon, actual.getContent());
+        final Page<AttributeDiff> actualCommon = compareStructureController
+                .getOldWithDiff(new CompareCriteria(oldId, newId, null));
+        Assert.assertEquals(4, actualCommon.getTotalElements());
+        Assert.assertEquals(expectedCommon, actualCommon.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
-        Assert.assertEquals(0, actual.getTotalElements());
-        Assert.assertEquals(expectedInserted, actual.getContent());
+        final Page<AttributeDiff> actualInserted = compareStructureController
+                .getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        Assert.assertEquals(0, actualInserted.getTotalElements());
+        Assert.assertEquals(expectedInserted, actualInserted.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedUpdated, actual.getContent());
+        final Page<AttributeDiff> actualUpdated = compareStructureController
+                .getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        Assert.assertEquals(1, actualUpdated.getTotalElements());
+        Assert.assertEquals(expectedUpdated, actualUpdated.getContent());
 
-        actual = compareStructureController.getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedDeleted, actual.getContent());
+        final Page<AttributeDiff> actualDeleted = compareStructureController
+                .getOldWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        Assert.assertEquals(1, actualDeleted.getTotalElements());
+        Assert.assertEquals(expectedDeleted, actualDeleted.getContent());
 
-        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
+        final CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
-        actual = compareStructureController.getOldWithDiff(criteria);
-        Assert.assertEquals(4, actual.getTotalElements());
-        Assert.assertEquals(expectedSecondPage, actual.getContent());
+
+        final Page<AttributeDiff> actualPaged = compareStructureController.getOldWithDiff(criteria);
+        Assert.assertEquals(4, actualPaged.getTotalElements());
+        Assert.assertEquals(expectedPaged, actualPaged.getContent());
 
     }
 
     @Test
     public void testGetNewWithDiff() {
-        List<AttributeDiff> expectedCommon = Arrays.asList(
+
+        final List<AttributeDiff> expectedCommon = Arrays.asList(
                 createDiff(null, Structure.Attribute.build("code1", "Код1", FieldType.STRING, "Описание1"), null),
                 createDiff(Structure.Attribute.build("code2", "Код2", FieldType.STRING, "Описание2"),
                         Structure.Attribute.build("code2", "Код2.1", FieldType.STRING, "Описание2.1"), DiffStatusEnum.UPDATED),
                 createDiff(null, Structure.Attribute.build("code5", "Код5", FieldType.STRING, "Описание5"), DiffStatusEnum.INSERTED),
                 createDiff(null, Structure.Attribute.build("code4", "Код4", FieldType.STRING, "Описание4"), null)
         );
-        List<AttributeDiff> expectedInserted = expectedCommon.stream()
+
+        final List<AttributeDiff> expectedInserted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.INSERTED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedUpdated = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedUpdated = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.UPDATED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedDeleted = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedDeleted = expectedCommon.stream()
                 .filter(attributeDiff -> DiffStatusEnum.DELETED.equals(attributeDiff.getDiffStatus()))
-                .collect(Collectors.toList());
-        List<AttributeDiff> expectedSecondPage = expectedCommon.stream()
+                .collect(toList());
+
+        final List<AttributeDiff> expectedPaged = expectedCommon.stream()
                 .skip(2)
                 .limit(2)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-        Page<AttributeDiff> actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, null));
-        Assert.assertEquals(4, actual.getTotalElements());
-        Assert.assertEquals(expectedCommon, actual.getContent());
+        final Page<AttributeDiff> actualCommon = compareStructureController
+                .getNewWithDiff(new CompareCriteria(oldId, newId, null));
+        Assert.assertEquals(4, actualCommon.getTotalElements());
+        Assert.assertEquals(expectedCommon, actualCommon.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedInserted, actual.getContent());
+        final Page<AttributeDiff> actualInserted = compareStructureController
+                .getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.INSERTED));
+        Assert.assertEquals(1, actualInserted.getTotalElements());
+        Assert.assertEquals(expectedInserted, actualInserted.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
-        Assert.assertEquals(1, actual.getTotalElements());
-        Assert.assertEquals(expectedUpdated, actual.getContent());
+        final Page<AttributeDiff> actualUpdated = compareStructureController
+                .getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.UPDATED));
+        Assert.assertEquals(1, actualUpdated.getTotalElements());
+        Assert.assertEquals(expectedUpdated, actualUpdated.getContent());
 
-        actual = compareStructureController.getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
-        Assert.assertEquals(0, actual.getTotalElements());
-        Assert.assertEquals(expectedDeleted, actual.getContent());
+        final Page<AttributeDiff> actualDeleted = compareStructureController
+                .getNewWithDiff(new CompareCriteria(oldId, newId, DiffStatusEnum.DELETED));
+        Assert.assertEquals(0, actualDeleted.getTotalElements());
+        Assert.assertEquals(expectedDeleted, actualDeleted.getContent());
 
-        CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
+        final CompareCriteria criteria = new CompareCriteria(oldId, newId, null);
         criteria.setPageNumber(1);
         criteria.setPageSize(2);
-        actual = compareStructureController.getNewWithDiff(criteria);
-        Assert.assertEquals(4, actual.getTotalElements());
-        Assert.assertEquals(expectedSecondPage, actual.getContent());
+
+        final Page<AttributeDiff> actualPaged = compareStructureController.getNewWithDiff(criteria);
+        Assert.assertEquals(4, actualPaged.getTotalElements());
+        Assert.assertEquals(expectedPaged, actualPaged.getContent());
     }
 
     private AttributeDiff createDiff(Structure.Attribute oldAttr, Structure.Attribute newAttr, DiffStatusEnum diffStatus) {
 
-        oldAttr = oldAttr != null ? oldAttr : new Structure.Attribute();
-        newAttr = newAttr != null ? newAttr : new Structure.Attribute();
-
-        return new AttributeDiff(oldAttr, newAttr, diffStatus);
+        return new AttributeDiff(
+                oldAttr != null ? oldAttr : new Structure.Attribute(),
+                newAttr != null ? newAttr : new Structure.Attribute(),
+                diffStatus
+        );
     }
 }

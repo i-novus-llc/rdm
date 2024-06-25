@@ -41,20 +41,21 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
     @Test
     public void testLocalizeDataRecord() {
 
-        Map<String, Object> data = new HashMap<>(1);
+        final Map<String, Object> data = new HashMap<>(1);
         data.put(TEST_FIELD_CODE, 10);
 
-        Row row = new Row(1L, data);
+        final Row row = new Row(1L, data);
 
-        LocalizeDataRequest expected = new LocalizeDataRequest(TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, singletonList(row));
+        final LocalizeDataRequest expected =
+                new LocalizeDataRequest(TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, singletonList(row));
 
         controller.localizeDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_LOCALE_CODE, row);
 
-        ArgumentCaptor<LocalizeDataRequest> captor = ArgumentCaptor.forClass(LocalizeDataRequest.class);
+        final ArgumentCaptor<LocalizeDataRequest> captor = ArgumentCaptor.forClass(LocalizeDataRequest.class);
         verify(l10nService, times(1))
                 .localizeData(eq(TEST_REFBOOK_VERSION_ID), captor.capture());
 
-        LocalizeDataRequest actual = captor.getValue();
+        final LocalizeDataRequest actual = captor.getValue();
         assertEquals(expected.getOptLockValue(), actual.getOptLockValue());
         assertEquals(expected.getLocaleCode(), actual.getLocaleCode());
         assertEquals(expected.getRows().size(), actual.getRows().size());
@@ -72,8 +73,8 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
 
         testLocalizeDataRecordFailed(new Row(1L, null));
 
-        Map<String, Object> data = new HashMap<>(1);
-        Row row = new Row(1L, data);
+        final Map<String, Object> data = new HashMap<>(1);
+        final Row row = new Row(1L, data);
         testLocalizeDataRecordFailed(row);
 
         data.put(TEST_FIELD_CODE, null);

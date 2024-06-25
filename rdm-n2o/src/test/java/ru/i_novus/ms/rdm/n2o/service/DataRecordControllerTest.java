@@ -3,7 +3,10 @@ package ru.i_novus.ms.rdm.n2o.service;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
@@ -16,7 +19,10 @@ import ru.i_novus.ms.rdm.n2o.api.criteria.DataRecordCriteria;
 import ru.i_novus.ms.rdm.n2o.api.resolver.DataRecordGetterResolver;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
@@ -55,19 +61,19 @@ public class DataRecordControllerTest extends BaseTest {
     @Before
     public void setUp() {
 
-        DataRecordGetterResolver resolver = new TestRecordGetterResolver();
+        final DataRecordGetterResolver resolver = new TestRecordGetterResolver();
         resolvers.add(resolver);
     }
 
     @Test
     public void testGetRow() {
 
-        DataRecordCriteria criteria = createCriteria();
+        final DataRecordCriteria criteria = createCriteria();
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         when(versionService.getById(eq(TEST_REFBOOK_DRAFT_ID))).thenReturn(version);
 
-        Map<String, Serializable> map = controller.getRow(criteria);
+        final Map<String, Serializable> map = controller.getRow(criteria);
         assertNotNull(map);
         assertEquals(3, map.size());
     }
@@ -75,7 +81,7 @@ public class DataRecordControllerTest extends BaseTest {
     @Test
     public void testGetRowFailed() {
 
-        DataRecordCriteria criteria = createCriteria();
+        final DataRecordCriteria criteria = createCriteria();
         criteria.setDataAction(null);
 
         try {
@@ -91,15 +97,15 @@ public class DataRecordControllerTest extends BaseTest {
     @Test
     public void testUpdateData() {
 
-        Row row = createUpdatingRow();
+        final Row row = createUpdatingRow();
         UpdateDataRequest expected = new UpdateDataRequest(TEST_OPT_LOCK_VALUE, singletonList(row));
 
         controller.updateData(TEST_REFBOOK_DRAFT_ID, TEST_OPT_LOCK_VALUE, row);
 
-        ArgumentCaptor<UpdateDataRequest> captor = ArgumentCaptor.forClass(UpdateDataRequest.class);
+        final ArgumentCaptor<UpdateDataRequest> captor = ArgumentCaptor.forClass(UpdateDataRequest.class);
         verify(draftService, times(1)).updateData(eq(TEST_REFBOOK_DRAFT_ID), captor.capture());
 
-        UpdateDataRequest actual = captor.getValue();
+        final UpdateDataRequest actual = captor.getValue();
         assertEquals(expected.getOptLockValue(), actual.getOptLockValue());
         assertEquals(expected.getRows().size(), actual.getRows().size());
         assertEquals(expected.getRows().get(0).getSystemId(), actual.getRows().get(0).getSystemId());
@@ -107,7 +113,7 @@ public class DataRecordControllerTest extends BaseTest {
 
     private DataRecordCriteria createCriteria() {
 
-        DataRecordCriteria criteria = new DataRecordCriteria();
+        final DataRecordCriteria criteria = new DataRecordCriteria();
 
         criteria.setId(TEST_SYSTEM_ID);
         criteria.setVersionId(TEST_REFBOOK_DRAFT_ID);
@@ -119,7 +125,7 @@ public class DataRecordControllerTest extends BaseTest {
 
     private RefBookVersion createVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(TEST_REFBOOK_DRAFT_ID);
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
 
@@ -138,7 +144,7 @@ public class DataRecordControllerTest extends BaseTest {
 
     private Row createUpdatingRow() {
 
-        Map<String, Object> data = new HashMap<>(1);
+        final Map<String, Object> data = new HashMap<>(1);
         data.put(TEST_FIELD_CODE, 10);
 
         return new Row(1L, data);

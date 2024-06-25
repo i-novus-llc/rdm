@@ -32,9 +32,9 @@ public class L10nLocalizeRecordQueryResolverTest {
     @Test
     public void testCreateRegularFields() {
 
-        DataRecordRequest request = new DataRecordRequest();
+        final DataRecordRequest request = new DataRecordRequest();
 
-        List<QuerySimpleField> fields = resolver.createRegularFields(request);
+        final List<QuerySimpleField> fields = resolver.createRegularFields(request);
         assertNotNull(fields);
         assertEquals(1, fields.size());
         assertEquals(FIELD_LOCALE_NAME, fields.get(0).getId());

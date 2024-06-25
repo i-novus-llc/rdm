@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.l10n.resolver;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refdata.RefBookRowValue;
@@ -31,12 +30,16 @@ import static ru.i_novus.ms.rdm.n2o.l10n.constant.L10nRecordConstants.FIELD_LOCA
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class L10nLocalizeRecordGetterResolver implements DataRecordGetterResolver {
 
-    @Autowired
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
+
+    private final VersionLocaleService versionLocaleService;
 
     @Autowired
-    @Qualifier("versionLocaleServiceJaxRsProxyClient")
-    private VersionLocaleService versionLocaleService;
+    public L10nLocalizeRecordGetterResolver(VersionRestService versionService,
+                                            VersionLocaleService versionLocaleService) {
+        this.versionService = versionService;
+        this.versionLocaleService = versionLocaleService;
+    }
 
     @Override
     public boolean isSatisfied(String dataAction) {

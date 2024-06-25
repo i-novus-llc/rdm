@@ -3,8 +3,7 @@
         name="Атрибут версии справочника">
 
     <operations>
-        <operation id="createAttribute" name="Добавление атрибута" success-text="Атрибут сохранен"
-                   submit-label="Сохранить">
+        <operation id="createAttribute" name="Добавление атрибута" success-text="Атрибут сохранен">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="createAttribute">
@@ -60,8 +59,7 @@
             <validations white-list="checkMinMaxInt"/>
         </operation>
 
-        <operation id="updateAttribute" name="Изменение атрибута" success-text="Атрибут изменен"
-                   submit-label="Сохранить">
+        <operation id="updateAttribute" name="Изменение атрибута" success-text="Атрибут изменен">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="updateAttribute">
@@ -117,8 +115,7 @@
             <validations white-list="checkMinMaxInt"/>
         </operation>
 
-        <operation id="deleteAttribute" name="Удаление атрибута" success-text="Атрибут удален"
-                   confirm="true" confirm-text="Вы действительно хотите удалить атрибут справочника?">
+        <operation id="deleteAttribute" name="Удаление атрибута" success-text="Атрибут удален">
             <invocation>
                 <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
                       method="deleteAttribute">
@@ -138,27 +135,6 @@
                 <field id="code" mapping="['attributeCode']" domain="string"/>
             </in>
             
-        </operation>
-
-        <operation id="noOperation" name="Без выполнения действия" success-text="Выполнено"
-                   confirm="true" confirm-text="Вы действительно хотите выполнить действие?">
-            <invocation>
-                <java class="ru.i_novus.ms.rdm.n2o.service.CreateDraftController"
-                      method="noOperation">
-                    <spring/>
-
-                    <arguments>
-                        <argument type="primitive" name="versionId" class="java.lang.Integer"/>
-                        <argument type="primitive" name="optLockValue" class="java.lang.Integer"/>
-                    </arguments>
-                </java>
-            </invocation>
-
-            <in>
-                <field id="versionId" mapping="['versionId']" domain="integer"/>
-                <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
-                <field id="code" mapping="['attributeCode']" domain="string"/>
-            </in>
         </operation>
     </operations>
 

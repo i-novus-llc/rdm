@@ -64,10 +64,10 @@ public class UpdateRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateRegularValues() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createRegularValues(criteria, version);
         assertNotNull(values);
         assertEquals(1, values.size());
         assertTrue(values.containsKey(FIELD_SYSTEM_ID));
@@ -76,22 +76,23 @@ public class UpdateRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateDynamicValues() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        RefBookRowValue rowValue = createRowValue();
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(singletonList(rowValue), searchDataCriteria, 1);
+        final RefBookRowValue rowValue = createRowValue();
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(singletonList(rowValue), searchDataCriteria, 1);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
-        Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
 
-        Structure structure = version.getStructure();
+        final Structure structure = version.getStructure();
         values.forEach((fieldCode, value) ->{
-            String code = deletePrefix(fieldCode);
 
-            Structure.Attribute attribute = structure.getAttribute(code);
+            final String code = deletePrefix(fieldCode);
+
+            final Structure.Attribute attribute = structure.getAttribute(code);
             assertNotNull(attribute);
         });
     }
@@ -99,14 +100,14 @@ public class UpdateRecordGetterResolverTest extends BaseTest {
     @Test
     public void testCreateDynamicValuesWhenEmpty() {
 
-        DataRecordCriteria criteria = createCriteria();
-        RefBookVersion version = createVersion();
+        final DataRecordCriteria criteria = createCriteria();
+        final RefBookVersion version = createVersion();
 
-        SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
-        Page<RefBookRowValue> rowValuesPage = new PageImpl<>(emptyList(), searchDataCriteria, 0);
+        final SearchDataCriteria searchDataCriteria = createSearchDataCriteria();
+        final Page<RefBookRowValue> rowValuesPage = new PageImpl<>(emptyList(), searchDataCriteria, 0);
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class))).thenReturn(rowValuesPage);
 
-        Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
+        final Map<String, Serializable> values = resolver.createDynamicValues(criteria, version);
         assertNotNull(values);
         assertEmpty(values);
     }

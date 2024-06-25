@@ -54,10 +54,12 @@
             <artifactId>n2o-access</artifactId>
         </dependency>
 
+        <!-- JAX -->
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
         </dependency>
+        <!-- / JAX -->
 
         <!-- test -->
         <dependency>
@@ -86,7 +88,13 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
+
             <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.ms.rdm</groupId>
+                    <artifactId>rdm-l10n-api</artifactId>
+                </dependency>
+
                 <dependency>
                     <groupId>ru.i-novus.ms.rdm</groupId>
                     <artifactId>rdm-n2o-l10n</artifactId>

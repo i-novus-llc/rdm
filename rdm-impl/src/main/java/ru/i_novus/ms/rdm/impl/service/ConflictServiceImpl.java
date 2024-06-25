@@ -145,12 +145,12 @@ public class ConflictServiceImpl implements ConflictService {
     }
 
     /**
-     * Получение идентификаторов конфликтов для версии, которая ссылается,
+     * Получение идентификаторов конфликтных записей для версии, которая ссылается,
      * с любыми справочниками по указанным системным идентификаторам записей.
      *
      * @param referrerVersionId идентификатор версии справочника, который ссылается
      * @param refRecordIds      список системных идентификаторов записей версии
-     * @return Список конфликтных идентификаторов
+     * @return Список идентификаторов конфликтных записей
      */
     @Override
     public List<Long> getReferrerConflictedIds(Integer referrerVersionId, List<Long> refRecordIds) {

@@ -103,20 +103,20 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private void testEditPassport(UiPassport passport) {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, passport);
+        final UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, passport);
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<RefBookUpdateRequest> captor = ArgumentCaptor.forClass(RefBookUpdateRequest.class);
+        final ArgumentCaptor<RefBookUpdateRequest> captor = ArgumentCaptor.forClass(RefBookUpdateRequest.class);
         verify(refBookService, times(1)).update(captor.capture());
 
-        RefBookUpdateRequest request = captor.getValue();
+        final RefBookUpdateRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_REFBOOK_VERSION_ID), request.getVersionId());
         assertEquals(Integer.valueOf(TEST_OPT_LOCK_VALUE), request.getOptLockValue());
@@ -133,42 +133,42 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testEditPassportWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
+        final UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
         assertEquals(uiDraft, actual);
     }
 
     @Test
     public void testEditPassportWhenCreateDraft() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
+        final UiDraft actual = controller.editPassport(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createPassport());
         assertEquals(uiDraft, actual);
     }
 
     @Test
     public void testCreateAttribute() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
+        final UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -178,14 +178,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testCreateAttributeWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
+        final UiDraft actual = controller.createAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -195,14 +195,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testUpdateAttribute() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
+        final UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -212,14 +212,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testUpdateAttributeWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
+        final UiDraft actual = controller.updateAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, createFormAttribute());
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -229,14 +229,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteAttribute() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
+        final UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -246,14 +246,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteAttributeWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
+        final UiDraft actual = controller.deleteAttribute(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, NAME_ATTRIBUTE_CODE);
         assertEquals(uiDraft, actual);
 
         verify(structureController, times(1))
@@ -274,24 +274,25 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private void testCreateDataRecord(RefBookRowValue rowValue) {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        Row row = createRow(null);
+        final Row row = createRow(null);
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version.getStructure());
 
         if (rowValue != null) {
-            SearchDataCriteria criteria = new SearchDataCriteria();
+            final SearchDataCriteria criteria = new SearchDataCriteria();
             criteria.setPageSize(1);
+
             when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
                     .thenReturn(new PageImpl<>(emptyList(), criteria, 1));
         }
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
+        final UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
         assertEquals(uiDraft, actual);
 
         verify(dataRecordController, times(1))
@@ -302,14 +303,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @SuppressWarnings("java:S5778")
     public void testCreateDataRecordFailed() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft( version);
+        final UiDraft uiDraft = new UiDraft( version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        Row row = createRow(null);
+        final Row row = createRow(null);
         when(versionService.getStructure(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version.getStructure());
 
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
@@ -328,14 +329,14 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testUpdateDataRecord() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        Row row = createRow(1L);
+        final Row row = createRow(1L);
         UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
         assertEquals(uiDraft, actual);
 
@@ -346,24 +347,24 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testUpdateDataRecordWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        RefBookRowValue oldRowValue = createRowValue();
+        final RefBookRowValue oldRowValue = createRowValue();
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(List.of(oldRowValue), new SearchDataCriteria(), 1));
 
-        RefBookRowValue newRowValue = createRowValue();
+        final RefBookRowValue newRowValue = createRowValue();
         newRowValue.setSystemId(oldRowValue.getSystemId() + 1);
         when(versionService.search(eq(TEST_REFBOOK_DRAFT_ID), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(List.of(newRowValue), new SearchDataCriteria(), 1));
 
-        Row row = createRow(1L);
-        UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
+        final Row row = createRow(1L);
+        final UiDraft actual = controller.updateDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, row);
         assertEquals(uiDraft, actual);
 
         verify(dataRecordController, times(1))
@@ -395,28 +396,29 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteDataRecord() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_SYSTEM_ID);
+        final UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, TEST_SYSTEM_ID);
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
+        final ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
         verify(draftService, times(1))
                 .deleteData(eq(TEST_REFBOOK_VERSION_ID), captor.capture());
 
-        DeleteDataRequest request = captor.getValue();
+        final DeleteDataRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_OPT_LOCK_VALUE), request.getOptLockValue());
 
-        List<Row> rows = request.getRows();
+        final List<Row> rows = request.getRows();
         assertNotNull(rows);
         assertEquals(1, rows.size());
-        Row row = rows.get(0);
+
+        final Row row = rows.get(0);
         assertNotNull(row);
         assertEquals(Long.valueOf(TEST_SYSTEM_ID), row.getSystemId());
     }
@@ -424,37 +426,38 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteDataRecordWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        RefBookRowValue oldRowValue = createRowValue();
+        final RefBookRowValue oldRowValue = createRowValue();
         when(versionService.search(eq(TEST_REFBOOK_VERSION_ID), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(List.of(oldRowValue), new SearchDataCriteria(), 1));
 
-        RefBookRowValue newRowValue = createRowValue();
+        final RefBookRowValue newRowValue = createRowValue();
         newRowValue.setSystemId(oldRowValue.getSystemId() + 1);
         when(versionService.search(eq(TEST_REFBOOK_DRAFT_ID), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(List.of(newRowValue), new SearchDataCriteria(), 1));
 
-        UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, oldRowValue.getSystemId());
+        final UiDraft actual = controller.deleteDataRecord(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, oldRowValue.getSystemId());
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
+        final ArgumentCaptor<DeleteDataRequest> captor = ArgumentCaptor.forClass(DeleteDataRequest.class);
         verify(draftService, times(1))
                 .deleteData(eq(TEST_REFBOOK_DRAFT_ID), captor.capture());
 
-        DeleteDataRequest request = captor.getValue();
+        final DeleteDataRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_DRAFT_OPT_LOCK_VALUE), request.getOptLockValue());
 
-        List<Row> rows = request.getRows();
+        final List<Row> rows = request.getRows();
         assertNotNull(rows);
         assertEquals(1, rows.size());
-        Row row = rows.get(0);
+
+        final Row row = rows.get(0);
         assertNotNull(row);
         assertEquals(newRowValue.getSystemId(), row.getSystemId());
     }
@@ -462,21 +465,21 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteAllDataRecords() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
+        final UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
+        final ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
         verify(draftService, times(1))
                 .deleteAllData(eq(TEST_REFBOOK_VERSION_ID), captor.capture());
 
-        DeleteAllDataRequest request = captor.getValue();
+        final DeleteAllDataRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_OPT_LOCK_VALUE), request.getOptLockValue());
     }
@@ -484,21 +487,21 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testDeleteAllDataRecordsWhenVersion() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = createUiDraft();
+        final UiDraft uiDraft = createUiDraft();
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
+        final UiDraft actual = controller.deleteAllDataRecords(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE);
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
+        final ArgumentCaptor<DeleteAllDataRequest> captor = ArgumentCaptor.forClass(DeleteAllDataRequest.class);
         verify(draftService, times(1))
                 .deleteAllData(eq(TEST_REFBOOK_DRAFT_ID), captor.capture());
 
-        DeleteAllDataRequest request = captor.getValue();
+        final DeleteAllDataRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_DRAFT_OPT_LOCK_VALUE), request.getOptLockValue());
     }
@@ -506,50 +509,50 @@ public class CreateDraftControllerTest extends BaseTest {
     @Test
     public void testCreateFromFile() {
 
-        FileModel fileModel = new FileModel("path", "name");
+        final FileModel fileModel = new FileModel("path", "name");
         when(refBookService.create(eq(fileModel))).thenReturn(createDraft());
 
-        RefBookVersion draftVersion = createDraftVersion();
+        final RefBookVersion draftVersion = createDraftVersion();
         when(versionService.getById(eq(TEST_REFBOOK_DRAFT_ID))).thenReturn(draftVersion);
 
-        UiDraft actual = controller.createFromFile(fileModel);
+        final UiDraft actual = controller.createFromFile(fileModel);
         assertEquals(new UiDraft(draftVersion), actual);
     }
 
     @Test
     public void testUploadFromFile() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        FileModel fileModel = new FileModel("path", "name");
-        Draft draft = new Draft(version.getId(), "storageCode", version.getOptLockValue());
+        final FileModel fileModel = new FileModel("path", "name");
+        final Draft draft = new Draft(version.getId(), "storageCode", version.getOptLockValue());
         when(draftService.create(eq(TEST_REFBOOK_ID), eq(fileModel))).thenReturn(draft);
 
-        UiDraft actual = controller.uploadFromFile(TEST_REFBOOK_VERSION_ID, fileModel);
+        final UiDraft actual = controller.uploadFromFile(TEST_REFBOOK_VERSION_ID, fileModel);
         assertEquals(new UiDraft(version), actual);
     }
 
     @Test
     public void testUploadData() {
 
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
         when(versionService.getById(eq(TEST_REFBOOK_VERSION_ID))).thenReturn(version);
 
-        UiDraft uiDraft = new UiDraft(version);
+        final UiDraft uiDraft = new UiDraft(version);
         when(defaultFindOrCreateDraftStrategy.findOrCreate(eq(version))).thenReturn(uiDraft);
 
-        FileModel fileModel = new FileModel("path", "name");
-        UiDraft actual = controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
+        final FileModel fileModel = new FileModel("path", "name");
+        final UiDraft actual = controller.uploadData(TEST_REFBOOK_VERSION_ID, TEST_OPT_LOCK_VALUE, fileModel);
         assertEquals(uiDraft, actual);
 
-        ArgumentCaptor<UpdateFromFileRequest> captor = ArgumentCaptor.forClass(UpdateFromFileRequest.class);
+        final ArgumentCaptor<UpdateFromFileRequest> captor = ArgumentCaptor.forClass(UpdateFromFileRequest.class);
         verify(draftService, times(1))
                 .updateFromFile(eq(TEST_REFBOOK_VERSION_ID), captor.capture());
 
-        UpdateFromFileRequest request = captor.getValue();
+        final UpdateFromFileRequest request = captor.getValue();
         assertNotNull(request);
         assertEquals(Integer.valueOf(TEST_OPT_LOCK_VALUE), request.getOptLockValue());
         assertEquals(fileModel, request.getFileModel());
@@ -557,7 +560,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private RefBookVersion createVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(TEST_REFBOOK_VERSION_ID);
         version.setOptLockValue(TEST_OPT_LOCK_VALUE);
 
@@ -571,7 +574,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private RefBookVersion createDraftVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(TEST_REFBOOK_DRAFT_ID);
         version.setOptLockValue(TEST_DRAFT_OPT_LOCK_VALUE);
 
@@ -596,15 +599,16 @@ public class CreateDraftControllerTest extends BaseTest {
     }
 
     private UiDraft createUiDraft() {
+
         return new UiDraft(TEST_REFBOOK_DRAFT_ID, TEST_REFBOOK_ID, TEST_DRAFT_OPT_LOCK_VALUE);
     }
 
     private UiPassport createPassport() {
 
-        UiPassport passport = new UiPassport();
-
+        final UiPassport passport = new UiPassport();
         passport.setCode(TEST_REFBOOK_CODE);
         passport.setName(TEST_REFBOOK_NAME);
+
         passport.setShortName(TEST_REFBOOK_NAME.toLowerCase());
         passport.setDescription("RefBook " + TEST_REFBOOK_NAME);
 
@@ -613,8 +617,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private FormAttribute createFormAttribute() {
 
-        FormAttribute formAttribute = new FormAttribute();
-
+        final FormAttribute formAttribute = new FormAttribute();
         formAttribute.setCode(NAME_ATTRIBUTE.getCode());
         formAttribute.setName(NAME_ATTRIBUTE.getName());
         formAttribute.setType(NAME_ATTRIBUTE.getType());
@@ -624,7 +627,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private Row createRow(Long systemId) {
 
-        Map<String, Object> map = new HashMap<>(3);
+        final Map<String, Object> map = new HashMap<>(3);
         map.put(ID_ATTRIBUTE_CODE, BigInteger.valueOf(1));
         map.put(NAME_ATTRIBUTE_CODE, "name");
         map.put(STRING_ATTRIBUTE_CODE, "string");
@@ -634,7 +637,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private Row createEmptyRow(long systemId) {
 
-        Map<String, Object> map = new HashMap<>(3);
+        final Map<String, Object> map = new HashMap<>(3);
         map.put(ID_ATTRIBUTE_CODE, null);
         map.put(NAME_ATTRIBUTE_CODE, "");
         map.put(STRING_ATTRIBUTE_CODE, null);
@@ -644,7 +647,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private RefBookRowValue createRowValue() {
 
-        LongRowValue longRowValue = new LongRowValue(TEST_SYSTEM_ID, asList(
+        final LongRowValue longRowValue = new LongRowValue(TEST_SYSTEM_ID, asList(
                 new IntegerFieldValue(ID_ATTRIBUTE_CODE, BigInteger.valueOf(TEST_SYSTEM_ID)),
                 new StringFieldValue(NAME_ATTRIBUTE_CODE, "name_" + TEST_SYSTEM_ID),
                 new StringFieldValue(STRING_ATTRIBUTE_CODE, "text with id = " + TEST_SYSTEM_ID)
@@ -656,7 +659,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        final Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
 
         return result;
@@ -664,7 +667,7 @@ public class CreateDraftControllerTest extends BaseTest {
 
     private Map<Class<? extends UiStrategy>, UiStrategy> getDefaultStrategies() {
 
-        Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
+        final Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
 
         return result;

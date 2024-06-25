@@ -29,11 +29,11 @@ public class BaseUiStrategyLocatorTest {
     @Test
     public void testGetStrategyWhenBothPresent() {
 
-        BaseUiStrategyLocator locator = new BaseUiStrategyLocator(getStrategies());
+        final BaseUiStrategyLocator locator = new BaseUiStrategyLocator(getStrategies());
 
-        FindOrCreateDraftStrategy defaultStrategy =
+        final FindOrCreateDraftStrategy defaultStrategy =
                 locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
-        FindOrCreateDraftStrategy unversionedStrategy =
+        final FindOrCreateDraftStrategy unversionedStrategy =
                 locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNotNull(defaultStrategy);
@@ -48,14 +48,14 @@ public class BaseUiStrategyLocatorTest {
     @Test
     public void testGetStrategyWhenDefaultOnly() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> strategiesMap = getStrategies();
+        final Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> strategiesMap = getStrategies();
         strategiesMap.get(RefBookTypeEnum.UNVERSIONED).remove(FindOrCreateDraftStrategy.class);
 
-        BaseUiStrategyLocator locator = new BaseUiStrategyLocator(strategiesMap);
+        final BaseUiStrategyLocator locator = new BaseUiStrategyLocator(strategiesMap);
 
-        FindOrCreateDraftStrategy defaultStrategy =
+        final FindOrCreateDraftStrategy defaultStrategy =
                 locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
-        FindOrCreateDraftStrategy unversionedStrategy =
+        final FindOrCreateDraftStrategy unversionedStrategy =
                 locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNotNull(defaultStrategy);
@@ -70,11 +70,11 @@ public class BaseUiStrategyLocatorTest {
     @Test
     public void testGetStrategyWhenBothAbsent() {
 
-        BaseUiStrategyLocator locator = new BaseUiStrategyLocator(new HashMap<>());
+        final BaseUiStrategyLocator locator = new BaseUiStrategyLocator(new HashMap<>());
 
-        FindOrCreateDraftStrategy defaultStrategy =
+        final FindOrCreateDraftStrategy defaultStrategy =
                 locator.getStrategy(RefBookTypeEnum.DEFAULT, FindOrCreateDraftStrategy.class);
-        FindOrCreateDraftStrategy unversionedStrategy =
+        final FindOrCreateDraftStrategy unversionedStrategy =
                 locator.getStrategy(RefBookTypeEnum.UNVERSIONED, FindOrCreateDraftStrategy.class);
 
         assertNull(defaultStrategy);
@@ -83,7 +83,7 @@ public class BaseUiStrategyLocatorTest {
 
     private Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> getStrategies() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
+        final Map<RefBookTypeEnum, Map<Class<? extends UiStrategy>, UiStrategy>> result = new HashMap<>();
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
         result.put(RefBookTypeEnum.UNVERSIONED, getUnversionedStrategies());
 
@@ -92,7 +92,7 @@ public class BaseUiStrategyLocatorTest {
 
     private Map<Class<? extends UiStrategy>, UiStrategy> getDefaultStrategies() {
 
-        Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
+        final Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, defaultFindOrCreateDraftStrategy);
 
         return result;
@@ -100,7 +100,7 @@ public class BaseUiStrategyLocatorTest {
 
     private Map<Class<? extends UiStrategy>, UiStrategy> getUnversionedStrategies() {
 
-        Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
+        final Map<Class<? extends UiStrategy>, UiStrategy> result = new HashMap<>();
         result.put(FindOrCreateDraftStrategy.class, unversionedFindOrCreateDraftStrategy);
 
         return result;

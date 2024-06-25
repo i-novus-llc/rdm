@@ -18,14 +18,14 @@ public class RefBookListPage extends N2oSimplePage {
     @Override
     public void shouldExists() {
 
-        N2oTableWidget n2oTableWidget = table();
+        final N2oTableWidget n2oTableWidget = table();
         n2oTableWidget.shouldExists();
         n2oTableWidget.filters().shouldBeVisible();
     }
 
     public CreateRefBookWidget openCreateRefBookPage() {
 
-        N2oDropdownButton createRefBookButton = table().toolbar().topLeft()
+        final N2oDropdownButton createRefBookButton = table().toolbar().topLeft()
                 .button("Создать справочник", N2oDropdownButton.class);
         createRefBookButton.click();
         createRefBookButton.menuItem("Создать справочник").click();
@@ -52,7 +52,7 @@ public class RefBookListPage extends N2oSimplePage {
     }
 
     public void search() {
-        table().filters().search();
+        table().filters().toolbar().button("Найти").click();
     }
 
     public void rowShouldHaveTexts(int columnNumber, List<String> text) {
@@ -68,7 +68,7 @@ public class RefBookListPage extends N2oSimplePage {
         table().columns().rows().row(rowNumber).click();
         table().toolbar().topLeft().button("Удалить справочник").click();
 
-        Page.Dialog deleteDialog = dialog("Удалить");
+        final Page.Dialog deleteDialog = dialog("Удалить");
         deleteDialog.shouldBeVisible();
         deleteDialog.button("Да").click();
     }

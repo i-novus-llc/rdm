@@ -27,7 +27,7 @@ import ru.i_novus.ms.rdm.impl.repository.*;
 import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
-import ru.i_novus.ms.rdm.impl.strategy.data.AfterUploadDataStrategy;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.AfterUploadDataStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.CreateDraftStorageStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.draft.FindDraftEntityStrategy;

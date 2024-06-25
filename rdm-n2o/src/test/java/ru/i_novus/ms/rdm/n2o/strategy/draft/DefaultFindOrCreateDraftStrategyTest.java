@@ -33,12 +33,12 @@ public class DefaultFindOrCreateDraftStrategyTest {
     @Test
     public void testFindOrCreateWithVersion() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         version.setStatus(RefBookVersionStatus.DRAFT);
 
-        UiDraft expected = new UiDraft(version);
+        final UiDraft expected = new UiDraft(version);
 
-        UiDraft actual = strategy.findOrCreate(version);
+        final UiDraft actual = strategy.findOrCreate(version);
         assertEquals(expected, actual);
 
         verifyNoMoreInteractions(draftService);
@@ -47,16 +47,15 @@ public class DefaultFindOrCreateDraftStrategyTest {
     @Test
     public void testFindOrCreateWithExistingDraft() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        Draft draft = createDraft();
-
+        final Draft draft = createDraft();
         when(draftService.findDraft(eq(REFBOOK_CODE))).thenReturn(draft);
 
-        UiDraft expected = new UiDraft(draft, REFBOOK_ID);
+        final UiDraft expected = new UiDraft(draft, REFBOOK_ID);
 
-        UiDraft actual = strategy.findOrCreate(version);
+        final UiDraft actual = strategy.findOrCreate(version);
         assertEquals(expected, actual);
 
         verify(draftService).findDraft(eq(REFBOOK_CODE));
@@ -67,18 +66,17 @@ public class DefaultFindOrCreateDraftStrategyTest {
     @Test
     public void testFindOrCreateWithDraftCreate() {
 
-        RefBookVersion version = createRefBookVersion();
+        final RefBookVersion version = createRefBookVersion();
         version.setStatus(RefBookVersionStatus.PUBLISHED);
 
         when(draftService.findDraft(eq(REFBOOK_CODE))).thenReturn(null);
 
-        Draft draft = createDraft();
-
+        final Draft draft = createDraft();
         when(draftService.createFromVersion(eq(VERSION_ID))).thenReturn(draft);
 
-        UiDraft expected = new UiDraft(draft, REFBOOK_ID);
+        final UiDraft expected = new UiDraft(draft, REFBOOK_ID);
 
-        UiDraft actual = strategy.findOrCreate(version);
+        final UiDraft actual = strategy.findOrCreate(version);
         assertEquals(expected, actual);
 
         verify(draftService).findDraft(eq(REFBOOK_CODE));
@@ -89,7 +87,7 @@ public class DefaultFindOrCreateDraftStrategyTest {
 
     private RefBookVersion createRefBookVersion() {
 
-        RefBookVersion result = new RefBookVersion();
+        final RefBookVersion result = new RefBookVersion();
         result.setId(VERSION_ID);
         result.setRefBookId(REFBOOK_ID);
         result.setCode(REFBOOK_CODE);
@@ -99,7 +97,7 @@ public class DefaultFindOrCreateDraftStrategyTest {
 
     private Draft createDraft() {
 
-        Draft draft = new Draft();
+        final Draft draft = new Draft();
         draft.setId(DRAFT_ID);
 
         return draft;

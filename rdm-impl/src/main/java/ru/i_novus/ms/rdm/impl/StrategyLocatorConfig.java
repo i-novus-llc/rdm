@@ -8,6 +8,7 @@ import ru.i_novus.ms.rdm.impl.strategy.BaseStrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.data.*;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.*;
 import ru.i_novus.ms.rdm.impl.strategy.draft.*;
 import ru.i_novus.ms.rdm.impl.strategy.publish.*;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.*;
@@ -65,6 +66,16 @@ public class StrategyLocatorConfig {
     private DefaultDeleteAllRowValuesStrategy defaultDeleteAllRowValuesStrategy;
     @Autowired
     private DefaultAfterUploadDataStrategy defaultAfterUploadDataStrategy;
+    @Autowired
+    private DefaultAfterUpdateDataStrategy defaultAfterUpdateDataStrategy;
+    @Autowired
+    private DefaultBeforeDeleteDataStrategy defaultBeforeDeleteDataStrategy;
+    @Autowired
+    private DefaultAfterDeleteDataStrategy defaultAfterDeleteDataStrategy;
+    @Autowired
+    private DefaultBeforeDeleteAllDataStrategy defaultBeforeDeleteAllDataStrategy;
+    @Autowired
+    private DefaultAfterDeleteAllDataStrategy defaultAfterDeleteAllDataStrategy;
 
     // Structure:
     @Autowired
@@ -105,6 +116,16 @@ public class StrategyLocatorConfig {
     private UnversionedDeleteAllRowValuesStrategy unversionedDeleteAllRowValuesStrategy;
     @Autowired
     private UnversionedAfterUploadDataStrategy unversionedAfterUploadDataStrategy;
+    @Autowired
+    private UnversionedAfterUpdateDataStrategy unversionedAfterUpdateDataStrategy;
+    @Autowired
+    private UnversionedBeforeDeleteDataStrategy unversionedBeforeDeleteDataStrategy;
+    @Autowired
+    private UnversionedAfterDeleteDataStrategy unversionedAfterDeleteDataStrategy;
+    @Autowired
+    private UnversionedBeforeDeleteAllDataStrategy unversionedBeforeDeleteAllDataStrategy;
+    @Autowired
+    private UnversionedAfterDeleteAllDataStrategy unversionedAfterDeleteAllDataStrategy;
 
     // Structure:
     @Autowired
@@ -122,7 +143,7 @@ public class StrategyLocatorConfig {
 
     private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {
 
-        Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new EnumMap<>(RefBookTypeEnum.class);
+        final Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> result = new EnumMap<>(RefBookTypeEnum.class);
         result.put(RefBookTypeEnum.DEFAULT, getDefaultStrategies());
         result.put(RefBookTypeEnum.UNVERSIONED, getUnversionedStrategies());
 
@@ -131,7 +152,7 @@ public class StrategyLocatorConfig {
 
     private Map<Class<? extends Strategy>, Strategy> getDefaultStrategies() {
 
-        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        final Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
 
         // RefBook:
         result.put(RefBookCreateValidationStrategy.class, defaultRefBookCreateValidationStrategy);
@@ -157,6 +178,12 @@ public class StrategyLocatorConfig {
         result.put(DeleteAllRowValuesStrategy.class, defaultDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, defaultAfterUploadDataStrategy);
 
+        result.put(AfterUpdateDataStrategy.class, defaultAfterUpdateDataStrategy);
+        result.put(BeforeDeleteDataStrategy.class, defaultBeforeDeleteDataStrategy);
+        result.put(AfterDeleteDataStrategy.class, defaultAfterDeleteDataStrategy);
+        result.put(BeforeDeleteAllDataStrategy.class, defaultBeforeDeleteAllDataStrategy);
+        result.put(AfterDeleteAllDataStrategy.class, defaultAfterDeleteAllDataStrategy);
+
         // Structure:
         result.put(CreateAttributeStrategy.class, defaultCreateAttributeStrategy);
         result.put(UpdateAttributeStrategy.class, defaultUpdateAttributeStrategy);
@@ -167,7 +194,7 @@ public class StrategyLocatorConfig {
 
     private Map<Class<? extends Strategy>, Strategy> getUnversionedStrategies() {
 
-        Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
+        final Map<Class<? extends Strategy>, Strategy> result = new HashMap<>();
 
         // RefBook:
         result.put(CreateRefBookEntityStrategy.class, unversionedCreateRefBookEntityStrategy);
@@ -187,6 +214,12 @@ public class StrategyLocatorConfig {
         result.put(DeleteRowValuesStrategy.class, unversionedDeleteRowValuesStrategy);
         result.put(DeleteAllRowValuesStrategy.class, unversionedDeleteAllRowValuesStrategy);
         result.put(AfterUploadDataStrategy.class, unversionedAfterUploadDataStrategy);
+
+        result.put(AfterUpdateDataStrategy.class, unversionedAfterUpdateDataStrategy);
+        result.put(BeforeDeleteDataStrategy.class, unversionedBeforeDeleteDataStrategy);
+        result.put(AfterDeleteDataStrategy.class, unversionedAfterDeleteDataStrategy);
+        result.put(BeforeDeleteAllDataStrategy.class, unversionedBeforeDeleteAllDataStrategy);
+        result.put(AfterDeleteAllDataStrategy.class, unversionedAfterDeleteAllDataStrategy);
 
         // Structure:
         result.put(CreateAttributeStrategy.class, unversionedCreateAttributeStrategy);

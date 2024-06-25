@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.util.RowUtils;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookConflictRepository;
+import ru.i_novus.ms.rdm.impl.strategy.data.api.UpdateRowValuesStrategy;
 import ru.i_novus.ms.rdm.impl.util.ErrorUtil;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;

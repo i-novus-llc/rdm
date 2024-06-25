@@ -62,14 +62,16 @@
         <toolbar place="bottomRight">
             <button id="publishDraft" label="Опубликовать"
                     color="primary" visible="{isPublishable}">
-                <invoke operation-id="publishDraft" close-after-success="true" message-on-success="false"
-                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
+                <invoke operation-id="publishDraft"
+                        close-after-success="true" message-on-success="false"
+                        redirect-url="${rdm.context-path}/main" redirect-target="application"/>
             </button>
 
             <button id="publishAndRefresh" label="Опубликовать и обновить ссылки"
                     visible="{isPublishable &amp;&amp; (hasCheckUpdatedConflicts || hasCheckAlteredConflicts)}">
-                <invoke operation-id="publishAndRefresh" close-after-success="true" message-on-success="false"
-                        redirect-target="application" redirect-url="${rdm.context-path}/main"/>
+                <invoke operation-id="publishAndRefresh"
+                        close-after-success="true" message-on-success="false"
+                        redirect-url="${rdm.context-path}/main" redirect-target="application"/>
             </button>
 
             <button id="cancel" label="Отмена">

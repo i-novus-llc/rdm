@@ -22,7 +22,7 @@
             </button>
 
             <button id="close" label="Закрыть">
-                <invoke operation-id="noOperation" close-after-success="true" message-on-success="false"/>
+                <close unsaved-data-prompt="false"/>
             </button>
         </toolbar>
     </form>

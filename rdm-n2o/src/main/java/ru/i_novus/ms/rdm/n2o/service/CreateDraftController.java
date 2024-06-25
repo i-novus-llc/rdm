@@ -57,8 +57,10 @@ public class CreateDraftController {
 
     @Autowired
     public CreateDraftController(RefBookService refBookService,
-                                 VersionRestService versionService, DraftRestService draftService,
-                                 StructureController structureController, DataRecordController dataRecordController,
+                                 VersionRestService versionService,
+                                 DraftRestService draftService,
+                                 StructureController structureController,
+                                 DataRecordController dataRecordController,
                                  UiStrategyLocator strategyLocator) {
         this.refBookService = refBookService;
         this.versionService = versionService;
@@ -301,11 +303,6 @@ public class CreateDraftController {
             throw new NotFoundException(new Message(VERSION_NOT_FOUND_EXCEPTION_CODE, versionId));
 
         return version;
-    }
-
-    /** Операция-заглушка. */
-    public void noOperation(Integer versionId, Integer optLockValue) {
-        // Nothing to do.
     }
 
     private <T extends UiStrategy> T getStrategy(RefBookVersion version, Class<T> strategy) {

@@ -30,9 +30,9 @@ public class L10nRefBookDataDecorator implements RefBookDataDecorator {
     private static final String ATTRIBUTE_LOCALIZED_NONE = "attribute.localized.none";
     private static final String ATTRIBUTE_LOCALIZED_MADE = "attribute.localized.made";
 
-    private VersionRestService versionService;
+    private final VersionRestService versionService;
 
-    private Messages messages;
+    private final Messages messages;
 
     @Autowired
     public L10nRefBookDataDecorator(VersionRestService versionService,

@@ -36,16 +36,17 @@ public class DefaultRecordPageResolverTest extends BaseTest {
     @Test
     public void testCreateRegularFields() {
 
-        DataRecordRequest request = new DataRecordRequest();
-        List<SourceComponent> fields = resolver.createRegularFields(request);
+        final DataRecordRequest request = new DataRecordRequest();
+
+        final List<SourceComponent> fields = resolver.createRegularFields(request);
         assertEmpty(fields);
     }
 
     @Test
     public void testProcessDynamicFields() {
 
-        DataRecordRequest request = new DataRecordRequest();
-        List<SourceComponent> fields = emptyList();
+        final DataRecordRequest request = new DataRecordRequest();
+        final List<SourceComponent> fields = emptyList();
 
         resolver.processDynamicFields(request, fields);
         assertEmpty(fields);
