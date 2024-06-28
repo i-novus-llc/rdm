@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.rest.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.n2oapp.framework.security.autoconfigure.userinfo.UserInfoModel;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
@@ -12,25 +13,50 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.web.client.RestTemplate;
 import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
 import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.i_novus.ms.rdm.rest.service.PublishListener;
-import ru.i_novus.ms.rdm.rest.util.SecurityContextUtils;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
+import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
 
+import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_ID;
+import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_NAME;
+
 @Configuration
-@SuppressWarnings({"unused","I-novus:MethodNameWordCountRule"})
+@SuppressWarnings({"unused","FieldCanBeLocal","I-novus:MethodNameWordCountRule"})
 public class BackendConfiguration {
 
+    private final RestTemplate restTemplate;
+
+    private final ClientHttpRequestInterceptor userinfoRestTemplateInterceptor;
+
+    private final FieldFactory fieldFactory; // Для десериализации объектов сторонних классов
+
     @Autowired
-    private FieldFactory fieldFactory;
+    public BackendConfiguration(RestTemplate restTemplate,
+                                @Qualifier("userinfoRestTemplateInterceptor")
+                                ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
+                                FieldFactory fieldFactory) {
+        this.restTemplate = restTemplate;
+        this.userinfoRestTemplateInterceptor = userinfoRestTemplateInterceptor;
+
+        this.fieldFactory = fieldFactory;
+    }
+
+    @PostConstruct
+    private void configureRestTemplate() {
+
+        restTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
+    }
 
     @Bean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
@@ -133,7 +159,23 @@ public class BackendConfiguration {
 
     @Bean
     public UserAccessor userAccessor() {
-        return () -> createAuditUser(SecurityContextUtils.getUserId(), SecurityContextUtils.getUserName());
+        return this::createUserAccessor;
+    }
+
+    private ru.i_novus.ms.audit.client.model.User createUserAccessor() {
+
+        final Object principal = SecurityContextUtils.getPrincipal();
+        if (principal == null)
+            return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
+
+        if (principal instanceof UserInfoModel) {
+
+            final UserInfoModel user = (UserInfoModel) principal;
+            return createAuditUser(user.email, user.username);
+
+        } else {
+            return createAuditUser("" + principal, DEFAULT_USER_NAME);
+        }
     }
 
     private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
