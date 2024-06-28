@@ -30,6 +30,10 @@
         </dependency>
 
         <!-- SECURITY -->
+        <dependency>
+            <groupId>net.n2oapp.framework.security</groupId>
+            <artifactId>security-userinfo-starter</artifactId>
+        </dependency>
         <!-- / SECURITY -->
     </dependencies>
 
