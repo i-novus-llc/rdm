@@ -1,11 +1,15 @@
 package ru.i_novus.ms.rdm.service;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
-@SpringBootApplication
-public class Application extends SpringBootServletInitializer {
+@SpringBootApplication(exclude = {
+        SecurityAutoConfiguration.class, ManagementWebSecurityAutoConfiguration.class, OAuth2ClientAutoConfiguration.class
+})
+public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import org.apache.cxf.interceptor.OutInterceptors;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -9,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы работы с ссылками", hidden = true)
+@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoCxfInterceptor"})
 public interface ReferenceService {
 
     @POST
