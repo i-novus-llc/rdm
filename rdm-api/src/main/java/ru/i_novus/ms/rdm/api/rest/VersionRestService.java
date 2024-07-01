@@ -21,7 +21,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы работы с версиями справочника", hidden = true)
-@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoJaxRsInterceptor"})
+@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoCxfInterceptor"})
 public interface VersionRestService {
 
     @GET

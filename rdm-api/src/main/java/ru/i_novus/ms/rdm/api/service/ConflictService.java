@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import org.apache.cxf.interceptor.OutInterceptors;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.conflict.DeleteRefBookConflictCriteria;
@@ -16,6 +17,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы работы с конфликтами", hidden = true)
+@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoCxfInterceptor"})
 public interface ConflictService {
 
     @GET
