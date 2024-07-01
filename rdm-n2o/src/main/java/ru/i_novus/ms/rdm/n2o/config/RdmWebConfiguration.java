@@ -26,12 +26,14 @@ import java.util.List;
 @Configuration
 @Import(value = { ClientConfiguration.class, N2oConfiguration.class })
 @ComponentScan(basePackages = "ru.i_novus.ms.rdm.n2o")
+@SuppressWarnings("FieldCanBeLocal")
 public class RdmWebConfiguration {
 
     private final RestTemplate restTemplate;
 
     private final ClientHttpRequestInterceptor userinfoRestTemplateInterceptor;
 
+    /* From N2oEngineConfiguration */
     @Value("${n2o.engine.rest.url}")
     private String baseRestUrl;
 
@@ -61,6 +63,10 @@ public class RdmWebConfiguration {
         );
     }
 
+    /*
+      Override N2oEngineConfiguration.restDataProviderEngine
+      to add userinfo interceptor to restTemplate in springRestDataProviderEngine.
+    */
     @Bean
     public SpringRestDataProviderEngine restDataProviderEngine(RestTemplateBuilder builder, List<RestLoggingHandler> loggingHandlers) {
         ObjectMapper restObjectMapper = restObjectMapper();
