@@ -341,34 +341,44 @@ public class RefBookServiceImpl implements RefBookService {
 
         final String refBookCode = request.getRefBookCode();
         versionValidation.validateRefBookCodeExists(refBookCode);
-        RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
+
+        final RefBookEntity refBook = refBookRepository.findByCode(refBookCode);
+        Integer draftId;
 
         refBookLockService.setRefBookUpdating(refBook.getId());
         try {
-            Draft draft = draftService.findDraft(refBookCode);
-            if (draft == null) {
-                RefBookVersionEntity lastPublishedEntity = versionRepository
-                        .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
-                draft = draftService.createFromVersion(lastPublishedEntity.getId());
-                if (draft == null)
-                    throw new UserException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBook.getId()));
-            }
+            Draft draft = findOrCreateDraft(refBook);
+            draftId = draft.getId();
 
-            Integer draftId = draft.getId();
             draftService.updateData(draftId, new UpdateDataRequest(draft.getOptLockValue(), request.getRowsToAddOrUpdate()));
 
             draft = draftService.getDraft(draftId);
             draftService.deleteData(draftId, new DeleteDataRequest(draft.getOptLockValue(), request.getRowsToDelete()));
 
-            draft = draftService.getDraft(draftId);
-            publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
-
         } finally {
             refBookLockService.deleteRefBookOperation(refBook.getId());
         }
+
+        Draft draft = draftService.getDraft(draftId);
+        publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
+    }
+
+    private Draft findOrCreateDraft(RefBookEntity refBook) {
+
+        final Draft draft = draftService.findDraft(refBook.getCode());
+        if (draft != null) return draft;
+
+        final RefBookVersionEntity lastPublishedEntity = versionRepository
+                .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBook.getId(), RefBookVersionStatus.PUBLISHED);
+        final Draft createdDraft = draftService.createFromVersion(lastPublishedEntity.getId());
+        if (createdDraft == null)
+            throw new UserException(new Message(REFBOOK_DRAFT_NOT_FOUND_EXCEPTION_CODE, refBook.getId()));
+
+        return createdDraft;
     }
 
     private RefBook refBookModel(RefBookVersionEntity entity, boolean excludeDraft) {
+
         if (entity == null) return null;
 
         RefBook model = new RefBook(ModelGenerator.versionModel(entity));
