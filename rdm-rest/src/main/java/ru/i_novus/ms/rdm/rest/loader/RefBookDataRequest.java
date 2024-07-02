@@ -6,8 +6,16 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
+import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+
 /** Запрос на загрузку справочников через RefBookDataServerLoaderRunner. */
 public class RefBookDataRequest extends RefBookCreateRequest {
+
+    /** Идентификатор изменения справочника. */
+    private String changeSetId;
+
+    /** Тип изменения справочника. */
+    private RefBookDataUpdateTypeEnum updateType = CREATE_ONLY;
 
     /** Структура справочника. */
     private String structure;
@@ -20,6 +28,22 @@ public class RefBookDataRequest extends RefBookCreateRequest {
 
     public RefBookDataRequest() {
         // Nothing to do.
+    }
+
+    public String getChangeSetId() {
+        return changeSetId;
+    }
+
+    public void setChangesetId(String changeSetId) {
+        this.changeSetId = changeSetId;
+    }
+
+    public RefBookDataUpdateTypeEnum getUpdateType() {
+        return updateType;
+    }
+
+    public void setUpdateType(RefBookDataUpdateTypeEnum updateType) {
+        this.updateType = updateType;
     }
 
     public String getStructure() {
@@ -53,15 +77,17 @@ public class RefBookDataRequest extends RefBookCreateRequest {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RefBookDataRequest that = (RefBookDataRequest) o;
-        return Objects.equals(structure, that.structure) &&
+        final RefBookDataRequest that = (RefBookDataRequest) o;
+        return Objects.equals(changeSetId, that.changeSetId) &&
+                (updateType == that.updateType) &&
+                Objects.equals(structure, that.structure) &&
                 Objects.equals(data, that.data) &&
                 Objects.equals(fileModel, that.fileModel);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), structure, data);
+        return Objects.hash(super.hashCode(), changeSetId, updateType, structure, data);
     }
 
     @Override
