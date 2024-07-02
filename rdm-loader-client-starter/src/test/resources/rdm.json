@@ -1,5 +1,6 @@
 [
   {
+    "change_set_id": "id1",
     "code": "TEST_1",
     "name": "Тестовый справочник 1",
     "file": "/rdm/files/TEST_1.xml"
