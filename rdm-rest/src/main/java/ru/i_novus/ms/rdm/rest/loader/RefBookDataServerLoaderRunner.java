@@ -108,35 +108,33 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
     /** Разбор прикрепления и заполнение запроса. */
     private void parseAttachment(Attachment attachment, LoaderDataInfo<?> info, RefBookDataRequest request) {
 
-        String fileName = getFileName(attachment);
-        if (!StringUtils.isEmpty(fileName)) {
-            FileModel fileModel = readFile(attachment, fileName, info);
-            request.setFileModel(fileModel);
-
-            return;
-        }
-
-        String name = attachment.getDataHandler().getDataSource().getName();
+        final String name = attachment.getDataHandler().getDataSource().getName();
 
         String value = attachment.getObject(String.class);
         if (value == null) {
             value = readString(attachment, name, info);
         }
 
-        if ("code".equals(name)) {
+        if ("change_set_id".equals(name)) {
+            request.setChangeSetId(value);
+
+        } else if ("code".equals(name)) {
             request.setCode(value);
-        }
 
-        if ("name".equals(name)) {
+        } else if ("name".equals(name)) {
             request.getPassport().put("name", value);
-        }
 
-        if ("structure".equals(name)) {
+        } else if ("structure".equals(name)) {
             request.setStructure(value);
+
+        } else if ("data".equals(name)) {
+            request.setData(value);
         }
 
-        if ("data".equals(name)) {
-            request.setData(value);
+        final String fileName = getFileName(attachment);
+        if (!StringUtils.isEmpty(fileName)) {
+            FileModel fileModel = readFile(attachment, fileName, info);
+            request.setFileModel(fileModel);
         }
     }
 
