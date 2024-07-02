@@ -15,6 +15,7 @@ import org.springframework.web.client.RestOperations;
 import java.net.URI;
 import java.util.List;
 
+import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUtil.isEmpty;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
@@ -40,7 +41,10 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
     private MultiValueMap<String, Object> getData(RefBookDataModel model) {
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(5);
+        final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(7);
+
+        body.add("change_set_id", !isEmpty(model.getChangeSetId()) ? model.getChangeSetId() : "");
+        body.add("update_type", model.getUpdateType() != null ? model.getUpdateType() : CREATE_ONLY);
 
         if (!isEmpty(model.getCode())) {
             body.add("code", model.getCode());
@@ -68,8 +72,9 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
     @Override
     protected MultiValueMap<String, String> getHeaders() {
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(1);
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(1);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE);
+
         return headers;
     }
 
@@ -81,8 +86,8 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
     private void load(String url, MultiValueMap<String, Object> data, MultiValueMap<String, String> headers) {
 
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
-        ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
+        final HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
+        final ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
 
         if (!response.getStatusCode().is2xxSuccessful())
             throw new LoadingException("Loading failed status " + response.getStatusCodeValue() + " response " + response.getBody());
