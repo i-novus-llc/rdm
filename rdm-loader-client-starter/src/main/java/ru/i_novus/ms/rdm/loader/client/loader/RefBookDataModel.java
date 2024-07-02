@@ -42,7 +42,7 @@ public class RefBookDataModel {
         return changeSetId;
     }
 
-    public void setChangesetId(String changeSetId) {
+    public void setChangeSetId(String changeSetId) {
         this.changeSetId = changeSetId;
     }
 

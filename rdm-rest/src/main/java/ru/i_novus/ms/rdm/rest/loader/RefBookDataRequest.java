@@ -34,7 +34,7 @@ public class RefBookDataRequest extends RefBookCreateRequest {
         return changeSetId;
     }
 
-    public void setChangesetId(String changeSetId) {
+    public void setChangeSetId(String changeSetId) {
         this.changeSetId = changeSetId;
     }
 

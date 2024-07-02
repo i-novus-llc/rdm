@@ -94,7 +94,7 @@ public final class RefBookDataUtil {
             return null; // Ошибка записи: код справочника обязателен!
 
         final RefBookDataModel model = new RefBookDataModel();
-        model.setChangesetId(getByKey(jsonNode, "change_set_id", JsonNode::asText));
+        model.setChangeSetId(getByKey(jsonNode, "change_set_id", JsonNode::asText));
         model.setUpdateType(getUpdateType(jsonNode));
 
         model.setCode(code);
