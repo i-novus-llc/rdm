@@ -48,7 +48,7 @@
         <jaxws.version>2.3.2</jaxws.version>
 
         <!-- security -->
-        <security.admin.version>7.1.0</security.admin.version>
+        <security.admin.version>7.1.2</security.admin.version>
         <!-- / security-->
 
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
