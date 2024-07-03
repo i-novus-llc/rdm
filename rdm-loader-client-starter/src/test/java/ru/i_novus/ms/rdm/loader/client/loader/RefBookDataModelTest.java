@@ -16,12 +16,12 @@ public class RefBookDataModelTest extends BaseTest {
         assertObjects(Assert::assertEquals, emptyModel, emptyModel);
         testEquals(copy(emptyModel), emptyModel);
 
-        RefBookDataModel jsonModel = new RefBookDataModel("test", "Тест", "structure", "data");
-        assertObjects(Assert::assertNotEquals,emptyModel, jsonModel);
-        testEquals(copy(jsonModel), jsonModel);
+        RefBookDataModel dataModel = build("test", "Тест", "structure", "data");
+        assertObjects(Assert::assertNotEquals,emptyModel, dataModel);
+        testEquals(copy(dataModel), dataModel);
 
-        RefBookDataModel fileModel = new RefBookDataModel(null, null, null, new ClassPathResource("dir/file.ext"));
-        assertObjects(Assert::assertNotEquals, jsonModel, fileModel);
+        RefBookDataModel fileModel = new RefBookDataModel(new ClassPathResource("dir/file.ext"));
+        assertObjects(Assert::assertNotEquals, dataModel, fileModel);
         testEquals(copy(fileModel), fileModel);
     }
 
@@ -36,9 +36,20 @@ public class RefBookDataModelTest extends BaseTest {
         assertEquals(current.getFile(), actual.getFile());
     }
 
+    private RefBookDataModel build(String code, String name, String structure, String data) {
+
+        final RefBookDataModel result = new RefBookDataModel();
+        result.setCode(code);
+        result.setName(name);
+        result.setStructure(structure);
+        result.setData(data);
+
+        return result;
+    }
+
     private RefBookDataModel copy(RefBookDataModel origin) {
         
-        RefBookDataModel result = new RefBookDataModel();
+        final RefBookDataModel result = new RefBookDataModel();
         result.setCode(origin.getCode());
         result.setName(origin.getName());
         result.setStructure(origin.getStructure());
