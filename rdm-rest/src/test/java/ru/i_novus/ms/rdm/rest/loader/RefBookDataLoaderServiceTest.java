@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.service;
+package ru.i_novus.ms.rdm.rest.loader;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +15,6 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.rest.BaseTest;
-import ru.i_novus.ms.rdm.rest.loader.RefBookDataRequest;
 
 import java.util.HashMap;
 
@@ -24,6 +23,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
+import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookDataLoaderServiceTest extends BaseTest {
@@ -96,6 +96,7 @@ public class RefBookDataLoaderServiceTest extends BaseTest {
     public void testCreateOrUpdateWhenUpdateSkip() {
 
         final RefBookDataRequest request = createRequest();
+        request.setUpdateType(SKIP_ON_DRAFT);
 
         final RefBook refBook = createRefBook();
         final Page<RefBook> refBooks = new PageImpl<>(singletonList(refBook), new RefBookCriteria(), 0);

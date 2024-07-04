@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.service;
+package ru.i_novus.ms.rdm.rest.loader;
 
 import lombok.extern.log4j.Log4j;
 import net.n2oapp.platform.i18n.UserException;
@@ -17,7 +17,6 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.loader.RefBookDataRequest;
 
 import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
