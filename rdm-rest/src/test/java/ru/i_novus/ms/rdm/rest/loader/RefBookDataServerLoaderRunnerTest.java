@@ -15,7 +15,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import javax.activation.DataSource;
 import javax.ws.rs.core.MediaType;
@@ -25,10 +24,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import static java.util.Collections.emptyMap;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,33 +34,27 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"rawtypes","java:S5778"})
-public class RefBookDataServerLoaderRunnerTest extends BaseTest {
+public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
 
     private static final String LOADED_SUBJECT = "test";
     private static final String LOADED_TARGET = "refBookData";
 
-    private static final String LOADED_CODE = "LOADED_DATA_";
-    private static final String LOADED_NAME = "Loaded Name ";
-    private static final String LOADED_STRUCTURE = "{}";
-    private static final String LOADED_DATA = "{}";
-    
-    private static final String LOADED_FILE_NAME = "loadedData_";
-    private static final String LOADED_FILE_EXT = ".xml";
-    private static final String LOADED_FILE_FOLDER = "src/test/resources/" + "testLoader/";
-
     private static final int LOADED_FILE_SUCCESS_INDEX = 1;
-    @Spy
-    private final List<ServerLoader> loaders = createLoaders();
+
     @InjectMocks
     private RefBookDataServerLoaderRunner runner;
+
+    @Spy
+    private final List<ServerLoader> loaders = createLoaders();
+
     @Mock
     private FileStorageService fileStorageService;
 
     private List<ServerLoader> createLoaders() {
 
-        List<ServerLoader> result = new ArrayList<>(1);
+        final List<ServerLoader> result = new ArrayList<>(1);
 
-        TestServerLoader loader = Mockito.spy(new TestServerLoader());
+        final TestServerLoader loader = Mockito.spy(new TestServerLoader());
         result.add(loader);
 
         return result;
@@ -78,7 +69,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     @Test
     public void testRunInputStream() {
 
-        InputStream body = new ByteArrayInputStream("body".getBytes());
+        final InputStream body = new ByteArrayInputStream("body".getBytes());
         try {
             runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
             fail(getFailedMessage(IllegalArgumentException.class));
@@ -86,13 +77,21 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
         } catch (RuntimeException e) {
             assertEquals(IllegalArgumentException.class, e.getClass());
             assertNotNull(getExceptionMessage(e));
+
+        } finally {
+            try {
+                body.close();
+
+            } catch (IOException e) {
+                fail();
+            }
         }
     }
 
     @Test
     public void testRead() {
 
-        InputStream body = new ByteArrayInputStream("body".getBytes());
+        final InputStream body = new ByteArrayInputStream("body".getBytes());
         try {
             runner.read(body, new TestServerLoader());
             fail(getFailedMessage(IllegalArgumentException.class));
@@ -100,6 +99,14 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
         } catch (RuntimeException e) {
             assertEquals(IllegalArgumentException.class, e.getClass());
             assertNotNull(getExceptionMessage(e));
+
+        } finally {
+            try {
+                body.close();
+
+            } catch (IOException e) {
+                fail();
+            }
         }
     }
 
@@ -107,39 +114,26 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     @SuppressWarnings("unchecked")
     public void testRunMultipartBodyWithJson() {
 
-        int index = LOADED_FILE_SUCCESS_INDEX;
+        final int index = LOADED_FILE_SUCCESS_INDEX;
         RefBookDataRequest expected = createJsonDataRequest(index);
 
-        List<Attachment> attachments = createJsonAttachments(index);
+        final List<Attachment> attachments = createJsonAttachments(index);
         MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(loaders.get(0), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
 
-        List list = captor.getValue();
+        final List list = captor.getValue();
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        Object item = list.get(0);
+        final Object item = list.get(0);
         assertTrue(item instanceof RefBookDataRequest);
 
-        RefBookDataRequest actual = (RefBookDataRequest) item;
+        final RefBookDataRequest actual = (RefBookDataRequest) item;
         assertObjects(Assert::assertEquals, expected, actual);
-    }
-
-    private RefBookDataRequest createJsonDataRequest(int index) {
-
-        RefBookDataRequest expected = new RefBookDataRequest();
-
-        expected.setCode(LOADED_CODE + index);
-        expected.setPassport(new HashMap<>(1));
-        expected.getPassport().put("name", LOADED_NAME + index);
-        expected.setStructure(LOADED_STRUCTURE);
-        expected.setData(LOADED_DATA);
-
-        return expected;
     }
 
     private List<Attachment> createJsonAttachments(int index) {
@@ -156,50 +150,37 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     @SuppressWarnings("unchecked")
     public void testRunMultipartBodyWithFile() {
 
-        int index = LOADED_FILE_SUCCESS_INDEX;
+        final int index = LOADED_FILE_SUCCESS_INDEX;
 
-        RefBookDataRequest expected = createFileDataRequest(index);
+        final RefBookDataRequest expected = createFileDataRequest(index);
 
-        FileModel fileModel = expected.getFileModel();
+        final FileModel fileModel = expected.getFileModel();
         when(fileStorageService.save(any(InputStream.class), eq(fileModel.getName()))).thenReturn(fileModel);
 
-        List<Attachment> attachments = createFileAttachments(index);
-        MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
+        final List<Attachment> attachments = createFileAttachments(index);
+        final MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(loaders.get(0), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
 
-        List list = captor.getValue();
+        final List list = captor.getValue();
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        Object item = list.get(0);
+        final Object item = list.get(0);
         assertTrue(item instanceof RefBookDataRequest);
 
-        RefBookDataRequest actual = (RefBookDataRequest) item;
+        final RefBookDataRequest actual = (RefBookDataRequest) item;
         assertObjects(Assert::assertEquals, expected, actual);
-    }
-
-    private RefBookDataRequest createFileDataRequest(int index) {
-
-        RefBookDataRequest expected = new RefBookDataRequest();
-
-        expected.setCode(LOADED_CODE + index);
-        expected.setPassport(emptyMap());
-
-        String fileName = getFileName(index);
-        FileModel fileModel = new FileModel(null, fileName);
-        expected.setFileModel(fileModel);
-
-        return expected;
     }
 
     private List<Attachment> createFileAttachments(int index) {
 
-        Attachment codeAttachment = getPlainAttachment(index, "code", LOADED_CODE + index);
-        Attachment fileAttachment = getFileAttachment(index);
+        final Attachment codeAttachment = getPlainAttachment(index, "code", LOADED_CODE + index);
+
+        final Attachment fileAttachment = getFileAttachment(index);
         assertNotNull(fileAttachment);
 
         return List.of(codeAttachment, fileAttachment);
@@ -216,15 +197,15 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
     private Attachment getFileAttachment(int index) {
 
         try {
-            Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
-            DataSource dataSource = new InputStreamDataSource(
+            final Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
+            final DataSource dataSource = new InputStreamDataSource(
                     resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename()
             );
 
-            String fileName = resource.getFilename();
+            final String fileName = resource.getFilename();
             assertNotNull(fileName);
 
-            MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
+            final MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + fileName));
 
             return new Attachment("file", dataSource, headers);
@@ -232,10 +213,6 @@ public class RefBookDataServerLoaderRunnerTest extends BaseTest {
         } catch (IOException e) {
             return null;
         }
-    }
-
-    private String getFileName(int index) {
-        return String.format("%s%d%s", LOADED_FILE_NAME, index, LOADED_FILE_EXT);
     }
 
     private static class TestServerLoader implements ServerLoader<RefBookDataRequest> {
