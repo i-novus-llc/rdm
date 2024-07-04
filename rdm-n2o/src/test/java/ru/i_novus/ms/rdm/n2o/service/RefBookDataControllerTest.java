@@ -123,8 +123,7 @@ public class RefBookDataControllerTest  {
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
-        // За вычетом "записи"-заголовка.
-        assertEquals(rowValues.size(), dataGridRows.getContent().size() - 1);
+        assertEquals(rowValues.size(), dataGridRows.getContent().size());
 
         verify(versionService)
                 .search(eq(REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
@@ -170,8 +169,7 @@ public class RefBookDataControllerTest  {
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
-        // За вычетом "записи"-заголовка.
-        assertEquals(rowValues.size(), dataGridRows.getContent().size() - 1);
+        assertEquals(rowValues.size(), dataGridRows.getContent().size());
 
         verify(versionService, times(2))
                 .search(eq(REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
@@ -227,8 +225,7 @@ public class RefBookDataControllerTest  {
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
         assertNotNull(dataGridRows.getContent());
-        // За вычетом "записи"-заголовка.
-        assertEquals(conflictedRowValues.size(), dataGridRows.getContent().size() - 1);
+        assertEquals(conflictedRowValues.size(), dataGridRows.getContent().size());
     }
 
     @Test
@@ -282,6 +279,7 @@ public class RefBookDataControllerTest  {
     private List<Sort.Order> createSortOrders() {
 
         final Sort.Order order = new Sort.Order(Sort.Direction.ASC, DataRecordUtils.addPrefix(ID_ATTRIBUTE_CODE));
+
         return singletonList(order);
     }
 
