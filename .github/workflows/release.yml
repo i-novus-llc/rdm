@@ -33,7 +33,7 @@ jobs:
           gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
 
       - name: Publish to Apache Maven Central
-        run: mvn deploy -Prelease -DskipTests=true
+        run: mvn deploy -Dmaven.javadoc.skip=true -DskipTests=true -Prelease,build-all-modules,!l10n -B -U
         env:
           SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
