@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.api.rest;
 
 import io.swagger.annotations.*;
-import org.apache.cxf.interceptor.OutInterceptors;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
@@ -24,7 +23,6 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "Методы работы с черновиками", hidden = true)
-@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoCxfInterceptor"})
 public interface DraftRestService {
 
     @POST

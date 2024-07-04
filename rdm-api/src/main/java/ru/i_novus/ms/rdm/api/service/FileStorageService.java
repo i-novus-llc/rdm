@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
-import org.apache.cxf.interceptor.OutInterceptors;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 
@@ -14,7 +13,6 @@ import java.io.InputStream;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.MULTIPART_FORM_DATA)
 @Api(value = "Файловое хранилище", hidden = true)
-@OutInterceptors(interceptors = {"ru.i_novus.ms.rdm.config.UserInfoCxfInterceptor"})
 public interface FileStorageService {
 
     @POST
