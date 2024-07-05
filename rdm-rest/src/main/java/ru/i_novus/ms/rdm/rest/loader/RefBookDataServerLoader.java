@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
 import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum;
+import ru.i_novus.ms.rdm.rest.loader.service.RefBookDataLoaderService;
 
 import java.util.List;
 

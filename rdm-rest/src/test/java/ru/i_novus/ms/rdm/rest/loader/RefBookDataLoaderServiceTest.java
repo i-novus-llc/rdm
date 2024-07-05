@@ -15,6 +15,7 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
+import ru.i_novus.ms.rdm.rest.loader.service.RefBookDataLoaderService;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

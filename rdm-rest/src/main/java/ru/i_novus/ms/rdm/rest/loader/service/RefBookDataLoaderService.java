@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.rest.loader.service;
 
 import lombok.extern.log4j.Log4j;
 import net.n2oapp.platform.i18n.UserException;
