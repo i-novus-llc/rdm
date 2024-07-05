@@ -1,10 +1,10 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.impl.service.loader;
 
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
-import ru.i_novus.ms.rdm.rest.BaseTest;
+import ru.i_novus.ms.rdm.impl.BaseTest;
 
 import java.util.HashMap;
 

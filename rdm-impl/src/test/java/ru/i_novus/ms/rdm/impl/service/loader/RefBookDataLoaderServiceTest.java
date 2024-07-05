@@ -1,7 +1,8 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.impl.service.loader;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -9,26 +10,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
-import ru.i_novus.ms.rdm.rest.loader.service.RefBookDataLoaderService;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.*;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
 
     @InjectMocks
-    private RefBookDataLoaderService service;
+    private RefBookDataLoaderServiceImpl service;
 
     @Mock
     private RefBookService refBookService;
@@ -61,7 +61,14 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         assertTrue(actual);
 
         verify(refBookService).create(fileModel);
-        verify(publishService).publish(eq(draft.getId()), any());
+
+        final ArgumentCaptor<PublishRequest> captor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(publishService, times(1)).publish(eq(draft.getId()), captor.capture());
+
+        final PublishRequest expectedPublishRequest = new PublishRequest();
+        final PublishRequest actualPublishRequest = captor.getValue();
+        assertNotNull(actualPublishRequest);
+        assertEquals(expectedPublishRequest.toString(), actualPublishRequest.toString());
 
         verifyNoMoreInteractions(refBookService, draftService, publishService);
     }

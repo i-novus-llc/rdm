@@ -17,7 +17,7 @@ import ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil;
 import java.net.URI;
 import java.util.List;
 
-import static ru.i_novus.ms.rdm.loader.client.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil.isEmpty;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {

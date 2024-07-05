@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.loader.service;
+package ru.i_novus.ms.rdm.impl.service.loader;
 
 import lombok.extern.log4j.Log4j;
 import net.n2oapp.platform.i18n.UserException;
@@ -12,23 +12,24 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
-import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum;
+import ru.i_novus.ms.rdm.api.service.loader.RefBookDataLoaderService;
 
-import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
-import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
 @Service
 @Log4j
 @SuppressWarnings("java:S2139")
-public class RefBookDataLoaderService {
+public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RefBookDataLoaderService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RefBookDataLoaderServiceImpl.class);
 
     private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
     public static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook '{}' is already exists";
@@ -48,6 +49,7 @@ public class RefBookDataLoaderService {
     private PublishService publishService;
 
     @Transactional
+    @Override
     public boolean createAndPublish(RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
@@ -58,6 +60,7 @@ public class RefBookDataLoaderService {
     }
 
     @Transactional
+    @Override
     public boolean createOrUpdate(RefBookDataRequest request) {
 
         final RefBook refBook = findRefBook(request.getCode());

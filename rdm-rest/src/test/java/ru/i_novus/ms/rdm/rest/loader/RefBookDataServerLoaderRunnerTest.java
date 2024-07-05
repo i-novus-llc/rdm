@@ -14,8 +14,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
 
 import javax.activation.DataSource;
 import javax.ws.rs.core.MediaType;

@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.loader.client.model;
 
 import org.springframework.core.io.Resource;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 
 import java.util.Objects;
 
