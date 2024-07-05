@@ -17,9 +17,11 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
+import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum;
 
-import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
-import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
+import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
 @Service
 @Log4j

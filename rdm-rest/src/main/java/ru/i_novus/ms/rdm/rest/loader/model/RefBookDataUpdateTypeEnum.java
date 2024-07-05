@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.rest.loader.model;
 
 import java.util.HashMap;
 import java.util.Map;

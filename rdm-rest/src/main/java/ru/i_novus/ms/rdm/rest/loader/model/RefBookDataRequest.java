@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.rest.loader.model;
 
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
@@ -6,7 +6,7 @@ import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
-import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 /** Запрос на загрузку справочников через RefBookDataServerLoaderRunner. */
 public class RefBookDataRequest extends RefBookCreateRequest {

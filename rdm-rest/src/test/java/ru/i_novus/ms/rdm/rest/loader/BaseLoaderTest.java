@@ -4,6 +4,7 @@ import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.rest.BaseTest;
+import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
 
 import java.util.HashMap;
 

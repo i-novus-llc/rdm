@@ -14,13 +14,14 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.rest.loader.model.RefBookDataRequest;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.*;
+import static ru.i_novus.ms.rdm.rest.loader.model.RefBookDataUpdateTypeEnum.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
