@@ -99,9 +99,7 @@ public class RefBookDataLoaderService {
         logger.info("Start refBook data loading from file '{}'", fileName);
         try {
             final Draft draft = refBookService.create(fileModel);
-
-            final PublishRequest publishRequest = new PublishRequest(null);
-            publishService.publish(draft.getId(), publishRequest);
+            publishDraft(draft.getId());
 
             logger.info("Finish refBook data loading from file '{}'", fileName);
 
@@ -144,9 +142,7 @@ public class RefBookDataLoaderService {
         logger.info("Start draft data loading from file '{}'", fileName);
         try {
             final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
-
-            final PublishRequest publishRequest = new PublishRequest(null);
-            publishService.publish(draft.getId(), publishRequest);
+            publishDraft(draft.getId());
 
             logger.info("Finish draft data loading from file '{}'", fileName);
 
@@ -171,5 +167,11 @@ public class RefBookDataLoaderService {
             logger.error(errorMsg, e);
             throw new UserException(UNKNOWN_ERROR_EXCEPTION_TEXT, e);
         }
+    }
+
+    private void publishDraft(int draftId) {
+
+        final PublishRequest publishRequest = new PublishRequest(null);
+        publishService.publish(draftId, publishRequest);
     }
 }
