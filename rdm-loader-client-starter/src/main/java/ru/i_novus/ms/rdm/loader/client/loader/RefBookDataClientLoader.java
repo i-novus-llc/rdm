@@ -11,12 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataModel;
 
 import java.net.URI;
 import java.util.List;
 
-import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUtil.isEmpty;
+import static ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 

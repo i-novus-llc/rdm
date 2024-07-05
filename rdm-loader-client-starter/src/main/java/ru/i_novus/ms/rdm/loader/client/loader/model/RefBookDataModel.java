@@ -1,10 +1,8 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.loader.model;
 
 import org.springframework.core.io.Resource;
 
 import java.util.Objects;
-
-import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 /** Модель загрузки справочника. */
 public class RefBookDataModel {
@@ -13,7 +11,7 @@ public class RefBookDataModel {
     private String changeSetId;
 
     /** Тип изменения справочника. */
-    private RefBookDataUpdateTypeEnum updateType = CREATE_ONLY;
+    private RefBookDataUpdateTypeEnum updateType = RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
     /** Код справочника. */
     private String code;
