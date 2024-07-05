@@ -20,7 +20,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
+import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
@@ -38,59 +38,136 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     private PublishService publishService;
 
     @Test
-    public void testCreateAndPublish() {
+    public void testCreateAndPublishWithJson() {
 
-        final RefBookDataRequest request = createJsonDataRequest(1);
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 1);
 
         final boolean actual = service.createAndPublish(request);
         assertFalse(actual);
     }
 
     @Test
-    public void testCreateAndPublishWhenFileModel() {
+    public void testCreateAndPublishWithFile() {
 
-        final RefBookDataRequest request = createFileDataRequest(1);
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
         final FileModel fileModel = request.getFileModel();
 
-        final Draft draft = createDraft();
+        final Draft draft = createDraft(DRAFT_ID);
         when(refBookService.create(fileModel)).thenReturn(draft);
 
         final boolean actual = service.createAndPublish(request);
         assertTrue(actual);
 
         verify(refBookService).create(fileModel);
-
         verify(publishService).publish(eq(draft.getId()), any());
 
-        verifyNoMoreInteractions(refBookService, publishService);
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
     }
 
     @Test
     public void testCreateOrUpdateWhenCreate() {
 
-        final RefBookDataRequest request = createJsonDataRequest(2);
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 2);
 
         final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
         when(refBookService.search(any())).thenReturn(refBooks);
 
         final boolean actual = service.createOrUpdate(request);
         assertFalse(actual);
+
+        verify(refBookService).search(any());
+
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
     }
 
     @Test
-    public void testCreateOrUpdateWhenUpdateSkip() {
+    public void testCreateOrUpdateWhenCreateOnly() {
 
-        final RefBookDataRequest request = createJsonDataRequest(2);
-        request.setUpdateType(SKIP_ON_DRAFT);
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 3);
+        request.setUpdateType(CREATE_ONLY);
 
-        final RefBook refBook = createRefBook(1);
-        final Page<RefBook> refBooks = new PageImpl<>(singletonList(refBook), new RefBookCriteria(), 0);
+        final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
         when(refBookService.search(any())).thenReturn(refBooks);
 
-        final Draft draft = createDraft();
+        final boolean actual = service.createOrUpdate(request);
+        assertFalse(actual);
+
+        verify(refBookService).search(any());
+
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
+    }
+
+    @Test
+    public void testCreateOrUpdateWhenSkipOnDraft() {
+
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
+        request.setUpdateType(SKIP_ON_DRAFT);
+
+        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+
+        final Draft draft = createDraft(DRAFT_ID);
         when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
 
         final boolean actual = service.createOrUpdate(request);
         assertFalse(actual);
+
+        verify(refBookService).search(any());
+        verify(draftService).findDraft(refBook.getCode());
+
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
+    }
+
+    @Test
+    public void testCreateOrUpdateWhenForceUpdateWithJson() {
+
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
+        request.setUpdateType(FORCE_UPDATE);
+
+        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+
+        final Draft draft = createDraft(DRAFT_ID);
+        when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
+
+        final boolean actual = service.createOrUpdate(request);
+        assertFalse(actual);
+
+        verify(refBookService).search(any());
+        verify(draftService).findDraft(refBook.getCode());
+
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
+    }
+
+    @Test
+    public void testCreateOrUpdateWhenForceUpdateWithFile() {
+
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
+        request.setUpdateType(FORCE_UPDATE);
+        final FileModel fileModel = request.getFileModel();
+
+        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+
+        final Draft draft = createDraft(DRAFT_ID);
+        when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
+
+        when(draftService.create(REFBOOK_ID, fileModel)).thenReturn(draft);
+
+        final boolean actual = service.createOrUpdate(request);
+        assertTrue(actual);
+
+        verify(refBookService).search(any());
+        verify(draftService).findDraft(refBook.getCode());
+        verify(draftService).create(REFBOOK_ID, fileModel);
+        verify(publishService).publish(eq(draft.getId()), any());
+
+        verifyNoMoreInteractions(refBookService, draftService, publishService);
+    }
+
+    private RefBook mockSearchRefBooks(int index) {
+
+        final RefBook refBook = createRefBook(index);
+        final Page<RefBook> refBooks = new PageImpl<>(singletonList(refBook), new RefBookCriteria(), 0);
+        when(refBookService.search(any())).thenReturn(refBooks);
+
+        return refBook;
     }
 }

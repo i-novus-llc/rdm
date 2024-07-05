@@ -18,6 +18,7 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 
+import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.rest.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
 @Service
@@ -61,8 +62,12 @@ public class RefBookDataLoaderService {
         if (refBook == null)
             return createAndPublish(request);
 
+        final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
+        if (CREATE_ONLY.equals(updateType))
+            return false;
+
         final Draft draft = draftService.findDraft(refBook.getCode());
-        if (draft != null && SKIP_ON_DRAFT.equals(request.getUpdateType()))
+        if (draft != null && SKIP_ON_DRAFT.equals(updateType))
             return false;
 
         return updateAndPublish(refBook, request);

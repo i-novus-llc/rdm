@@ -26,7 +26,7 @@ public class BaseLoaderTest extends BaseTest {
     protected RefBook createRefBook(int index) {
 
         final RefBook result = new RefBook();
-        result.setRefBookId(REFBOOK_ID);
+        result.setRefBookId(index);
         result.setCode(LOADED_CODE + index);
 
         result.setPassport(new HashMap<>(1));
@@ -35,10 +35,10 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
-    protected Draft createDraft() {
+    protected Draft createDraft(int index) {
 
         final Draft result = new Draft();
-        result.setId(DRAFT_ID);
+        result.setId(index);
 
         return result;
     }
