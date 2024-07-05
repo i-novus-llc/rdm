@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.loader.model;
+package ru.i_novus.ms.rdm.loader.client.model;
 
 import org.springframework.core.io.Resource;
 

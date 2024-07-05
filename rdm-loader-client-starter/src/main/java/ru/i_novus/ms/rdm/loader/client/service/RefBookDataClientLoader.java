@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.service;
 
 import net.n2oapp.platform.loader.client.ClientLoader;
 import net.n2oapp.platform.loader.client.LoadingException;
@@ -11,13 +11,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
-import ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataModel;
+import ru.i_novus.ms.rdm.loader.client.model.RefBookDataModel;
+import ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil;
 
 import java.net.URI;
 import java.util.List;
 
-import static ru.i_novus.ms.rdm.loader.client.loader.RefBookDataUtil.isEmpty;
-import static ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.loader.client.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil.isEmpty;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 

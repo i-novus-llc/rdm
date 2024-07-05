@@ -16,6 +16,8 @@
     <properties>
         <config.server.enable>false</config.server.enable>
         <jacoco.skip>false</jacoco.skip>
+
+        <sonar.coverage.exclusions>**/*Properties.java, **/*Configurer.java, **/*AutoConfiguration.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

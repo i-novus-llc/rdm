@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import ru.i_novus.ms.rdm.loader.client.loader.RefBookDataClientLoader;
+import ru.i_novus.ms.rdm.loader.client.service.RefBookDataClientLoader;
 
 /**
  * Настройщик загрузчиков файлов справочников RDM.

@@ -1,12 +1,12 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataModel;
-import ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataUpdateTypeEnum;
+import ru.i_novus.ms.rdm.loader.client.model.RefBookDataModel;
+import ru.i_novus.ms.rdm.loader.client.model.RefBookDataUpdateTypeEnum;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
-import static ru.i_novus.ms.rdm.loader.client.loader.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.loader.client.model.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 public final class RefBookDataUtil {
 

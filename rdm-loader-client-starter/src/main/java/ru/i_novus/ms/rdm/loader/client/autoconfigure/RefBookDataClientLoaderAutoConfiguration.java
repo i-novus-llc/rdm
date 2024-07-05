@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestOperations;
-import ru.i_novus.ms.rdm.loader.client.loader.RefBookDataClientLoader;
-import ru.i_novus.ms.rdm.loader.client.loader.RefBookDataRestTemplateCustomizer;
+import ru.i_novus.ms.rdm.loader.client.service.RefBookDataClientLoader;
+import ru.i_novus.ms.rdm.loader.client.service.RefBookDataRestTemplateCustomizer;
 
 @Configuration
 @ConditionalOnClass(ClientLoader.class)
@@ -34,10 +34,12 @@ public class RefBookDataClientLoaderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RefBookDataClientLoader refBookDataClientLoader(@Qualifier("clientLoaderRestTemplate") RestOperations clientLoaderRestTemplate) {
+    public RefBookDataClientLoader refBookDataClientLoader(@Qualifier("clientLoaderRestTemplate")
+                                                           RestOperations clientLoaderRestTemplate) {
 
-        RefBookDataClientLoader loader = new RefBookDataClientLoader(clientLoaderRestTemplate);
+        final RefBookDataClientLoader loader = new RefBookDataClientLoader(clientLoaderRestTemplate);
         loader.setEndpointPattern(ENDPOINT_PATTERN);
+
         return loader;
     }
 }

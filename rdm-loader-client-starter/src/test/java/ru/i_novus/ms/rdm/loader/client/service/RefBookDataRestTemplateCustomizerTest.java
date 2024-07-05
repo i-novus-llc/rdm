@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.service;
 
 import org.junit.Test;
 import org.springframework.http.converter.FormHttpMessageConverter;
