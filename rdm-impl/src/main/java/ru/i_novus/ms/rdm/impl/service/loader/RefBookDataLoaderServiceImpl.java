@@ -12,7 +12,9 @@ import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
@@ -20,6 +22,10 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.service.loader.RefBookDataLoaderService;
+import ru.i_novus.ms.rdm.api.util.TimeUtils;
+import ru.i_novus.ms.rdm.impl.repository.loader.RefBookDataLoadLogRepository;
+
+import java.time.LocalDateTime;
 
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
@@ -50,18 +56,18 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
     @Transactional
     @Override
-    public boolean createAndPublish(RefBookDataRequest request) {
+    public RefBookDataResponse createAndPublish(RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         if (fileModel != null)
             return createAndPublishFromFile(request);
 
-        return false; // to-do: Добавить поддержку code+structure+data.
+        return null; // to-do: Добавить поддержку code+structure+data.
     }
 
     @Transactional
     @Override
-    public boolean createOrUpdate(RefBookDataRequest request) {
+    public RefBookDataResponse createOrUpdate(RefBookDataRequest request) {
 
         final RefBook refBook = findRefBook(request.getCode());
         if (refBook == null)
@@ -69,22 +75,22 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
         if (CREATE_ONLY.equals(updateType))
-            return false;
+            return null;
 
         final Draft draft = draftService.findDraft(refBook.getCode());
         if (draft != null && SKIP_ON_DRAFT.equals(updateType))
-            return false;
+            return null;
 
         return updateAndPublish(refBook, request);
     }
 
-    public boolean updateAndPublish(RefBook refBook, RefBookDataRequest request) {
+    public RefBookDataResponse updateAndPublish(RefBook refBook, RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         if (fileModel != null)
             return updateAndPublishFromFile(refBook, request);
 
-        return false; // to-do: Добавить поддержку code+structure+data.
+        return null; // to-do: Добавить поддержку code+structure+data.
     }
 
     private RefBook findRefBook(String refBookCode) {
@@ -96,7 +102,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         return refBooks.getTotalElements() > 0 ? refBooks.getContent().get(0) : null;
     }
 
-    private boolean createAndPublishFromFile(RefBookDataRequest request) {
+    private RefBookDataResponse createAndPublishFromFile(RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         final String fileName = fileModel.getName();
@@ -104,11 +110,14 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         logger.info("Start refBook data loading from file '{}'", fileName);
         try {
             final Draft draft = refBookService.create(fileModel);
-            publishDraft(draft.getId());
+
+            final LocalDateTime executedDate = TimeUtils.now();
+            final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
             logger.info("Finish refBook data loading from file '{}'", fileName);
 
-            return true;
+            final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
+            return new RefBookDataResponse(refBookId, executedDate);
 
         } catch (NotFoundException | IllegalArgumentException e) {
 
@@ -121,7 +130,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
                 logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, e.getArgs()[0]);
                 logger.info(LOG_SKIP_CREATE_REF_BOOK, fileName);
-                return false;
+                return null;
 
             } else {
                 logger.error(LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK, fileName);
@@ -139,7 +148,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         }
     }
 
-    private boolean updateAndPublishFromFile(RefBook refBook, RefBookDataRequest request) {
+    private RefBookDataResponse updateAndPublishFromFile(RefBook refBook, RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         final String fileName = fileModel.getName();
@@ -147,11 +156,14 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         logger.info("Start draft data loading from file '{}'", fileName);
         try {
             final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
-            publishDraft(draft.getId());
+
+            final LocalDateTime executedDate = TimeUtils.now();
+            final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
             logger.info("Finish draft data loading from file '{}'", fileName);
 
-            return true;
+            final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
+            return new RefBookDataResponse(refBookId, executedDate);
 
         } catch (NotFoundException | IllegalArgumentException e) {
 
@@ -174,9 +186,11 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         }
     }
 
-    private void publishDraft(int draftId) {
+    private PublishResponse publishDraft(int draftId, LocalDateTime fromDate) {
 
         final PublishRequest publishRequest = new PublishRequest(null);
-        publishService.publish(draftId, publishRequest);
+        publishRequest.setFromDate(fromDate);
+
+        return publishService.publish(draftId, publishRequest);
     }
 }

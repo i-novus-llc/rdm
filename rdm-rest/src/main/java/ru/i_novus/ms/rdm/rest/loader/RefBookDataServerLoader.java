@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.service.loader.RefBookDataLoaderService;
 
@@ -56,11 +57,11 @@ public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest>
 
     private void load(RefBookDataRequest request) {
 
-        final boolean result = processRequest(request);
+        final RefBookDataResponse result = processRequest(request);
         logger.info("Data loading = {}", result);
     }
 
-    private boolean processRequest(RefBookDataRequest request) {
+    private RefBookDataResponse processRequest(RefBookDataRequest request) {
 
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
         switch (updateType) {
@@ -70,7 +71,7 @@ public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest>
             case SKIP_ON_DRAFT:
                 return service.createOrUpdate(request);
             default:
-                return false;
+                return null;
         }
     }
 }
