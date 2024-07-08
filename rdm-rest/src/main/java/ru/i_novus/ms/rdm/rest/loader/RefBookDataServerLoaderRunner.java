@@ -27,7 +27,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Запускатель загрузчиков справочников RDM.
@@ -82,8 +83,8 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         if (!loaderEnabled)
             return;
 
-        ServerLoader loader = find(target);
-        RefBookDataRequest request = toRequest(body, loader);
+        final ServerLoader loader = find(target);
+        final RefBookDataRequest request = toRequest(body, loader);
         if (request == null)
             return;
 
@@ -96,7 +97,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         if (CollectionUtils.isEmpty(body.getAllAttachments()))
             return null;
 
-        RefBookDataRequest request = new RefBookDataRequest();
+        final RefBookDataRequest request = new RefBookDataRequest();
         request.setPassport(new HashMap<>());
 
         for (Attachment attachment : body.getAllAttachments()) {
@@ -119,6 +120,9 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         if ("change_set_id".equals(name)) {
             request.setChangeSetId(value);
 
+        } else if ("update_type".equals(name)) {
+            request.setCode(value);
+
         } else if ("code".equals(name)) {
             request.setCode(value);
 
@@ -130,24 +134,25 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
         } else if ("data".equals(name)) {
             request.setData(value);
-        }
 
-        final String fileName = getFileName(attachment);
-        if (!StringUtils.isEmpty(fileName)) {
-            FileModel fileModel = readFile(attachment, fileName, info);
-            request.setFileModel(fileModel);
+        } else {
+            final String fileName = getFileName(attachment);
+            if (!StringUtils.isEmpty(fileName)) {
+                final FileModel fileModel = readFile(attachment, fileName, info);
+                request.setFileModel(fileModel);
+            }
         }
     }
 
     private String getFileName(Attachment attachment) {
 
-        List<String> contentDispositionHeaders = attachment.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
+        final List<String> contentDispositionHeaders = attachment.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
         if (CollectionUtils.isEmpty(contentDispositionHeaders)
                 || StringUtils.isEmpty(contentDispositionHeaders.get(0))) {
             return null;
         }
 
-        ContentDisposition contentDisposition = new ContentDisposition(contentDispositionHeaders.get(0));
+        final ContentDisposition contentDisposition = new ContentDisposition(contentDispositionHeaders.get(0));
         return contentDisposition.getFilename();
     }
     
@@ -162,12 +167,12 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     private String readString(Attachment attachment, String name, LoaderDataInfo<?> info) {
         try {
-            InputStream inputStream = attachment.getDataHandler().getDataSource().getInputStream();
+            final InputStream inputStream = attachment.getDataHandler().getDataSource().getInputStream();
             if (inputStream == null)
                 return null;
 
             return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines().collect(Collectors.joining("\n"));
+                    .lines().collect(joining("\n"));
 
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Cannot read attachment '%s' for %s", name, info.getTarget()), e);
