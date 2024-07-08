@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -17,12 +18,12 @@ public interface PublishService {
     @Path("/{draftId}")
     @ApiOperation("Публикация справочника")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Справочник опубликован"),
+            @ApiResponse(code = 200, message = "Результат публикации"),
             @ApiResponse(code = 400, message = "Некорректный запрос"),
             @ApiResponse(code = 404, message = "Нет ресурса")
     })
-    void publish(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
-                 PublishRequest request);
+    PublishResponse publish(@ApiParam("Идентификатор публикуемого черновика") @PathParam("draftId") Integer draftId,
+                            PublishRequest request);
 
     @POST
     @Path("/async/{draftId}")

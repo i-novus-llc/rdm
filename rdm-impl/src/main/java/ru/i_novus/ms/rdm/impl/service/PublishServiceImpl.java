@@ -83,23 +83,24 @@ public class PublishServiceImpl implements PublishService {
      * @param request параметры публикации
      */
     @Override
-    public void publish(Integer draftId, PublishRequest request) {
+    public PublishResponse publish(Integer draftId, PublishRequest request) {
 
         versionValidation.validateDraftNotArchived(draftId);
 
-        RefBookVersionEntity entity = getVersionOrThrow(draftId);
-        PublishResponse response = getStrategy(entity, BasePublishStrategy.class).publish(entity, request);
-        if (response == null)
-            return;
+        final RefBookVersionEntity entity = getVersionOrThrow(draftId);
+        final PublishResponse response = getStrategy(entity, BasePublishStrategy.class).publish(entity, request);
+        if (response != null) {
+            resolveConflicts(request, response);
+        }
 
-        resolveConflicts(request, response);
+        return response;
     }
 
     @Override
     @Transactional
     public UUID publishAsync(Integer draftId, PublishRequest request) {
 
-        String code = versionRepository.getOne(draftId).getRefBook().getCode();
+        final String code = versionRepository.getOne(draftId).getRefBook().getCode();
         return asyncQueue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
     }
 
