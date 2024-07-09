@@ -30,7 +30,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
     private RefBookDataServerLoader loader;
 
     @Mock
-    private RefBookDataLoaderService loaderService;
+    private RefBookDataLoaderService service;
 
     @Test
     public void testGetTarget() {
@@ -53,13 +53,13 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
 
         final RefBookDataRequest request = getFileDataRequest();
         final RefBookDataResponse response = new RefBookDataResponse(REFBOOK_ID, null);
-        when(loaderService.load(request)).thenReturn(response);
+        when(service.load(request)).thenReturn(response);
 
         loader.load(List.of(request), LOADED_SUBJECT);
 
-        verify(loaderService, times(1)).load(request);
+        verify(service, times(1)).load(request);
 
-        verifyNoMoreInteractions(loaderService);
+        verifyNoMoreInteractions(service);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
 
         loader.load(null, LOADED_SUBJECT);
 
-        verify(loaderService, times(0)).load(any(RefBookDataRequest.class));
+        verify(service, times(0)).load(any(RefBookDataRequest.class));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
         final RefBookDataRequest request = getFileDataRequest();
 
         final String errorCode = "refbook.with.code.other.error";
-        when(loaderService.load(request)).thenThrow(new UserException(errorCode));
+        when(service.load(request)).thenThrow(new UserException(errorCode));
 
         try {
             loader.load(List.of(request), LOADED_SUBJECT);
@@ -94,7 +94,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
         final RefBookDataRequest request = getFileDataRequest();
 
         final String errorCode = "some error is rethrowed";
-        when(loaderService.load(request)).thenThrow(new NotFoundException(errorCode));
+        when(service.load(request)).thenThrow(new NotFoundException(errorCode));
 
         try {
             loader.load(List.of(request), LOADED_SUBJECT);

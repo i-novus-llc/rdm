@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
+import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
@@ -18,8 +19,8 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
+import ru.i_novus.ms.rdm.impl.repository.loader.RefBookDataLoadLogRepository;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -40,6 +41,9 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Mock
     private PublishService publishService;
 
+    @Mock
+    private RefBookDataLoadLogRepository repository;
+
     @Test
     public void testCreateAndPublishWithJson() {
 
@@ -53,25 +57,28 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     public void testCreateAndPublishWithFile() {
 
         final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
+
+        final String refBookCode = request.getCode();
         final FileModel fileModel = request.getFileModel();
 
         final Draft draft = createDraft(DRAFT_ID);
         when(refBookService.create(fileModel)).thenReturn(draft);
 
+        final PublishResponse publishResponse = createPublishResponse(request);
+        when(publishService.publish(eq(draft.getId()), any())).thenReturn(publishResponse);
+
+        when(refBookService.getId(refBookCode)).thenReturn(REFBOOK_ID);
+
         final RefBookDataResponse actual = service.load(request);
         assertNotNull(actual);
-
-        verify(refBookService).create(fileModel);
+        assertEquals(REFBOOK_ID, actual.getRefBookId().intValue());
 
         final ArgumentCaptor<PublishRequest> captor = ArgumentCaptor.forClass(PublishRequest.class);
         verify(publishService, times(1)).publish(eq(draft.getId()), captor.capture());
 
-        final PublishRequest expectedPublishRequest = new PublishRequest();
         final PublishRequest actualPublishRequest = captor.getValue();
         assertNotNull(actualPublishRequest);
-        assertEquals(expectedPublishRequest.toString(), actualPublishRequest.toString());
-
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
+        assertEquals(actualPublishRequest.getFromDate(), actual.getExecutedDate());
     }
 
     @Test
@@ -79,15 +86,14 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
 
         final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 2);
 
-        final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
-        when(refBookService.search(any())).thenReturn(refBooks);
+        mockExistsRefBook(request);
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
-        verify(refBookService).search(any());
+        verify(repository).existsByCodeAndChangeSetId(request.getCode(), request.getChangeSetId());
 
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
+        verifyNoMoreInteractions(refBookService, draftService, publishService, repository);
     }
 
     @Test
@@ -96,13 +102,10 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 3);
         request.setUpdateType(CREATE_ONLY);
 
-        final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
-        when(refBookService.search(any())).thenReturn(refBooks);
+        mockExistsRefBook(request);
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
-
-        verify(refBookService).search(any());
 
         verifyNoMoreInteractions(refBookService, draftService, publishService);
     }
@@ -113,18 +116,22 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
         request.setUpdateType(SKIP_ON_DRAFT);
 
-        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+        final String refBookCode = request.getCode();
+
+        mockExistsRefBook(request);
+        mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
-        when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
+        when(draftService.findDraft(refBookCode)).thenReturn(draft);
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
+        verify(repository).existsByCodeAndChangeSetId(refBookCode, request.getChangeSetId());
         verify(refBookService).search(any());
-        verify(draftService).findDraft(refBook.getCode());
+        verify(draftService).findDraft(refBookCode);
 
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
+        verifyNoMoreInteractions(refBookService, draftService, publishService, repository);
     }
 
     @Test
@@ -133,18 +140,22 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
         request.setUpdateType(FORCE_UPDATE);
 
-        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+        final String refBookCode = request.getCode();
+
+        mockExistsRefBook(request);
+        mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
-        when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
+        when(draftService.findDraft(refBookCode)).thenReturn(draft);
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
+        verify(repository).existsByCodeAndChangeSetId(refBookCode, request.getChangeSetId());
         verify(refBookService).search(any());
-        verify(draftService).findDraft(refBook.getCode());
+        verify(draftService).findDraft(refBookCode);
 
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
+        verifyNoMoreInteractions(refBookService, draftService, publishService, repository);
     }
 
     @Test
@@ -152,26 +163,42 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
 
         final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
         request.setUpdateType(FORCE_UPDATE);
+
+        final String refBookCode = request.getCode();
         final FileModel fileModel = request.getFileModel();
 
-        final RefBook refBook = mockSearchRefBooks(REFBOOK_ID);
+        mockExistsRefBook(request);
+        mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
-        when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
+        when(draftService.findDraft(refBookCode)).thenReturn(draft);
 
         when(draftService.create(REFBOOK_ID, fileModel)).thenReturn(draft);
 
+        final PublishResponse publishResponse = createPublishResponse(request);
+        when(publishService.publish(eq(draft.getId()), any())).thenReturn(publishResponse);
+
+        when(refBookService.getId(refBookCode)).thenReturn(REFBOOK_ID);
+
         final RefBookDataResponse actual = service.load(request);
         assertNotNull(actual);
+        assertEquals(REFBOOK_ID, actual.getRefBookId().intValue());
 
-        verify(refBookService).search(any());
-        verify(draftService).findDraft(refBook.getCode());
-        verify(draftService).create(REFBOOK_ID, fileModel);
-        verify(publishService).publish(eq(draft.getId()), any());
+        final ArgumentCaptor<PublishRequest> captor = ArgumentCaptor.forClass(PublishRequest.class);
+        verify(publishService, times(1)).publish(eq(draft.getId()), captor.capture());
 
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
+        final PublishRequest actualPublishRequest = captor.getValue();
+        assertNotNull(actualPublishRequest);
+        assertEquals(actualPublishRequest.getFromDate(), actual.getExecutedDate());
     }
 
+    private void mockExistsRefBook(RefBookDataRequest request) {
+
+        when(repository.existsByCodeAndChangeSetId(request.getCode(), request.getChangeSetId()))
+                .thenReturn(false);
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
     private RefBook mockSearchRefBooks(int index) {
 
         final RefBook refBook = createRefBook(index);
@@ -179,5 +206,15 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         when(refBookService.search(any())).thenReturn(refBooks);
 
         return refBook;
+    }
+
+    private static PublishResponse createPublishResponse(RefBookDataRequest request) {
+
+        final PublishResponse publishResponse = new PublishResponse();
+        publishResponse.setRefBookCode(request.getCode());
+        publishResponse.setOldId(DRAFT_ID);
+        publishResponse.setNewId(VERSION_ID);
+
+        return publishResponse;
     }
 }

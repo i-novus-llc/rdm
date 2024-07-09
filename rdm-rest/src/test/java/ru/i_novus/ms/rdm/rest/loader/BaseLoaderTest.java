@@ -14,6 +14,7 @@ public class BaseLoaderTest extends BaseTest {
 
     protected static final int REFBOOK_ID = 1;
     protected static final int DRAFT_ID = 2;
+    protected static final int VERSION_ID = 3;
 
     protected static final String LOADED_CODE = "LOADED_DATA_";
     protected static final String LOADED_NAME = "Loaded Name ";
