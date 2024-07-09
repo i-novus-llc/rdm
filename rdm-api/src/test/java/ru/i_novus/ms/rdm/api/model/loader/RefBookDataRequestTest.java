@@ -15,13 +15,13 @@ public class RefBookDataRequestTest extends BaseTest {
     @Test
     public void testClass() {
 
-        RefBookDataRequest emptyRequest = new RefBookDataRequest();
+        final RefBookDataRequest emptyRequest = new RefBookDataRequest();
         assertSpecialEquals(emptyRequest);
 
-        RefBookDataRequest newRequest = createRequest();
+        final RefBookDataRequest newRequest = createRequest();
         assertObjects(Assert::assertNotEquals, emptyRequest, newRequest);
 
-        RefBookDataRequest copyRequest = copyRequest(newRequest);
+        final RefBookDataRequest copyRequest = copyRequest(newRequest);
         assertObjects(Assert::assertEquals, newRequest, copyRequest);
     }
 
@@ -39,17 +39,17 @@ public class RefBookDataRequestTest extends BaseTest {
 
     private RefBookDataRequest createRequest() {
 
-        final RefBookDataRequest request = new RefBookDataRequest();
-        request.setCode("TEST");
-        request.setPassport(new HashMap<>(1));
-        request.getPassport().put("name", "Test");
-        request.setStructure("{}");
-        request.setData("{}");
+        final RefBookDataRequest result = new RefBookDataRequest();
+        result.setCode("TEST");
+        result.setPassport(new HashMap<>(1));
+        result.getPassport().put("name", "Test");
+        result.setStructure("{}");
+        result.setData("{}");
 
-        FileModel fileModel = new FileModel("filePath", "fileName");
-        request.setFileModel(fileModel);
+        final FileModel fileModel = new FileModel("filePath", "fileName");
+        result.setFileModel(fileModel);
 
-        return request;
+        return result;
     }
 
     private RefBookDataRequest copyRequest(RefBookDataRequest request) {
