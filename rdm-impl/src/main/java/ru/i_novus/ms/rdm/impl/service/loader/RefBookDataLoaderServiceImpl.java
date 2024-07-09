@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
@@ -23,6 +22,7 @@ import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.service.loader.RefBookDataLoaderService;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
+import ru.i_novus.ms.rdm.impl.entity.loader.RefBookDataLoadLogEntity;
 import ru.i_novus.ms.rdm.impl.repository.loader.RefBookDataLoadLogRepository;
 
 import java.time.LocalDateTime;
@@ -37,13 +37,17 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataLoaderServiceImpl.class);
 
-    private static final String REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE = "refbook.with.code.already.exists";
-    public static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook '{}' is already exists";
-    public static final String LOG_SKIP_CREATE_REF_BOOK = "Skip create RefBook from file '{}'";
-    public static final String LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK = "Error creating and publishing refBook from file '{}'";
-    public static final String LOG_ERROR_CREATING_AND_PUBLISHING_DRAFT = "Error creating and publishing draft from file '{}'";
-    public static final String LOG_ERROR_DATA_LOADING_WITH_EXCEPTION = "Error data loading from file '%s':";
-    public static final String UNKNOWN_ERROR_EXCEPTION_TEXT = "Unknown error";
+    private static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook with code='{}' is already exists";
+    private static final String LOG_SKIP_REF_BOOK_DATA_LOADING = "Skip refBook data loading for: code='{}', changeSetId='{}'";
+    private static final String LOG_START_REF_BOOK_DATA_LOADING = "Start refBook data loading for: code='{}', changeSetId='{}'";
+    private static final String LOG_FINISH_REF_BOOK_DATA_LOADING = "Finish refBook data loading for: code='{}', changeSetId='{}'";
+    private static final String LOG_ERROR_REF_BOOK_DATA_LOADING = "Error refBook data loading for: code='%s', changeSetId='%s', updateType=%s";
+
+    private static final String LOG_SKIP_CREATE_REF_BOOK = "Skip create RefBook from file '{}'";
+    private static final String LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK = "Error creating and publishing refBook from file '{}'";
+    private static final String LOG_ERROR_CREATING_AND_PUBLISHING_DRAFT = "Error creating and publishing draft from file '{}'";
+    private static final String LOG_ERROR_DATA_LOADING_WITH_EXCEPTION = "Error data loading from file '%s':";
+    private static final String UNKNOWN_ERROR_EXCEPTION_TEXT = "Unknown error";
 
     @Autowired
     private RefBookService refBookService;
@@ -54,9 +58,82 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
     @Autowired
     private PublishService publishService;
 
+    @Autowired
+    private RefBookDataLoadLogRepository repository;
+
     @Transactional
     @Override
     public RefBookDataResponse load(RefBookDataRequest request) {
+
+        final String code = request.getCode();
+        final String changeSetId = request.getChangeSetId();
+        final boolean isPresent = repository.existsByCodeAndChangeSetId(code, changeSetId);
+
+        if (isPresent && CREATE_ONLY.equals(request.getUpdateType())) {
+
+            logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, code);
+            logger.info(LOG_SKIP_REF_BOOK_DATA_LOADING, code, changeSetId);
+            return null;
+        }
+
+        final RefBookDataResponse response = tryLoad(request);
+        saveLoadLog(request, response);
+
+        return response;
+    }
+
+    private void saveLoadLog(RefBookDataRequest request, RefBookDataResponse response) {
+
+        if (response == null)
+            return;
+
+        final RefBookDataLoadLogEntity entity = new RefBookDataLoadLogEntity();
+        entity.setChangeSetId(request.getChangeSetId());
+        entity.setUpdateType(request.getUpdateType());
+        entity.setCode(request.getCode());
+
+        final FileModel fileModel = request.getFileModel();
+        if (fileModel != null) {
+            entity.setFilePath(fileModel.getPath());
+            entity.setFileName(fileModel.getName());
+        }
+
+        entity.setRefBookId(response.getRefBookId());
+        entity.setExecutedDate(response.getExecutedDate());
+
+        repository.save(entity);
+    }
+
+    private RefBookDataResponse tryLoad(RefBookDataRequest request) {
+
+        final String code = request.getCode();
+        final String changeSetId = request.getChangeSetId();
+        logger.info(LOG_START_REF_BOOK_DATA_LOADING, code, changeSetId);
+        try {
+            final RefBookDataResponse response = loadByType(request);
+
+            logger.info(LOG_FINISH_REF_BOOK_DATA_LOADING, code, changeSetId);
+
+            return response;
+
+        } catch (IllegalArgumentException | UserException e) {
+
+            final String errorMsg = String.format(LOG_ERROR_REF_BOOK_DATA_LOADING,
+                    code, changeSetId, request.getUpdateType());
+            logger.error(errorMsg, e);
+            throw e;
+
+
+        } catch (Exception e) {
+
+            final String errorMsg = String.format(LOG_ERROR_REF_BOOK_DATA_LOADING,
+                    code, changeSetId, request.getUpdateType());
+            logger.error(errorMsg, e);
+            throw new UserException(UNKNOWN_ERROR_EXCEPTION_TEXT, e);
+        }
+    }
+
+    private RefBookDataResponse loadByType(RefBookDataRequest request) {
 
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
         switch (updateType) {
@@ -120,44 +197,15 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         final String fileName = fileModel.getName();
 
         logger.info("Start refBook data loading from file '{}'", fileName);
-        try {
-            final Draft draft = refBookService.create(fileModel);
 
-            final LocalDateTime executedDate = TimeUtils.now();
-            final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
+        final Draft draft = refBookService.create(fileModel);
+        final LocalDateTime executedDate = TimeUtils.now();
+        final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
-            logger.info("Finish refBook data loading from file '{}'", fileName);
+        logger.info("Finish refBook data loading from file '{}'", fileName);
 
-            final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
-            return new RefBookDataResponse(refBookId, executedDate);
-
-        } catch (NotFoundException | IllegalArgumentException e) {
-
-            final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-            logger.error(errorMsg, e);
-            throw e;
-
-        } catch (UserException e) {
-            if (REF_BOOK_ALREADY_EXISTS_EXCEPTION_CODE.equals(e.getCode())) {
-
-                logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, e.getArgs()[0]);
-                logger.info(LOG_SKIP_CREATE_REF_BOOK, fileName);
-                return null;
-
-            } else {
-                logger.error(LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK, fileName);
-
-                final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-                logger.error(errorMsg, e);
-                throw e;
-            }
-
-        } catch (Exception e) {
-
-            final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-            logger.error(errorMsg, e);
-            throw new UserException(UNKNOWN_ERROR_EXCEPTION_TEXT, e);
-        }
+        final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
+        return new RefBookDataResponse(refBookId, executedDate);
     }
 
     private RefBookDataResponse updateAndPublishFromFile(RefBook refBook, RefBookDataRequest request) {
@@ -166,36 +214,15 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         final String fileName = fileModel.getName();
 
         logger.info("Start draft data loading from file '{}'", fileName);
-        try {
-            final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
 
-            final LocalDateTime executedDate = TimeUtils.now();
-            final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
+        final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
+        final LocalDateTime executedDate = TimeUtils.now();
+        final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
-            logger.info("Finish draft data loading from file '{}'", fileName);
+        logger.info("Finish draft data loading from file '{}'", fileName);
 
-            final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
-            return new RefBookDataResponse(refBookId, executedDate);
-
-        } catch (NotFoundException | IllegalArgumentException e) {
-
-            final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-            logger.error(errorMsg, e);
-            throw e;
-
-        } catch (UserException e) {
-            logger.error(LOG_ERROR_CREATING_AND_PUBLISHING_DRAFT, fileName);
-
-            final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-            logger.error(errorMsg, e);
-            throw e;
-
-        } catch (Exception e) {
-
-            final String errorMsg = String.format(LOG_ERROR_DATA_LOADING_WITH_EXCEPTION, fileName);
-            logger.error(errorMsg, e);
-            throw new UserException(UNKNOWN_ERROR_EXCEPTION_TEXT, e);
-        }
+        final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
+        return new RefBookDataResponse(refBookId, executedDate);
     }
 
     private PublishResponse publishDraft(int draftId, LocalDateTime fromDate) {
