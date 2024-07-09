@@ -28,19 +28,18 @@ public class RefBookDataRequestTest extends BaseTest {
     @Test
     public void testClassWithSuper() {
 
-        RefBookDataRequest emptyRequest = new RefBookDataRequest();
-        RefBookCreateRequest superRequest = new RefBookCreateRequest();
+        final RefBookDataRequest emptyRequest = new RefBookDataRequest();
+        final RefBookCreateRequest superRequest = new RefBookCreateRequest();
         assertNotEquals(emptyRequest, superRequest);
 
-        RefBookDataRequest newRequest = createRequest();
-        RefBookCreateRequest copyRequest = copySuperRequest(newRequest);
+        final RefBookDataRequest newRequest = createRequest();
+        final RefBookCreateRequest copyRequest = copySuperRequest(newRequest);
         assertObjects(Assert::assertNotEquals, newRequest, copyRequest);
     }
 
     private RefBookDataRequest createRequest() {
 
-        RefBookDataRequest request = new RefBookDataRequest();
-
+        final RefBookDataRequest request = new RefBookDataRequest();
         request.setCode("TEST");
         request.setPassport(new HashMap<>(1));
         request.getPassport().put("name", "Test");
@@ -55,8 +54,7 @@ public class RefBookDataRequestTest extends BaseTest {
 
     private RefBookDataRequest copyRequest(RefBookDataRequest request) {
 
-        RefBookDataRequest result = new RefBookDataRequest();
-
+        final RefBookDataRequest result = new RefBookDataRequest();
         result.setCode(request.getCode());
         result.setType(request.getType());
         result.setPassport(request.getPassport());

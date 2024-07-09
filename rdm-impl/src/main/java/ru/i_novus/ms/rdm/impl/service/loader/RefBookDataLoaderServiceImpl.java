@@ -56,7 +56,21 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
     @Transactional
     @Override
-    public RefBookDataResponse createAndPublish(RefBookDataRequest request) {
+    public RefBookDataResponse load(RefBookDataRequest request) {
+
+        final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
+        switch (updateType) {
+            case CREATE_ONLY:
+                return createAndPublish(request);
+            case FORCE_UPDATE:
+            case SKIP_ON_DRAFT:
+                return createOrUpdate(request);
+            default:
+                return null;
+        }
+    }
+
+    private RefBookDataResponse createAndPublish(RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         if (fileModel != null)
@@ -65,9 +79,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         return null; // to-do: Добавить поддержку code+structure+data.
     }
 
-    @Transactional
-    @Override
-    public RefBookDataResponse createOrUpdate(RefBookDataRequest request) {
+    private RefBookDataResponse createOrUpdate(RefBookDataRequest request) {
 
         final RefBook refBook = findRefBook(request.getCode());
         if (refBook == null)
@@ -84,7 +96,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         return updateAndPublish(refBook, request);
     }
 
-    public RefBookDataResponse updateAndPublish(RefBook refBook, RefBookDataRequest request) {
+    private RefBookDataResponse updateAndPublish(RefBook refBook, RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
         if (fileModel != null)

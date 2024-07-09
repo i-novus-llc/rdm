@@ -8,7 +8,5 @@ import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
  */
 public interface RefBookDataLoaderService {
 
-    RefBookDataResponse createAndPublish(RefBookDataRequest request);
-
-    RefBookDataResponse createOrUpdate(RefBookDataRequest request);
+    RefBookDataResponse load(RefBookDataRequest request);
 }

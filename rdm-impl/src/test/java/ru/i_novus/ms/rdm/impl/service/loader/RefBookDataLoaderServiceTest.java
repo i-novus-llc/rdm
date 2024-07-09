@@ -45,7 +45,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
 
         final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 1);
 
-        final RefBookDataResponse actual = service.createAndPublish(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
     }
 
@@ -58,7 +58,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final Draft draft = createDraft(DRAFT_ID);
         when(refBookService.create(fileModel)).thenReturn(draft);
 
-        final RefBookDataResponse actual = service.createAndPublish(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNotNull(actual);
 
         verify(refBookService).create(fileModel);
@@ -82,7 +82,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
         when(refBookService.search(any())).thenReturn(refBooks);
 
-        final RefBookDataResponse actual = service.createOrUpdate(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
         verify(refBookService).search(any());
@@ -99,7 +99,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
         when(refBookService.search(any())).thenReturn(refBooks);
 
-        final RefBookDataResponse actual = service.createOrUpdate(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
         verify(refBookService).search(any());
@@ -118,7 +118,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final Draft draft = createDraft(DRAFT_ID);
         when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
 
-        final RefBookDataResponse actual = service.createOrUpdate(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
         verify(refBookService).search(any());
@@ -138,7 +138,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         final Draft draft = createDraft(DRAFT_ID);
         when(draftService.findDraft(refBook.getCode())).thenReturn(draft);
 
-        final RefBookDataResponse actual = service.createOrUpdate(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
         verify(refBookService).search(any());
@@ -161,7 +161,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
 
         when(draftService.create(REFBOOK_ID, fileModel)).thenReturn(draft);
 
-        final RefBookDataResponse actual = service.createOrUpdate(request);
+        final RefBookDataResponse actual = service.load(request);
         assertNotNull(actual);
 
         verify(refBookService).search(any());

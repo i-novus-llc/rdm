@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
 import ru.i_novus.ms.rdm.api.service.loader.RefBookDataLoaderService;
 
 import java.util.List;
@@ -51,11 +52,12 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
     public void testLoad() {
 
         final RefBookDataRequest request = getFileDataRequest();
-        when(loaderService.createAndPublish(request)).thenReturn(true);
+        final RefBookDataResponse response = new RefBookDataResponse(REFBOOK_ID, null);
+        when(loaderService.load(request)).thenReturn(response);
 
         loader.load(List.of(request), LOADED_SUBJECT);
 
-        verify(loaderService, times(1)).createAndPublish(request);
+        verify(loaderService, times(1)).load(request);
 
         verifyNoMoreInteractions(loaderService);
     }
@@ -65,7 +67,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
 
         loader.load(null, LOADED_SUBJECT);
 
-        verify(loaderService, times(0)).createAndPublish(any(RefBookDataRequest.class));
+        verify(loaderService, times(0)).load(any(RefBookDataRequest.class));
     }
 
     @Test
@@ -74,7 +76,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
         final RefBookDataRequest request = getFileDataRequest();
 
         final String errorCode = "refbook.with.code.other.error";
-        when(loaderService.createAndPublish(request)).thenThrow(new UserException(errorCode));
+        when(loaderService.load(request)).thenThrow(new UserException(errorCode));
 
         try {
             loader.load(List.of(request), LOADED_SUBJECT);
@@ -92,7 +94,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
         final RefBookDataRequest request = getFileDataRequest();
 
         final String errorCode = "some error is rethrowed";
-        when(loaderService.createAndPublish(request)).thenThrow(new NotFoundException(errorCode));
+        when(loaderService.load(request)).thenThrow(new NotFoundException(errorCode));
 
         try {
             loader.load(List.of(request), LOADED_SUBJECT);
