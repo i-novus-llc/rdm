@@ -30,6 +30,6 @@ public enum RefBookDataUpdateTypeEnum {
      */
     public static RefBookDataUpdateTypeEnum fromValue(String value, RefBookDataUpdateTypeEnum defaultType) {
 
-        return value != null ? TYPE_MAP.get(value) : defaultType;
+        return value != null ? TYPE_MAP.getOrDefault(value, defaultType) : defaultType;
     }
 }

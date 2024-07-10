@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 /**
@@ -122,7 +124,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
             request.setChangeSetId(value);
 
         } else if (FIELD_UPDATE_TYPE.equals(name)) {
-            request.setCode(value);
+            request.setUpdateType(RefBookDataUpdateTypeEnum.fromValue(value, CREATE_ONLY));
 
         } else if (FIELD_REF_BOOK_CODE.equals(name)) {
             request.setCode(value);
@@ -136,7 +138,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         } else if (FIELD_REF_BOOK_DATA.equals(name)) {
             request.setData(value);
 
-        } else if (FIELD_REF_BOOK_FILE.equals(name)) {
+        } else {
             final String fileName = getFileName(attachment);
             if (!StringUtils.isEmpty(fileName)) {
                 final FileModel fileModel = readFile(attachment, fileName, info);
