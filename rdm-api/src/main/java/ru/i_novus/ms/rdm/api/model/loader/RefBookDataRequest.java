@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.api.model.loader;
 
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.util.Objects;
 
@@ -90,10 +89,5 @@ public class RefBookDataRequest extends RefBookCreateRequest {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), changeSetId, updateType, structure, data);
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }
