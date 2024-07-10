@@ -50,16 +50,15 @@ public class RefBookDataClientLoaderTest extends BaseTest {
         final Resource jsonFile = new ClassPathResource("rdm.json");
 
         final ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.ACCEPTED);
-
-        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
         when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class))).thenReturn(response);
 
         loader.load(newUri(), "test", "refBookData", jsonFile);
 
+        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
         verify(restTemplate, times(2))
                 .postForEntity(any(String.class), captor.capture(), eq(String.class));
-
         assertNotNull(captor);
+
         final List<Object> objValues = captor.getAllValues();
         assertEquals(2, objValues.size());
 
@@ -85,12 +84,10 @@ public class RefBookDataClientLoaderTest extends BaseTest {
     @Test
     public void testLoadFailed() {
 
-        Resource jsonFile = new ClassPathResource("rdm.json");
+        final Resource jsonFile = new ClassPathResource("rdm.json");
 
-        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-        when(restTemplate.postForEntity(any(String.class), captor.capture(), eq(String.class))).thenReturn(response);
+        final ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class))).thenReturn(response);
 
         try {
             loader.load(newUri(), "test", "refBookData", jsonFile);
@@ -101,8 +98,11 @@ public class RefBookDataClientLoaderTest extends BaseTest {
             assertNotNull(getExceptionMessage(e));
         }
 
+        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(restTemplate).postForEntity(any(String.class), captor.capture(), eq(String.class));
         assertNotNull(captor);
-        List<Object> objValues = captor.getAllValues();
+
+        final List<Object> objValues = captor.getAllValues();
         assertEquals(1, objValues.size());
     }
 
