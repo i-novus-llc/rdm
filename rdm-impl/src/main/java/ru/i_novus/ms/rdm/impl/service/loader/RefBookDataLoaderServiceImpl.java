@@ -43,10 +43,6 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
     private static final String LOG_FINISH_REF_BOOK_DATA_LOADING = "Finish refBook data loading for: code='{}', changeSetId='{}'";
     private static final String LOG_ERROR_REF_BOOK_DATA_LOADING = "Error refBook data loading for: code='%s', changeSetId='%s', updateType=%s";
 
-    private static final String LOG_SKIP_CREATE_REF_BOOK = "Skip create RefBook from file '{}'";
-    private static final String LOG_ERROR_CREATING_AND_PUBLISHING_REF_BOOK = "Error creating and publishing refBook from file '{}'";
-    private static final String LOG_ERROR_CREATING_AND_PUBLISHING_DRAFT = "Error creating and publishing draft from file '{}'";
-    private static final String LOG_ERROR_DATA_LOADING_WITH_EXCEPTION = "Error data loading from file '%s':";
     private static final String UNKNOWN_ERROR_EXCEPTION_TEXT = "Unknown error";
 
     @Autowired
