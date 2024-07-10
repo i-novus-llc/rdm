@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
@@ -37,7 +38,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataLoaderServiceImpl.class);
 
-    private static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook with code='{}' is already exists";
+    private static final String LOG_REF_BOOK_IS_ALREADY_EXISTS = "RefBook with code='{}' is already exists: id={}";
     private static final String LOG_SKIP_REF_BOOK_DATA_LOADING = "Skip refBook data loading for: code='{}', changeSetId='{}'";
     private static final String LOG_START_REF_BOOK_DATA_LOADING = "Start refBook data loading for: code='{}', changeSetId='{}'";
     private static final String LOG_FINISH_REF_BOOK_DATA_LOADING = "Finish refBook data loading for: code='{}', changeSetId='{}'";
@@ -57,17 +58,26 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
     @Autowired
     private RefBookDataLoadLogRepository repository;
 
-    @Transactional
+    /**
+     * Загрузка (и публикация) справочника.
+     * <p>
+     * Т.к. при публикации справочника таблица его черновика преобразуется в таблицу версии
+     * в методе DraftDataServiceImpl.applyDraft с отключенной (NOT_SUPPORTED) транзакцией,
+     * то текущий метод обязательно должен быть нетранзакционным, иначе будет возникать
+     * ошибка, связанная с отсутствием таблицы черновика при его публикации справочника.
+     *
+     * @param request запрос на загрузку
+     * @return Ответ - результат загрузки
+     */
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public RefBookDataResponse load(RefBookDataRequest request) {
 
         final String code = request.getCode();
         final String changeSetId = request.getChangeSetId();
+
         final boolean isPresent = repository.existsByCodeAndChangeSetId(code, changeSetId);
-
-        if (isPresent && CREATE_ONLY.equals(request.getUpdateType())) {
-
-            logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, code);
+        if (isPresent) {
             logger.info(LOG_SKIP_REF_BOOK_DATA_LOADING, code, changeSetId);
             return null;
         }
@@ -131,19 +141,28 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 
     private RefBookDataResponse loadByType(RefBookDataRequest request) {
 
+        final String code = request.getCode();
+        final RefBook refBook = findRefBook(code);
+        if (refBook != null) {
+            logger.info(LOG_REF_BOOK_IS_ALREADY_EXISTS, code, refBook.getRefBookId());
+        }
+
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
         switch (updateType) {
             case CREATE_ONLY:
-                return createAndPublish(request);
+                return createAndPublish(refBook, request);
             case FORCE_UPDATE:
             case SKIP_ON_DRAFT:
-                return createOrUpdate(request);
+                return createOrUpdate(refBook, request);
             default:
                 return null;
         }
     }
 
-    private RefBookDataResponse createAndPublish(RefBookDataRequest request) {
+    private RefBookDataResponse createAndPublish(RefBook refBook, RefBookDataRequest request) {
+
+        if (refBook != null)
+            return null;
 
         final FileModel fileModel = request.getFileModel();
         if (fileModel != null)
@@ -152,11 +171,10 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         return null; // to-do: Добавить поддержку code+structure+data.
     }
 
-    private RefBookDataResponse createOrUpdate(RefBookDataRequest request) {
+    private RefBookDataResponse createOrUpdate(RefBook refBook, RefBookDataRequest request) {
 
-        final RefBook refBook = findRefBook(request.getCode());
         if (refBook == null)
-            return createAndPublish(request);
+            return createAndPublish(null, request);
 
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
         if (CREATE_ONLY.equals(updateType))
@@ -190,42 +208,27 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
     private RefBookDataResponse createAndPublishFromFile(RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
-        final String fileName = fileModel.getName();
-
-        logger.info("Start refBook data loading from file '{}'", fileName);
-
         final Draft draft = refBookService.create(fileModel);
-        final LocalDateTime executedDate = TimeUtils.now();
-        final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
-        logger.info("Finish refBook data loading from file '{}'", fileName);
-
-        final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
-        return new RefBookDataResponse(refBookId, executedDate);
+        return publishDraft(draft.getId(), TimeUtils.now());
     }
 
     private RefBookDataResponse updateAndPublishFromFile(RefBook refBook, RefBookDataRequest request) {
 
         final FileModel fileModel = request.getFileModel();
-        final String fileName = fileModel.getName();
-
-        logger.info("Start draft data loading from file '{}'", fileName);
-
         final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
-        final LocalDateTime executedDate = TimeUtils.now();
-        final PublishResponse publishResponse = publishDraft(draft.getId(), executedDate);
 
-        logger.info("Finish draft data loading from file '{}'", fileName);
+        return publishDraft(draft.getId(), TimeUtils.now());
+    }
+
+    private RefBookDataResponse publishDraft(int draftId, LocalDateTime executedDate) {
+
+        final PublishRequest publishRequest = new PublishRequest(null);
+        publishRequest.setFromDate(executedDate);
+
+        final PublishResponse publishResponse = publishService.publish(draftId, publishRequest);
 
         final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
         return new RefBookDataResponse(refBookId, executedDate);
-    }
-
-    private PublishResponse publishDraft(int draftId, LocalDateTime fromDate) {
-
-        final PublishRequest publishRequest = new PublishRequest(null);
-        publishRequest.setFromDate(fromDate);
-
-        return publishService.publish(draftId, publishRequest);
     }
 }
