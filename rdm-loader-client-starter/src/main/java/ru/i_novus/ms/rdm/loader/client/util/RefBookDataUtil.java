@@ -20,6 +20,16 @@ public final class RefBookDataUtil {
 
     private static final char FILE_NAME_EXT_SEPARATOR = '.';
 
+    private static final String JSON_CHANGE_SET_ID = "change_set_id";
+    private static final String JSON_UPDATE_TYPE = "update_type";
+
+    private static final String JSON_REF_BOOK_CODE = "code";
+    private static final String JSON_REF_BOOK_NAME = "name";
+
+    private static final String JSON_REF_BOOK_STRUCTURE = "structure";
+    private static final String JSON_REF_BOOK_DATA = "data";
+    private static final String JSON_REF_BOOK_FILE = "file";
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private RefBookDataUtil() {
@@ -90,23 +100,23 @@ public final class RefBookDataUtil {
         if (isEmptyNode(jsonNode))
             return null;
 
-        final String code = getByKey(jsonNode, "code", JsonNode::asText);
-        final String filePath = getByKey(jsonNode,"file", JsonNode::asText);
+        final String code = getByKey(jsonNode, JSON_REF_BOOK_CODE, JsonNode::asText);
+        final String filePath = getByKey(jsonNode,JSON_REF_BOOK_FILE, JsonNode::asText);
         if (isEmpty(code) && isEmpty(filePath))
             return null; // Ошибка записи: код справочника обязателен!
 
         final RefBookDataModel model = new RefBookDataModel();
-        model.setChangeSetId(getByKey(jsonNode, "change_set_id", JsonNode::asText));
+        model.setChangeSetId(getByKey(jsonNode, JSON_CHANGE_SET_ID, JsonNode::asText));
         model.setUpdateType(getUpdateType(jsonNode));
 
         model.setCode(code);
-        model.setName(getByKey(jsonNode, "name", JsonNode::asText));
-        model.setStructure(getByKey(jsonNode, "structure", RefBookDataUtil::asJsonString));
+        model.setName(getByKey(jsonNode, JSON_REF_BOOK_NAME, JsonNode::asText));
+        model.setStructure(getByKey(jsonNode, JSON_REF_BOOK_STRUCTURE, RefBookDataUtil::asJsonString));
 
         if (!isEmpty(filePath)) {
             model.setFile(new ClassPathResource(filePath));
         } else {
-            model.setData(getByKey(jsonNode, "data", RefBookDataUtil::asJsonString));
+            model.setData(getByKey(jsonNode, JSON_REF_BOOK_DATA, RefBookDataUtil::asJsonString));
         }
 
         return model;
@@ -114,7 +124,7 @@ public final class RefBookDataUtil {
 
     private static RefBookDataUpdateTypeEnum getUpdateType(JsonNode jsonNode) {
 
-        final String updateType = getByKey(jsonNode, "update_type", JsonNode::asText);
+        final String updateType = getByKey(jsonNode, JSON_UPDATE_TYPE, JsonNode::asText);
         return RefBookDataUpdateTypeEnum.fromValue(updateType, CREATE_ONLY);
     }
 

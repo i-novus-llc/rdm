@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_FILE;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("rawtypes")
@@ -46,19 +47,20 @@ public class RefBookDataClientLoaderTest extends BaseTest {
     @Test
     public void testLoad() {
 
-        Resource jsonFile = new ClassPathResource("rdm.json");
+        final Resource jsonFile = new ClassPathResource("rdm.json");
 
-        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.ACCEPTED);
+        final ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.ACCEPTED);
 
-        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-        when(restTemplate.postForEntity(any(String.class), captor.capture(), eq(String.class))).thenReturn(response);
+        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class))).thenReturn(response);
 
         loader.load(newUri(), "test", "refBookData", jsonFile);
 
-        verify(restTemplate, times(2)).postForEntity(any(String.class), any(Object.class), eq(String.class));
+        verify(restTemplate, times(2))
+                .postForEntity(any(String.class), captor.capture(), eq(String.class));
 
         assertNotNull(captor);
-        List<Object> objValues = captor.getAllValues();
+        final List<Object> objValues = captor.getAllValues();
         assertEquals(2, objValues.size());
 
         objValues.forEach(this::testCaptorValue);
@@ -68,15 +70,16 @@ public class RefBookDataClientLoaderTest extends BaseTest {
 
         assertTrue(value instanceof HttpEntity);
 
-        HttpEntity request = (HttpEntity) value;
+        final HttpEntity request = (HttpEntity) value;
 
-        Object body = request.getBody();
+        final Object body = request.getBody();
         assertNotNull(body);
         assertTrue(body instanceof MultiValueMap);
 
         @SuppressWarnings("unchecked")
-        MultiValueMap<String, Object> data = (MultiValueMap) body;
-        assertEquals(data.containsKey("file") ? 3 : 4, data.size());
+        final MultiValueMap<String, Object> data = (MultiValueMap) body;
+        // Тело должно содержать либо поле file, либо поля structure и data.
+        assertEquals(data.containsKey(FIELD_REF_BOOK_FILE) ? 1 : 2, data.size() - 4);
     }
 
     @Test

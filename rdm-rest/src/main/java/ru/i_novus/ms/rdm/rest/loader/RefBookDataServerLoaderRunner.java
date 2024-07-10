@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 /**
  * Запускатель загрузчиков справочников RDM.
@@ -117,25 +118,25 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
             value = readString(attachment, name, info);
         }
 
-        if ("change_set_id".equals(name)) {
+        if (FIELD_CHANGE_SET_ID.equals(name)) {
             request.setChangeSetId(value);
 
-        } else if ("update_type".equals(name)) {
+        } else if (FIELD_UPDATE_TYPE.equals(name)) {
             request.setCode(value);
 
-        } else if ("code".equals(name)) {
+        } else if (FIELD_REF_BOOK_CODE.equals(name)) {
             request.setCode(value);
 
-        } else if ("name".equals(name)) {
+        } else if (FIELD_REF_BOOK_NAME.equals(name)) {
             request.getPassport().put("name", value);
 
-        } else if ("structure".equals(name)) {
+        } else if (FIELD_REF_BOOK_STRUCTURE.equals(name)) {
             request.setStructure(value);
 
-        } else if ("data".equals(name)) {
+        } else if (FIELD_REF_BOOK_DATA.equals(name)) {
             request.setData(value);
 
-        } else {
+        } else if (FIELD_REF_BOOK_FILE.equals(name)) {
             final String fileName = getFileName(attachment);
             if (!StringUtils.isEmpty(fileName)) {
                 final FileModel fileModel = readFile(attachment, fileName, info);

@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.List;
 
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 import static ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil.isEmpty;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
@@ -45,27 +46,27 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
         final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(7);
 
-        body.add("change_set_id", !isEmpty(model.getChangeSetId()) ? model.getChangeSetId() : "");
-        body.add("update_type", model.getUpdateType() != null ? model.getUpdateType() : CREATE_ONLY);
+        body.add(FIELD_CHANGE_SET_ID, !isEmpty(model.getChangeSetId()) ? model.getChangeSetId() : "");
+        body.add(FIELD_UPDATE_TYPE, model.getUpdateType() != null ? model.getUpdateType() : CREATE_ONLY);
 
         if (!isEmpty(model.getCode())) {
-            body.add("code", model.getCode());
+            body.add(FIELD_REF_BOOK_CODE, model.getCode());
         }
 
         if (!isEmpty(model.getName())) {
-            body.add("name", model.getName());
+            body.add(FIELD_REF_BOOK_NAME, model.getName());
         }
 
         if (!isEmpty(model.getStructure())) {
-            body.add("structure", model.getStructure());
+            body.add(FIELD_REF_BOOK_STRUCTURE, model.getStructure());
         }
 
         if (!isEmpty(model.getData())) {
-            body.add("data", model.getData());
+            body.add(FIELD_REF_BOOK_DATA, model.getData());
         }
 
         if (model.getFile() != null) {
-            body.add("file", model.getFile());
+            body.add(FIELD_REF_BOOK_FILE, model.getFile());
         }
 
         return body;
