@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.api.model.loader;
 
+import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -46,8 +48,7 @@ public class RefBookDataResponse implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
+        
         final RefBookDataResponse that = (RefBookDataResponse) o;
         return Objects.equals(refBookId, that.refBookId) &&
                 Objects.equals(executedDate, that.executedDate);
@@ -56,5 +57,10 @@ public class RefBookDataResponse implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(refBookId, executedDate);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + JsonUtil.toJsonString(this);
     }
 }
