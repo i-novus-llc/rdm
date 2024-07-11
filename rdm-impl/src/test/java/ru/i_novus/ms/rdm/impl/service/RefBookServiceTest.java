@@ -12,7 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
+import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
+import ru.i_novus.ms.rdm.api.model.refdata.RdmChangeDataRequest;
 import ru.i_novus.ms.rdm.api.service.DraftService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
@@ -44,6 +46,7 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -343,9 +346,32 @@ public class RefBookServiceTest {
         verify(refBookRepository).save(refBookEntity);
     }
 
+    @Test
+    public void testChangeData() {
+
+        final RefBookEntity refBookEntity = createRefBookEntity(1);
+        final String refBookCode = refBookEntity.getCode();
+        final RdmChangeDataRequest request = new RdmChangeDataRequest(
+                refBookCode, emptyList(), emptyList()
+        );
+
+        when(refBookRepository.findByCode(refBookCode)).thenReturn(refBookEntity);
+
+        final RefBookVersionEntity draftEntity = createRefBookVersionEntity(refBookEntity);
+        draftEntity.setStorageCode("storage_code_" + draftEntity.getId());
+
+        final Draft draft = createDraft(draftEntity);
+        when(draftService.findDraft(refBookCode)).thenReturn(draft);
+        when(draftService.getDraft(draft.getId())).thenReturn(draft).thenReturn(draft);
+
+        refBookService.changeData(request);
+
+        verify(publishService).publish(eq(draft.getId()), any(PublishRequest.class));
+    }
+
     private RefBookEntity createRefBookEntity(Integer id) {
 
-        RefBookEntity entity = new DefaultRefBookEntity();
+        final RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(id);
         entity.setCode("code_" + id);
 
@@ -359,11 +385,21 @@ public class RefBookServiceTest {
 
     private RefBookVersionEntity createRefBookVersionEntity(Integer id, RefBookEntity refBookEntity) {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        final RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(id);
         entity.setRefBook(refBookEntity);
 
         return entity;
+    }
+
+    private Draft createDraft(RefBookVersionEntity draftEntity) {
+
+        final Draft draft = new Draft();
+        draft.setId(draftEntity.getId());
+        draft.setStorageCode(draftEntity.getStorageCode());
+        draft.setOptLockValue(draftEntity.getOptLockValue());
+
+        return draft;
     }
 
     /*
