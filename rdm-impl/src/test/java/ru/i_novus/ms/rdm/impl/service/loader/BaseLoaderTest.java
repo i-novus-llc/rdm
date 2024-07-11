@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.service.loader;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.impl.BaseTest;
 
@@ -46,10 +47,11 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
-    protected RefBookDataRequest createJsonDataRequest(int index) {
+    protected RefBookDataRequest createJsonDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();
         result.setChangeSetId(CHANGE_SET + index);
+        result.setUpdateType(updateType);
         result.setCode(LOADED_CODE + index);
 
         result.setPassport(new HashMap<>(1));
@@ -61,10 +63,11 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
-    protected RefBookDataRequest createFileDataRequest(int index) {
+    protected RefBookDataRequest createFileDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();
         result.setChangeSetId(CHANGE_SET + index);
+        result.setUpdateType(updateType);
         result.setCode(LOADED_CODE + index);
         result.setPassport(emptyMap());
 

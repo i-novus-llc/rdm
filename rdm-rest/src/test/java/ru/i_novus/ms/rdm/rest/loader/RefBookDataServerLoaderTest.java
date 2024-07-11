@@ -51,7 +51,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
     @Test
     public void testLoad() {
 
-        final RefBookDataRequest request = getFileDataRequest();
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID, CREATE_ONLY);
         final RefBookDataResponse response = new RefBookDataResponse(REFBOOK_ID, null);
         when(service.load(request)).thenReturn(response);
 
@@ -73,7 +73,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
     @Test
     public void testLoadWhenFileModelFailedOther() {
 
-        final RefBookDataRequest request = getFileDataRequest();
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID, CREATE_ONLY);
 
         final String errorCode = "refbook.with.code.other.error";
         when(service.load(request)).thenThrow(new UserException(errorCode));
@@ -91,7 +91,7 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
     @Test
     public void testLoadWhenFileModelFailedRethrowed() {
 
-        final RefBookDataRequest request = getFileDataRequest();
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID, CREATE_ONLY);
 
         final String errorCode = "some error is rethrowed";
         when(service.load(request)).thenThrow(new NotFoundException(errorCode));
@@ -104,13 +104,5 @@ public class RefBookDataServerLoaderTest extends BaseLoaderTest {
             assertEquals(NotFoundException.class, e.getClass());
             assertEquals(errorCode, getExceptionMessage(e));
         }
-    }
-
-    private RefBookDataRequest getFileDataRequest() {
-
-        final RefBookDataRequest result = createFileDataRequest(REFBOOK_ID);
-        result.setUpdateType(CREATE_ONLY);
-
-        return result;
     }
 }

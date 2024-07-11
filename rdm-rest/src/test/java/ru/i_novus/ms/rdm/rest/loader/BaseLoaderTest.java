@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.rest.loader;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.rest.BaseTest;
 
@@ -16,6 +17,7 @@ public class BaseLoaderTest extends BaseTest {
     protected static final int DRAFT_ID = 2;
     protected static final int VERSION_ID = 3;
 
+    protected static final String CHANGE_SET = "change_set_";
     protected static final String LOADED_CODE = "LOADED_DATA_";
     protected static final String LOADED_NAME = "Loaded Name ";
     protected static final String LOADED_STRUCTURE = "{}";
@@ -45,9 +47,11 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
-    protected RefBookDataRequest createJsonDataRequest(int index) {
+    protected RefBookDataRequest createJsonDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();
+        result.setChangeSetId(CHANGE_SET + index);
+        result.setUpdateType(updateType);
         result.setCode(LOADED_CODE + index);
 
         result.setPassport(new HashMap<>(1));
@@ -59,10 +63,13 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
-    protected RefBookDataRequest createFileDataRequest(int index) {
+    protected RefBookDataRequest createFileDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();
+        result.setChangeSetId(CHANGE_SET + index);
+        result.setUpdateType(updateType);
         result.setCode(LOADED_CODE + index);
+
         result.setPassport(emptyMap());
 
         final String fileName = getFileName(index);

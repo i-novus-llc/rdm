@@ -32,6 +32,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"rawtypes","java:S5778"})
@@ -116,7 +118,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
     public void testRunMultipartBodyWithJson() {
 
         final int index = LOADED_FILE_SUCCESS_INDEX;
-        RefBookDataRequest expected = createJsonDataRequest(index);
+        RefBookDataRequest expected = createJsonDataRequest(index, CREATE_ONLY);
 
         final List<Attachment> attachments = createJsonAttachments(index);
         MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
@@ -140,10 +142,12 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
     private List<Attachment> createJsonAttachments(int index) {
 
         return List.of(
-                getPlainAttachment(index, "code", LOADED_CODE + index),
-                getPlainAttachment(index, "name", LOADED_NAME + index),
-                getPlainAttachment(index, "structure", LOADED_STRUCTURE),
-                getPlainAttachment(index, "data", LOADED_DATA)
+                getPlainAttachment(index, FIELD_CHANGE_SET_ID, CHANGE_SET + index),
+                getPlainAttachment(index, FIELD_UPDATE_TYPE, CREATE_ONLY.name().toLowerCase()),
+                getPlainAttachment(index, FIELD_REF_BOOK_CODE, LOADED_CODE + index),
+                getPlainAttachment(index, FIELD_REF_BOOK_NAME, LOADED_NAME + index),
+                getPlainAttachment(index, FIELD_REF_BOOK_STRUCTURE, LOADED_STRUCTURE),
+                getPlainAttachment(index, FIELD_REF_BOOK_DATA, LOADED_DATA)
         );
     }
 
@@ -153,7 +157,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
 
         final int index = LOADED_FILE_SUCCESS_INDEX;
 
-        final RefBookDataRequest expected = createFileDataRequest(index);
+        final RefBookDataRequest expected = createFileDataRequest(index, CREATE_ONLY);
 
         final FileModel fileModel = expected.getFileModel();
         when(fileStorageService.save(any(InputStream.class), eq(fileModel.getName()))).thenReturn(fileModel);
@@ -179,18 +183,20 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
 
     private List<Attachment> createFileAttachments(int index) {
 
-        final Attachment codeAttachment = getPlainAttachment(index, "code", LOADED_CODE + index);
+        final Attachment changeSetIdAttachment = getPlainAttachment(index, FIELD_CHANGE_SET_ID, CHANGE_SET + index);
+        final Attachment updateTypeAttachment = getPlainAttachment(index, FIELD_UPDATE_TYPE, CREATE_ONLY.name().toLowerCase());
+        final Attachment codeAttachment = getPlainAttachment(index, FIELD_REF_BOOK_CODE, LOADED_CODE + index);
 
         final Attachment fileAttachment = getFileAttachment(index);
         assertNotNull(fileAttachment);
 
-        return List.of(codeAttachment, fileAttachment);
+        return List.of(changeSetIdAttachment, updateTypeAttachment, codeAttachment, fileAttachment);
     }
 
     private Attachment getPlainAttachment(int index, String name, String value) {
 
-        InputStream inputStream = new ByteArrayInputStream(value.getBytes());
-        DataSource dataSource = new InputStreamDataSource(inputStream, MediaType.TEXT_PLAIN, name);
+        final InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+        final DataSource dataSource = new InputStreamDataSource(inputStream, MediaType.TEXT_PLAIN, name);
 
         return new Attachment("attachment-id-" + index, dataSource, null);
     }

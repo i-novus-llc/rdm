@@ -21,6 +21,7 @@ import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.impl.repository.loader.RefBookDataLoadLogRepository;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -47,7 +48,10 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Test
     public void testCreateAndPublishWithJson() {
 
-        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 1);
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 1, CREATE_ONLY);
+
+        mockNotExistsRefBook(request);
+        mockSearchRefBooks(REFBOOK_ID);
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
@@ -56,10 +60,12 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Test
     public void testCreateAndPublishWithFile() {
 
-        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
-
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID, CREATE_ONLY);
         final String refBookCode = request.getCode();
         final FileModel fileModel = request.getFileModel();
+
+        mockNotExistsRefBook(request);
+        mockSearchRefBooks();
 
         final Draft draft = createDraft(DRAFT_ID);
         when(refBookService.create(fileModel)).thenReturn(draft);
@@ -74,7 +80,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         assertEquals(REFBOOK_ID, actual.getRefBookId().intValue());
 
         final ArgumentCaptor<PublishRequest> captor = ArgumentCaptor.forClass(PublishRequest.class);
-        verify(publishService, times(1)).publish(eq(draft.getId()), captor.capture());
+        verify(publishService).publish(eq(draft.getId()), captor.capture());
 
         final PublishRequest actualPublishRequest = captor.getValue();
         assertNotNull(actualPublishRequest);
@@ -84,41 +90,28 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Test
     public void testCreateOrUpdateWhenCreate() {
 
-        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 2);
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 2, FORCE_UPDATE);
+        final String refBookCode = request.getCode();
 
-        mockExistsRefBook(request);
+        mockNotExistsRefBook(request);
+        mockSearchRefBooks();
 
         final RefBookDataResponse actual = service.load(request);
         assertNull(actual);
 
-        verify(repository).existsByCodeAndChangeSetId(request.getCode(), request.getChangeSetId());
+        verify(repository).existsByCodeAndChangeSetId(refBookCode, request.getChangeSetId());
+        verify(refBookService).search(any());
 
         verifyNoMoreInteractions(refBookService, draftService, publishService, repository);
     }
 
     @Test
-    public void testCreateOrUpdateWhenCreateOnly() {
-
-        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID + 3);
-        request.setUpdateType(CREATE_ONLY);
-
-        mockExistsRefBook(request);
-
-        final RefBookDataResponse actual = service.load(request);
-        assertNull(actual);
-
-        verifyNoMoreInteractions(refBookService, draftService, publishService);
-    }
-
-    @Test
     public void testCreateOrUpdateWhenSkipOnDraft() {
 
-        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
-        request.setUpdateType(SKIP_ON_DRAFT);
-
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID, SKIP_ON_DRAFT);
         final String refBookCode = request.getCode();
 
-        mockExistsRefBook(request);
+        mockNotExistsRefBook(request);
         mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
@@ -137,12 +130,10 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Test
     public void testCreateOrUpdateWhenForceUpdateWithJson() {
 
-        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID);
-        request.setUpdateType(FORCE_UPDATE);
-
+        final RefBookDataRequest request = createJsonDataRequest(REFBOOK_ID, FORCE_UPDATE);
         final String refBookCode = request.getCode();
 
-        mockExistsRefBook(request);
+        mockNotExistsRefBook(request);
         mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
@@ -161,13 +152,11 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
     @Test
     public void testCreateOrUpdateWhenForceUpdateWithFile() {
 
-        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID);
-        request.setUpdateType(FORCE_UPDATE);
-
+        final RefBookDataRequest request = createFileDataRequest(REFBOOK_ID, FORCE_UPDATE);
         final String refBookCode = request.getCode();
         final FileModel fileModel = request.getFileModel();
 
-        mockExistsRefBook(request);
+        mockNotExistsRefBook(request);
         mockSearchRefBooks(REFBOOK_ID);
 
         final Draft draft = createDraft(DRAFT_ID);
@@ -192,20 +181,23 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         assertEquals(actualPublishRequest.getFromDate(), actual.getExecutedDate());
     }
 
-    private void mockExistsRefBook(RefBookDataRequest request) {
+    private void mockNotExistsRefBook(RefBookDataRequest request) {
 
         when(repository.existsByCodeAndChangeSetId(request.getCode(), request.getChangeSetId()))
                 .thenReturn(false);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    private RefBook mockSearchRefBooks(int index) {
+    private void mockSearchRefBooks() {
+
+        final Page<RefBook> refBooks = new PageImpl<>(emptyList(), new RefBookCriteria(), 0);
+        when(refBookService.search(any())).thenReturn(refBooks);
+    }
+
+    private void mockSearchRefBooks(int index) {
 
         final RefBook refBook = createRefBook(index);
-        final Page<RefBook> refBooks = new PageImpl<>(singletonList(refBook), new RefBookCriteria(), 0);
+        final Page<RefBook> refBooks = new PageImpl<>(singletonList(refBook), new RefBookCriteria(), 1);
         when(refBookService.search(any())).thenReturn(refBooks);
-
-        return refBook;
     }
 
     private static PublishResponse createPublishResponse(RefBookDataRequest request) {
