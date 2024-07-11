@@ -6,7 +6,7 @@ import org.springframework.core.io.ClassPathResource;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.loader.client.BaseTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 public class RefBookDataModelTest extends BaseTest {
