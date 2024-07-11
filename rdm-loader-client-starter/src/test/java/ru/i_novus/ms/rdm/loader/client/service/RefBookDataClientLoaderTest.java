@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
-import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_FILE;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("rawtypes")
@@ -78,7 +78,18 @@ public class RefBookDataClientLoaderTest extends BaseTest {
         @SuppressWarnings("unchecked")
         final MultiValueMap<String, Object> data = (MultiValueMap) body;
         // Тело должно содержать либо поле file, либо поля structure и data.
-        assertEquals(data.containsKey(FIELD_REF_BOOK_FILE) ? 1 : 2, data.size() - 4);
+        final boolean isFileDataRequest = data.containsKey(FIELD_REF_BOOK_FILE);
+        assertEquals(isFileDataRequest ? 1 : 2, data.size() - 4);
+
+        assertTrue(data.containsKey(FIELD_CHANGE_SET_ID));
+        assertTrue(data.containsKey(FIELD_UPDATE_TYPE));
+        assertTrue(data.containsKey(FIELD_REF_BOOK_CODE));
+
+        if (!isFileDataRequest) {
+           assertTrue(data.containsKey(FIELD_REF_BOOK_NAME));
+           assertTrue(data.containsKey(FIELD_REF_BOOK_STRUCTURE));
+           assertTrue(data.containsKey(FIELD_REF_BOOK_DATA));
+        }
     }
 
     @Test
