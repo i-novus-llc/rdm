@@ -10,7 +10,10 @@
     <artifactId>rdm-rest-spring-boot-autoconfigure</artifactId>
 
     <properties>
-        <sonar.coverage.exclusions>**/AppConfig.java, **/BackendConfiguration.java, **/RdmRestAutoConfiguration.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>
+            **/AppConfig.java, **/BackendConfiguration.java,
+            **/SecurityContextUtils.java, **/RdmRestAutoConfiguration.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
