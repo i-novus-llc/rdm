@@ -44,18 +44,17 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-jaxrs-client</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-test</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- / test -->
-
     </dependencies>
 
     <build>
