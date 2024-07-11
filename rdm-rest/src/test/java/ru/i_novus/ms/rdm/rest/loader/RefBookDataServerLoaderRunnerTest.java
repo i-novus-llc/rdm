@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -118,10 +120,10 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
     public void testRunMultipartBodyWithJson() {
 
         final int index = LOADED_FILE_SUCCESS_INDEX;
-        RefBookDataRequest expected = createJsonDataRequest(index, CREATE_ONLY);
+        final RefBookDataRequest expected = createJsonDataRequest(index, CREATE_ONLY);
 
         final List<Attachment> attachments = createJsonAttachments(index);
-        MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
+        final MultipartBody body = new MultipartBody(attachments, MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
@@ -156,14 +158,13 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
     public void testRunMultipartBodyWithFile() {
 
         final int index = LOADED_FILE_SUCCESS_INDEX;
-
         final RefBookDataRequest expected = createFileDataRequest(index, CREATE_ONLY);
 
         final FileModel fileModel = expected.getFileModel();
         when(fileStorageService.save(any(InputStream.class), eq(fileModel.getName()))).thenReturn(fileModel);
 
         final List<Attachment> attachments = createFileAttachments(index);
-        final MultipartBody body = new MultipartBody(attachments, MediaType.MULTIPART_FORM_DATA_TYPE, false);
+        final MultipartBody body = new MultipartBody(attachments, MULTIPART_FORM_DATA_TYPE, false);
 
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
@@ -206,7 +207,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
         try {
             final Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
             final DataSource dataSource = new InputStreamDataSource(
-                    resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename()
+                    resource.getInputStream(), APPLICATION_XML, resource.getFilename()
             );
 
             final String fileName = resource.getFilename();

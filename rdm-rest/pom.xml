@@ -12,8 +12,9 @@
 
     <properties>
         <commons.fileupload.version>1.4</commons.fileupload.version>
+
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/Application.java, **/AppConfig.java, **/BackendConfiguration.java, **/SecurityConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/StaleStateExceptionMapper.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -116,7 +117,6 @@
             <scope>test</scope>
         </dependency>
         <!-- / test -->
-
     </dependencies>
 
     <build>
