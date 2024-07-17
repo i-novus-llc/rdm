@@ -193,8 +193,22 @@ public class DraftServiceImpl implements DraftService {
         final RefBookVersionEntityKit kit = findEntityKit(refBookId);
         final RefBookEntity refBookEntity = kit.getRefBook();
 
-        final Function<Structure, String> newDraftStorage = getNewDraftStorage(refBookEntity);
-        final BiConsumer<String, Structure> saveDraftConsumer = getSaveDraftConsumer(refBookId);
+        // Создание хранилища для черновика.
+        final Function<Structure, String> newDraftStorage =
+                structure -> createDraftStorage(refBookEntity, structure);
+
+        // Создание черновика.
+        // Таблица черновика не меняется, т.к. уже изменена
+        // при вызове newDraftStorage внутри CreateDraftBufferedRowsPersister.append .
+        final BiConsumer<String, Structure> saveDraftConsumer = (storageCode, structure) -> {
+
+            final CreateDraftRequest request = new CreateDraftRequest(refBookId, structure);
+            request.setPassport(null);
+            request.setReferrerValidationRequired(false);
+
+            create(request, storageCode);
+        };
+
         final RowsProcessor rowsProcessor = new CreateDraftBufferedRowsPersister(draftDataService, newDraftStorage, saveDraftConsumer);
 
         versionFileService.processRows(fileModel, rowsProcessor, new PlainRowMapper());
@@ -247,38 +261,6 @@ public class DraftServiceImpl implements DraftService {
         RowsProcessor rowsPersister = new BufferedRowsPersister(draftDataService, storageCode, structure);
         StructureRowMapper structureRowMapper = new StructureRowMapper(structure, versionRepository);
         versionFileService.processRows(fileModel, rowsPersister, structureRowMapper);
-    }
-
-    /**
-     * Создание хранилища для черновика при загрузке из XLSX (в виде function).
-     *
-     * @param entity сущность-справочник
-     * @return function
-     */
-    private Function<Structure, String> getNewDraftStorage(RefBookEntity entity) {
-
-        return structure -> createDraftStorage(entity, structure);
-    }
-
-    /**
-     * Создание черновика при загрузке из XLSX (в виде consumer).
-     * <p>
-     * Таблица черновика не меняется,
-     * т.к. уже изменена внутри CreateDraftBufferedRowsPersister.append .
-     *
-     * @param refBookId идентификатор справочника
-     * @return consumer
-     */
-    private BiConsumer<String, Structure> getSaveDraftConsumer(Integer refBookId) {
-
-        return (storageCode, structure) -> {
-
-            CreateDraftRequest request = new CreateDraftRequest(refBookId, structure);
-            request.setPassport(null);
-            request.setReferrerValidationRequired(false);
-
-            create(request, storageCode);
-        };
     }
 
     /** Создание черновика по запросу при наличии уже созданного хранилища. */

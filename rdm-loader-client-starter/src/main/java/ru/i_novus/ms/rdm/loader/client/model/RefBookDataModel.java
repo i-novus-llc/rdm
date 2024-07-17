@@ -1,11 +1,18 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.model;
 
 import org.springframework.core.io.Resource;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 
 import java.util.Objects;
 
 /** Модель загрузки справочника. */
 public class RefBookDataModel {
+
+    /** Идентификатор изменения справочника. */
+    private String changeSetId;
+
+    /** Тип изменения справочника. */
+    private RefBookDataUpdateTypeEnum updateType = RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
     /** Код справочника. */
     private String code;
@@ -26,20 +33,24 @@ public class RefBookDataModel {
         // Nothing to do.
     }
 
-    public RefBookDataModel(String code, String name, String structure, Resource file) {
-
-        this.code = code;
-        this.name = name;
-        this.structure = structure;
+    public RefBookDataModel(Resource file) {
         this.file = file;
     }
 
-    public RefBookDataModel(String code, String name, String structure, String data) {
+    public String getChangeSetId() {
+        return changeSetId;
+    }
 
-        this.code = code;
-        this.name = name;
-        this.structure = structure;
-        this.data = data;
+    public void setChangeSetId(String changeSetId) {
+        this.changeSetId = changeSetId;
+    }
+
+    public RefBookDataUpdateTypeEnum getUpdateType() {
+        return updateType;
+    }
+
+    public void setUpdateType(RefBookDataUpdateTypeEnum updateType) {
+        this.updateType = updateType;
     }
 
     public String getCode() {
@@ -87,8 +98,10 @@ public class RefBookDataModel {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RefBookDataModel that = (RefBookDataModel) o;
-        return Objects.equals(code, that.code) &&
+        final RefBookDataModel that = (RefBookDataModel) o;
+        return Objects.equals(changeSetId, that.changeSetId) &&
+                (updateType == that.updateType) &&
+                Objects.equals(code, that.code) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(structure, that.structure) &&
                 Objects.equals(data, that.data) &&
@@ -97,12 +110,14 @@ public class RefBookDataModel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(code, name, structure, data, file);
+        return Objects.hash(changeSetId, updateType, code, name, structure, data, file);
     }
 
     @Override
     public String toString() {
         return "RefBookDataModel{" +
+                (changeSetId != null ? "changeSetId='" + changeSetId + '\'' : "") +
+                (updateType != null ? "updateType='" + updateType + '\'' : "") +
                 (code != null ? "code='" + code + '\'' : "") +
                 (name != null ? ", name='" + name + '\'' : "") +
                 (structure != null ? ", structure='" + structure + '\'' : "") +

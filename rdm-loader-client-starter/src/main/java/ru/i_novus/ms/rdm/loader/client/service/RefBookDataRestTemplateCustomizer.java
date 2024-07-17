@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.service;
 
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Настройщик RestTemplate для отправки `MultiValueMap`.
- * @see ru.i_novus.ms.rdm.loader.client.loader.RefBookDataClientLoader
+ * @see RefBookDataClientLoader
  */
 public class RefBookDataRestTemplateCustomizer implements RestTemplateCustomizer {
 

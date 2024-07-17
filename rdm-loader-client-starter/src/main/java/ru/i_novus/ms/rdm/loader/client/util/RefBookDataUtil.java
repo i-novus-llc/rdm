@@ -1,10 +1,12 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
+import ru.i_novus.ms.rdm.loader.client.model.RefBookDataModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,10 +14,21 @@ import java.util.List;
 import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 
 public final class RefBookDataUtil {
 
     private static final char FILE_NAME_EXT_SEPARATOR = '.';
+
+    private static final String JSON_CHANGE_SET_ID = "change_set_id";
+    private static final String JSON_UPDATE_TYPE = "update_type";
+
+    private static final String JSON_REF_BOOK_CODE = "code";
+    private static final String JSON_REF_BOOK_NAME = "name";
+
+    private static final String JSON_REF_BOOK_STRUCTURE = "structure";
+    private static final String JSON_REF_BOOK_DATA = "data";
+    private static final String JSON_REF_BOOK_FILE = "file";
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -32,11 +45,11 @@ public final class RefBookDataUtil {
         if (file == null || isEmpty(file.getFilename()))
             return emptyList();
 
-        String extension = getExtension(file.getFilename());
+        final String extension = getExtension(file.getFilename());
         if (!"json".equals(extension))
-            return List.of(new RefBookDataModel(null, null, null, file));
+            return List.of(new RefBookDataModel(file));
 
-        return toRefBookDataModels(fromFile(file));
+        return toRefBookDataModels(fileToJsonNode(file));
     }
 
     private static String getExtension(String filename) {
@@ -48,7 +61,7 @@ public final class RefBookDataUtil {
         return (lastIndex >= 0) ? filename.substring(lastIndex + 1) : null;
     }
 
-    private static JsonNode fromFile(Resource file) {
+    private static JsonNode fileToJsonNode(Resource file) {
         try {
             return OBJECT_MAPPER.readTree(file.getInputStream());
 
@@ -62,7 +75,7 @@ public final class RefBookDataUtil {
 
     private static List<RefBookDataModel> toRefBookDataModels(JsonNode rootNode) {
 
-        if (rootNode == null || rootNode.isEmpty())
+        if (isEmptyNode(rootNode))
             return emptyList();
 
         if (!rootNode.isArray()) {
@@ -81,31 +94,43 @@ public final class RefBookDataUtil {
         return result;
     }
 
-    @SuppressWarnings("java:S4449")
+    //@SuppressWarnings("java:S4449")
     private static RefBookDataModel toRefBookDataModel(JsonNode jsonNode) {
 
-        String code = getByKey(jsonNode, "code", JsonNode::asText);
-
-        String filePath = getByKey(jsonNode,"file", JsonNode::asText);
-        if (!isEmpty(filePath)) {
-
-            return new RefBookDataModel(
-                    code,
-                    getByKey(jsonNode, "name", JsonNode::asText),
-                    getByKey(jsonNode, "structure", RefBookDataUtil::asJsonString),
-                    new ClassPathResource(filePath)
-            );
-        }
-
-        if (isEmpty(code))
+        if (isEmptyNode(jsonNode))
             return null;
 
-        return new RefBookDataModel(
-                code,
-                getByKey(jsonNode, "name", JsonNode::asText),
-                getByKey(jsonNode, "structure", RefBookDataUtil::asJsonString),
-                getByKey(jsonNode, "data", RefBookDataUtil::asJsonString)
-        );
+        final String code = getByKey(jsonNode, JSON_REF_BOOK_CODE, JsonNode::asText);
+        final String filePath = getByKey(jsonNode,JSON_REF_BOOK_FILE, JsonNode::asText);
+        if (isEmpty(code) && isEmpty(filePath))
+            return null; // Ошибка записи: код справочника обязателен!
+
+        final RefBookDataModel model = new RefBookDataModel();
+        model.setChangeSetId(getByKey(jsonNode, JSON_CHANGE_SET_ID, JsonNode::asText));
+        model.setUpdateType(getUpdateType(jsonNode));
+
+        model.setCode(code);
+        model.setName(getByKey(jsonNode, JSON_REF_BOOK_NAME, JsonNode::asText));
+        model.setStructure(getByKey(jsonNode, JSON_REF_BOOK_STRUCTURE, RefBookDataUtil::asJsonString));
+
+        if (!isEmpty(filePath)) {
+            model.setFile(new ClassPathResource(filePath));
+        } else {
+            model.setData(getByKey(jsonNode, JSON_REF_BOOK_DATA, RefBookDataUtil::asJsonString));
+        }
+
+        return model;
+    }
+
+    private static RefBookDataUpdateTypeEnum getUpdateType(JsonNode jsonNode) {
+
+        final String updateType = getByKey(jsonNode, JSON_UPDATE_TYPE, JsonNode::asText);
+        return RefBookDataUpdateTypeEnum.fromValue(updateType, CREATE_ONLY);
+    }
+
+    private static boolean isEmptyNode(JsonNode jsonNode) {
+
+        return jsonNode == null || jsonNode.isEmpty();
     }
 
     private static String asJsonString(JsonNode value) {

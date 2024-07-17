@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.loader.client.loader;
+package ru.i_novus.ms.rdm.loader.client.service;
 
 import net.n2oapp.platform.loader.client.LoadingException;
 import org.junit.Before;
@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import ru.i_novus.ms.rdm.loader.client.BaseTest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("rawtypes")
@@ -45,19 +47,19 @@ public class RefBookDataClientLoaderTest extends BaseTest {
     @Test
     public void testLoad() {
 
-        Resource jsonFile = new ClassPathResource("rdm.json");
+        final Resource jsonFile = new ClassPathResource("rdm.json");
 
-        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.ACCEPTED);
-
-        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-        when(restTemplate.postForEntity(any(String.class), captor.capture(), eq(String.class))).thenReturn(response);
+        final ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.ACCEPTED);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class))).thenReturn(response);
 
         loader.load(newUri(), "test", "refBookData", jsonFile);
 
-        verify(restTemplate, times(2)).postForEntity(any(String.class), any(Object.class), eq(String.class));
-
+        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(restTemplate, times(2))
+                .postForEntity(any(String.class), captor.capture(), eq(String.class));
         assertNotNull(captor);
-        List<Object> objValues = captor.getAllValues();
+
+        final List<Object> objValues = captor.getAllValues();
         assertEquals(2, objValues.size());
 
         objValues.forEach(this::testCaptorValue);
@@ -67,26 +69,36 @@ public class RefBookDataClientLoaderTest extends BaseTest {
 
         assertTrue(value instanceof HttpEntity);
 
-        HttpEntity request = (HttpEntity) value;
+        final HttpEntity request = (HttpEntity) value;
 
-        Object body = request.getBody();
+        final Object body = request.getBody();
         assertNotNull(body);
         assertTrue(body instanceof MultiValueMap);
 
         @SuppressWarnings("unchecked")
-        MultiValueMap<String, Object> data = (MultiValueMap) body;
-        assertEquals(data.containsKey("file") ? 3 : 4, data.size());
+        final MultiValueMap<String, Object> data = (MultiValueMap) body;
+        // Тело должно содержать либо поле file, либо поля structure и data.
+        final boolean isFileDataRequest = data.containsKey(FIELD_REF_BOOK_FILE);
+        assertEquals(isFileDataRequest ? 1 : 2, data.size() - 4);
+
+        assertTrue(data.containsKey(FIELD_CHANGE_SET_ID));
+        assertTrue(data.containsKey(FIELD_UPDATE_TYPE));
+        assertTrue(data.containsKey(FIELD_REF_BOOK_CODE));
+
+        if (!isFileDataRequest) {
+           assertTrue(data.containsKey(FIELD_REF_BOOK_NAME));
+           assertTrue(data.containsKey(FIELD_REF_BOOK_STRUCTURE));
+           assertTrue(data.containsKey(FIELD_REF_BOOK_DATA));
+        }
     }
 
     @Test
     public void testLoadFailed() {
 
-        Resource jsonFile = new ClassPathResource("rdm.json");
+        final Resource jsonFile = new ClassPathResource("rdm.json");
 
-        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-        when(restTemplate.postForEntity(any(String.class), captor.capture(), eq(String.class))).thenReturn(response);
+        final ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        when(restTemplate.postForEntity(any(String.class), any(Object.class), eq(String.class))).thenReturn(response);
 
         try {
             loader.load(newUri(), "test", "refBookData", jsonFile);
@@ -97,8 +109,11 @@ public class RefBookDataClientLoaderTest extends BaseTest {
             assertNotNull(getExceptionMessage(e));
         }
 
+        final ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(restTemplate).postForEntity(any(String.class), captor.capture(), eq(String.class));
         assertNotNull(captor);
-        List<Object> objValues = captor.getAllValues();
+
+        final List<Object> objValues = captor.getAllValues();
         assertEquals(1, objValues.size());
     }
 

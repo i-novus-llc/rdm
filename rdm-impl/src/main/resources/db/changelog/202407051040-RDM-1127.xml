@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202407051040-ref_book_data_load_log_1.0" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="ref_book_data_load_log" schemaName="n2o_rdm_management"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE n2o_rdm_management.ref_book_data_load_log (
+              id                   serial  NOT NULL,
+              change_set_id        varchar(255) NOT NULL,
+              update_type          varchar(31) NOT NULL,
+              code                 varchar(255) NOT NULL,
+              file_path            varchar(255),
+              file_name            varchar(255),
+              ref_book_id          integer,
+              executed_date        timestamp DEFAULT current_timestamp
+            );
+
+            ALTER TABLE n2o_rdm_management.ref_book_data_load_log
+              ADD CONSTRAINT pk_ref_book_data_load_log_id PRIMARY KEY (id);
+
+            CREATE UNIQUE INDEX uq_ref_book_data_load_log_code
+              ON n2o_rdm_management.ref_book_data_load_log (code, change_set_id);
+
+            COMMENT ON TABLE n2o_rdm_management.ref_book_data_load_log IS 'Журнал загрузки справочников через механизм лоадеров';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.id IS 'Идентификатор';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.change_set_id IS 'Идентификатор изменения справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.update_type IS 'Тип изменения справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.code IS 'Код загружаемого справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.file_path IS 'Полный путь к файлу загружаемого справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.file_name IS 'Наименование файла загружаемого справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.ref_book_id IS 'Идентификатор загруженного справочника';
+            COMMENT ON COLUMN n2o_rdm_management.ref_book_data_load_log.executed_date IS 'Дата загрузки справочника';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

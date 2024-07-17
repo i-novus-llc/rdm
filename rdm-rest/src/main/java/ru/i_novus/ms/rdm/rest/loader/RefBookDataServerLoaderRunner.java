@@ -14,6 +14,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.model.FileModel;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 
@@ -26,7 +28,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
+import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
 /**
  * Запускатель загрузчиков справочников RDM.
@@ -81,8 +86,8 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         if (!loaderEnabled)
             return;
 
-        ServerLoader loader = find(target);
-        RefBookDataRequest request = toRequest(body, loader);
+        final ServerLoader loader = find(target);
+        final RefBookDataRequest request = toRequest(body, loader);
         if (request == null)
             return;
 
@@ -95,7 +100,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         if (CollectionUtils.isEmpty(body.getAllAttachments()))
             return null;
 
-        RefBookDataRequest request = new RefBookDataRequest();
+        final RefBookDataRequest request = new RefBookDataRequest();
         request.setPassport(new HashMap<>());
 
         for (Attachment attachment : body.getAllAttachments()) {
@@ -108,47 +113,49 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
     /** Разбор прикрепления и заполнение запроса. */
     private void parseAttachment(Attachment attachment, LoaderDataInfo<?> info, RefBookDataRequest request) {
 
-        String fileName = getFileName(attachment);
-        if (!StringUtils.isEmpty(fileName)) {
-            FileModel fileModel = readFile(attachment, fileName, info);
-            request.setFileModel(fileModel);
-
-            return;
-        }
-
-        String name = attachment.getDataHandler().getDataSource().getName();
+        final String name = attachment.getDataHandler().getDataSource().getName();
 
         String value = attachment.getObject(String.class);
         if (value == null) {
             value = readString(attachment, name, info);
         }
 
-        if ("code".equals(name)) {
+        if (FIELD_CHANGE_SET_ID.equals(name)) {
+            request.setChangeSetId(value);
+
+        } else if (FIELD_UPDATE_TYPE.equals(name)) {
+            request.setUpdateType(RefBookDataUpdateTypeEnum.fromValue(value, CREATE_ONLY));
+
+        } else if (FIELD_REF_BOOK_CODE.equals(name)) {
             request.setCode(value);
-        }
 
-        if ("name".equals(name)) {
+        } else if (FIELD_REF_BOOK_NAME.equals(name)) {
             request.getPassport().put("name", value);
-        }
 
-        if ("structure".equals(name)) {
+        } else if (FIELD_REF_BOOK_STRUCTURE.equals(name)) {
             request.setStructure(value);
-        }
 
-        if ("data".equals(name)) {
+        } else if (FIELD_REF_BOOK_DATA.equals(name)) {
             request.setData(value);
+
+        } else {
+            final String fileName = getFileName(attachment);
+            if (!StringUtils.isEmpty(fileName)) {
+                final FileModel fileModel = readFile(attachment, fileName, info);
+                request.setFileModel(fileModel);
+            }
         }
     }
 
     private String getFileName(Attachment attachment) {
 
-        List<String> contentDispositionHeaders = attachment.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
+        final List<String> contentDispositionHeaders = attachment.getHeaderAsList(HttpHeaders.CONTENT_DISPOSITION);
         if (CollectionUtils.isEmpty(contentDispositionHeaders)
                 || StringUtils.isEmpty(contentDispositionHeaders.get(0))) {
             return null;
         }
 
-        ContentDisposition contentDisposition = new ContentDisposition(contentDispositionHeaders.get(0));
+        final ContentDisposition contentDisposition = new ContentDisposition(contentDispositionHeaders.get(0));
         return contentDisposition.getFilename();
     }
     
@@ -163,12 +170,12 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
 
     private String readString(Attachment attachment, String name, LoaderDataInfo<?> info) {
         try {
-            InputStream inputStream = attachment.getDataHandler().getDataSource().getInputStream();
+            final InputStream inputStream = attachment.getDataHandler().getDataSource().getInputStream();
             if (inputStream == null)
                 return null;
 
             return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                    .lines().collect(Collectors.joining("\n"));
+                    .lines().collect(joining("\n"));
 
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Cannot read attachment '%s' for %s", name, info.getTarget()), e);

@@ -32,11 +32,11 @@
 - `rdm-n2o-l10n` - общие классы имплементации N2O для локализации записей справочников.
 - `rdm-rest` - общие классы для REST-API.
  
-- *Автоконфигураторы*:
-  `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкэнда (для проектов, использующих RDM).
+*Автоконфигураторы*:
+- `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкэнда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-autoconfigure` - автоконфигуратор UI (для проектов, использующих RDM).
 
-- *Стартеры*:
+*Стартеры*:
 - `rdm-rest-spring-boot-starter` - стартер REST-API бэкэнда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-starter` - стартер UI (для проектов, использующих RDM).
 

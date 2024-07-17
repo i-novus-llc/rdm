@@ -1,10 +1,10 @@
-package ru.i_novus.ms.rdm.rest.loader;
+package ru.i_novus.ms.rdm.api.model.loader;
 
 import org.junit.Assert;
 import org.junit.Test;
+import ru.i_novus.ms.rdm.api.BaseTest;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCreateRequest;
-import ru.i_novus.ms.rdm.rest.BaseTest;
 
 import java.util.HashMap;
 
@@ -15,48 +15,46 @@ public class RefBookDataRequestTest extends BaseTest {
     @Test
     public void testClass() {
 
-        RefBookDataRequest emptyRequest = new RefBookDataRequest();
+        final RefBookDataRequest emptyRequest = new RefBookDataRequest();
         assertSpecialEquals(emptyRequest);
 
-        RefBookDataRequest newRequest = createRequest();
+        final RefBookDataRequest newRequest = createRequest();
         assertObjects(Assert::assertNotEquals, emptyRequest, newRequest);
 
-        RefBookDataRequest copyRequest = copyRequest(newRequest);
+        final RefBookDataRequest copyRequest = copyRequest(newRequest);
         assertObjects(Assert::assertEquals, newRequest, copyRequest);
     }
 
     @Test
     public void testClassWithSuper() {
 
-        RefBookDataRequest emptyRequest = new RefBookDataRequest();
-        RefBookCreateRequest superRequest = new RefBookCreateRequest();
+        final RefBookDataRequest emptyRequest = new RefBookDataRequest();
+        final RefBookCreateRequest superRequest = new RefBookCreateRequest();
         assertNotEquals(emptyRequest, superRequest);
 
-        RefBookDataRequest newRequest = createRequest();
-        RefBookCreateRequest copyRequest = copySuperRequest(newRequest);
+        final RefBookDataRequest newRequest = createRequest();
+        final RefBookCreateRequest copyRequest = copySuperRequest(newRequest);
         assertObjects(Assert::assertNotEquals, newRequest, copyRequest);
     }
 
     private RefBookDataRequest createRequest() {
 
-        RefBookDataRequest request = new RefBookDataRequest();
+        final RefBookDataRequest result = new RefBookDataRequest();
+        result.setCode("TEST");
+        result.setPassport(new HashMap<>(1));
+        result.getPassport().put("name", "Test");
+        result.setStructure("{}");
+        result.setData("{}");
 
-        request.setCode("TEST");
-        request.setPassport(new HashMap<>(1));
-        request.getPassport().put("name", "Test");
-        request.setStructure("{}");
-        request.setData("{}");
+        final FileModel fileModel = new FileModel("filePath", "fileName");
+        result.setFileModel(fileModel);
 
-        FileModel fileModel = new FileModel("filePath", "fileName");
-        request.setFileModel(fileModel);
-
-        return request;
+        return result;
     }
 
     private RefBookDataRequest copyRequest(RefBookDataRequest request) {
 
-        RefBookDataRequest result = new RefBookDataRequest();
-
+        final RefBookDataRequest result = new RefBookDataRequest();
         result.setCode(request.getCode());
         result.setType(request.getType());
         result.setPassport(request.getPassport());
