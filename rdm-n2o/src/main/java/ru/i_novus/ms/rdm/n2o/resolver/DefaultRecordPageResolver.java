@@ -15,7 +15,7 @@ public class DefaultRecordPageResolver implements DataRecordPageResolver {
 
     @Override
     public boolean isSatisfied(String dataAction) {
-        return DataRecordConstants.getDataActions().contains(dataAction);
+        return DataRecordConstants.containsDataAction(dataAction);
     }
 
     @Override

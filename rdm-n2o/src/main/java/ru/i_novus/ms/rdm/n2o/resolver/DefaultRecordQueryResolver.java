@@ -16,7 +16,7 @@ public class DefaultRecordQueryResolver implements DataRecordQueryResolver {
 
     @Override
     public boolean isSatisfied(String dataAction) {
-        return DataRecordConstants.getDataActions().contains(dataAction);
+        return DataRecordConstants.containsDataAction(dataAction);
     }
 
     @Override

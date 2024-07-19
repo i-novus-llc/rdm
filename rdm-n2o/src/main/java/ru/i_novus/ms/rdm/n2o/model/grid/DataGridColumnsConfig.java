@@ -44,7 +44,6 @@ public class DataGridColumnsConfig {
                                             StandardField<Control> filterField) {
 
         final ColumnHeader header = new ColumnHeader();
-
         header.setId(id);
         header.setLabel(label);
         header.setSrc(src);

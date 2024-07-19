@@ -71,9 +71,6 @@ public class RefBookDataController {
     private static final String DATA_SORT_IS_INVALID_EXCEPTION_CODE = "data.sort.is.invalid";
     private static final String DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.sort.field.not.found";
 
-    private static final String BOOL_FIELD_ID = "id";
-    private static final String BOOL_FIELD_NAME = "name";
-
     private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
     private static final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
 
