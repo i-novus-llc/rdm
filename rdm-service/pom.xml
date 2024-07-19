@@ -11,6 +11,7 @@
     </parent>
 
     <properties>
+        <config.server.enable>false</config.server.enable>
         <backend.default.port>8081</backend.default.port>
         <commons.fileupload.version>1.4</commons.fileupload.version>
 
