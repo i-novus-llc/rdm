@@ -23,7 +23,7 @@
         <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
         <!-- N2O -->
-        <n2o.version>7.27.13</n2o.version>
+        <n2o.version>7.27.15</n2o.version>
         <!-- / N2O -->
 
         <!-- STORAGE -->
@@ -48,7 +48,7 @@
         <jaxws.version>2.3.2</jaxws.version>
 
         <!-- security -->
-        <security.admin.version>7.1.2</security.admin.version>
+        <security.admin.version>7.1.1</security.admin.version>
         <!-- / security-->
 
         <i-novus.audit.version>2.4.25</i-novus.audit.version>
