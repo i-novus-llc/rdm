@@ -20,8 +20,12 @@ public class DataFieldFilterProvider {
 
     public StandardField<Control> toFilterField(N2oField n2oField) {
 
-        CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(environment);
-        CompileContext<?, ?> context = new WidgetContext("");
-        return pipeline.compile().get(n2oField, context, new IndexScope());
+        final CompilePipeline pipeline = N2oPipelineSupport.compilePipeline(environment);
+        final CompileContext<?, ?> context = new WidgetContext("");
+
+        final StandardField<Control> result = pipeline.compile().get(n2oField, context, new IndexScope());
+        result.setId(n2oField.getId());
+
+        return result;
     }
 }

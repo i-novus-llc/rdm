@@ -429,8 +429,7 @@ public class RefBookDataController {
         final String id = addPrefix(attribute.getCode());
 
         final N2oField n2oField = toN2oField(attribute);
-        n2oField.setId(id);
-        //n2oField.setFilterId("filter." + id);
+        n2oField.setId(FILTER_PREFIX + id);
         final StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
 
         return DataGridColumnsConfig.createHeader(id, attribute.getName(), filterField);

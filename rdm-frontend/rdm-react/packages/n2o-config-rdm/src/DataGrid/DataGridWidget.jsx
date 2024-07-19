@@ -35,20 +35,6 @@ function DataGridWidget(props) {
     }
   }, [datasourceModel, id]);
 
-  useLayoutEffect(() => {
-    if (filterModel) {
-      const mappedFilter = Object.entries(filterModel)
-        .reduce((out, [key, value]) => {
-          out[`filter.${key}`] = value
-
-          return out;
-        }, {})
-
-      fetchData(mappedFilter)
-    }
-  }, [filterModel, fetchData]);
-
-
   return (
     <AdvancedTableContainer
       {...props}
