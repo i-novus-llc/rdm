@@ -122,8 +122,10 @@ public class RefBookDataControllerTest  {
 
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
-        assertNotNull(dataGridRows.getContent());
-        assertEquals(rowValues.size(), dataGridRows.getContent().size());
+
+        final List<DataGridRow> content = dataGridRows.getContent();
+        assertNotNull(content);
+        assertEquals(rowValues.size(), content.size());
 
         verify(versionService)
                 .search(eq(REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
@@ -168,8 +170,10 @@ public class RefBookDataControllerTest  {
 
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
-        assertNotNull(dataGridRows.getContent());
-        assertEquals(rowValues.size(), dataGridRows.getContent().size());
+
+        final List<DataGridRow> content = dataGridRows.getContent();
+        assertNotNull(content);
+        assertEquals(rowValues.size(), content.size());
 
         verify(versionService, times(2))
                 .search(eq(REFBOOK_VERSION_ID), any(SearchDataCriteria.class));
@@ -186,8 +190,10 @@ public class RefBookDataControllerTest  {
         final DataCriteria criteria = createCriteria(true);
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
-        assertNotNull(dataGridRows.getContent());
-        assertEquals(0, dataGridRows.getContent().size());
+
+        final List<DataGridRow> content = dataGridRows.getContent();
+        assertNotNull(content);
+        assertEquals(1, content.size()); // empty row with columnsConfig
     }
 
     @Test
@@ -224,8 +230,10 @@ public class RefBookDataControllerTest  {
 
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
-        assertNotNull(dataGridRows.getContent());
-        assertEquals(conflictedRowValues.size(), dataGridRows.getContent().size());
+
+        final List<DataGridRow> content = dataGridRows.getContent();
+        assertNotNull(content);
+        assertEquals(conflictedRowValues.size(), content.size());
     }
 
     @Test
