@@ -58,42 +58,4 @@ public class RdmWebConfiguration {
 
         restProviderRestTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
     }
-
-    /*
-      Override N2oEngineConfiguration.restDataProviderEngine
-      to add userinfo interceptor to restTemplate in springRestDataProviderEngine.
-    */
-    //@Bean
-    //public SpringRestDataProviderEngine restDataProviderEngine(RestTemplateBuilder builder, List<RestLoggingHandler> loggingHandlers) {
-    //    ObjectMapper restObjectMapper = restObjectMapper();
-    //    SpringRestDataProviderEngine springRestDataProviderEngine = new SpringRestDataProviderEngine(
-    //            rdmRestTemplate(builder, httpMessageConverter(restObjectMapper)),
-    //            restObjectMapper, loggingHandlers);
-    //
-    //    springRestDataProviderEngine.setBaseRestUrl(baseRestUrl);
-    //    return springRestDataProviderEngine;
-    //}
-    //
-    //private ObjectMapper restObjectMapper() {
-    //    ObjectMapper objectMapper = new ObjectMapper();
-    //    objectMapper.setDateFormat(new SimpleDateFormat(serializingFormat));
-    //    RestEngineTimeModule module = new RestEngineTimeModule(deserializingFormats, exclusionKeys);
-    //    objectMapper.registerModules(module);
-    //    return objectMapper;
-    //}
-    //
-    //private MappingJackson2HttpMessageConverter httpMessageConverter(ObjectMapper restObjectMapper) {
-    //    MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-    //    converter.setObjectMapper(restObjectMapper);
-    //    return converter;
-    //}
-    //
-    //private RestTemplate rdmRestTemplate(RestTemplateBuilder builder, MappingJackson2HttpMessageConverter converter) {
-    //    DefaultUriBuilderFactory builderFactory = new DefaultUriBuilderFactory();
-    //    builderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
-    //    RestTemplate restTemplate = builder.messageConverters(converter).build();
-    //    restTemplate.setUriTemplateHandler(builderFactory);
-    //    restTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
-    //    return restTemplate;
-    //}
 }

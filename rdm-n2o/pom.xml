@@ -15,7 +15,10 @@
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java, **/UiStrategyLocatorConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>
+            **/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java,
+            **/UiStrategyLocatorConfig.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -76,6 +79,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
             <scope>test</scope>
         </dependency>
 
