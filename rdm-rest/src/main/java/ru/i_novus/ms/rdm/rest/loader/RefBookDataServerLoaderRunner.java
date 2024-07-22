@@ -118,6 +118,7 @@ public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements S
         String value = attachment.getObject(String.class);
         if (value == null) {
             value = readString(attachment, name, info);
+            if (value == null) value = "";
         }
 
         if (FIELD_CHANGE_SET_ID.equals(name)) {
