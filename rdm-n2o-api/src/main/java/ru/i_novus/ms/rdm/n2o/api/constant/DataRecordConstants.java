@@ -10,6 +10,7 @@ public class DataRecordConstants {
 
     private static final List<String> DATA_ACTIONS = Arrays.asList(DATA_ACTION_CREATE, DATA_ACTION_UPDATE);
 
+    // Поля.
     public static final String FIELD_SYSTEM_ID = "id";
     public static final String FIELD_ROW_TYPE = "rowType";
 
@@ -24,12 +25,17 @@ public class DataRecordConstants {
     public static final String REFERENCE_VALUE = "value";
     public static final String REFERENCE_DISPLAY_VALUE = "displayValue";
 
+    // Фильтрация.
+    public static final String FILTER_PREFIX = "filter.";
+
+    public static final String BOOL_FIELD_ID = "id";
+    public static final String BOOL_FIELD_NAME = "name";
+
     private DataRecordConstants() {
         // Nothing to do.
     }
 
-    // NB: Workaround to sonar issue "squid-S2386".
-    public static List<String> getDataActions() {
-        return DATA_ACTIONS;
+    public static boolean containsDataAction(String dataAction) {
+        return DATA_ACTIONS.contains(dataAction);
     }
 }

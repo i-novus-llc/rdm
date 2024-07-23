@@ -5,6 +5,7 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.lang.NonNull;
 import ru.i_novus.ms.rdm.impl.entity.loader.RefBookDataLoadLogEntity;
 
+@SuppressWarnings("I-novus:MethodNameWordCountRule")
 public interface RefBookDataLoadLogRepository extends
         JpaRepository<RefBookDataLoadLogEntity, Integer>,
         QuerydslPredicateExecutor<RefBookDataLoadLogEntity> {

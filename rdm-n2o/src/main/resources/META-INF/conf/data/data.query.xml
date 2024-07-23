@@ -21,7 +21,7 @@
         <eq filter-id="localeCode" field-id="localeCode" mapping="['criteria'].localeCode"/>
         <eq filter-id="dataAction" field-id="dataAction" mapping="['criteria'].dataAction"/>
 
-        <eq filter-id="filter" field-id="filter" mapping="['criteria'].filter" domain="object"/>
+        <eq filter-id="filter" field-id="filter" mapping="['criteria'].filter"/>
         <eq filter-id="hasDataConflict" field-id="hasDataConflict" mapping="['criteria'].hasDataConflict"/>
     </filters>
 

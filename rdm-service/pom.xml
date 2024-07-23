@@ -11,6 +11,7 @@
     </parent>
 
     <properties>
+        <config.server.enable>false</config.server.enable>
         <backend.default.port>8081</backend.default.port>
         <commons.fileupload.version>1.4</commons.fileupload.version>
 
@@ -29,6 +30,18 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
 

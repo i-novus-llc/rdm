@@ -71,9 +71,6 @@ public class RefBookDataController {
     private static final String DATA_SORT_IS_INVALID_EXCEPTION_CODE = "data.sort.is.invalid";
     private static final String DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE = "data.sort.field.not.found";
 
-    private static final String BOOL_FIELD_ID = "id";
-    private static final String BOOL_FIELD_NAME = "name";
-
     private static final SearchDataCriteria EMPTY_SEARCH_DATA_CRITERIA = new SearchDataCriteria(0, 1);
     private static final List<FieldType> LIKE_FIELD_TYPES = List.of(STRING, REFERENCE);
 
@@ -429,8 +426,7 @@ public class RefBookDataController {
         final String id = addPrefix(attribute.getCode());
 
         final N2oField n2oField = toN2oField(attribute);
-        n2oField.setId(id);
-        //n2oField.setFilterId("filter." + id);
+        n2oField.setId(FILTER_PREFIX + id);
         final StandardField<Control> filterField = dataFieldFilterProvider.toFilterField(n2oField);
 
         return DataGridColumnsConfig.createHeader(id, attribute.getName(), filterField);

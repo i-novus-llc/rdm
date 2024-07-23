@@ -15,7 +15,10 @@
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java, **/UiStrategyLocatorConfig.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>
+            **/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java,
+            **/UiStrategyLocatorConfig.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -80,8 +83,20 @@
         </dependency>
 
         <dependency>
-            <groupId>net.n2oapp.platform</groupId>
-            <artifactId>n2o-platform-starter-test</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- / test -->

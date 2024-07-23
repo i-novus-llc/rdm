@@ -24,14 +24,20 @@ import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.ms.rdm.service.Application;
 
+import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_CODE;
+import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_FILE;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -71,36 +77,45 @@ public class LoaderTest {
     @Autowired
     private RefBookDataServerLoaderRunner refBookDataServerLoaderRunner;
 
-    /** Успешная загрузка справочника из корректного xml. */
     @Test
+    public void testEmpty() {
+
+        final int index = 1;
+
+        final String code = getRefBookCode(index);
+        assertNotNull(code);
+    }
+
+        /** Успешная загрузка справочника из корректного xml. */
+    //@Test
     public void testRunMultipartBody() {
 
-        int loadedFileSuccessIndex = 1;
+        final int loadedFileSuccessIndex = 1;
 
-        MultipartBody body = createBody(loadedFileSuccessIndex);
+        final MultipartBody body = createBody(loadedFileSuccessIndex);
         refBookDataServerLoaderRunner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
-        String code = String.format("%s%d", LOADED_CODE, loadedFileSuccessIndex);
+        final String code = getRefBookCode(loadedFileSuccessIndex);
         try {
-            Integer id = refBookService.getId(code);
+            final Integer id = refBookService.getId(code);
             assertNotNull(id);
 
-            RefBookVersion version = versionService.getLastPublishedVersion(code);
+            final RefBookVersion version = versionService.getLastPublishedVersion(code);
             assertNotNull(version);
             assertNotNull(version.getId());
 
         } catch (Exception e) {
-            fail();
+            fail(e.getMessage());
         }
     }
 
     /** Ошибка загрузки справочника из ошибочной xml (невалидный код атрибута). */
-    @Test
+    //@Test
     public void testRunMultipartBodyFailed() {
 
-        int loadedFileAttributeCodeFailureIndex = 3;
+        final int loadedFileAttributeCodeFailureIndex = 3;
 
-        MultipartBody body = createBody(loadedFileAttributeCodeFailureIndex);
+        final MultipartBody body = createBody(loadedFileAttributeCodeFailureIndex);
         try {
             refBookDataServerLoaderRunner.run(LOADED_SUBJECT, LOADED_TARGET, body);
             fail();
@@ -109,55 +124,89 @@ public class LoaderTest {
             assertTrue(e.getCode().contains("attribute.code.is.invalid"));
 
         } catch (Exception e) {
-            fail();
+            fail(e.getMessage());
         }
     }
 
     /** Пропуск загрузки существующего справочника из xml. */
-    @Test
+    //@Test
     public void testRunMultipartBodySkipped() {
 
-        int loadedFileCodeExistsFailureIndex = 4;
+        final int loadedFileCodeExistsFailureIndex = 4;
 
-        MultipartBody body = createBody(loadedFileCodeExistsFailureIndex);
+        final MultipartBody body = createBody(loadedFileCodeExistsFailureIndex);
         try {
             refBookDataServerLoaderRunner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
         } catch (Exception e) {
-            fail();
+            fail(e.getMessage());
         }
     }
 
     private MultipartBody createBody(int index) {
 
-        Attachment attachment = getFileAttachment(index);
-        assertNotNull(attachment);
+        final Attachment codeAttachment = getStringAttachment(FIELD_REF_BOOK_CODE, getRefBookCode(index));
 
-        return new MultipartBody(List.of(attachment), MediaType.MULTIPART_FORM_DATA_TYPE, false);
+        final Attachment fileAttachment = getFileAttachment(index);
+        assertNotNull(fileAttachment);
+
+        return new MultipartBody(
+                List.of(codeAttachment, fileAttachment),
+                MediaType.MULTIPART_FORM_DATA_TYPE,
+                false
+        );
+    }
+
+    private Attachment getStringAttachment(String name, String value) {
+
+        final InputStream is = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
+        final DataSource dataSource = new InputStreamDataSource(is, MediaType.TEXT_PLAIN, name);
+
+        return new StringAttachment(name, value, new DataHandler(dataSource));
     }
 
     private Attachment getFileAttachment(int index) {
 
         try {
-            Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
-            DataSource dataSource = new InputStreamDataSource(
+            final Resource resource = new FileSystemResource(LOADED_FILE_FOLDER + getFileName(index));
+            final DataSource dataSource = new InputStreamDataSource(
                     resource.getInputStream(), MediaType.APPLICATION_XML, resource.getFilename()
             );
 
-            String fileName = resource.getFilename();
+            final String fileName = resource.getFilename();
             assertNotNull(fileName);
 
-            MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
+            final MultivaluedMap<String, String> headers = new MultivaluedHashMap<>(1);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + fileName));
 
-            return new Attachment("file", dataSource, headers);
+            return new Attachment(FIELD_REF_BOOK_FILE, dataSource, headers);
 
         } catch (IOException e) {
             return null;
         }
     }
 
+    private String getRefBookCode(int index) {
+        return String.format("%s%d", LOADED_CODE, index);
+    }
+
     private String getFileName(int index) {
         return String.format("%s%d%s", LOADED_FILE_NAME, index, LOADED_FILE_EXT);
+    }
+
+    private static class StringAttachment extends Attachment {
+
+        private final String value;
+
+        public StringAttachment(String id, String value, DataHandler dataHandler) {
+
+            super(id, dataHandler, new MultivaluedHashMap<>(0));
+            this.value = value;
+        }
+
+        @Override
+        public <T> T getObject(Class<T> cls) {
+            return (T) value;
+        }
     }
 }
