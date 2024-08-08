@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.api.model.refdata;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
-import javax.ws.rs.QueryParam;
 import java.util.*;
 
 /**

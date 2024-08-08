@@ -2,11 +2,10 @@ package ru.i_novus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
-
-import javax.ws.rs.QueryParam;
 
 @ApiModel("Критерии поиска версий справочника со ссылками")
 public class ReferrerVersionCriteria extends AbstractCriteria {

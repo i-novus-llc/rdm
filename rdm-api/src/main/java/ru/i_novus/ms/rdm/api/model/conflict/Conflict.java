@@ -3,12 +3,12 @@ package ru.i_novus.ms.rdm.api.model.conflict;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.ws.rs.QueryParam;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.platform.datastorage.temporal.model.FieldValue;
 
-import javax.ws.rs.QueryParam;
 import java.io.Serializable;
 import java.util.List;
 

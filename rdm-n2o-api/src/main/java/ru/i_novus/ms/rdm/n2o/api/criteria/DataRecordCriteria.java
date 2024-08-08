@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
-import javax.ws.rs.QueryParam;
 import java.util.Objects;
 
 /**

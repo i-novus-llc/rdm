@@ -3,13 +3,13 @@ package ru.i_novus.ms.rdm.impl.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.PersistenceException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -22,32 +22,34 @@ import java.util.function.Function;
 import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.util.json.JsonUtil.getMapper;
 
-public class StructureType implements UserType {
+public class StructureType implements UserType<Structure> {
 
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.JAVA_OBJECT};
+    public int getSqlType() {
+        return Types.JAVA_OBJECT;
     }
 
     @Override
-    public Class<? extends Structure> returnedClass() {
+    public Class<Structure> returnedClass() {
         return Structure.class;
     }
 
     @Override
-    public boolean equals(Object x, Object y) {
+    public boolean equals(Structure x, Structure y) {
         return Objects.equals(x, y);
     }
 
     @Override
-    public int hashCode(Object x) {
+    public int hashCode(Structure x) {
         return Objects.hashCode(x);
     }
 
     @Override
-    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
+    public Structure nullSafeGet(ResultSet rs, int position,
+                                 SharedSessionContractImplementor session,
+                                 @Deprecated Object owner) throws SQLException {
 
-        final String cellContent = rs.getString(names[0]);
+        final String cellContent = rs.getString(position);
         if (cellContent == null)
             return null;
 
@@ -110,7 +112,8 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws SQLException {
+    public void nullSafeSet(PreparedStatement st, Structure value, int index,
+                            SharedSessionContractImplementor session) throws SQLException {
 
         if (value == null) {
             st.setNull(index, Types.OTHER);
@@ -118,7 +121,7 @@ public class StructureType implements UserType {
         }
 
         try {
-            ObjectNode structure = structureToJson((Structure) value);
+            ObjectNode structure = structureToJson(value);
             st.setObject(index, getMapper().writeValueAsString(structure), Types.OTHER);
 
         } catch (IOException ex) {
@@ -165,9 +168,9 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public Object deepCopy(Object value) {
+    public Structure deepCopy(Structure value) {
 
-        return (value != null) ? SerializationUtils.clone((Structure) value) : null;
+        return (value != null) ? SerializationUtils.clone(value) : null;
     }
 
     @Override
@@ -176,17 +179,17 @@ public class StructureType implements UserType {
     }
 
     @Override
-    public Serializable disassemble(Object value) {
-        return (Serializable) this.deepCopy(value);
+    public Serializable disassemble(Structure value) {
+        return this.deepCopy(value);
     }
 
     @Override
-    public Object assemble(Serializable cached, Object owner) {
-        return deepCopy(cached);
+    public Structure assemble(Serializable cached, Object owner) {
+        return deepCopy((Structure) cached);
     }
 
     @Override
-    public Object replace(Object original, Object target, Object owner) {
+    public Structure replace(Structure original, Structure target, Object owner) {
         return deepCopy(original);
     }
 

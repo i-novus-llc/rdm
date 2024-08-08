@@ -1,9 +1,8 @@
 package ru.i_novus.ms.rdm.api.model.version;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
-
-import javax.ws.rs.QueryParam;
 
 /**
  * Критерий поиска версий справочников.

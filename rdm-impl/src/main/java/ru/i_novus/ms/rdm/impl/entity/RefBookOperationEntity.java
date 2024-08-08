@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Clock;
 import java.time.LocalDateTime;

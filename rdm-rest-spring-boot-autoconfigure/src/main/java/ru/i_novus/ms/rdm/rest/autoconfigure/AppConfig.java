@@ -1,13 +1,15 @@
 package ru.i_novus.ms.rdm.rest.autoconfigure;
 
+import jakarta.servlet.MultipartConfigElement;
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 
 import java.util.List;
@@ -28,9 +30,17 @@ public class AppConfig {
 
     @Bean
     public MultipartResolver multipartResolver() {
-        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-        resolver.setMaxUploadSize(maxFileSize);
+
+        final StandardServletMultipartResolver resolver = new StandardServletMultipartResolver();
         resolver.setResolveLazily(false);
         return resolver;
+    }
+
+    @Bean
+    public MultipartConfigElement multipartConfigElement() {
+
+        final MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setMaxFileSize(DataSize.ofBytes(maxFileSize));
+        return factory.createMultipartConfig();
     }
 }

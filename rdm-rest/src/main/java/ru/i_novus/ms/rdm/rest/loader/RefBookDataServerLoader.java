@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.rest.loader;
 
-import lombok.extern.log4j.Log4j;
 import net.n2oapp.platform.loader.server.ServerLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 /** Загрузчик справочника. */
 @Component
-@Log4j
 public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataServerLoader.class);

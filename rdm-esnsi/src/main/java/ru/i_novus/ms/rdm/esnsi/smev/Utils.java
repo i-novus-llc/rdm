@@ -1,13 +1,13 @@
 package ru.i_novus.ms.rdm.esnsi.smev;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.esnsi.api.CnsiRequest;
 import ru.i_novus.ms.rdm.esnsi.api.CnsiResponse;
 import ru.i_novus.ms.rdm.esnsi.api.ObjectFactory;
 import ru.i_novus.ms.rdm.esnsi.api.ResponseDocument;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 

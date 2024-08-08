@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.esnsi;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,6 @@ import ru.i_novus.ms.rdm.esnsi.api.CnsiResponse;
 import ru.i_novus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 import ru.i_novus.ms.rdm.esnsi.api.ObjectFactory;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Timestamp;

@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 

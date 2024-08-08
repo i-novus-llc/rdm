@@ -1,9 +1,9 @@
 package ru.i_novus.ms.rdm.api.async;
 
+import jakarta.ws.rs.QueryParam;
 import org.springframework.data.domain.Sort;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 
-import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.UUID;
 

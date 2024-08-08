@@ -1,8 +1,12 @@
 package ru.i_novus.ms.rdm.rest;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
@@ -23,12 +27,9 @@ import ru.i_novus.ms.rdm.rest.autoconfigure.AppConfig;
 import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.ms.rdm.service.Application;
+import ru.i_novus.ms.rdm.test.pg.EmbeddedPgAutoConfiguration;
+import ru.i_novus.ms.rdm.test.pg.EnableEmbeddedPg;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,7 +55,7 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_B
         })
 @DefinePort
 @EnableEmbeddedPg
-@Import({BackendConfiguration.class, AppConfig.class})
+@Import({BackendConfiguration.class, AppConfig.class, EmbeddedPgAutoConfiguration.class})
 @SuppressWarnings("FieldCanBeLocal")
 public class LoaderTest {
 

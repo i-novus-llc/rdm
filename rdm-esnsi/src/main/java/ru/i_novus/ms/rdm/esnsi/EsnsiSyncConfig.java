@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.esnsi;
 
+import jakarta.annotation.PostConstruct;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,6 @@ import ru.i_novus.ms.rdm.esnsi.smev.MsgFetcher;
 import ru.i_novus.ms.rdm.esnsi.sync.EsnsiIntegrationJob;
 import ru.i_novus.ms.rdm.esnsi.sync.EsnsiSyncJobUtils;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;

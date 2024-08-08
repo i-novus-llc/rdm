@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.n2o.criteria;
 
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 
-import javax.ws.rs.QueryParam;
 import java.util.Objects;
 
 /**

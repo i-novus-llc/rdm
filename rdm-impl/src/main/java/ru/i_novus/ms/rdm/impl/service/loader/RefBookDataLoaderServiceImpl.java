@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.service.loader;
 
-import lombok.extern.log4j.Log4j;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +31,6 @@ import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREAT
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.SKIP_ON_DRAFT;
 
 @Service
-@Log4j
 @SuppressWarnings("java:S2139")
 public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
 

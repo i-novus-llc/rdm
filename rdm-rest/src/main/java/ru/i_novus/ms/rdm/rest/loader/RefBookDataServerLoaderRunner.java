@@ -1,6 +1,8 @@
 package ru.i_novus.ms.rdm.rest.loader;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import net.n2oapp.platform.loader.server.BaseLoaderRunner;
 import net.n2oapp.platform.loader.server.LoaderDataInfo;
 import net.n2oapp.platform.loader.server.ServerLoader;
@@ -19,8 +21,6 @@ import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

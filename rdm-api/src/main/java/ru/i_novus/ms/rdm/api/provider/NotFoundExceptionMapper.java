@@ -1,13 +1,13 @@
 package ru.i_novus.ms.rdm.api.provider;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.RestExceptionMapper;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
 import java.util.stream.Collectors;
 
 @Provider

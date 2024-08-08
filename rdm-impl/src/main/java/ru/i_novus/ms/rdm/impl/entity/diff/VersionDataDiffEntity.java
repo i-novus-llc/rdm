@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.entity.diff;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
 @Entity

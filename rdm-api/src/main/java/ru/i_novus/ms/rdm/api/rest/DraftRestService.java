@@ -1,6 +1,8 @@
 package ru.i_novus.ms.rdm.api.rest;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
@@ -15,8 +17,6 @@ import ru.i_novus.ms.rdm.api.model.version.CreateAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.DeleteAttributeRequest;
 import ru.i_novus.ms.rdm.api.model.version.UpdateAttributeRequest;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/draft")

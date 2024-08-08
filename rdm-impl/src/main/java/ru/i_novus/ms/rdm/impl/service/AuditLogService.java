@@ -2,16 +2,14 @@ package ru.i_novus.ms.rdm.impl.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.audit.client.AuditClient;
-import ru.i_novus.ms.audit.client.model.AuditClientRequest;
-import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
@@ -25,12 +23,12 @@ public class AuditLogService {
 
     private EnumSet<AuditAction> disabledActions;
 
-    private AuditClient auditClient;
+    //private AuditClient auditClient;
 
-    @Autowired
-    public void setAuditClient(AuditClient auditClient) {
-        this.auditClient = auditClient;
-    }
+    //@Autowired
+    //public void setAuditClient(AuditClient auditClient) {
+    //    this.auditClient = auditClient;
+    //}
 
     @Value("${rdm.audit.disabledActions:}#{T(java.util.Collections).emptyList()}")
     public void setDisabled(List<String> disabled) {
@@ -46,28 +44,35 @@ public class AuditLogService {
     }
 
     @Transactional
-    public void addAction(AuditAction action, Supplier getObjectFunction) {
+    public void addAction(AuditAction action, Supplier<Object> getObjectFunction) {
         addAction(action, getObjectFunction, emptyMap());
     }
 
     @Transactional
-    public void addAction(AuditAction action, Supplier getObjectFunction, Map<String, Object> additionalContext) {
+    public void addAction(AuditAction action, Supplier<Object> getObjectFunction,
+                          Map<String, Object> additionalContext) {
+
         if (!disabledActions.contains(action)) {
-            Object obj = getObjectFunction.get();
-            AuditClientRequest request = new AuditClientRequest();
-            request.setObjectType(action.getObjType());
-            request.setObjectName(action.getObjName());
-            request.setObjectId(action.getObjId(obj));
-            request.setEventType(action.getName());
-            Map<String, Object> m = new HashMap<>(action.getContext(obj));
-            m.putAll(additionalContext);
-            request.setContext(JsonUtil.toJsonString(m));
-            request.setAuditType((short) 1);
-            try {
-                auditClient.add(request);
-            } catch (Exception e) {
-                logger.error("An error occurred during the audit.", e);
-            }
+            logger.info("audit action:\n{}", action);
+            logger.info("audit context:\n{}", additionalContext);
+
+            final Object obj = getObjectFunction.get();
+            logger.info("audit object:\n{}", obj);
+
+            //AuditClientRequest request = new AuditClientRequest();
+            //request.setObjectType(action.getObjType());
+            //request.setObjectName(action.getObjName());
+            //request.setObjectId(action.getObjId(obj));
+            //request.setEventType(action.getName());
+            //Map<String, Object> m = new HashMap<>(action.getContext(obj));
+            //m.putAll(additionalContext);
+            //request.setContext(JsonUtil.toJsonString(m));
+            //request.setAuditType((short) 1);
+            //try {
+            //    auditClient.add(request);
+            //} catch (Exception e) {
+            //    logger.error("An error occurred during the audit.", e);
+            //}
         } else {
             logger.warn("audit action {} disabled", action);
         }

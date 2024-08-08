@@ -1,9 +1,9 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
 

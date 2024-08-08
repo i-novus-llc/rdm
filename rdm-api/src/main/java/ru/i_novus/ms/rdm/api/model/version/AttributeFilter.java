@@ -3,10 +3,10 @@ package ru.i_novus.ms.rdm.api.model.version;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.SearchTypeEnum;
 
-import javax.ws.rs.QueryParam;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;

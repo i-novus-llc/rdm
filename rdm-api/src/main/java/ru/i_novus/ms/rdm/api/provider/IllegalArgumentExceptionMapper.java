@@ -1,13 +1,12 @@
 package ru.i_novus.ms.rdm.api.provider;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.RestExceptionMapper;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
 
 @Provider
 public class IllegalArgumentExceptionMapper implements RestExceptionMapper<IllegalArgumentException> {

@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.api.model.refdata.SearchDataCriteria;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;

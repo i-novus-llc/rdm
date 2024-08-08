@@ -1,10 +1,10 @@
 package ru.i_novus.ms.rdm.api.model.conflict;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.compare.CompareCriteria;
 
-import javax.ws.rs.QueryParam;
 import java.util.Objects;
 
 import static ru.i_novus.ms.rdm.api.util.ConflictUtils.conflictTypeToDiffStatus;
