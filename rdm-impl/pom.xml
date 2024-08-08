@@ -54,6 +54,8 @@
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-jpa</artifactId>
+            <version>${querydsl.version}</version>
+            <classifier>jakarta</classifier>
         </dependency>
 
         <dependency>
@@ -62,9 +64,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate.javax.persistence</groupId>
-            <artifactId>hibernate-jpa-2.1-api</artifactId>
-            <version>1.0.2.Final</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <!--<version>${jakarta-persistence.version}</version>-->
         </dependency>
 
         <dependency>
@@ -73,7 +75,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
 
@@ -117,10 +119,10 @@
             <artifactId>xmlunit</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>ru.i-novus.ms.audit</groupId>
-            <artifactId>audit-client-spring-boot-starter</artifactId>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>ru.i-novus.ms.audit</groupId>-->
+        <!--    <artifactId>audit-client-spring-boot-starter</artifactId>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -181,6 +183,7 @@
                         <groupId>com.querydsl</groupId>
                         <artifactId>querydsl-apt</artifactId>
                         <version>${querydsl.version}</version>
+                        <classifier>jakarta</classifier>
                     </dependency>
                 </dependencies>
             </plugin>
