@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
@@ -28,7 +29,7 @@ public class AsyncOperationQueue {
 
     private final ObjectMapper objectMapper;
 
-    //private final UserAccessor userAccessor;
+    private final UserAccessor userAccessor;
 
     private final JmsTemplate jmsTemplate;
 
@@ -37,13 +38,13 @@ public class AsyncOperationQueue {
     @Autowired
     public AsyncOperationQueue(AsyncOperationLogEntryRepository repository,
                                @Qualifier("cxfObjectMapper") ObjectMapper objectMapper,
-                               //UserAccessor userAccessor,
+                               UserAccessor userAccessor,
                                @Qualifier("queueJmsTemplate") JmsTemplate jmsTemplate,
                                @Value("${rdm.async.operation.queue:RDM-INTERNAL-ASYNC-OPERATION-QUEUE}")
                                String queueId) {
         this.repository = repository;
         this.objectMapper = objectMapper;
-        //this.userAccessor = userAccessor;
+        this.userAccessor = userAccessor;
 
         this.jmsTemplate = jmsTemplate;
         this.queueId = queueId;
@@ -78,7 +79,7 @@ public class AsyncOperationQueue {
         final UUID operationId = newOperationId();
 
         AsyncOperationMessage message = new AsyncOperationMessage(
-                operationId, operationType, code, args//, userAccessor.get()
+                operationId, operationType, code, args, userAccessor.get()
         );
         repository.saveWithoutConflict(operationId, operationType.name(), code,
                 message.toPayload(objectMapper));
