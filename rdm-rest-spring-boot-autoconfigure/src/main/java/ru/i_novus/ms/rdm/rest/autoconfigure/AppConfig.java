@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 
 import java.util.List;
@@ -24,8 +25,9 @@ public class AppConfig {
     @Bean
     @ConditionalOnMissingBean
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
-    public RefBookDataServerLoaderRunner refBookDataServerLoaderRunner(List<ServerLoader> loaders) {
-        return new RefBookDataServerLoaderRunner(loaders);
+    public RefBookDataServerLoaderRunner refBookDataServerLoaderRunner(List<ServerLoader> loaders,
+                                                                       FileStorageService fileStorageService) {
+        return new RefBookDataServerLoaderRunner(loaders, fileStorageService);
     }
 
     @Bean
@@ -40,7 +42,7 @@ public class AppConfig {
     public MultipartConfigElement multipartConfigElement() {
 
         final MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setMaxFileSize(DataSize.ofBytes(maxFileSize));
+        factory.setMaxFileSize(DataSize.ofBytes(maxFileSize)); // spring.servlet.multipart.max-file-size
         return factory.createMultipartConfig();
     }
 }

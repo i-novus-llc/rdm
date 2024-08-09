@@ -2,7 +2,6 @@ package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +22,12 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
+import ru.i_novus.ms.rdm.test.pg.EnableEmbeddedPg;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import static com.google.common.collect.ImmutableMap.of;
 import static java.math.BigInteger.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -88,18 +88,18 @@ public class CustomValidationTest {
                 ));
 
         // Правильная строка
-        Row validRow = new Row(of(
-                        STRING_ATTR, "test1",
-                        INTEGER_ATTR, 3)
-                );
+        Row validRow = new Row(Map.of(
+            STRING_ATTR, "test1",
+            INTEGER_ATTR, 3
+        ));
         draftService.updateData(draftId, new UpdateDataRequest(null, validRow));
 
         // Неправильная строка
-        Row testRow = new Row(of(
+        final Row invalidRow = new Row(Map.of(
                 STRING_ATTR, "test1",
-                INTEGER_ATTR, 6)
-        );
-        UpdateDataRequest request = new UpdateDataRequest(null, testRow);
+                INTEGER_ATTR, 6
+        ));
+        UpdateDataRequest request = new UpdateDataRequest(null, invalidRow);
         try {
             draftService.updateData(draftId, request);
             fail();

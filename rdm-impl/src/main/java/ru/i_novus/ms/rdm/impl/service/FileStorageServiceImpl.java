@@ -3,9 +3,9 @@ package ru.i_novus.ms.rdm.impl.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.impl.file.FileStorage;
-import ru.i_novus.ms.rdm.api.model.FileModel;
 
 import java.io.InputStream;
 
@@ -16,7 +16,7 @@ import java.io.InputStream;
 @Primary
 public class FileStorageServiceImpl implements FileStorageService {
 
-    private FileStorage fileStorage;
+    private final FileStorage fileStorage;
 
     @Autowired
     public FileStorageServiceImpl(FileStorage fileStorage) {
@@ -27,6 +27,5 @@ public class FileStorageServiceImpl implements FileStorageService {
     public FileModel save(InputStream is, String fileName) {
 
         return new FileModel(fileStorage.saveContent(is, fileName), fileName);
-
     }
 }
