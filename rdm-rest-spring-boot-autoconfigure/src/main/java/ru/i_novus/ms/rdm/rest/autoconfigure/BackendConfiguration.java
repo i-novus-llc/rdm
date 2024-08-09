@@ -8,6 +8,7 @@ import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -17,14 +18,16 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.client.RestTemplate;
+import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
+import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
 import ru.i_novus.ms.rdm.rest.service.PublishListener;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
-//import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_ID;
-//import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_NAME;
+import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_ID;
+import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_NAME;
 
 @Configuration
 @SuppressWarnings({"unused","FieldCanBeLocal","I-novus:MethodNameWordCountRule"})
@@ -152,34 +155,34 @@ public class BackendConfiguration {
         return new PublishListener();
     }
 
-    //@Bean
-    //public UserAccessor userAccessor() {
-    //    return this::createUserAccessor;
-    //}
-    //
-    //private ru.i_novus.ms.audit.client.model.User createUserAccessor() {
-    //
-    //    final Object principal = SecurityContextUtils.getPrincipal();
-    //    if (principal == null)
-    //        return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
-    //
-    //    if (principal instanceof UserInfoModel) {
-    //
-    //        final UserInfoModel user = (UserInfoModel) principal;
-    //        return createAuditUser(user.email, user.username);
-    //
-    //    } else {
-    //        return createAuditUser("" + principal, DEFAULT_USER_NAME);
-    //    }
-    //}
-    //
-    //private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
-    //    return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
-    //}
-    //
-    //@Bean
-    //@Value("${rdm.audit.application.name:rdm}")
-    //public SourceApplicationAccessor applicationAccessor(String appName) {
-    //    return () -> appName;
-    //}
+    @Bean
+    public UserAccessor userAccessor() {
+        return this::createUserAccessor;
+    }
+
+    private ru.i_novus.ms.audit.client.model.User createUserAccessor() {
+
+        //final Object principal = SecurityContextUtils.getPrincipal();
+        //if (principal == null)
+            return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
+
+        //if (principal instanceof UserInfoModel) {
+        //
+        //    final UserInfoModel user = (UserInfoModel) principal;
+        //    return createAuditUser(user.email, user.username);
+        //
+        //} else {
+        //    return createAuditUser("" + principal, DEFAULT_USER_NAME);
+        //}
+    }
+
+    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
+        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
+    }
+
+    @Bean
+    @Value("${rdm.audit.application.name:rdm}")
+    public SourceApplicationAccessor applicationAccessor(String appName) {
+        return () -> appName;
+    }
 }
