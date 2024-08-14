@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.web.autoconfigure;
 
 import net.n2oapp.platform.i18n.Messages;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
@@ -16,7 +17,7 @@ import ru.i_novus.ms.rdm.n2o.config.UiStrategyLocatorConfig;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
-@Configuration
+@AutoConfiguration
 @ConditionalOnProperty(name = "rdm.backend.path")
 @ComponentScan({
         "ru.i_novus.ms.rdm.n2o.service",

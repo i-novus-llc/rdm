@@ -1,13 +1,13 @@
 package ru.i_novus.ms.rdm.rest.autoconfigure;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@Configuration
+@AutoConfiguration
 @ComponentScan({"ru.i_novus.ms.rdm", "ru.i_novus.platform.versioned_data_storage.config"})
 @Import(value = {AppConfig.class, BackendConfiguration.class})
 @EnableJpaRepositories("ru.i_novus.ms.rdm.impl.repository")
