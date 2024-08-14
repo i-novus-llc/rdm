@@ -7,7 +7,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
@@ -44,5 +46,17 @@ public class AppConfig {
         final MultipartConfigFactory factory = new MultipartConfigFactory();
         factory.setMaxFileSize(DataSize.ofBytes(maxFileSize)); // spring.servlet.multipart.max-file-size
         return factory.createMultipartConfig();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RestTemplate platformRestTemplate() {
+        return new RestTemplate(); // for BackendConfiguration
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ClientHttpRequestInterceptor userinfoRestTemplateInterceptor() {
+        return (request, body, execution) -> execution.execute(request, body); // for BackendConfiguration
     }
 }
