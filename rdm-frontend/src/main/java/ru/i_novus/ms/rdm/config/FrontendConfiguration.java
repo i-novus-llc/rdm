@@ -4,7 +4,8 @@ import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.i_novus.ms.audit.client.UserAccessor;
+import ru.i_novus.ms.rdm.api.audit.UserAccessor;
+import ru.i_novus.ms.rdm.api.audit.model.User;
 
 import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_ID;
 import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_NAME;
@@ -24,7 +25,7 @@ public class FrontendConfiguration {
         return this::createUserAccessor;
     }
 
-    private ru.i_novus.ms.audit.client.model.User createUserAccessor() {
+    private User createUserAccessor() {
 
         //final Object principal = SecurityContextUtils.getPrincipal();
         //if (principal == null)
@@ -40,7 +41,7 @@ public class FrontendConfiguration {
         //}
     }
 
-    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
-        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
+    private User createAuditUser(String id, String name) {
+        return new User(id != null ? id : name, name);
     }
 }

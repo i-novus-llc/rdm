@@ -19,8 +19,9 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.client.RestTemplate;
-import ru.i_novus.ms.audit.client.SourceApplicationAccessor;
-import ru.i_novus.ms.audit.client.UserAccessor;
+import ru.i_novus.ms.rdm.api.audit.SourceApplicationAccessor;
+import ru.i_novus.ms.rdm.api.audit.UserAccessor;
+import ru.i_novus.ms.rdm.api.audit.model.User;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
@@ -167,7 +168,7 @@ public class BackendConfiguration {
         return this::createUserAccessor;
     }
 
-    private ru.i_novus.ms.audit.client.model.User createUserAccessor() {
+    private User createUserAccessor() {
 
         //final Object principal = SecurityContextUtils.getPrincipal();
         //if (principal == null)
@@ -183,8 +184,8 @@ public class BackendConfiguration {
         //}
     }
 
-    private ru.i_novus.ms.audit.client.model.User createAuditUser(String id, String name) {
-        return new ru.i_novus.ms.audit.client.model.User(id != null ? id : name, name);
+    private User createAuditUser(String id, String name) {
+        return new User(id != null ? id : name, name);
     }
 
     @Bean

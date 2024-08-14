@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.audit.client.AuditClient;
-import ru.i_novus.ms.audit.client.model.AuditClientRequest;
+import ru.i_novus.ms.rdm.api.audit.AuditClient;
+import ru.i_novus.ms.rdm.api.audit.model.AuditClientRequest;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 
@@ -64,14 +64,14 @@ public class AuditLogService {
             final Object obj = getObjectFunction.get();
             logger.info("audit object:\n{}", obj);
 
-            AuditClientRequest request = new AuditClientRequest();
+            final AuditClientRequest request = new AuditClientRequest();
             request.setObjectType(action.getObjType());
             request.setObjectName(action.getObjName());
             request.setObjectId(action.getObjId(obj));
             request.setEventType(action.getName());
-            Map<String, Object> m = new HashMap<>(action.getContext(obj));
-            m.putAll(additionalContext);
-            request.setContext(JsonUtil.toJsonString(m));
+            Map<String, Object> contextMap = new HashMap<>(action.getContext(obj));
+            contextMap.putAll(additionalContext);
+            request.setContext(JsonUtil.toJsonString(contextMap));
             request.setAuditType((short) 1);
             try {
                 auditClient.add(request);

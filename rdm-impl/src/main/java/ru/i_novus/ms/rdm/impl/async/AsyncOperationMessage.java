@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.async;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
+import ru.i_novus.ms.rdm.api.audit.model.User;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;

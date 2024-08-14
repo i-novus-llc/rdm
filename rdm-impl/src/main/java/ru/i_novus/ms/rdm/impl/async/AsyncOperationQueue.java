@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.audit.client.UserAccessor;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
+import ru.i_novus.ms.rdm.api.audit.UserAccessor;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 
 import java.io.Serializable;
