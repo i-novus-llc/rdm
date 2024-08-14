@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +58,7 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     MskUtcLocalDateTimeParamConverter mskUtcLocalDateTimeParamConverter() {
         return new MskUtcLocalDateTimeParamConverter(new LocalDateTimeISOParameterConverter());
     }
@@ -69,21 +71,25 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public OffsetDateTimeParamConverter offsetDateTimeParamConverter() {
         return new OffsetDateTimeParamConverter();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public LocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new LocalDateTimeMapperPreparer();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public ExportFileProvider exportFileProvider(){
         return new ExportFileProvider();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public RdmMapperConfigurer rdmMapperConfigurer(){
         return new RdmMapperConfigurer();
     }
@@ -156,6 +162,7 @@ public class BackendConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public UserAccessor userAccessor() {
         return this::createUserAccessor;
     }
@@ -181,8 +188,10 @@ public class BackendConfiguration {
     }
 
     @Bean
-    @Value("${rdm.audit.application.name:rdm}")
-    public SourceApplicationAccessor applicationAccessor(String appName) {
+    @ConditionalOnMissingBean
+    public SourceApplicationAccessor applicationAccessor(
+            @Value("${rdm.audit.application.name:rdm}") String appName
+    ) {
         return () -> appName;
     }
 }

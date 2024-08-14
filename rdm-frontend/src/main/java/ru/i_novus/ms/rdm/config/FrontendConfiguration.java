@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.config;
 
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.i_novus.ms.audit.client.UserAccessor;
@@ -12,11 +13,13 @@ import static ru.i_novus.ms.rdm.config.SecurityContextUtils.DEFAULT_USER_NAME;
 public class FrontendConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     public XmlInfoScanner myInfoScanner() {
         return new XmlInfoScanner("classpath*:/access/**/*.xml");
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public UserAccessor userAccessor() {
         return this::createUserAccessor;
     }
