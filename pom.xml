@@ -19,8 +19,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <encoding>UTF-8</encoding>
 
-        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
-        <npm.registry>https://registry.yarnpkg.com/</npm.registry>
+        <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <!-- N2O -->
         <n2o.version>7.27.17</n2o.version>
