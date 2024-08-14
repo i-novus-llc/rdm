@@ -56,7 +56,7 @@
         <!-- / security-->
 
         <!-- Текущая версия использует spring-boot 2.3.4 -->
-        <i-novus.audit.version>2.4.28</i-novus.audit.version>
+        <!--<i-novus.audit.version>2.4.28</i-novus.audit.version>-->
 
         <!-- test -->
         <xmlunit.version>1.6</xmlunit.version>
@@ -252,11 +252,11 @@
                 <version>${commons.text.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>ru.i-novus.ms.audit</groupId>
-                <artifactId>audit-client-spring-boot-starter</artifactId>
-                <version>${i-novus.audit.version}</version>
-            </dependency>
+            <!--<dependency>-->
+            <!--    <groupId>ru.i-novus.ms.audit</groupId>-->
+            <!--    <artifactId>audit-client-spring-boot-starter</artifactId>-->
+            <!--    <version>${i-novus.audit.version}</version>-->
+            <!--</dependency>-->
 
             <!-- test -->
             <dependency>
