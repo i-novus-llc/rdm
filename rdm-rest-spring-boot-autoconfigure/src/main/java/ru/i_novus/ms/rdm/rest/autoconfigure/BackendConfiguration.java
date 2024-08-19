@@ -35,18 +35,19 @@ import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_
 @SuppressWarnings({"unused","FieldCanBeLocal","I-novus:MethodNameWordCountRule"})
 public class BackendConfiguration {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate platformRestTemplate;
 
     private final ClientHttpRequestInterceptor userinfoRestTemplateInterceptor;
 
     private final FieldFactory fieldFactory; // Для десериализации объектов сторонних классов
 
     @Autowired
-    public BackendConfiguration(RestTemplate restTemplate,
+    public BackendConfiguration(@Qualifier("platformRestTemplate")
+                                        RestTemplate platformRestTemplate,
                                 @Qualifier("userinfoRestTemplateInterceptor")
-                                ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
+                                    ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
                                 FieldFactory fieldFactory) {
-        this.restTemplate = restTemplate;
+        this.platformRestTemplate = platformRestTemplate;
         this.userinfoRestTemplateInterceptor = userinfoRestTemplateInterceptor;
 
         this.fieldFactory = fieldFactory;
@@ -55,7 +56,7 @@ public class BackendConfiguration {
     @PostConstruct
     private void configureRestTemplate() {
 
-        restTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
+        platformRestTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
     }
 
     @Bean
