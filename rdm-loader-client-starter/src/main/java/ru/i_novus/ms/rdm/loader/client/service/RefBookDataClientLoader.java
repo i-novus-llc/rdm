@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
+import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 import ru.i_novus.ms.rdm.loader.client.model.RefBookDataModel;
 import ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil;
 
@@ -46,8 +47,11 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
         final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(7);
 
-        body.add(FIELD_CHANGE_SET_ID, !isEmpty(model.getChangeSetId()) ? model.getChangeSetId() : "");
-        body.add(FIELD_UPDATE_TYPE, model.getUpdateType() != null ? model.getUpdateType() : CREATE_ONLY);
+        final String changeSetId = model.getChangeSetId();
+        body.add(FIELD_CHANGE_SET_ID, !isEmpty(changeSetId) ? changeSetId : "");
+
+        final RefBookDataUpdateTypeEnum updateType = model.getUpdateType();
+        body.add(FIELD_UPDATE_TYPE, (updateType != null ? updateType : CREATE_ONLY).name());
 
         if (!isEmpty(model.getCode())) {
             body.add(FIELD_REF_BOOK_CODE, model.getCode());

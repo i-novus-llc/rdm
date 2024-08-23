@@ -52,7 +52,7 @@
         <jaxws.version>2.3.2</jaxws.version>
 
         <!-- security -->
-        <security.admin.version>7.1.2</security.admin.version>
+        <security.admin.version>7.1.3</security.admin.version>
         <!-- / security-->
 
         <!-- Текущая версия использует spring-boot 2.3.4 -->
