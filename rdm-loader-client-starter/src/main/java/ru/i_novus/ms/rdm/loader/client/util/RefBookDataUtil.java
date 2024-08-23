@@ -87,7 +87,7 @@ public final class RefBookDataUtil {
         for (JsonNode jsonNode : rootNode) {
             RefBookDataModel model = toRefBookDataModel(jsonNode);
             if (model != null) {
-                result.add(toRefBookDataModel(jsonNode));
+                result.add(model);
             }
         }
 

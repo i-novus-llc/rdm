@@ -16,6 +16,7 @@ public enum RefBookDataUpdateTypeEnum {
     private static final Map<String, RefBookDataUpdateTypeEnum> TYPE_MAP = new HashMap<>();
     static {
         for (RefBookDataUpdateTypeEnum type : RefBookDataUpdateTypeEnum.values()) {
+            TYPE_MAP.put(type.name(), type);
             TYPE_MAP.put(type.name().toLowerCase(), type);
         }
     }
