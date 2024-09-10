@@ -53,7 +53,7 @@ import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NO
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class VersionServiceImpl implements VersionService {
 
-    private static final String VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE = "version.with.number.and.code.not.found";
+    private static final String VERSION_WITH_CODE_AND_NUMBER_NOT_FOUND_EXCEPTION_CODE = "version.with.code.and.number.not.found";
     private static final String VERSION_ACTUAL_ON_DATE_NOT_FOUND_EXCEPTION_CODE = "version.actual.on.date.not.found";
     private static final String ROW_NOT_FOUND_EXCEPTION_CODE = "row.not.found";
 
@@ -118,7 +118,7 @@ public class VersionServiceImpl implements VersionService {
 
         RefBookVersionEntity entity = versionRepository.findByVersionAndRefBookCode(version, refBookCode);
         if (entity == null)
-            throw new NotFoundException(new Message(VERSION_WITH_NUMBER_AND_CODE_NOT_FOUND_EXCEPTION_CODE, version, refBookCode));
+            throw new NotFoundException(new Message(VERSION_WITH_CODE_AND_NUMBER_NOT_FOUND_EXCEPTION_CODE, refBookCode, version));
 
         return ModelGenerator.versionModel(entity);
     }

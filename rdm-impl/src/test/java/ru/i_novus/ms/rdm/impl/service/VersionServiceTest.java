@@ -187,9 +187,9 @@ public class VersionServiceTest {
         when(versionRepository.findByVersionAndRefBookCode(VERSION_NUMBER, REFBOOK_CODE))
                 .thenReturn(null);
 
-        final String expectedMessage = "version.with.number.and.code.not.found";
+        final String expectedMessage = "version.with.code.and.number.not.found";
         try {
-            versionService.getVersion(VERSION_NUMBER, REFBOOK_CODE);
+            versionService.getVersion(REFBOOK_CODE, VERSION_NUMBER);
             fail(ERROR_WAITING + expectedMessage);
 
         } catch (RuntimeException e) {
