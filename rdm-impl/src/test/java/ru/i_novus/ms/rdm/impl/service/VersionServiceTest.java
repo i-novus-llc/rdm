@@ -189,7 +189,7 @@ public class VersionServiceTest {
 
         final String expectedMessage = "version.with.code.and.number.not.found";
         try {
-            versionService.getVersion(REFBOOK_CODE, VERSION_NUMBER);
+            versionService.getVersion(VERSION_NUMBER, REFBOOK_CODE);
             fail(ERROR_WAITING + expectedMessage);
 
         } catch (RuntimeException e) {
