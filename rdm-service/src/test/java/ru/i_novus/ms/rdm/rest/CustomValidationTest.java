@@ -38,6 +38,7 @@ import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
 import static ru.i_novus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,

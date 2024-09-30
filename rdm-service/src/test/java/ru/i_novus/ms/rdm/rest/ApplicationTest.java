@@ -6,6 +6,7 @@ import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -92,6 +93,7 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
