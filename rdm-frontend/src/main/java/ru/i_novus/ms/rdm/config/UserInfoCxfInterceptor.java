@@ -32,9 +32,10 @@ public class UserInfoCxfInterceptor extends AbstractPhaseInterceptor<Message> {
         /* to-do: Add PrincipalToJsonAbstractMapper using ApplicationContextAware-implemented class.
            https://codippa.com/how-to-autowire-objects-in-non-spring-classes/
          */
-        final String json = new Gson().toJson(new UserInfoModel(((OauthUser) principal)));
+        final UserInfoModel model = new UserInfoModel((OauthUser) principal);
+        final String json = new Gson().toJson(model);
 
-        final Map<String, List<String>> headers = CastUtils.cast((Map)message.get(PROTOCOL_HEADERS));
+        final Map<String, List<String>> headers = CastUtils.cast((Map) message.get(PROTOCOL_HEADERS));
         headers.put("n2o-user-info", List.of(json));
     }
 
