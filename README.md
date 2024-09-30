@@ -1,23 +1,22 @@
 # Требования
 
-- OpenJDK 11.0.18
-- PostgreSQL 11
+- OpenJDK 17
+- PostgreSQL 12
 - Artemis или ActiveMQ
-- N2O Security Admin 7.1
-- N2O Audit 2.4
+- N2O Security Admin 8.0.1
 
 # Стек технологий
 
-- Java 11+
+- Java 17+
 - JDBC
 - JPA 2
 - JAX-RS
 - JMS
-- Spring Boot 2.7.5
+- Spring Boot 3.2.2
 - Spring Cloud 2021
-- Liquibase 4.9
-- N2O Platform 5.3
-- N2O UI Framework 7.27
+- Liquibase 4.24
+- N2O Platform 6.1.3
+- N2O UI Framework 7.28
 - React
 
 # Структура проекта
