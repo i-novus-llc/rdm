@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>6.1.0-SNAPSHOT</version>
+        <version>6.1.3</version>
     </parent>
 
     <properties>
@@ -30,8 +30,8 @@
         <!-- / N2O -->
 
         <!-- STORAGE -->
-        <vds.version>3.26-SNAPSHOT</vds.version>
-        <l10n.vds.version>3.31-SNAPSHOT</l10n.vds.version>
+        <vds.version>3.27</vds.version>
+        <l10n.vds.version>3.32</l10n.vds.version>
         <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
@@ -50,9 +50,10 @@
         <commons.text.version>1.10.0</commons.text.version>
         <itext.pdf.version>5.5.9</itext.pdf.version>
         <jaxws.version>2.3.2</jaxws.version>
+        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
 
         <!-- security -->
-        <security.admin.version>7.1.3</security.admin.version>
+        <security.admin.version>8.0.1</security.admin.version>
         <!-- / security-->
 
         <!-- Текущая версия использует spring-boot 2.3.4 -->
@@ -241,6 +242,30 @@
             <!-- / JAX -->
 
             <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-service-description</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-service-description-swagger-ui</artifactId>
+                <version>${cxf.version}</version>
+            </dependency>
+
+            <!--<dependency>-->
+            <!--    <groupId>org.apache.cxf</groupId>-->
+            <!--    <artifactId>cxf-rt-rs-service-description-openapi-v3</artifactId>-->
+            <!--    <version>${cxf.version}</version>-->
+            <!--</dependency>-->
+
+            <dependency>
                 <groupId>jakarta.activation</groupId>
                 <artifactId>jakarta.activation-api</artifactId>
                 <version>${jakarta-activation.version}</version>
@@ -278,6 +303,7 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <plugin>
@@ -419,7 +445,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
