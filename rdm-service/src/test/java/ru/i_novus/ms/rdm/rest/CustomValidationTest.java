@@ -2,6 +2,8 @@ package ru.i_novus.ms.rdm.rest;
 
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
+import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,6 @@ import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
-import ru.i_novus.ms.rdm.test.pg.EnableEmbeddedPg;
 
 import java.util.Iterator;
 import java.util.List;
@@ -52,7 +53,7 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
                 "rdm.audit.disabledActions=all"
         })
 @DefinePort
-@EnableEmbeddedPg
+@EnableTestcontainersPg
 @Import(BackendConfiguration.class)
 public class CustomValidationTest {
 
