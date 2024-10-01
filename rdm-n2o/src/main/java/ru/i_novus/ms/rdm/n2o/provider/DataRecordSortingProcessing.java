@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.stream.Collectors.toList;
-
 @Component
 public class DataRecordSortingProcessing implements DataProcessing {
 
@@ -30,13 +28,11 @@ public class DataRecordSortingProcessing implements DataProcessing {
         if (sortingSet.isEmpty())
             return;
 
-        final List<Sorting> sortings = sortingSet.entrySet().stream()
-                .map(DataRecordSortingProcessing::toSorting)
-                .collect(toList());
+        final List<Sorting> sortings = sortingSet.entrySet().stream().map(this::toSorting).toList();
         requestInfo.getCriteria().setSortings(sortings);
     }
 
-    private static Sorting toSorting(Map.Entry<String, Object> entry) {
+    private Sorting toSorting(Map.Entry<String, Object> entry) {
 
         return new Sorting(entry.getKey(), SortingDirection.valueOf((String) entry.getValue()));
     }

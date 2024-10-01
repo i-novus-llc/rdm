@@ -47,7 +47,7 @@ public class StructureType implements UserType<Structure> {
     @Override
     public Structure nullSafeGet(ResultSet rs, int position,
                                  SharedSessionContractImplementor session,
-                                 @Deprecated Object owner) throws SQLException {
+                                 Object owner) throws SQLException {
 
         final String cellContent = rs.getString(position);
         if (cellContent == null)
