@@ -80,13 +80,17 @@ public class AuditClientRequest {
     }
 
     public void setContext(Object contextJson) {
-        if (contextJson instanceof String) {
-            this.context = (String) contextJson;
+
+        if (contextJson instanceof String jsonString) {
+            this.context = jsonString;
+
         } else if (contextJson == null) {
             this.context = null;
+
         } else {
             try {
                 this.context = new ObjectMapper().writeValueAsString(contextJson);
+
             } catch (JsonProcessingException e) {
                 log.error("Error on parsing context json", e);
                 throw new UserException("audit.clientException.invalidContext");

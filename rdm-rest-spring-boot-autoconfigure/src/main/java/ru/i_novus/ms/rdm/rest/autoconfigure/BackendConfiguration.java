@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.rest.autoconfigure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.jms.ConnectionFactory;
+import net.n2oapp.framework.security.autoconfigure.userinfo.UserInfoModel;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
 import net.n2oapp.platform.jaxrs.MessageExceptionMapper;
@@ -171,18 +172,14 @@ public class BackendConfiguration {
 
     private User createUserAccessor() {
 
-        //final Object principal = SecurityContextUtils.getPrincipal();
-        //if (principal == null)
+        final Object principal = SecurityContextUtils.getPrincipal();
+        if (principal == null)
             return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
 
-        //if (principal instanceof UserInfoModel) {
-        //
-        //    final UserInfoModel user = (UserInfoModel) principal;
-        //    return createAuditUser(user.email, user.username);
-        //
-        //} else {
-        //    return createAuditUser("" + principal, DEFAULT_USER_NAME);
-        //}
+        if (principal instanceof UserInfoModel user)
+            return createAuditUser(user.email, user.username);
+
+        return createAuditUser("" + principal, DEFAULT_USER_NAME);
     }
 
     private User createAuditUser(String id, String name) {

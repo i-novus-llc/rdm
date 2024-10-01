@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.config;
 
 import net.n2oapp.framework.config.register.scanner.XmlInfoScanner;
+import net.n2oapp.framework.security.autoconfigure.userinfo.UserInfoModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,18 +28,14 @@ public class FrontendConfiguration {
 
     private User createUserAccessor() {
 
-        //final Object principal = SecurityContextUtils.getPrincipal();
-        //if (principal == null)
+        final Object principal = SecurityContextUtils.getPrincipal();
+        if (principal == null)
             return createAuditUser(DEFAULT_USER_ID, DEFAULT_USER_NAME);
 
-        //if (principal instanceof UserInfoModel) {
-        //
-        //    final UserInfoModel user = (UserInfoModel) principal;
-        //    return createAuditUser(user.email, user.username);
-        //
-        //} else {
-        //    return createAuditUser("" + principal, DEFAULT_USER_NAME);
-        //}
+        if (principal instanceof UserInfoModel user)
+            return createAuditUser(user.email, user.username);
+
+        return createAuditUser("" + principal, DEFAULT_USER_NAME);
     }
 
     private User createAuditUser(String id, String name) {
