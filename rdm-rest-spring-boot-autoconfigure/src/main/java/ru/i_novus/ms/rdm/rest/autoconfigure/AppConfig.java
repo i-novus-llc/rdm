@@ -41,6 +41,7 @@ public class AppConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S5693")
     public MultipartConfigElement multipartConfigElement() {
 
         final MultipartConfigFactory factory = new MultipartConfigFactory();
