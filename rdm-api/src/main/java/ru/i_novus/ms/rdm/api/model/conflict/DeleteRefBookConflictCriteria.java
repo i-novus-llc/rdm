@@ -1,10 +1,9 @@
 package ru.i_novus.ms.rdm.api.model.conflict;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
-
-import javax.ws.rs.QueryParam;
 
 /**
  * Критерий удаления конфликтов.

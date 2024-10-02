@@ -48,7 +48,7 @@ public class DataFieldFilterProviderTest {
     @Test
     public void testToFilterField() {
 
-        try(MockedStatic<N2oPipelineSupport> n2oPipelineSupport = mockStatic(N2oPipelineSupport.class)) {
+        try (MockedStatic<N2oPipelineSupport> n2oPipelineSupport = mockStatic(N2oPipelineSupport.class)) {
 
             n2oPipelineSupport.when(() -> N2oPipelineSupport.compilePipeline(environment)).thenReturn(pipeline);
             when(pipeline.compile()).thenReturn(bindTerminalPipeline);

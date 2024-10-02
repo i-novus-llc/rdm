@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import jakarta.annotation.PostConstruct;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookOperation;
 import ru.i_novus.ms.rdm.impl.entity.RefBookOperationEntity;
 import ru.i_novus.ms.rdm.impl.repository.RefBookOperationRepository;
 
-import javax.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;

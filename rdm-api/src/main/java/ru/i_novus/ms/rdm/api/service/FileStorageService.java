@@ -1,12 +1,12 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 
-import javax.validation.constraints.Pattern;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 
 @Path("/fileStorage")

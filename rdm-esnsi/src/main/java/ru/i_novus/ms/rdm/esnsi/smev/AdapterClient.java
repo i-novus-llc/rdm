@@ -1,12 +1,12 @@
 package ru.i_novus.ms.rdm.esnsi.smev;
 
+import jakarta.xml.bind.JAXBException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.esnsi.api.*;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -46,12 +46,20 @@ public class AdapterClient {
         }
         if (responseDocument != null) {
             if (!responseDocument.getSenderProvidedResponseData().getRequestRejected().isEmpty()) {
-                throw new RdmException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream().map(requestRejected ->
-                        "[" + requestRejected.getRejectionReasonCode() + ":" + requestRejected.getRejectionReasonDescription() + "]"
-                ).collect(Collectors.joining(",\n")));
+                throw new RdmException(responseDocument.getSenderProvidedResponseData().getRequestRejected().stream()
+                        .map(requestRejected ->
+                        "[" + requestRejected.getRejectionReasonCode() +
+                                ":" + requestRejected.getRejectionReasonDescription() + "]")
+                        .collect(Collectors.joining(",\n")));
             }
             try {
-                return Map.entry(extractResponse(responseDocument, responseType), responseDocument.getAttachmentContentList() == null ? EMPTY_INPUT_STREAM : responseDocument.getAttachmentContentList().getAttachmentContent().iterator().next().getContent().getInputStream());
+                return Map.entry(
+                        extractResponse(responseDocument, responseType),
+                        responseDocument.getAttachmentContentList() == null
+                                ? EMPTY_INPUT_STREAM
+                                : responseDocument.getAttachmentContentList().getAttachmentContent()
+                                        .iterator().next().getContent().getInputStream()
+                );
             } catch (IOException e) {
 //              Не должно выброситься, никаких IO операций не производится
                 throw new RdmException(e);

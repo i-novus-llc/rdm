@@ -1,12 +1,11 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 
 @Path("/compare")
 @Api(value = "Методы сравнения версий", hidden = true)

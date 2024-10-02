@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity.loader;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;

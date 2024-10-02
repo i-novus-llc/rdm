@@ -3,11 +3,14 @@ package ru.i_novus.ms.rdm.api.service;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.data.domain.Page;
-import ru.i_novus.ms.rdm.api.async.*;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntry;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.UUID;
 
 @Path("/asynclog")

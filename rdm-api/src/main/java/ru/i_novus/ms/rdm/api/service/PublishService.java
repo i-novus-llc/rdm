@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.UUID;
 
 @Path("/publish")

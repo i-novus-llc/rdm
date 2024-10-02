@@ -1,5 +1,9 @@
 package ru.i_novus.ms.rdm.esnsi.smev;
 
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
@@ -15,12 +19,8 @@ import org.w3c.dom.Document;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.esnsi.api.*;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.soap.SOAPBinding;
 import java.net.URL;
 
 import static ru.i_novus.ms.rdm.esnsi.smev.Utils.JAXB_CTX;

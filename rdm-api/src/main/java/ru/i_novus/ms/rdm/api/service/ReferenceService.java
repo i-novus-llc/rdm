@@ -1,9 +1,8 @@
 package ru.i_novus.ms.rdm.api.service;
 
 import io.swagger.annotations.*;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/reference")
 @Produces(MediaType.APPLICATION_JSON)

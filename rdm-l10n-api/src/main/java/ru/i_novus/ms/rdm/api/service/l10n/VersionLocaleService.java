@@ -1,11 +1,11 @@
 package ru.i_novus.ms.rdm.api.service.l10n;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.springframework.data.domain.Page;
 import ru.i_novus.ms.rdm.l10n.api.model.L10nVersionLocale;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/locale")

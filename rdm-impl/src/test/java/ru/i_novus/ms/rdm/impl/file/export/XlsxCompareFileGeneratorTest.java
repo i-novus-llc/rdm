@@ -1,6 +1,5 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
-import com.google.common.collect.ImmutableSortedMap;
 import com.monitorjbl.xlsx.StreamingReader;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.*;
@@ -14,8 +13,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import ru.i_novus.ms.rdm.api.model.Structure;
-import ru.i_novus.ms.rdm.api.model.compare.*;
-import ru.i_novus.ms.rdm.api.model.diff.*;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableField;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableFieldValue;
+import ru.i_novus.ms.rdm.api.model.compare.ComparableRow;
+import ru.i_novus.ms.rdm.api.model.compare.CompareDataCriteria;
+import ru.i_novus.ms.rdm.api.model.diff.PassportAttributeDiff;
+import ru.i_novus.ms.rdm.api.model.diff.PassportDiff;
+import ru.i_novus.ms.rdm.api.model.diff.RefBookDataDiff;
+import ru.i_novus.ms.rdm.api.model.diff.StructureDiff;
 import ru.i_novus.ms.rdm.api.model.version.PassportAttribute;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.CompareService;
@@ -25,10 +30,11 @@ import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import java.io.*;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -154,13 +160,18 @@ public class XlsxCompareFileGeneratorTest {
         RefBookVersion newVersion = new RefBookVersion();
         newVersion.setId(NEW_VERSION_ID);
         newVersion.setStructure(new Structure(asList(pKAttribute, createdAttribute, updatedNewAttribute, notEditedAttribute), null));
-        newVersion.setPassport(ImmutableSortedMap.of(
-                "updAttr", "newUpdValue",
-                "insAttr", "newInsValue",
-                "noEditAttr", "noEditValue"));
+        newVersion.setPassport(createPassport());
         when(versionService.getById(NEW_VERSION_ID)).thenReturn(newVersion);
+    }
 
+    private Map<String, String> createPassport() {
 
+        final Map<String, String> map = new HashMap<>(3);
+        map.put("updAttr", "newUpdValue");
+        map.put("insAttr", "newInsValue");
+        map.put("noEditAttr", "noEditValue");
+
+        return map;
     }
 
     @After

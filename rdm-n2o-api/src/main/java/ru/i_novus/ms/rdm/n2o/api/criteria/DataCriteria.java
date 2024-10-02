@@ -2,16 +2,16 @@ package ru.i_novus.ms.rdm.n2o.api.criteria;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import org.springframework.data.domain.Sort;
 
-import javax.ws.rs.QueryParam;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
 /**
  * Критерий поиска списка записей справочника.
- *
+ * <p>
  * Created by znurgaliev on 14.11.2018.
  */
 @SuppressWarnings("unused")

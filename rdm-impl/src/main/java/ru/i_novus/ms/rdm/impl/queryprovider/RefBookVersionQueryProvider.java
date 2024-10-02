@@ -5,6 +5,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
+import jakarta.persistence.EntityManager;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.predicate.PassportPredicateProducer;
 import ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
 

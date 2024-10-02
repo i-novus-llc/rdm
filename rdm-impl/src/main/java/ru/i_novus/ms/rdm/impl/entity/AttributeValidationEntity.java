@@ -1,9 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidation;
 import ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType;
-
-import javax.persistence.*;
 
 /**
  * Created by znurgaliev on 20.11.2018.

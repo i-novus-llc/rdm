@@ -1,5 +1,7 @@
 package ru.i_novus.ms.rdm.esnsi.smev;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -11,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.esnsi.api.ResponseDocument;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import java.io.StringWriter;
 import java.time.Clock;
 import java.time.LocalDateTime;

@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 
-import javax.persistence.*;
 import java.util.Objects;
 
 /**

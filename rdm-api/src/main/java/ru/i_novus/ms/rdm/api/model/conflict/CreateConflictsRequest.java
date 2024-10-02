@@ -3,8 +3,8 @@ package ru.i_novus.ms.rdm.api.model.conflict;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.ws.rs.QueryParam;
 
-import javax.ws.rs.QueryParam;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;

@@ -1,10 +1,10 @@
 package ru.i_novus.ms.rdm.api.model.refbook;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.AbstractCriteria;
 
-import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;

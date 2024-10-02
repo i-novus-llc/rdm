@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.n2oapp.platform.jaxrs.autoconfigure.EnableJaxRsProxyClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestTemplate;
 import ru.i_novus.ms.rdm.api.provider.AttributeFilterConverter;
 import ru.i_novus.ms.rdm.api.provider.OffsetDateTimeParamConverter;
 import ru.i_novus.ms.rdm.api.util.RdmPermission;
@@ -20,11 +23,13 @@ import ru.i_novus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 public class ClientConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     public RdmPermission rdmPermission() {
         return new RdmPermissionImpl();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public AttributeFilterConverter attributeFilterConverter(
             @Autowired @Qualifier("cxfObjectMapper") ObjectMapper objectMapper
     ) {
@@ -32,13 +37,27 @@ public class ClientConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public OffsetDateTimeParamConverter offsetDateTimeParamConverter() {
         return new OffsetDateTimeParamConverter();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public RdmN2oLocalDateTimeMapperPreparer localDateTimeMapperPreparer() {
         return new RdmN2oLocalDateTimeMapperPreparer();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RestTemplate platformRestTemplate() {
+        return new RestTemplate(); // for RdmWebConfiguration
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ClientHttpRequestInterceptor userinfoRestTemplateInterceptor() {
+        return (request, body, execution) -> execution.execute(request, body); // for RdmWebConfiguration
     }
 }
 

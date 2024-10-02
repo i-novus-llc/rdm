@@ -1,10 +1,9 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
-
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
 
 @Entity
 @DiscriminatorValue(RefBookTypeEnum.VALUES.DEFAULT)

@@ -1,10 +1,9 @@
 package ru.i_novus.ms.rdm.api.service.l10n;
 
 import io.swagger.annotations.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import ru.i_novus.ms.rdm.l10n.api.model.LocalizeDataRequest;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 
 @Path("/l10n")
 @Produces(MediaType.APPLICATION_JSON)

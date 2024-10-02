@@ -1,21 +1,22 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
-@TypeDef(name = "structure", typeClass = StructureType.class)
 public class RefBookVersionEntity implements Serializable {
 
     private static final String DRAFT_VERSION = "0.0";
@@ -39,7 +40,7 @@ public class RefBookVersionEntity implements Serializable {
     private RefBookOperationEntity refBookOperation;
 
     @Column(name = "structure", columnDefinition = "json")
-    @Type(type = "structure")
+    @Type(value = StructureType.class)
     private Structure structure;
 
     @Column(name = "storage_code")

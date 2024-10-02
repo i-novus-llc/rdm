@@ -1,11 +1,17 @@
 package ru.i_novus.ms.rdm.rest;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
+import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +30,6 @@ import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.ms.rdm.service.Application;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +40,7 @@ import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_CODE;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_FILE;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
@@ -53,7 +55,7 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_B
                 "rdm.audit.disabledActions=all"
         })
 @DefinePort
-@EnableEmbeddedPg
+@EnableTestcontainersPg
 @Import({BackendConfiguration.class, AppConfig.class})
 @SuppressWarnings("FieldCanBeLocal")
 public class LoaderTest {

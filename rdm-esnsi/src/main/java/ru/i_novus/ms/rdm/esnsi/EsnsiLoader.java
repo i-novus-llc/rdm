@@ -2,12 +2,11 @@ package ru.i_novus.ms.rdm.esnsi;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("esnsi")
 @Consumes(MediaType.APPLICATION_JSON)

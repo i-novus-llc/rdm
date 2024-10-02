@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

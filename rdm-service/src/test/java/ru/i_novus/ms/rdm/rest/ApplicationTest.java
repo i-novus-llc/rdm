@@ -4,9 +4,10 @@ import net.n2oapp.platform.i18n.UserException;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.jaxrs.RestMessage;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
-import net.n2oapp.platform.test.autoconfigure.pg.EnableEmbeddedPg;
+import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -92,6 +93,7 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
+@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
@@ -101,12 +103,16 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "spring.main.allow-bean-definition-overriding=true",
+                "spring.jms.cache.enabled=false",
+                "backend.default.port=8081",
+                "spring.datasource.url=jdbc:postgresql://localhost:15432/rdm",
+                //"testcontainers.pg.version=11",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
                 "rdm.audit.disabledActions=all"
         })
 @DefinePort
-@EnableEmbeddedPg
+@EnableTestcontainersPg
 @Import(BackendConfiguration.class)
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {

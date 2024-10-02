@@ -14,6 +14,8 @@
     </parent>
 
     <properties>
+        <jakarta-jws.version>3.0.0</jakarta-jws.version>
+
         <config.server.enable>false</config.server.enable>
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
@@ -85,7 +87,7 @@
         <dependency>
             <groupId>jakarta.jws</groupId>
             <artifactId>jakarta.jws-api</artifactId>
-            <version>1.1.1</version>
+            <version>${jakarta-jws.version}</version>
         </dependency>
         <!-- / JAX -->
 
@@ -114,11 +116,13 @@
         <finalName>rdm-esnsi</finalName>
         <plugins>
             <plugin>
-                <groupId>com.helger.maven</groupId>
+                <groupId>com.sun.xml.ws</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.6.2</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
+                        <id>wsimport-generate-smev-adapter-api</id>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>wsimport</goal>
                         </goals>
@@ -133,17 +137,17 @@
                                 <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
                             </vmArgs>
                         </configuration>
-                        <id>wsimport-generate-smev-adapter-api</id>
-                        <phase>generate-sources</phase>
                     </execution>
                 </executions>
+
                 <dependencies>
                     <dependency>
-                        <groupId>javax.xml</groupId>
-                        <artifactId>webservices-api</artifactId>
-                        <version>2.0</version>
+                        <groupId>jakarta.xml.ws</groupId>
+                        <artifactId>jakarta.xml.ws-api</artifactId>
+                        <version>${jakarta-xml-ws.version}</version>
                     </dependency>
                 </dependencies>
+
                 <configuration>
                     <sourceDestDir>${project.build.directory}/generated-sources/jaxws-wsimport</sourceDestDir>
                     <xnocompile>true</xnocompile>

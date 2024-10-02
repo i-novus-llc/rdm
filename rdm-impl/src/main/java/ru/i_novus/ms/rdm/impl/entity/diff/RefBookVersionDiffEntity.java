@@ -1,8 +1,8 @@
 package ru.i_novus.ms.rdm.impl.entity.diff;
 
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
-import javax.persistence.*;
 import java.util.Objects;
 
 @Entity

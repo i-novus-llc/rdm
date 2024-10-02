@@ -8,9 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jms.core.JmsTemplate;
-import ru.i_novus.ms.audit.client.UserAccessor;
-import ru.i_novus.ms.audit.client.model.User;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
+import ru.i_novus.ms.rdm.api.audit.UserAccessor;
+import ru.i_novus.ms.rdm.api.audit.model.User;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
 

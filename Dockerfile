@@ -1,4 +1,4 @@
-FROM inovus/openjdk:14-jdk
+FROM inovus/openjdk:17-jdk
 
 RUN ln -s /usr/lib/libfontconfig.so.1 /usr/lib/libfontconfig.so && \
     ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \

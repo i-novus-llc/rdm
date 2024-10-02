@@ -14,6 +14,9 @@
         <backend.default.path>http://localhost:8081/rdm/api</backend.default.path>
         <frontend.default.port>8080</frontend.default.port>
         <config.server.enable>false</config.server.enable>
+
+        <mockito-inline.version>5.2.0</mockito-inline.version>
+
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>
             **/ClientConfiguration.java, **/N2oConfiguration.java, **/RdmWebConfiguration.java,
@@ -85,6 +88,13 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
+            <version>${mockito-inline.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-subclass</artifactId>
             <scope>test</scope>
         </dependency>
 

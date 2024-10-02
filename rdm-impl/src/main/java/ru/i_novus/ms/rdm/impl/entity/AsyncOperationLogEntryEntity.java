@@ -1,10 +1,10 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;

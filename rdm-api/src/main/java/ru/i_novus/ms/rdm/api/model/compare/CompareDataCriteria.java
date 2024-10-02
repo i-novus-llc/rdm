@@ -2,9 +2,9 @@ package ru.i_novus.ms.rdm.api.model.compare;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import ru.i_novus.ms.rdm.api.model.version.AttributeFilter;
 
-import javax.ws.rs.QueryParam;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;

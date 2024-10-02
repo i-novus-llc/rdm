@@ -1,9 +1,8 @@
 package ru.i_novus.ms.rdm.n2o.criteria;
 
 import io.swagger.annotations.ApiParam;
+import jakarta.ws.rs.QueryParam;
 import net.n2oapp.criteria.api.Criteria;
-
-import javax.ws.rs.QueryParam;
 
 /**
  * Критерий поиска статусов справочников.
