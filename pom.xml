@@ -25,7 +25,7 @@
         <npm.registry>https://registry.yarnpkg.com/</npm.registry>
 
         <!-- N2O -->
-        <n2o.version>7.28.1</n2o.version>
+        <n2o.version>7.28.2</n2o.version>
         <!-- / N2O -->
 
         <!-- STORAGE -->

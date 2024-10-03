@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.n2o.resolver;
 import net.n2oapp.framework.api.exception.SeverityType;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
-import net.n2oapp.framework.api.metadata.global.dao.invocation.model.Argument;
+import net.n2oapp.framework.api.metadata.global.dao.invocation.Argument;
 import net.n2oapp.framework.api.metadata.global.dao.object.AbstractParameter;
 import net.n2oapp.framework.api.metadata.global.dao.object.N2oObject;
 import net.n2oapp.framework.api.metadata.global.dao.object.field.ObjectSimpleField;
