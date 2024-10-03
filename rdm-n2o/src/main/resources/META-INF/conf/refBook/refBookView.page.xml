@@ -43,6 +43,7 @@
                 <eq field-id="optLockValue" value="{optLockValue}" datasource="refBookVersion"/>
 
                 <eq field-id="localeCode" value=""/>
+                <!-- Фильтр данных по колонкам в DataGrid -->
                 <eq field-id="filter" param="filter"/>
             </filters>
         </datasource>
@@ -144,6 +145,15 @@
 
             <tab id="tab_data" name="Данные">
                 <table id="dataTable" src="DataGrid" datasource="versionData" fetch-on-init="true">
+
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
                 </table>
             </tab>
 
@@ -194,6 +204,15 @@
 
                 <table id="dataTableWithLocales" src="DataGrid" datasource="localizedData">
 
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
+
                     <dependencies>
                         <visibility datasource="refBookVersion">${rdm.l10n.support} &amp;&amp; locale.id != null</visibility>
                     </dependencies>
@@ -202,6 +221,15 @@
 
             <tab id="tab_conflicted" name="Данные с конфликтами">
                 <table id="dataTableWithConflicts" src="DataGrid" datasource="conflictedData" fetch-on-init="true">
+
+                    <rows>
+                        <switch value-field-id="rowType">
+                            <case value="CONFLICTED">rdm-alert-conflict</case>
+                        </switch>
+                    </rows>
+
+                    <!-- В table должна быть хотя бы одна колонка для загрузки колонок! -->
+                    <columns><column id="id" visible="false"/></columns>
                 </table>
             </tab>
         </tabs>
