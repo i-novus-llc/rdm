@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.n2o.provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
@@ -11,8 +10,7 @@ import ru.i_novus.ms.rdm.n2o.api.model.DataRecordRequest;
 /**
  * Провайдер для формирования метаданных.
  */
-@Service
-public class DataRecordBaseProvider {
+public abstract class DataRecordBaseProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DataRecordBaseProvider.class);
 
