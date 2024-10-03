@@ -37,7 +37,6 @@
         <object-filters object-id="versionList">
             <eq id="onlyPublished" field-id="excludeDraft" value="true"/>
         </object-filters>
-
     </permit-all>
 
     <permission id="rdm.edit" name="Добавление/редактирование справочников">
@@ -57,26 +56,23 @@
 
         <object-access object-id="refBookVersion" remove-filters="onlyPublished"/>
         <object-access object-id="versionList" remove-filters="onlyPublished"/>
+
         <object-access object-id="attribute" operations="*"/>
         <object-access object-id="data" operations="*"/>
         <object-access object-id="dataRecordObject*" operations="*"/>
 
         <object-access object-id="publish" operations="*"/>
-
     </permission>
 
     <permission id="rdm.archive" name="Архивирование справочников">
         <object-access object-id="refBook"
                        remove-filters="nonArchived,onlyPublished,oncePublished"
-                       operations="toArchive,fromArchive"
-        />
+                       operations="toArchive,fromArchive"/>
         <object-access object-id="refBookStatusList" remove-filters="nonArchived,onlyPublished"/>
-
     </permission>
 
     <permission id="rdm.download" name="Выгрузка справочников">
         <page-access page-id="downloadFile"/>
-
     </permission>
 
 </access>
