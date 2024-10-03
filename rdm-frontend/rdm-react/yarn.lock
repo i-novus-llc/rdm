@@ -1164,7 +1164,14 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
-"@babel/runtime@^7.18.6", "@babel/runtime@^7.23.9":
+"@babel/runtime@^7.13.8":
+  version "7.25.7"
+  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.25.7.tgz#7ffb53c37a8f247c8c4d335e89cdf16a2e0d0fb6"
+  integrity sha512-FjoyLe754PMiYsFaN5C94ttGiOmBNYTf6pLr4xXHAT5uctHb092PBszndLDR5XA/jghQvn4n7JMHl7dmTgbm9w==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
+"@babel/runtime@^7.23.9":
   version "7.25.0"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.25.0.tgz#3af9a91c1b739c569d5d80cc917280919c544ecb"
   integrity sha512-7dRy4DwXwtzBrPbZflqxnvfxLF8kdZXPkhymtDeFoFqE6ldzjQFgYTtYIFARcLEYDrqfBfYcZt1WqFxRoyC9Rw==
@@ -1490,10 +1497,10 @@
     gud "^1.0.0"
     warning "^4.0.3"
 
-"@i-novus/n2o-components@7.28.1":
-  version "7.28.1"
-  resolved "https://registry.npmjs.org/@i-novus/n2o-components/-/n2o-components-7.28.1.tgz#4ba183a3cd7948a6105aaaec2deb90167b6511d5"
-  integrity sha512-UEYD4rI6aQo6FJIne5Be1+oUWnZzKfDA3CXCK89cK0GrDlYRPxS69zvKMPw2s5gWRp/4JXKvsvIY71LsEy/5og==
+"@i-novus/n2o-components@7.28.2":
+  version "7.28.2"
+  resolved "https://registry.npmjs.org/@i-novus/n2o-components/-/n2o-components-7.28.2.tgz#479e02a47e882cdd068d41f46ccfae3fe29dab67"
+  integrity sha512-E93RBdfK9p8Samwy0S3UZ/nRo/Mby6O8vb0fI8ijzIGhUnnYrVqnrQeUwHpNd/VypSUfsBd1L89VwJ2YfuCGOA==
   dependencies:
     "@fontsource/exo-2" "^4.3.0"
     "@fortawesome/fontawesome-free" "^6.4.2"
@@ -1503,6 +1510,7 @@
     bootstrap "~4.3.1"
     brace "0.11.1"
     classnames "^2.3.1"
+    dayjs "^1.11.13"
     dompurify "3.0.2"
     draft-js "0.11.7"
     draftjs-to-html "0.8.4"
@@ -1514,7 +1522,7 @@
     rc-drawer "^3.0.2"
     rc-slider "^8.6.11"
     rc-switch "4.1.0"
-    rc-tree-select "^5.22.0"
+    rc-tree-select "^5.23.0"
     react "17.0.2"
     react-ace "11.0.1"
     react-copy-to-clipboard "^5.0.1"
@@ -2675,7 +2683,7 @@
     schema-utils "^4.2.0"
     source-map "^0.7.3"
 
-"@popperjs/core@^2.2.1", "@popperjs/core@^2.5.3", "@popperjs/core@^2.6.0":
+"@popperjs/core@^2.11.6", "@popperjs/core@^2.2.1", "@popperjs/core@^2.6.0":
   version "2.11.8"
   resolved "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
@@ -2754,12 +2762,12 @@
     redux-thunk "^2.3.0"
     reselect "^4.0.0"
 
-"@restart/hooks@^0.3.25":
-  version "0.3.27"
-  resolved "https://registry.npmjs.org/@restart/hooks/-/hooks-0.3.27.tgz#91f356d66d4699a8cd8b3d008402708b6a9dc505"
-  integrity sha512-s984xV/EapUIfkjlf8wz9weP2O9TNKR96C68FfMEy2bE69+H4cNv3RD4Mf97lW7Htt7PjZrYTjSC8f3SB9VCXw==
+"@restart/hooks@^0.4.7":
+  version "0.4.16"
+  resolved "https://registry.npmjs.org/@restart/hooks/-/hooks-0.4.16.tgz#95ae8ac1cc7e2bd4fed5e39800ff85604c6d59fb"
+  integrity sha512-f7aCv7c+nU/3mF7NWLtVVr0Ra80RqsO89hO72r+Y/nvQr5+q0UFGkocElTH6MJApvReVh6JHUFYn2cw1WdHF3w==
   dependencies:
-    dequal "^2.0.2"
+    dequal "^2.0.3"
 
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.1"
@@ -5814,6 +5822,11 @@ dateformat@^3.0.0:
   resolved "https://registry.npmjs.org/dateformat/-/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"
   integrity sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==
 
+dayjs@^1.11.13, dayjs@^1.11.7:
+  version "1.11.13"
+  resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.11.13.tgz#92430b0139055c3ebb60150aa13e860a4b5a366c"
+  integrity sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==
+
 debug@2.6.9, debug@^2.2.0, debug@^2.3.3, debug@^2.6.0:
   version "2.6.9"
   resolved "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -5938,12 +5951,7 @@ deep-is@^0.1.3, deep-is@~0.1.3:
   resolved "https://registry.npmjs.org/deep-is/-/deep-is-0.1.4.tgz#a6f2dce612fadd2ef1f519b73551f17e85199831"
   integrity sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==
 
-deepmerge@1.5.2:
-  version "1.5.2"
-  resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-1.5.2.tgz#10499d868844cdad4fee0842df8c7f6f0c95a753"
-  integrity sha512-95k0GDqvBjZavkuvzx/YqVLv/6YYa17fz6ILMSf7neqQITCPbnfEnQvEgMPNjH4kgobe7+WIL0yJEHku+H3qtQ==
-
-deepmerge@^4.2.2:
+deepmerge@4.3.1, deepmerge@^4.2.2:
   version "4.3.1"
   resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-4.3.1.tgz#44b5f2147cd3b00d4b56137685966f26fd25dd4a"
   integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
@@ -6032,7 +6040,7 @@ deprecation@^2.0.0, deprecation@^2.3.1:
   resolved "https://registry.npmjs.org/deprecation/-/deprecation-2.3.1.tgz#6368cbdb40abf3373b525ac87e4a260c3a700919"
   integrity sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==
 
-dequal@^2.0.0, dequal@^2.0.2:
+dequal@^2.0.0, dequal@^2.0.3:
   version "2.0.3"
   resolved "https://registry.npmjs.org/dequal/-/dequal-2.0.3.tgz#2644214f1997d39ed0ee0ece72335490a7ac67be"
   integrity sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==
@@ -10169,10 +10177,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@^2.4.0:
-  version "2.5.2"
-  resolved "https://registry.npmjs.org/luxon/-/luxon-2.5.2.tgz#17ed497f0277e72d58a4756d6a9abee4681457b6"
-  integrity sha512-Yg7/RDp4nedqmLgyH0LwgGRvMEKVzKbUdkBYyCosbHgJ+kaOUx0qzSiSatVc3DFygnirTPYnMM2P5dg2uH1WvA==
+luxon@^3.2.1:
+  version "3.5.0"
+  resolved "https://registry.npmjs.org/luxon/-/luxon-3.5.0.tgz#6b6f65c5cd1d61d1fd19dbf07ee87a50bf4b8e20"
+  integrity sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==
 
 macos-release@^2.2.0:
   version "2.5.1"
@@ -10994,7 +11002,7 @@ modify-values@^1.0.0:
   resolved "https://registry.npmjs.org/modify-values/-/modify-values-1.0.1.tgz#b3939fa605546474e3e3e3c63d64bd43b4ee6022"
   integrity sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==
 
-moment-timezone@^0.5.34:
+moment-timezone@^0.5.40:
   version "0.5.45"
   resolved "https://registry.npmjs.org/moment-timezone/-/moment-timezone-0.5.45.tgz#cb685acd56bac10e69d93c536366eb65aa6bcf5c"
   integrity sha512-HIWmqA86KcmCAhnMAN0wuDOARV/525R2+lOLotuGFzn4HO+FH+/645z2wx0Dt3iDv6/p61SIvKnDstISainhLQ==
@@ -11080,10 +11088,10 @@ mz@^2.5.0, mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-n2o-framework@7.28.1:
-  version "7.28.1"
-  resolved "https://registry.npmjs.org/n2o-framework/-/n2o-framework-7.28.1.tgz#7e437e88652c7735a6df6b06e2ddb396b06e7ba0"
-  integrity sha512-Z9AKeTgc7uigM0gUie0l1kgQxjXCDJLpj9hR99yOlg/QRD7lKF0sV2xYNtkeceDR1M9TSMJJ9QW1ENuNPvcCjA==
+n2o-framework@7.28.2:
+  version "7.28.2"
+  resolved "https://registry.npmjs.org/n2o-framework/-/n2o-framework-7.28.2.tgz#30aee4ec92958a9404bf4d615fd50a4205580ad9"
+  integrity sha512-wW6Zfl/FHH0ImtMhJX7X5wUI1+MFoaPwYMWR7ITjRZISHxRwi8APLUYza27c0+vZ5s0v360kMzWl7jIdd2Zumw==
   dependencies:
     "@babel/polyfill" "^7.0.0"
     "@babel/runtime-corejs2" "^7.0.0"
@@ -11092,14 +11100,15 @@ n2o-framework@7.28.1:
     "@fortawesome/fontawesome-svg-core" "^6.4.2"
     "@fortawesome/free-solid-svg-icons" "^6.4.2"
     "@fortawesome/react-fontawesome" "^0.2.0"
-    "@i-novus/n2o-components" "7.28.1"
+    "@i-novus/n2o-components" "7.28.2"
     "@popperjs/core" "^2.2.1"
     "@reduxjs/toolkit" "1.6.2"
     axios "^1.7.2"
     bootstrap "~4.3.1"
     classnames "^2.3.1"
     connected-react-router "6.9.2"
-    deepmerge "1.5.2"
+    dayjs "^1.11.13"
+    deepmerge "4.3.1"
     flat "6.0.1"
     font-awesome "4.7.0"
     global "4.3.2"
@@ -11115,8 +11124,9 @@ n2o-framework@7.28.1:
     prop-types "15.8.1"
     query-string "9.0.0"
     rc-collapse "~1.10.0"
+    rc-tree "5.7.9"
     react "17.0.2"
-    react-big-calendar "1.0.0"
+    react-big-calendar "1.8.7"
     react-dom "17.0.2"
     react-dropzone "7.0.1"
     react-helmet "6.1.0"
@@ -12999,21 +13009,32 @@ rc-tooltip@^3.7.0:
     prop-types "^15.5.8"
     rc-trigger "^2.2.2"
 
-rc-tree-select@^5.22.0:
-  version "5.22.1"
-  resolved "https://registry.npmjs.org/rc-tree-select/-/rc-tree-select-5.22.1.tgz#02daa09624378107f4c13d4deadcf6327c669cd8"
-  integrity sha512-b8mAK52xEpRgS+b2PTapCt29GoIrO5cO8jB7AfHttFsIJfcnynY9FCtnYzURsKXJkGHbFY6UzSEB2I3TETtdWg==
+rc-tree-select@^5.23.0:
+  version "5.23.0"
+  resolved "https://registry.npmjs.org/rc-tree-select/-/rc-tree-select-5.23.0.tgz#e56da0923c7c11dea98d4e14bb76969283c94468"
+  integrity sha512-aQGi2tFSRw1WbXv0UVXPzHm09E0cSvUVZMLxQtMv3rnZZpNmdRXWrnd9QkLNlVH31F+X5rgghmdSFF3yZW0N9A==
   dependencies:
     "@babel/runtime" "^7.10.1"
     classnames "2.x"
     rc-select "~14.15.0"
-    rc-tree "~5.8.1"
+    rc-tree "~5.9.0"
     rc-util "^5.16.1"
 
-rc-tree@~5.8.1:
-  version "5.8.8"
-  resolved "https://registry.npmjs.org/rc-tree/-/rc-tree-5.8.8.tgz#650a13ec825a5a4feec6bbaf6a380465986ee0db"
-  integrity sha512-S+mCMWo91m5AJqjz3PdzKilGgbFm7fFJRFiTDOcoRbD7UfMOPnerXwMworiga0O2XIo383UoWuEfeHs1WOltag==
+rc-tree@5.7.9:
+  version "5.7.9"
+  resolved "https://registry.npmjs.org/rc-tree/-/rc-tree-5.7.9.tgz#e0df730ffbba1df95901fd3b108267288056e162"
+  integrity sha512-1hKkToz/EVjJlMVwmZnpXeLXt/1iQMsaAq9m+GNkUbK746gkc7QpJXSN/TzjhTI5Hi+LOSlrMaXLMT0bHPqILQ==
+  dependencies:
+    "@babel/runtime" "^7.10.1"
+    classnames "2.x"
+    rc-motion "^2.0.1"
+    rc-util "^5.16.1"
+    rc-virtual-list "^3.5.1"
+
+rc-tree@~5.9.0:
+  version "5.9.0"
+  resolved "https://registry.npmjs.org/rc-tree/-/rc-tree-5.9.0.tgz#1835b2bef36cfeb4ec15d62e0319fc503aa485f1"
+  integrity sha512-CPrgOvm9d/9E+izTONKSngNzQdIEjMox2PBufWjS1wf7vxtvmCWzK1SlpHbRY6IaBfJIeZ+88RkcIevf729cRg==
   dependencies:
     "@babel/runtime" "^7.10.1"
     classnames "2.x"
@@ -13104,25 +13125,26 @@ react-avatar@^3.5.0:
     is-retina "^1.0.3"
     md5 "^2.0.0"
 
-react-big-calendar@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/react-big-calendar/-/react-big-calendar-1.0.0.tgz#ddc3195cd2abfad50d727e617a2360ffca63b62c"
-  integrity sha512-3J1wHKrl2MJagbi1R9YUnY+QkW7lnXZCh5kU1bYpC6Fu6hyvU6cT16RM4s77yB3wheJ0oXduDqLSYnSJYIae+g==
+react-big-calendar@1.8.7:
+  version "1.8.7"
+  resolved "https://registry.npmjs.org/react-big-calendar/-/react-big-calendar-1.8.7.tgz#099fd4068c080abbc9d220ff7559966fb0f0afd5"
+  integrity sha512-qgxQyPIYoWM+TLbGNlEUIEyNE6USAAc7LEAhtUKzJgoP4XsgpnqXJ46Ub298mRzMRM6crRweh3AywDjl5GbHnQ==
   dependencies:
-    "@babel/runtime" "^7.18.6"
+    "@babel/runtime" "^7.20.7"
     clsx "^1.2.1"
     date-arithmetic "^4.1.0"
+    dayjs "^1.11.7"
     dom-helpers "^5.2.1"
     globalize "^0.1.1"
     invariant "^2.2.4"
     lodash "^4.17.21"
     lodash-es "^4.17.21"
-    luxon "^2.4.0"
+    luxon "^3.2.1"
     memoize-one "^6.0.0"
     moment "^2.29.4"
-    moment-timezone "^0.5.34"
+    moment-timezone "^0.5.40"
     prop-types "^15.8.1"
-    react-overlays "^4.1.1"
+    react-overlays "^5.2.1"
     uncontrollable "^7.2.1"
 
 react-copy-to-clipboard@^5.0.1:
@@ -13277,18 +13299,18 @@ react-onclickoutside@6.7.1:
   resolved "https://registry.npmjs.org/react-onclickoutside/-/react-onclickoutside-6.7.1.tgz#6a5b5b8b4eae6b776259712c89c8a2b36b17be93"
   integrity sha512-p84kBqGaMoa7VYT0vZ/aOYRfJB+gw34yjpda1Z5KeLflg70HipZOT+MXQenEhdkPAABuE2Astq4zEPdMqUQxcg==
 
-react-overlays@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/react-overlays/-/react-overlays-4.1.1.tgz#0060107cbe1c5171a744ccda3fbf0556d064bc5f"
-  integrity sha512-WtJifh081e6M24KnvTQoNjQEpz7HoLxqt8TwZM7LOYIkYJ8i/Ly1Xi7RVte87ZVnmqQ4PFaFiNHZhSINPSpdBQ==
+react-overlays@^5.2.1:
+  version "5.2.1"
+  resolved "https://registry.npmjs.org/react-overlays/-/react-overlays-5.2.1.tgz#49dc007321adb6784e1f212403f0fb37a74ab86b"
+  integrity sha512-GLLSOLWr21CqtJn8geSwQfoJufdt3mfdsnIiQswouuQ2MMPns+ihZklxvsTDKD3cR2tF8ELbi5xUsvqVhR6WvA==
   dependencies:
-    "@babel/runtime" "^7.12.1"
-    "@popperjs/core" "^2.5.3"
-    "@restart/hooks" "^0.3.25"
+    "@babel/runtime" "^7.13.8"
+    "@popperjs/core" "^2.11.6"
+    "@restart/hooks" "^0.4.7"
     "@types/warning" "^3.0.0"
     dom-helpers "^5.2.0"
     prop-types "^15.7.2"
-    uncontrollable "^7.0.0"
+    uncontrollable "^7.2.1"
     warning "^4.0.3"
 
 react-popper@2.2.4:
@@ -15883,7 +15905,7 @@ unbox-primitive@^1.0.2:
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
 
-uncontrollable@^7.0.0, uncontrollable@^7.2.1:
+uncontrollable@^7.2.1:
   version "7.2.1"
   resolved "https://registry.npmjs.org/uncontrollable/-/uncontrollable-7.2.1.tgz#1fa70ba0c57a14d5f78905d533cf63916dc75738"
   integrity sha512-svtcfoTADIB0nT9nltgjujTi7BzVmwjZClOmskKu/E8FW9BXzg9os8OLr4f8Dlnk0rYWJIWr4wv9eKUXiQvQwQ==
