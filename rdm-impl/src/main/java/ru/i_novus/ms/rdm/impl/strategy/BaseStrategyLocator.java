@@ -1,11 +1,9 @@
 package ru.i_novus.ms.rdm.impl.strategy;
 
-import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import java.util.Map;
 
-@Component
 @SuppressWarnings("unchecked")
 public class BaseStrategyLocator implements StrategyLocator {
 
