@@ -12,7 +12,11 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by tnurdinov on 06.07.2018.
@@ -49,7 +53,7 @@ public class XlsPerRowProcessorTest {
             put("DATEEND", null);
         }});
         RowsProcessor testRowsProcessor = getTestRowsProcessor(expected);
-        try (FilePerRowProcessor processor = new XlsPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)) {
+        try (FilePerRowProcessor processor = new XlsxPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)) {
             Result result = processor.process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
             Assert.assertEquals(4, result.getAllCount());
             Assert.assertEquals(4, result.getSuccessCount());
