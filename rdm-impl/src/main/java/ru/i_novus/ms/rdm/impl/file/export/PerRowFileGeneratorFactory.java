@@ -37,7 +37,7 @@ public class PerRowFileGeneratorFactory {
     public PerRowFileGenerator getFileGenerator(Iterator<Row> rowIterator, RefBookVersion version, FileType fileType) {
 
         if (FileType.XLSX.equals(fileType))
-            return new XlsFileGenerator(rowIterator, version.getStructure());
+            return new XlsxFileGenerator(rowIterator, version.getStructure());
 
         if (FileType.XML.equals(fileType)) {
             Map<String, Structure.Reference> attributeToReferenceMap = null;

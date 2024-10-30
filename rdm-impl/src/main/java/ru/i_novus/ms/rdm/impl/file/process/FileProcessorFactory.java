@@ -13,7 +13,7 @@ public class FileProcessorFactory {
                                                       RowsProcessor rowsProcessor,
                                                       RowMapper rowMapper) {
         switch (extension) {
-            case "XLSX": return new XlsPerRowProcessor(rowMapper, rowsProcessor);
+            case "XLSX": return new XlsxPerRowProcessor(rowMapper, rowsProcessor);
             case "XML": return new XmlPerRowProcessor(rowMapper, rowsProcessor);
             default: throw new FileExtensionException();
         }
