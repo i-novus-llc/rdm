@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.XLSX_DATE_FORMAT;
 import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.createNextRow;
@@ -157,26 +156,26 @@ public class XlsxFileGenerator extends PerRowFileGenerator {
 
     private void fillCell(Cell cell, Object value) {
 
-        if (value instanceof LocalDate) {
-            final Date date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        if (value instanceof LocalDate dateValue) {
+            final Date date = Date.from(dateValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
             cell.setCellStyle(styleFactory.getDateStyle());
             cell.setCellValue(date);
 
-        } else if (value instanceof Boolean) {
+        } else if (value instanceof Boolean boolValue) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
-            cell.setCellValue((Boolean) value);
+            cell.setCellValue(boolValue);
 
-        } else if (value instanceof Number) {
+        } else if (value instanceof Number numberValue) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
-            cell.setCellValue(((Number) value).doubleValue());
+            cell.setCellValue(numberValue.doubleValue());
 
-        } else if (value instanceof Reference) {
+        } else if (value instanceof Reference refValue) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
-            cell.setCellValue(((Reference) value).getValue());
+            cell.setCellValue(refValue.getValue());
 
         } else {
             cell.setCellStyle(styleFactory.getDefaultStyle());
-            cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
+            cell.setCellValue(value != null ? value.toString() : "");
         }
     }
 
