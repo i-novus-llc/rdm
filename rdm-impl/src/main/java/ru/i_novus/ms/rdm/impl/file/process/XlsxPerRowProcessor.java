@@ -18,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
-import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.XLSX_STYLE_DATE_FORMATTER;
 import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.getCellValue;
 import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.getStringCellValue;
 
@@ -108,7 +107,7 @@ public class XlsxPerRowProcessor extends FilePerRowProcessor {
         for (Cell cell : row) {
             final String name = indexToNameMap.get(cell.getColumnIndex());
             if (name != null) {
-                data.put(name, getCellValue(cell, XLSX_STYLE_DATE_FORMATTER));
+                data.put(name, getCellValue(cell));
             }
         }
         return new ru.i_novus.ms.rdm.api.model.refdata.Row(data);

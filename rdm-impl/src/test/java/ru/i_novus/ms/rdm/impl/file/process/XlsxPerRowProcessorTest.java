@@ -12,23 +12,19 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by tnurdinov on 06.07.2018.
  */
-public class XlsPerRowProcessorTest {
+public class XlsxPerRowProcessorTest {
 
     @Test
     public void testSimpleProcessFile() throws Exception {
         List<Map<String, Object>> expected = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(0));
             put("Opis", "Не требует изготовления полиса");
             put("DATEBEG", date);
@@ -40,13 +36,13 @@ public class XlsPerRowProcessorTest {
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(2));
             put("Opis", "Электронный полис ОМС");
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(3));
             put("Opis", "Электронный полис ОМС в составе УЭК");
             put("DATEBEG", date);
@@ -54,7 +50,7 @@ public class XlsPerRowProcessorTest {
         }});
         RowsProcessor testRowsProcessor = getTestRowsProcessor(expected);
         try (FilePerRowProcessor processor = new XlsxPerRowProcessor(new StructureRowMapper(createTestStructure(), null), testRowsProcessor)) {
-            Result result = processor.process(() -> XlsPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
+            Result result = processor.process(() -> XlsxPerRowProcessorTest.class.getResourceAsStream("/R002.xlsx"));
             Assert.assertEquals(4, result.getAllCount());
             Assert.assertEquals(4, result.getSuccessCount());
             Assert.assertNull(result.getErrors());
@@ -62,12 +58,15 @@ public class XlsPerRowProcessorTest {
     }
 
     private Structure createTestStructure() {
-        Structure structure = new Structure();
-        structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, "DATEBEG")));
-        return structure;
+
+        return new Structure(
+                Arrays.asList(
+                        Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, "Kod"),
+                        Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
+                        Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, "DATEBEG")
+                ),
+                null
+        );
     }
 
     private RowsProcessor getTestRowsProcessor(List<Map<String, Object>> expected) {
