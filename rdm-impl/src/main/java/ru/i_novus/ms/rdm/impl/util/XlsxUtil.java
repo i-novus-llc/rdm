@@ -19,9 +19,6 @@ public final class XlsxUtil {
      */
     public static final String XLSX_DATE_FORMAT = "dd.MM.yyyy";
 
-    public static final ExcelStyleDateFormatter XLSX_STYLE_DATE_FORMATTER =
-            new ExcelStyleDateFormatter(XLSX_DATE_FORMAT);
-
     private XlsxUtil() {
         // Nothing to do.
     }
@@ -53,7 +50,7 @@ public final class XlsxUtil {
      * @return Значение ячейки
      */
     public static String getCellValue(Cell cell) {
-        return getCellValue(cell, XLSX_STYLE_DATE_FORMATTER);
+        return getCellValue(cell, new ExcelStyleDateFormatter(XLSX_DATE_FORMAT));
     }
 
     /**
@@ -116,7 +113,7 @@ public final class XlsxUtil {
         return value == null
                 ? null
                 : value.replace(',', '.')
-                        .replaceAll("\"", "");
+                        .replace("\"", "");
     }
 
     /**
