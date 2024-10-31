@@ -1,11 +1,6 @@
 package ru.i_novus.ms.rdm.impl.util;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 
 import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
@@ -18,9 +13,6 @@ public final class XlsxUtil {
      * Формат дат в xlsx.
      */
     public static final String XLSX_DATE_FORMAT = "dd.MM.yyyy";
-
-    public static final ExcelStyleDateFormatter XLSX_STYLE_DATE_FORMATTER =
-            new ExcelStyleDateFormatter(XLSX_DATE_FORMAT);
 
     private XlsxUtil() {
         // Nothing to do.
@@ -53,7 +45,7 @@ public final class XlsxUtil {
      * @return Значение ячейки
      */
     public static String getCellValue(Cell cell) {
-        return getCellValue(cell, XLSX_STYLE_DATE_FORMATTER);
+        return getCellValue(cell, new ExcelStyleDateFormatter(XLSX_DATE_FORMAT));
     }
 
     /**
@@ -116,7 +108,7 @@ public final class XlsxUtil {
         return value == null
                 ? null
                 : value.replace(',', '.')
-                        .replaceAll("\"", "");
+                        .replace("\"", "");
     }
 
     /**
