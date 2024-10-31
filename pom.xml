@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>5.3.3</version>
+        <version>5.3.5</version>
     </parent>
 
     <properties>
@@ -40,10 +40,11 @@
         <lombok.version>1.18.24</lombok.version>
         <javax.activation.version>1.1.1</javax.activation.version>
 
-        <apache.poi.version>3.17</apache.poi.version>
+        <apache.poi.version>4.1.2</apache.poi.version>
         <filestorage.version>2.3</filestorage.version>
         <commons.text.version>1.10.0</commons.text.version>
-        <itext.pdf.version>5.5.9</itext.pdf.version>
+        <itextpdf.version>5.5.13.3</itextpdf.version>
+        <xlsx-streamer.version>2.2.0</xlsx-streamer.version>
         <jaxws.version>2.3.2</jaxws.version>
 
         <!-- security -->
@@ -186,7 +187,7 @@
             <dependency>
                 <groupId>com.monitorjbl</groupId>
                 <artifactId>xlsx-streamer</artifactId>
-                <version>1.2.1</version>
+                <version>${xlsx-streamer.version}</version>
             </dependency>
 
             <dependency>
@@ -204,13 +205,13 @@
             <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
-                <version>${itext.pdf.version}</version>
+                <version>${itextpdf.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.itextpdf.tool</groupId>
                 <artifactId>xmlworker</artifactId>
-                <version>${itext.pdf.version}</version>
+                <version>${itextpdf.version}</version>
             </dependency>
 
             <!-- SECURITY -->
