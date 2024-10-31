@@ -12,11 +12,7 @@ import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by tnurdinov on 06.07.2018.
@@ -28,25 +24,25 @@ public class XlsPerRowProcessorTest {
         List<Map<String, Object>> expected = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         LocalDate date =  LocalDate.parse("01.01.2011", formatter);
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(0));
             put("Opis", "Не требует изготовления полиса");
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(1));
             put("Opis", "Бумажный полис ОМС");
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(2));
             put("Opis", "Электронный полис ОМС");
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(3));
             put("Opis", "Электронный полис ОМС в составе УЭК");
             put("DATEBEG", date);
@@ -62,12 +58,15 @@ public class XlsPerRowProcessorTest {
     }
 
     private Structure createTestStructure() {
-        Structure structure = new Structure();
-        structure.setAttributes(Arrays.asList(
-                Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, "Kod"),
-                Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
-                Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, "DATEBEG")));
-        return structure;
+
+        return new Structure(
+                Arrays.asList(
+                        Structure.Attribute.build("Kod", "Kod", FieldType.INTEGER, "Kod"),
+                        Structure.Attribute.build("Opis", "Opis", FieldType.STRING, "Opis"),
+                        Structure.Attribute.build("DATEBEG", "DATEBEG", FieldType.DATE, "DATEBEG")
+                ),
+                null
+        );
     }
 
     private RowsProcessor getTestRowsProcessor(List<Map<String, Object>> expected) {

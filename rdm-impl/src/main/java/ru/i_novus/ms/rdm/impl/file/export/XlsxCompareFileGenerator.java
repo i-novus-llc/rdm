@@ -1,12 +1,8 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
 import net.n2oapp.platform.i18n.UserException;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -32,20 +28,13 @@ import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -453,20 +442,23 @@ class XlsxCompareFileGenerator implements FileGenerator {
         }
 
         switch (xlsxComparedCell.getStatus()) {
-            case INSERTED -> {
+            case INSERTED: {
                 cell.setCellStyle(insertStyle);
                 fillCell(cell, xlsxComparedCell.getNewValue());
+                break;
             }
-            case DELETED -> {
+            case DELETED: {
                 cell.setCellStyle(deleteStyle);
                 fillCell(cell, xlsxComparedCell.getOldValue());
+                break;
             }
-            case UPDATED -> {
+            case UPDATED: {
                 cell.setCellStyle(updNewStyle);
                 fillCell(cell, xlsxComparedCell.getNewValue());
                 Cell oldCell = cell.getSheet().getRow(cell.getRowIndex() + 1).createCell(cell.getColumnIndex());
                 oldCell.setCellStyle(updOldStyle);
                 fillCell(oldCell, xlsxComparedCell.getOldValue());
+                break;
             }
         }
     }

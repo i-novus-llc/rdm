@@ -1,11 +1,6 @@
 package ru.i_novus.ms.rdm.impl.util;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 
 import static ru.i_novus.ms.rdm.api.util.StringUtils.isEmpty;
 
@@ -79,14 +74,14 @@ public final class XlsxUtil {
      */
     public static String getCellValue(Cell cell, CellType cellType,
                                       ExcelStyleDateFormatter dateFormatter) {
-        return switch (cellType) {
-            case NUMERIC -> DateUtil.isCellDateFormatted(cell)
+        switch (cellType) {
+            case NUMERIC: return DateUtil.isCellDateFormatted(cell)
                     ? dateFormatter.format(cell.getDateCellValue())
                     : getNumericCellValue(cell);
-            case STRING -> cell.getRichStringCellValue().getString();
-            case BOOLEAN -> cell.getBooleanCellValue() ? "TRUE" : "FALSE";
-            default -> cell.getCellFormula();
-        };
+            case STRING: return cell.getRichStringCellValue().getString();
+            case BOOLEAN: return cell.getBooleanCellValue() ? "TRUE" : "FALSE";
+            default: return cell.getStringCellValue();
+        }
     }
 
     /**

@@ -156,20 +156,24 @@ public class XlsxFileGenerator extends PerRowFileGenerator {
 
     private void fillCell(Cell cell, Object value) {
 
-        if (value instanceof LocalDate dateValue) {
+        if (value instanceof LocalDate) {
+            final LocalDate dateValue = (LocalDate) value;
             final Date date = Date.from(dateValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
             cell.setCellStyle(styleFactory.getDateStyle());
             cell.setCellValue(date);
 
-        } else if (value instanceof Boolean boolValue) {
+        } else if (value instanceof Boolean) {
+            final Boolean boolValue = (Boolean) value;
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(boolValue);
 
-        } else if (value instanceof Number numberValue) {
+        } else if (value instanceof Number) {
+            final Number numberValue = (Number) value;
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(numberValue.doubleValue());
 
-        } else if (value instanceof Reference refValue) {
+        } else if (value instanceof Reference) {
+            final Reference refValue = (Reference) value;
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(refValue.getValue());
 
