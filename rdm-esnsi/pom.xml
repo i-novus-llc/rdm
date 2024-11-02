@@ -4,13 +4,13 @@
 
     <artifactId>rdm-esnsi</artifactId>
 
-    <version>4.25.2</version>
+    <version>4.25.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>4.25.2</version>
+        <version>4.25.3-SNAPSHOT</version>
     </parent>
 
     <properties>
