@@ -11,7 +11,7 @@
     </parent>
 
     <properties>
-        <commons.fileupload.version>1.4</commons.fileupload.version>
+        <commons.fileupload.version>1.5</commons.fileupload.version>
 
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>**/StaleStateExceptionMapper.java</sonar.coverage.exclusions>
