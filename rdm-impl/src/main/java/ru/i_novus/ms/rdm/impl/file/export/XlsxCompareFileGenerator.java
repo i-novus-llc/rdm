@@ -1,11 +1,16 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
 import net.n2oapp.platform.i18n.UserException;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -27,15 +32,25 @@ import ru.i_novus.ms.rdm.impl.repository.PassportAttributeRepository;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.XLSX_DATE_FORMAT;
+import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.createNextRow;
 
 /**
  * Created by znurgaliev on 26.09.2018.
@@ -44,18 +59,17 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(XlsxCompareFileGenerator.class);
 
-
     private static final Color RED_FONT_COLOR = Color.RED;
     private static final Color BLUE_FONT_COLOR = new Color(31, 78, 120);
     private static final Color GREEN_FONT_COLOR = new Color(0, 128, 0);
     private static final Color RED_CELL_COLOR = new Color(255, 204, 204);
     private static final Color BLUE_CELL_COLOR = new Color(189, 215, 238);
     private static final Color GREEN_CELL_COLOR = new Color(226, 239, 218);
-    private static final String XLSX_DATE_FORMAT = "dd.MM.yyyy";
+    private static final DefaultIndexedColorMap XSSF_COLOR_MAP = new DefaultIndexedColorMap();
 
-    private CompareService compareService;
-    private VersionService versionService;
-    private PassportAttributeRepository passportAttributeRepository;
+    private final CompareService compareService;
+    private final VersionService versionService;
+    private final PassportAttributeRepository passportAttributeRepository;
 
     private final Integer oldVersionId;
     private final Integer newVersionId;
@@ -78,11 +92,13 @@ class XlsxCompareFileGenerator implements FileGenerator {
     private RefBookVersion oldVersion;
     private RefBookVersion newVersion;
 
-    private Map<String, Integer> structureColumnIndexes = new HashMap<>();
-    private Map<String, Integer> dataColumnIndexes = new HashMap<>();
+    private final Map<String, Integer> structureColumnIndexes = new HashMap<>();
+    private final Map<String, Integer> dataColumnIndexes = new HashMap<>();
 
-    public XlsxCompareFileGenerator(Integer oldVersionId, Integer newVersionId,
-                                    CompareService compareService, VersionService versionService,
+    public XlsxCompareFileGenerator(Integer oldVersionId,
+                                    Integer newVersionId,
+                                    CompareService compareService,
+                                    VersionService versionService,
                                     PassportAttributeRepository passportAttributeRepository) {
         this.oldVersionId = oldVersionId;
         this.newVersionId = newVersionId;
@@ -109,32 +125,48 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private XSSFCellStyle createCellStyle(Font font, Color background) {
-        XSSFCellStyle cellStyle = (XSSFCellStyle) wb.createCellStyle();
-        if (font != null) cellStyle.setFont(font);
+
+        final XSSFCellStyle cellStyle = (XSSFCellStyle) wb.createCellStyle();
+        if (font != null) {
+            cellStyle.setFont(font);
+        }
+
         if (background != null) {
-            cellStyle.setFillForegroundColor(new XSSFColor(background));
+            cellStyle.setFillForegroundColor(createXSSFColor(background)); // to-do: Check FG vs BG!
             cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         }
+
         cellStyle.setBorderTop(BorderStyle.THIN);
         cellStyle.setBorderLeft(BorderStyle.THIN);
         cellStyle.setBorderBottom(BorderStyle.THIN);
         cellStyle.setBorderRight(BorderStyle.THIN);
+
         return cellStyle;
     }
 
     private XSSFCellStyle createDateCellStyle(Font font, Color background) {
-        XSSFCellStyle cellStyle = createCellStyle(font, background);
+
+        final XSSFCellStyle cellStyle = createCellStyle(font, background);
         cellStyle.setDataFormat(wb.createDataFormat().getFormat(XLSX_DATE_FORMAT));
+
         return cellStyle;
     }
 
-    private Font createFont(Color background, boolean bold, boolean strikeout) {
-        XSSFFont font = (XSSFFont) wb.createFont();
+    private Font createFont(Color color, boolean bold, boolean strikeout) {
+
+        final XSSFFont font = (XSSFFont) wb.createFont();
         font.setFontHeightInPoints((short) 11);
-        if (background != null) font.setColor(new XSSFColor(background));
+        if (color != null) {
+            font.setColor(createXSSFColor(color));
+        }
         font.setStrikeout(strikeout);
         font.setBold(bold);
+
         return font;
+    }
+
+    private XSSFColor createXSSFColor(Color color) {
+        return new XSSFColor(color, XSSF_COLOR_MAP);
     }
 
     @Override
@@ -148,6 +180,7 @@ class XlsxCompareFileGenerator implements FileGenerator {
         addDataCompare();
         try {
             wb.write(outputStream);
+
         } catch (IOException e) {
             throw new RdmException("cannot.create.file", e);
         }
@@ -275,10 +308,12 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private void addDataCompare() {
-        SXSSFSheet sheet = wb.createSheet("Данные справочника");
+
+        final SXSSFSheet sheet = wb.createSheet("Данные справочника");
         RefBookDataDiff refBookDataDiff;
         try {
             refBookDataDiff = compareService.compareData(new CompareDataCriteria(oldVersion.getId(), newVersion.getId()));
+
         } catch (UserException e) {
             logger.info("cannot compare data", e);
             createNextRow(sheet).createCell(0).setCellValue("Невозможно сравнить данные");
@@ -286,19 +321,23 @@ class XlsxCompareFileGenerator implements FileGenerator {
         }
         createStatusCells(sheet);
 
-        Row headRow = createDataHead(sheet,
+        final Row headRow = createDataHead(
+                sheet,
                 refBookDataDiff.getAttributeDiff().getOldAttributes(),
                 refBookDataDiff.getAttributeDiff().getNewAttributes()
         );
         sheet.trackAllColumnsForAutoSizing();
 
-        CompareDataCriteria compareCriteria = new CompareDataCriteria(oldVersion.getId(), newVersion.getId());
+        final CompareDataCriteria compareCriteria = new CompareDataCriteria(
+                oldVersion.getId(), newVersion.getId()
+        );
 
-        PageIterator<ComparableRow, CompareDataCriteria> pageIterator = new PageIterator<>(compareService::getCommonComparableRows, compareCriteria, true);
+        PageIterator<ComparableRow, CompareDataCriteria> pageIterator =
+                new PageIterator<>(compareService::getCommonComparableRows, compareCriteria, true);
         pageIterator.forEachRemaining(page ->
                 page.getContent().stream()
                         .map(comparableRow -> {
-                            Map<String, XlsxComparedCell> diffValueMap = new HashMap<>();
+                            final Map<String, XlsxComparedCell> diffValueMap = new HashMap<>();
                             comparableRow.getFieldValues()
                                     .forEach(cfv -> diffValueMap.put(
                                             cfv.getComparableField().getCode(),
@@ -306,9 +345,9 @@ class XlsxCompareFileGenerator implements FileGenerator {
                             return new XlsxComparedRow(diffValueMap, comparableRow.getStatus());
                         })
                         .forEach(rowDiffValue -> {
-
-                            if (rowDiffValue.getCells().values().stream()
-                                    .anyMatch(cellDiffValue -> DiffStatusEnum.UPDATED.equals(cellDiffValue.getStatus()))) {
+                            if (rowDiffValue.getCells().values().stream().anyMatch(cellDiffValue ->
+                                    DiffStatusEnum.UPDATED.equals(cellDiffValue.getStatus())
+                            )) {
                                 rowDiffValue.setDiffStatus(DiffStatusEnum.UPDATED);
                             }
 
@@ -316,24 +355,35 @@ class XlsxCompareFileGenerator implements FileGenerator {
                         })
         );
 
-        headRow.cellIterator().forEachRemaining(cell -> sheet.autoSizeColumn(cell.getColumnIndex(), true));
+        headRow.cellIterator().forEachRemaining(cell ->
+                sheet.autoSizeColumn(cell.getColumnIndex(), true)
+        );
     }
 
     private Row createDataHead(SXSSFSheet sheet, List<String> deletedColumns, List<String> createdColumns) {
 
-        Row headRow = createNextRow(sheet);
-        Map<String, String> allAttributes = new HashMap<>();
-        Stream.concat(oldVersion.getStructure().getAttributes().stream(), newVersion.getStructure().getAttributes().stream())
+        final Row headRow = createNextRow(sheet);
+        final Map<String, String> allAttributes = new HashMap<>();
+        Stream.concat(
+                oldVersion.getStructure().getAttributes().stream(),
+                        newVersion.getStructure().getAttributes().stream()
+                )
                 .forEach(a -> allAttributes.put(a.getCode(), a.getName()));
-        Stream.concat(newVersion.getStructure().getAttributeCodes().stream(), deletedColumns.stream())
+        Stream.concat(
+                newVersion.getStructure().getAttributeCodes().stream(),
+                        deletedColumns.stream()
+                )
                 .forEach(attribute -> {
                     dataColumnIndexes.put(attribute, dataColumnIndexes.size());
 
-                    Cell cell = headRow.createCell(dataColumnIndexes.get(attribute));
+                    final Cell cell = headRow.createCell(dataColumnIndexes.get(attribute));
                     cell.setCellValue(allAttributes.get(attribute));
-                    if (deletedColumns.contains(attribute)) cell.setCellStyle(headDeleteStyle);
-                    else if (createdColumns.contains(attribute)) cell.setCellStyle(headInsertStyle);
-                    else cell.setCellStyle(headStyle);
+                    if (deletedColumns.contains(attribute))
+                        cell.setCellStyle(headDeleteStyle);
+                    else if (createdColumns.contains(attribute))
+                        cell.setCellStyle(headInsertStyle);
+                    else
+                        cell.setCellStyle(headStyle);
                 });
 
         return headRow;
@@ -343,50 +393,47 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
         Set<Integer> notInserted = new HashSet<>();
         notInserted.addAll(indexes.values());
-        Row row = createNextRow(sheet);
-        if (DiffStatusEnum.UPDATED.equals(rowDiff.getDiffStatus()))
-            getOrCreateRow(sheet, row.getRowNum() + 1);
 
-        rowDiff.getCells().entrySet().forEach(diffEntry -> {
-                    Integer column = indexes.get(diffEntry.getKey());
-                    if (DiffStatusEnum.UPDATED.equals(rowDiff.getDiffStatus()) &&
-                            (diffEntry.getValue() == null || !DiffStatusEnum.UPDATED.equals(diffEntry.getValue().getStatus()) ||
-                                    Objects.equals(diffEntry.getValue().getOldValue(), diffEntry.getValue().getNewValue()))) {
-                        sheet.addMergedRegion(new CellRangeAddress(
-                                row.getRowNum(), row.getRowNum() + 1,
-                                column, column));
-                    }
-                    insertCellDiffValue(row.createCell(column), diffEntry.getValue());
-                    notInserted.remove(column);
-                }
-        );
+        Row row = createNextRow(sheet);
+        if (DiffStatusEnum.UPDATED.equals(rowDiff.getDiffStatus())) {
+            getOrCreateRow(sheet, row.getRowNum() + 1);
+        }
+
+        rowDiff.getCells().forEach((key, value) -> {
+            Integer column = indexes.get(key);
+            if (DiffStatusEnum.UPDATED.equals(rowDiff.getDiffStatus()) &&
+                    (value == null || !DiffStatusEnum.UPDATED.equals(value.getStatus()) ||
+                            Objects.equals(value.getOldValue(), value.getNewValue()))) {
+                sheet.addMergedRegion(new CellRangeAddress(
+                        row.getRowNum(), row.getRowNum() + 1,
+                        column, column
+                ));
+            }
+            insertCellDiffValue(row.createCell(column), value);
+            notInserted.remove(column);
+        });
     }
 
     @SuppressWarnings("UnusedReturnValue")
     private Row getOrCreateRow(SXSSFSheet sheet, int rowIndex) {
-        Row row = sheet.getRow(rowIndex);
-        if (row == null)
-            row = sheet.createRow(rowIndex);
-        return row;
-    }
 
-    private Row createNextRow(Sheet sheet) {
-        return sheet.createRow(sheet.getLastRowNum() + 1);
+        final Row row = sheet.getRow(rowIndex);
+        return row == null ? sheet.createRow(rowIndex) : row;
     }
 
     private void createStatusCells(SXSSFSheet sheet) {
 
         sheet.trackColumnForAutoSizing(0);
 
-        Cell statusAddCell = sheet.createRow(0).createCell(0);
+        final Cell statusAddCell = sheet.createRow(0).createCell(0);
         statusAddCell.setCellValue("Добавлено");
         statusAddCell.setCellStyle(insertStyle);
 
-        Cell statusUpdCell = sheet.createRow(1).createCell(0);
+        final Cell statusUpdCell = sheet.createRow(1).createCell(0);
         statusUpdCell.setCellValue("Изменено");
         statusUpdCell.setCellStyle(updNewStyle);
 
-        Cell statusDelCell = sheet.createRow(2).createCell(0);
+        final Cell statusDelCell = sheet.createRow(2).createCell(0);
         statusDelCell.setCellValue("Удалено");
         statusDelCell.setCellStyle(deleteStyle);
 
@@ -394,9 +441,11 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private void insertCellDiffValue(Cell cell, XlsxComparedCell xlsxComparedCell) {
+
         if (xlsxComparedCell == null) {
             cell.setCellStyle(deleteStyle);
             return;
+
         } else if (xlsxComparedCell.getStatus() == null) {
             cell.setCellStyle(defaultStyle);
             fillCell(cell, xlsxComparedCell.getNewValue());
@@ -404,21 +453,21 @@ class XlsxCompareFileGenerator implements FileGenerator {
         }
 
         switch (xlsxComparedCell.getStatus()) {
-            case INSERTED:
+            case INSERTED -> {
                 cell.setCellStyle(insertStyle);
                 fillCell(cell, xlsxComparedCell.getNewValue());
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 cell.setCellStyle(deleteStyle);
                 fillCell(cell, xlsxComparedCell.getOldValue());
-                break;
-            case UPDATED:
+            }
+            case UPDATED -> {
                 cell.setCellStyle(updNewStyle);
                 fillCell(cell, xlsxComparedCell.getNewValue());
                 Cell oldCell = cell.getSheet().getRow(cell.getRowIndex() + 1).createCell(cell.getColumnIndex());
                 oldCell.setCellStyle(updOldStyle);
                 fillCell(oldCell, xlsxComparedCell.getOldValue());
-                break;
+            }
         }
     }
 
@@ -428,15 +477,19 @@ class XlsxCompareFileGenerator implements FileGenerator {
             Date date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
             cell.setCellStyle(getDateCellStyle(cell.getCellStyle()));
             cell.setCellValue(date);
+
         } else if (value instanceof Boolean) {
             cell.setCellStyle(cell.getCellStyle());
             cell.setCellValue((Boolean) value);
+
         } else if (value instanceof Number) {
             cell.setCellStyle(cell.getCellStyle());
             cell.setCellValue(((Number) value).doubleValue());
+
         } else if (value instanceof Reference) {
             cell.setCellStyle(cell.getCellStyle());
             cell.setCellValue(((Reference) value).getValue());
+
         } else {
             cell.setCellStyle(cell.getCellStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
@@ -444,17 +497,23 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     private CellStyle getDateCellStyle(CellStyle style) {
-        if (insertStyle.equals(style)) return insertDateStyle;
-        else if (updNewStyle.equals(style)) return updNewDateStyle;
-        else if (updOldStyle.equals(style)) return updOldDateStyle;
-        else if (deleteStyle.equals(style)) return deleteDateStyle;
-        else return dateStyle;
+
+        if (insertStyle.equals(style))
+            return insertDateStyle;
+        else if (updNewStyle.equals(style))
+            return updNewDateStyle;
+        else if (updOldStyle.equals(style))
+            return updOldDateStyle;
+        else if (deleteStyle.equals(style))
+            return deleteDateStyle;
+        else
+            return dateStyle;
     }
 
     public static class XlsxComparedRow {
 
-        Map<String, XlsxComparedCell> cells;
-        DiffStatusEnum diffStatus;
+        private final Map<String, XlsxComparedCell> cells;
+        private DiffStatusEnum diffStatus;
 
         public XlsxComparedRow(Map<String, XlsxComparedCell> cells, DiffStatusEnum diffStatus) {
             this.cells = cells;
@@ -475,14 +534,17 @@ class XlsxCompareFileGenerator implements FileGenerator {
     }
 
     public static class XlsxComparedCell {
-        private Object oldValue;
-        private Object newValue;
+
+        private final Object oldValue;
+        private final Object newValue;
         private DiffStatusEnum status;
 
         public XlsxComparedCell(Object oldValue, Object newValue, DiffStatusEnum status) {
+
             this.oldValue = oldValue;
             this.newValue = newValue;
-            this.status = DiffStatusEnum.UPDATED.equals(status) && Objects.equals(oldValue, newValue) ? null : status;
+            this.status = DiffStatusEnum.UPDATED.equals(status) &&
+                    Objects.equals(oldValue, newValue) ? null : status;
         }
 
         public Object getOldValue() {
