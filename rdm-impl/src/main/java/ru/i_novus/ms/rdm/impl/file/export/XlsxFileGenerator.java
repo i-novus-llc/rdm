@@ -3,137 +3,154 @@ package ru.i_novus.ms.rdm.impl.file.export;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.i_novus.platform.datastorage.temporal.model.Reference;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
-import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.model.Structure;
+import ru.i_novus.ms.rdm.api.model.refdata.Row;
+import ru.i_novus.platform.datastorage.temporal.model.Reference;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+
+import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.XLSX_DATE_FORMAT;
+import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.createNextRow;
 
 /**
  * Created by znurgaliev on 24.07.2018.
  */
-public class XlsFileGenerator extends PerRowFileGenerator {
+public class XlsxFileGenerator extends PerRowFileGenerator {
 
-    private static final Logger logger = LoggerFactory.getLogger(XlsFileGenerator.class);
+    private static final Logger logger = LoggerFactory.getLogger(XlsxFileGenerator.class);
 
-    private Map<String, Integer> fieldColumn = new HashMap<>();
-    private SXSSFWorkbook workbook;
     private int pageSize = 500;
-    private CellStileFactory styleFactory;
 
-    public XlsFileGenerator(Iterator<Row> rowIterator) {
+    private SXSSFWorkbook workbook;
+    private XlsxCellStyleFactory styleFactory;
+
+    private final Map<String, Integer> fieldColumns = new HashMap<>();
+
+    public XlsxFileGenerator(Iterator<Row> rowIterator) {
         super(rowIterator);
     }
 
-    public XlsFileGenerator(Iterator<Row> rowIterator, Structure structure) {
+    public XlsxFileGenerator(Iterator<Row> rowIterator, Structure structure) {
         super(rowIterator, structure);
     }
 
-    public XlsFileGenerator(Iterator<Row> rowIterator, int pageSize) {
+    public XlsxFileGenerator(Iterator<Row> rowIterator, int pageSize) {
         super(rowIterator);
+
         this.pageSize = pageSize;
     }
 
-    public XlsFileGenerator(Iterator<Row> rowIterator, Structure structure, int pageSize) {
+    public XlsxFileGenerator(Iterator<Row> rowIterator, Structure structure, int pageSize) {
         super(rowIterator, structure);
+
         this.pageSize = pageSize;
     }
 
     @Override
     protected void startWrite() {
         logger.info("Start generate XLSX");
+
         workbook = new SXSSFWorkbook(500);
-        styleFactory = new CellStileFactory();
-        SXSSFSheet activeSheet = workbook.createSheet("Страница 1");
+        styleFactory = new XlsxCellStyleFactory();
+
+        final SXSSFSheet activeSheet = workbook.createSheet("Страница 1");
         createFirstRow(activeSheet);
     }
 
     @Override
     protected void write(Row row) {
-        org.apache.poi.ss.usermodel.Row wbRow = getNextRow();
-        row.getData().entrySet()
-                .forEach(entry -> fillCell(wbRow.createCell(getColumnIndex(entry.getKey())), entry.getValue()));
+
+        final org.apache.poi.ss.usermodel.Row sheetRow = createNextRow(getActiveSheet());
+        row.getData().forEach((key, value) -> {
+            final int columnIndex = getOrCreateColumnIndex(key);
+            fillCell(sheetRow.createCell(columnIndex), value);
+        });
     }
 
     @Override
     protected void endWrite() {
-        OutputStream ncos = new NoCloseOutputStreamWrapper(getOutputStream());
+
+        final OutputStream ncos = new NoCloseOutputStreamWrapper(getOutputStream());
         try {
             autoSizeAllSheet();
             workbook.write(ncos);
             workbook.close();
             ncos.flush();
-            fieldColumn.clear();
+            fieldColumns.clear();
             styleFactory = null;
+
             logger.info("XLSX generate finished");
+
         } catch (IOException e) {
             logger.error("cannot generate XLSX", e);
             throw new RdmException("cannot generate XLSX");
         }
     }
 
-    private org.apache.poi.ss.usermodel.Row getNextRow() {
-        Sheet activeSheet = getActiveSheet();
-        return activeSheet.createRow(activeSheet.getLastRowNum() + 1);
-    }
-
     private SXSSFSheet getActiveSheet() {
-        int sheetIndex = workbook.getActiveSheetIndex();
+
+        final int sheetIndex = workbook.getActiveSheetIndex();
         SXSSFSheet activeSheet = workbook.getSheetAt(sheetIndex);
         if (activeSheet.getPhysicalNumberOfRows() >= pageSize) {
-            activeSheet = workbook.createSheet("Страница " + (sheetIndex + 2));
-            workbook.setActiveSheet(sheetIndex + 1);
-            fieldColumn.clear();
+            final int nextIndex = sheetIndex + 1;
+            activeSheet = workbook.createSheet("Страница " + (nextIndex + 1));
+            workbook.setActiveSheet(nextIndex);
+            fieldColumns.clear();
             createFirstRow(activeSheet);
         }
         return activeSheet;
     }
 
     private SXSSFRow getActiveFirstRow() {
-        SXSSFSheet activeSheet = getActiveSheet();
-        if (activeSheet.getPhysicalNumberOfRows() > 0) {
+
+        final SXSSFSheet activeSheet = getActiveSheet();
+        if (activeSheet.getPhysicalNumberOfRows() > 0)
             return activeSheet.getRow(activeSheet.getFirstRowNum());
-        } else return createFirstRow(activeSheet);
+        else
+            return createFirstRow(activeSheet);
     }
 
     private SXSSFRow createFirstRow(SXSSFSheet sheet) {
-        SXSSFRow row = sheet.createRow(0);
-        if (getStructure() != null && getStructure().getAttributes() != null)
-            getStructure().getAttributes().forEach(a -> getColumnIndex(a.getCode()));
-        return row;
+
+        final SXSSFRow sheetRow = sheet.createRow(0);
+        if (getStructure() != null) {
+            getStructure().getAttributes().forEach(a -> getOrCreateColumnIndex(a.getCode()));
+        }
+        return sheetRow;
     }
 
-    private int getColumnIndex(String fieldName) {
-        Integer columnIndex = fieldColumn.get(fieldName);
-        if (columnIndex == null) {
-            columnIndex = createColumn(fieldName);
-        }
-        return columnIndex;
+    private int getOrCreateColumnIndex(String fieldName) {
+
+        final Integer columnIndex = fieldColumns.get(fieldName);
+        return columnIndex == null ? createColumn(fieldName) : columnIndex;
     }
 
     private int createColumn(String fieldName) {
 
-        Integer columnIndex = fieldColumn.size();
+        final int columnIndex = fieldColumns.size();
 
-        SXSSFCell currrentCell = getActiveFirstRow().createCell(columnIndex);
-        currrentCell.setCellStyle(styleFactory.getFirstRowStyle());
-        currrentCell.setCellValue(fieldName);
-        currrentCell.getSheet().trackColumnForAutoSizing(columnIndex);
+        final SXSSFCell currentCell = getActiveFirstRow().createCell(columnIndex);
+        currentCell.setCellStyle(styleFactory.getFirstRowStyle());
+        currentCell.setCellValue(fieldName);
+        currentCell.getSheet().trackColumnForAutoSizing(columnIndex);
 
-        fieldColumn.put(fieldName, columnIndex);
+        fieldColumns.put(fieldName, columnIndex);
 
         return columnIndex;
     }
@@ -141,18 +158,22 @@ public class XlsFileGenerator extends PerRowFileGenerator {
     private void fillCell(Cell cell, Object value) {
 
         if (value instanceof LocalDate) {
-            Date date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
+            final Date date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
             cell.setCellStyle(styleFactory.getDateStyle());
             cell.setCellValue(date);
+
         } else if (value instanceof Boolean) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue((Boolean) value);
+
         } else if (value instanceof Number) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(((Number) value).doubleValue());
+
         } else if (value instanceof Reference) {
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(((Reference) value).getValue());
+
         } else {
             cell.setCellStyle(styleFactory.getDefaultStyle());
             cell.setCellValue(Optional.ofNullable(value).orElse("").toString());
@@ -161,9 +182,8 @@ public class XlsFileGenerator extends PerRowFileGenerator {
 
     private void autoSizeAllSheet() {
         for (int i = 0; i <= workbook.getActiveSheetIndex(); i++) {
-            SXSSFSheet sheet = workbook.getSheetAt(i);
-            sheet.getTrackedColumnsForAutoSizing()
-                    .forEach(sheet::autoSizeColumn);
+            final SXSSFSheet sheet = workbook.getSheetAt(i);
+            sheet.getTrackedColumnsForAutoSizing().forEach(sheet::autoSizeColumn);
         }
     }
 
@@ -173,8 +193,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
             workbook.close();
     }
 
-
-    private class NoCloseOutputStreamWrapper extends BufferedOutputStream {
+    private static class NoCloseOutputStreamWrapper extends BufferedOutputStream {
 
         public NoCloseOutputStreamWrapper(OutputStream out) {
             super(out);
@@ -186,37 +205,38 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         }
     }
 
-    private class CellStileFactory {
+    private class XlsxCellStyleFactory {
 
-        private static final String XLSX_DATE_FORMAT = "dd.MM.yyyy";
-
-        private CellStyle firstRowStile;
+        private CellStyle firstRowStyle;
         private CellStyle defaultStyle;
         private CellStyle dateStyle;
         private Font defaultFont;
 
         private CellStyle getFirstRowStyle() {
-            if (firstRowStile == null) {
-                Font nameFont = workbook.createFont();
-                nameFont.setFontHeightInPoints((short) 12);
-                nameFont.setFontName("Times New Roman");
-                nameFont.setBold(true);
-                firstRowStile = workbook.createCellStyle();
-                firstRowStile.setFont(nameFont);
+
+            if (firstRowStyle == null) {
+                final Font font = workbook.createFont();
+                font.setFontHeightInPoints((short) 12);
+                font.setFontName("Times New Roman");
+                font.setBold(true);
+
+                firstRowStyle = workbook.createCellStyle();
+                firstRowStyle.setFont(font);
             }
-            return firstRowStile;
+            return firstRowStyle;
         }
 
         private CellStyle getDefaultStyle() {
+
             if (defaultStyle == null) {
                 defaultStyle = workbook.createCellStyle();
                 defaultStyle.setFont(getDefaultFont());
-
             }
             return defaultStyle;
         }
 
         private CellStyle getDateStyle() {
+
             if (dateStyle == null) {
                 dateStyle = workbook.createCellStyle();
                 dateStyle.setFont(getDefaultFont());
@@ -226,6 +246,7 @@ public class XlsFileGenerator extends PerRowFileGenerator {
         }
 
         private Font getDefaultFont() {
+
             if (defaultFont == null) {
                 defaultFont = workbook.createFont();
                 defaultFont.setFontHeightInPoints((short) 12);
