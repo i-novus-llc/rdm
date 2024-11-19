@@ -43,11 +43,11 @@ public class BackendConfiguration {
     private final FieldFactory fieldFactory; // Для десериализации объектов сторонних классов
 
     @Autowired
-    public BackendConfiguration(@Qualifier("platformRestTemplate")
-                                        RestTemplate platformRestTemplate,
-                                @Qualifier("userinfoRestTemplateInterceptor")
-                                    ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
-                                FieldFactory fieldFactory) {
+    public BackendConfiguration(
+            @Qualifier("platformRestTemplate") RestTemplate platformRestTemplate,
+            @Qualifier("userinfoRestTemplateInterceptor") ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
+            FieldFactory fieldFactory
+    ) {
         this.platformRestTemplate = platformRestTemplate;
         this.userinfoRestTemplateInterceptor = userinfoRestTemplateInterceptor;
 
@@ -125,7 +125,9 @@ public class BackendConfiguration {
     @Bean
     @Qualifier("topicJmsTemplate")
     @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public JmsTemplate topicJmsTemplate(ConnectionFactory connectionFactory) {
+    public JmsTemplate topicJmsTemplate(
+            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
+    ) {
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
         jmsTemplate.setPubSubDomain(true);
         jmsTemplate.setExplicitQosEnabled(true);
@@ -136,12 +138,16 @@ public class BackendConfiguration {
 
     @Bean
     @Qualifier("queueJmsTemplate")
-    public JmsTemplate queueJmsTemplate(ConnectionFactory connectionFactory) {
+    public JmsTemplate queueJmsTemplate(
+            @Qualifier("jmsConnectionFactory")ConnectionFactory connectionFactory
+    ) {
         return new JmsTemplate(connectionFactory);
     }
 
     @Bean
-    public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(
+            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
+    ) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setSessionTransacted(true);
@@ -150,7 +156,9 @@ public class BackendConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public DefaultJmsListenerContainerFactory publishTopicListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public DefaultJmsListenerContainerFactory publishTopicListenerContainerFactory(
+            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
+    ) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setPubSubDomain(true);
