@@ -7,7 +7,6 @@ import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
@@ -93,7 +93,6 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
@@ -103,16 +102,22 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "spring.main.allow-bean-definition-overriding=true",
-                "spring.jms.cache.enabled=false",
+                //"spring.jms.cache.enabled=false",
                 "backend.default.port=8081",
                 "spring.datasource.url=jdbc:postgresql://localhost:15432/rdm",
                 //"testcontainers.pg.version=11",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "logging.pattern.console=%d{HH:mm:ss} %-5level %logger{36} - %msg%n",
+                "spring.jpa.show-sql=true",
+                "logging.level.org.hibernate.SQL=DEBUG",
+                "logging.level.org.hibernate.type.descriptor.sql=TRACE",
+                "logging.level.org.hibernate.type.EnumType=TRACE",
                 "rdm.audit.disabledActions=all"
         })
 @DefinePort
 @EnableTestcontainersPg
+@EnableJms
 @Import(BackendConfiguration.class)
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
