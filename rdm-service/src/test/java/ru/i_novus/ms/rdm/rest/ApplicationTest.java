@@ -113,7 +113,8 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "logging.level.org.hibernate.SQL=DEBUG",
                 "logging.level.org.hibernate.type.descriptor.sql=TRACE",
                 "logging.level.org.hibernate.type.EnumType=TRACE",
-                "rdm.audit.disabledActions=all"
+                "rdm.audit.disabledActions=all",
+                "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg

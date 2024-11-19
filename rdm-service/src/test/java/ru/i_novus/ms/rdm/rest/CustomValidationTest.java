@@ -50,7 +50,8 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
-                "rdm.audit.disabledActions=all"
+                "rdm.audit.disabledActions=all",
+                "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
