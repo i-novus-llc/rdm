@@ -3,7 +3,6 @@ package ru.i_novus.ms.rdm.rest;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,6 @@ import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
 import static ru.i_novus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
