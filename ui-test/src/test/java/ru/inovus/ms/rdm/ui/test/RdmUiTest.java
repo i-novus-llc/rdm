@@ -2,17 +2,12 @@ package ru.inovus.ms.rdm.ui.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.logevents.SelenideLogger;
-import io.qameta.allure.selenide.AllureSelenide;
-import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.component.DropDown;
 import net.n2oapp.framework.autotest.api.component.control.Control;
-import net.n2oapp.framework.autotest.api.component.control.InputText;
-import net.n2oapp.framework.autotest.api.component.control.TextArea;
-import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
-import net.n2oapp.framework.autotest.impl.component.control.N2oDateInput;
+import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
 import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
+import net.n2oapp.framework.autotest.run.AutoTestBase;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -20,6 +15,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.CapabilityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.system.SystemProperties;
@@ -37,16 +35,20 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.fillCheckBox;
+import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.fillInputControl;
 
 @ExtendWith(SpringExtension.class)
-public class RdmUiTest {
+public class RdmUiTest extends AutoTestBase {
 
     private static final Logger logger = LoggerFactory.getLogger(RdmUiTest.class);
 
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "admin";
+    private static final String DEFAULT_URL = "http://localhost:8080";
+    //private static final String USERNAME = "admin";
+    //private static final String PASSWORD = "admin";
+    private static final String USERNAME = "rdm_admin";
+    private static final String PASSWORD = "rdm.admin";
 
     // Время создания справочника (для локализации ошибки).
     private static final ZoneId UNIVERSAL_TIMEZONE = ZoneId.of("UTC");
@@ -54,6 +56,7 @@ public class RdmUiTest {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
     private static final int DATA_ROWS_CREATE_COUNT = 3;
+    //private static final int DATA_ROWS_CREATE_COUNT = 1; // debug only
     private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
 
     // Все простые поля для проверки справочников.
@@ -84,27 +87,34 @@ public class RdmUiTest {
     private final AtomicInteger refBookDataIdSeq = new AtomicInteger();
 
     @BeforeAll
-    public static void setUp() {
+    public static void beforeClass() {
 
-        SelenideLogger.addListener("AllureSelenide", new AllureSelenide());
+        // Временный фикс для повторного бага:
+        // https://github.com/SeleniumHQ/selenium/issues/14544
+        System.setProperty("selenide.headless", "false");
 
-        System.setProperty("chromeoptions.args", "--no-sandbox,--verbose,--whitelisted-ips=''");
+        configureSelenide();
 
-        Configuration.headless = true;
-        Configuration.browserSize = "1920x1200";
+        final MutableCapabilities capabilities = Configuration.browserCapabilities;
+        //capabilities.setCapability("acceptSslCerts", true);
+        capabilities.setCapability("acceptInsecureCerts", true);
+        //capabilities.setCapability("ignore-certificate-errors", true);
 
-        Configuration.baseUrl = getBaseUrl();
+        final ChromeOptions options = new ChromeOptions();
+        options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
+        options.setCapability(CapabilityType.ENABLE_DOWNLOADS, true);
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.setExperimentalOption("excludeSwitches",
+                new String[] {"enable-automation", "load-extension", "enable-logging"});
+        options.addArguments("--disable-blink-features=AutomationControlled");
+
+        capabilities.setCapability(ChromeOptions.CAPABILITY, options);
+
+        //Configuration.browserSize = "1920x1200";
+        Configuration.browserSize = "1280x800";
+
+        //Configuration.baseUrl = getAppUrl();
         Configuration.timeout = 8000;
-    }
-
-    // URL запущенного фронтенда RDM.
-    private static String getBaseUrl() {
-
-        String baseUrl = SystemProperties.get("rdm.url");
-        if (baseUrl == null) {
-            baseUrl = "http://localhost:8080";
-        }
-        return baseUrl;
     }
 
     @AfterAll
@@ -112,16 +122,77 @@ public class RdmUiTest {
         Selenide.closeWebDriver();
     }
 
+    /**
+     * URL запущенного фронтенда RDM.
+     */
+    protected static String getAppUrl() {
+
+        final String baseUrl = SystemProperties.get("rdm.url");
+        return baseUrl == null ? DEFAULT_URL : baseUrl;
+    }
+
+    @Override
+    protected String getBaseUrl() {
+        return getAppUrl();
+    }
+
     @AfterEach
     public void logout() {
-        //open("/logout", LoginPage.class).shouldExists();
+        openPage(LoginPage.class, "/logout").shouldExists();
     }
+
+    //@Test
+    //public void testOpen() {
+    //    Selenide.open( "https://dzen.ru/");
+    //    //Selenide.open( "https://www.google.com/");
+    //}
+
+    //@Test
+    //public void testAddRefBookData() {
+    //
+    //    final RefBookListPage refBookListPage = login();
+    //    refBookListPage.shouldExists();
+    //
+    //    final RefBook refBook = new RefBook(
+    //            "a_LlOLn",
+    //            "a TdEmU (2024-11-22T09:07:17)",
+    //            "shortName",
+    //            "system",
+    //            "description",
+    //            RefBook.getUnversionedType(),
+    //            generateRows(DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null)
+    //    );
+    //
+    //    search(refBookListPage, refBook);
+    //    refBookListPage.columnCodeShouldHaveText(refBook.getCode());
+    //
+    //    final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+    //    refBookEditPage.shouldExists();
+    //
+    //    final DataListWidget dataListWidget = refBookEditPage.data();
+    //    dataListWidget.shouldExists();
+    //    dataListWidget.shouldBeVisible();
+    //    // Don't use: dataListWidget.shouldBeEnabled()
+    //
+    //    final List<String> nameColumnTexts = new ArrayList<>();
+    //    for (Map<RefBookField, Object> row : refBook.getRows()) {
+    //
+    //        final DataRowForm dataForm = dataListWidget.openAddRowForm();
+    //        dataForm.shouldExists();
+    //
+    //        fillDataRowForm(dataForm, row);
+    //        dataForm.save();
+    //
+    //        nameColumnTexts.add(getNameColumnText(row));
+    //        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
+    //    }
+    //}
 
     /**
      * Проверка работы с обычным (версионным) справочником.
      */
     //@Test
-    public void testCreateDefaultRefBook() {
+    public void testDefaultRefBook() {
         testRefBook(null);
     }
 
@@ -135,23 +206,22 @@ public class RdmUiTest {
 
     private void testRefBook(String type) {
 
-        final RefBook refBook = generateRefBook(type, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
-
         final RefBookListPage refBookListPage = login();
         refBookListPage.shouldExists();
+
+        final RefBook refBook = generateRefBook(type, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
 
         // Создание.
         createRefBook(refBookListPage, refBook);
         refBookListPage.shouldExists();
-
         search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(refBook.getCode());
 
         // Редактирование.
-        //final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
-        //editRefBook(refBookEditPage, refBook);
-        //search(refBookListPage, refBook);
-        //refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+        final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        editRefBook(refBookEditPage, refBook);
+        search(refBookListPage, refBook);
+        refBookListPage.columnCodeShouldHaveText(refBook.getCode());
 
         // Удаление.
         refBookListPage.deleteRow(0);
@@ -188,28 +258,28 @@ public class RdmUiTest {
         refBookListPage.shouldExists();
 
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
         // Создание ссылочного справочника.
         createRefBook(refBookListPage, referrerBook);
 
         // Создание конфликтов.
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
         RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         createDataConflicts(refBookEditPage, referredBook);
 
         // Разрешение конфликтов.
         search(refBookListPage, referrerBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referrerBook.getCode());
 
         refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         resolveDataConflicts(refBookEditPage, referrerBook);
 
         // Удаление ссылочного справочника.
         search(refBookListPage, referrerBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referrerBook.getCode());
 
         refBookListPage.deleteRow(0);
         search(refBookListPage, referrerBook);
@@ -217,7 +287,7 @@ public class RdmUiTest {
 
         // Удаление обычного справочника.
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
         refBookListPage.deleteRow(0);
         search(refBookListPage, referredBook);
@@ -249,9 +319,11 @@ public class RdmUiTest {
         createStructure(structureWidget, fieldsToFirstRefBook);
 
         final DataListWidget dataListWidget = refBookEditPage.data();
-        dataListWidget.shouldExists();
+        // Это динамически формируемая таблица.
+        // Она не создаётся, если нет записей справочника.
+        dataListWidget.shouldNotExists();
 
-        final List<String> addedRowsNameColumnValues = new ArrayList<>();
+        final List<String> nameColumnTexts = new ArrayList<>();
         for (Map<RefBookField, Object> row : refBook.getRows()) {
 
             final DataRowForm dataForm = dataListWidget.openAddRowForm();
@@ -260,8 +332,8 @@ public class RdmUiTest {
             fillDataRowForm(dataForm, row);
             dataForm.save();
 
-            addedRowsNameColumnValues.add(getNameColumnValue(row));
-            dataListWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
+            nameColumnTexts.add(getNameColumnText(row));
+            dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
         }
 
         if (refBook.isUnversioned()) {
@@ -273,8 +345,8 @@ public class RdmUiTest {
 
     private void createStructure(StructureWidget structureWidget, Set<RefBookField> fieldsToFirstRefBook) {
 
-        final List<String> addedRowsCodeColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
-        final List<String> addedRowsNameColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
+        final List<String> codeColumnTexts = new ArrayList<>(fieldsToFirstRefBook.size());
+        final List<String> nameColumnTexts = new ArrayList<>(fieldsToFirstRefBook.size());
 
         fieldsToFirstRefBook.forEach(field -> {
 
@@ -284,18 +356,18 @@ public class RdmUiTest {
             fillAttributeForm(attributeForm, field);
             attributeForm.save();
 
-            addedRowsCodeColumnValues.add(field.getCode());
-            addedRowsNameColumnValues.add(field.getName());
+            codeColumnTexts.add(field.getCode());
+            nameColumnTexts.add(field.getName());
 
-            structureWidget.rowShouldHaveTexts(1, addedRowsCodeColumnValues);
-            structureWidget.rowShouldHaveTexts(2, addedRowsNameColumnValues);
+            structureWidget.columnShouldHaveTexts(1, codeColumnTexts);
+            structureWidget.columnShouldHaveTexts(2, nameColumnTexts);
         });
     }
 
     private void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
 
-        List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
+        final List<Map<RefBookField, Object>> existedRows = refBook.getRows();
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
 
         refBookEditPage.shouldExists();
         DataListWidget dataListWidget = refBookEditPage.data();
@@ -307,22 +379,22 @@ public class RdmUiTest {
         fillDataRowForm(addForm, row);
         addForm.save();
 
-        nameColumnValues.add(getNameColumnValue(row));
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.add(getNameColumnText(row));
+        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
-        final int lastRowNum = nameColumnValues.size() - 1;
+        final int lastRowNum = nameColumnTexts.size() - 1;
         final DataRowForm editForm = dataListWidget.openEditRowForm(lastRowNum);
         final String newNameValue = "Другое наименование";
         fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
-        nameColumnValues.set(lastRowNum, newNameValue);
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.set(lastRowNum, newNameValue);
+        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         dataListWidget.deleteRow(lastRowNum);
 
-        nameColumnValues.remove(lastRowNum);
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.remove(lastRowNum);
+        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         if (refBook.isUnversioned()) {
             openRefBookListPage();
@@ -334,25 +406,25 @@ public class RdmUiTest {
     private void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         final List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        final List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
 
         refBookEditPage.shouldExists();
-        DataListWidget dataListWidget = refBookEditPage.data();
+        final DataListWidget dataListWidget = refBookEditPage.data();
 
         // Конфликт DELETED.
         dataListWidget.deleteRow(0);
 
-        nameColumnValues.remove(0);
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.remove(0);
+        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         // Конфликт UPDATED.
         final DataRowForm editForm = dataListWidget.openEditRowForm(0);
-        final String newNameValue = nameColumnValues.get(0) + "_updated";
+        final String newNameValue = nameColumnTexts.get(0) + "_updated";
         fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
-        nameColumnValues.set(0, newNameValue);
-        dataListWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.set(0, newNameValue);
+        dataListWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         if (refBook.isUnversioned()) {
             openRefBookListPage();
@@ -364,24 +436,24 @@ public class RdmUiTest {
     private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
 
         final List<Map<RefBookField, Object>> existedRows = referrer.getRows();
-        final List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
-        final List<String> nameColumnConflictedValues = nameColumnValues.subList(0, 2);
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
+        final List<String> conflictedNameColumnTexts = nameColumnTexts.subList(0, 2);
 
         refBookEditPage.shouldExists();
         //final DataWidget dataWidget = refBookEditPage.data();
-        //dataWidget.rowShouldHaveTexts(1, nameColumnValues);
+        //dataWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         DataWithConflictsWidget dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
         dataWithConflictsWidget.rowShouldHaveSize(2); // Два конфликта
-        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        dataWithConflictsWidget.columnShouldHaveTexts(1, conflictedNameColumnTexts);
 
         refBookEditPage.refreshReferrer();
         waitActionResult(SLEEP_TIME);
 
-        nameColumnConflictedValues.remove(1);
+        conflictedNameColumnTexts.remove(1);
         dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
         dataWithConflictsWidget.rowShouldHaveSize(1); // Один конфликт
-        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        dataWithConflictsWidget.columnShouldHaveTexts(1, conflictedNameColumnTexts);
 
         final DataRowForm editForm = dataWithConflictsWidget.fixRowForm(0);
         fillReference(editForm.referenceInput(ATTR_REFERENCE_NAME), 0);
@@ -395,7 +467,7 @@ public class RdmUiTest {
 
     private void openRefBookListPage() {
 
-        N2oSelenide.open("/", RefBookListPage.class);
+        openPage(RefBookListPage.class, "/");
     }
 
     private RefBookEditPage openRefBookEditPage(RefBookListPage refBookListPage, int rowNum) {
@@ -413,13 +485,13 @@ public class RdmUiTest {
 
         row.forEach((key, value) -> {
             switch (key.getType()) {
-                case STRING: fillInputControl(form.stringInput(key.getName()), value.toString()); break;
-                case INTEGER: fillInputControl(form.integerInput(key.getName()), value.toString()); break;
-                case DOUBLE: fillInputControl(form.doubleInput(key.getName()), value.toString()); break;
-                case DATE: fillInputControl(form.dateInput(key.getName()), (value.toString())); break;
-                case BOOLEAN: fillCheckBox(form.booleanInput(key.getName()), true); break;
-                case REFERENCE: fillReference(form.referenceInput(key.getName()), value); break;
-                default: throw new IllegalArgumentException(key.getType() + " invalid field type");
+                case STRING -> fillInputControl(form.stringInput(key.getName()), value.toString());
+                case INTEGER -> fillInputControl(form.integerInput(key.getName()), value.toString());
+                case DOUBLE -> fillInputControl(form.doubleInput(key.getName()), value.toString());
+                case DATE -> fillInputControl(form.dateInput(key.getName()), (value.toString()));
+                case BOOLEAN -> fillCheckBox(form.booleanInput(key.getName()), true);
+                case REFERENCE -> fillReference(form.referenceInput(key.getName()), value);
+                default -> throw new IllegalArgumentException(key.getType() + " invalid field type");
             }
         });
 
@@ -431,8 +503,8 @@ public class RdmUiTest {
         fillInputControl(form.nameInput(), refBookField.getName());
 
         final N2oSelect typeInput = form.typeInput();
-        typeInput.setValue(refBookField.getType().getLabel());
-        typeInput.shouldHaveValue(refBookField.getType().getLabel());
+        typeInput.shouldBeEmpty();
+        fillInputControl(typeInput, refBookField.getType().getLabel());
 
         if (refBookField.isReferenceType()) {
 
@@ -446,8 +518,8 @@ public class RdmUiTest {
             final N2oInputSelect displayAttrInput = form.displayAttrInput();
             final Map.Entry<Integer, String> referredField = refBookField.getReferredField();
             if (referredField != null) {
-                //final DropDown dropDown = displayAttrInput.dropdown();
-                //dropDown.selectItem(referredField.getKey());
+                //final DropDown typeDropDown = displayAttrInput.dropdown();
+                //typeDropDown.selectItem(referredField.getKey());
                 //displayAttrInput.closePopup();
                 displayAttrInput.setValue(referredField.getValue());
                 displayAttrInput.shouldHaveValue(referredField.getValue());
@@ -470,50 +542,13 @@ public class RdmUiTest {
         if (refBook.getType() != null) {
 
             final N2oInputSelect typeInput = widget.typeInput();
-            typeInput.shouldBeEmpty();
-            typeInput.setValue(refBook.getType());
-            typeInput.openPopup();
-            typeInput.setValue(refBook.getType());
-            typeInput.closePopup();
-            typeInput.shouldHaveValue(refBook.getType());
-        }
-    }
-
-    private void fillInputControl(Control control, String value) {
-
-        control.shouldExists();
-
-        if (control instanceof InputText) {
-            ((InputText) control).setValue(value);
-
-        } else if(control instanceof TextArea) {
-            ((TextArea) control).setValue(value);
-
-        } else if(control instanceof N2oDateInput) {
-            ((N2oDateInput) control).setValue(value);
-
-        } else {
-            throw new IllegalArgumentException("Control is not for input");
-        }
-
-        control.shouldHaveValue(value);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void fillCheckBox(Control checkBox, boolean value) {
-
-        checkBox.shouldExists();
-
-        if (!(checkBox instanceof N2oCheckbox))
-            throw new IllegalArgumentException("Control is not check box");
-
-        final N2oCheckbox control = (N2oCheckbox) checkBox;
-        control.setChecked(value);
-
-        if (value) {
-            control.shouldBeChecked();
-        } else {
-            control.shouldBeEmpty();
+            fillInputControl(typeInput, refBook.getType());
+            //typeInput.shouldBeEmpty();
+            //typeInput.setValue(refBook.getType());
+            //typeInput.openPopup();
+            //typeInput.setValue(refBook.getType());
+            //typeInput.closePopup();
+            //typeInput.shouldHaveValue(refBook.getType());
         }
     }
 
@@ -521,10 +556,9 @@ public class RdmUiTest {
 
         referenceInput.shouldExists();
 
-        if (!(referenceInput instanceof N2oInputSelect))
+        if (!(referenceInput instanceof N2oInputSelect control))
             throw new IllegalArgumentException("Control is not reference input");
 
-        final N2oInputSelect control = (N2oInputSelect) referenceInput;
         // to-do: Очищать только при наличии значения!
         control.clear();
         waitActionResult(SLEEP_TIME / 2);
@@ -536,20 +570,14 @@ public class RdmUiTest {
 
     private RefBookListPage login() {
 
-        //logger.info("User log in");
-        //final LoginPage loginPage = N2oSelenide.open("/", LoginPage.class);
-        //final RefBookListPage refBookListPage = loginPage.login(USERNAME, PASSWORD);
-        //logger.info("User logged in");
+        logger.info("User log in");
+        final LoginPage loginPage = openPage(LoginPage.class, "/");
+        final RefBookListPage refBookListPage = loginPage.login(USERNAME, PASSWORD);
+        logger.info("User logged in");
 
-        logger.info("Main page");
-        final RefBookListPage refBookListPage = N2oSelenide.open("/", RefBookListPage.class);
+        //logger.info("Main page");
+        //final RefBookListPage refBookListPage = openPage(RefBookListPage.class, "/");
         return refBookListPage;
-    }
-
-    /** Ожидание результата действия. */
-    private void waitActionResult(long sleepTime) {
-        
-        Selenide.sleep(sleepTime != 0 ? sleepTime : 1);
     }
 
     /** Формирование информации о справочнике для создания. */
@@ -569,7 +597,9 @@ public class RdmUiTest {
         );
     }
 
-    /** Формирование информации о записях справочника. */
+    /**
+     * Формирование информации о записях справочника.
+     */
     private List<Map<RefBookField, Object>> generateRows(int rowCount,
                                                          List<FieldType> fieldTypes,
                                                          RefBook referredBook) {
@@ -579,32 +609,32 @@ public class RdmUiTest {
             Map<RefBookField, Object> row = new LinkedHashMap<>(fieldTypes.size());
             for (FieldType fieldType : fieldTypes) {
                 switch (fieldType) {
-                    case STRING: row.put(
+                    case STRING -> row.put(
                             new RefBookField("name", ATTR_NAME_NAME, fieldType, false),
                             RandomStringUtils.randomAlphabetic(5)
-                    ); break;
-                    case INTEGER: row.put(
+                    );
+                    case INTEGER -> row.put(
                             new RefBookField("id", ATTR_ID_NAME, fieldType, true),
                             String.valueOf(refBookDataIdSeq.getAndIncrement())
-                    ); break;
-                    case DOUBLE: row.put(
-                            new RefBookField("some_double", "Некоторое дробное поле", fieldType, false),
+                    );
+                    case DOUBLE -> row.put(
+                            new RefBookField("some_double", "Некоторая дробное число", fieldType, false),
                             String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
-                    ); break;
-                    case DATE: row.put(
+                    );
+                    case DATE -> row.put(
                             new RefBookField("some_date", "Некоторая дата", fieldType, false),
                             LocalDate.now().format(EDIT_FIELD_DATE_FORMATTER)
-                    ); break;
-                    case BOOLEAN: row.put(
-                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType,
-                                    false), RandomUtils.nextBoolean()
-                    ); break;
-                    case REFERENCE: row.put(
+                    );
+                    case BOOLEAN -> row.put(
+                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType, false),
+                            RandomUtils.nextBoolean()
+                    );
+                    case REFERENCE -> row.put(
                             new RefBookField("some_reference", ATTR_REFERENCE_NAME, fieldType, false,
                                     referredBook, new AbstractMap.SimpleEntry<>(1, ATTR_NAME_NAME)),
                             referredBook != null && referredBook.getRows().size() > i ? i : null
-                    ); break;
-                    default: throw new IllegalArgumentException(fieldType + " invalid field type");
+                    );
+                    default -> throw new IllegalArgumentException(fieldType + " invalid field type");
                 }
             }
             result.add(row);
@@ -612,13 +642,34 @@ public class RdmUiTest {
         return result;
     }
 
-    private String getNameColumnValue(Map<RefBookField, Object> row) {
+    private String getNameColumnText(Map<RefBookField, Object> row) {
 
-        Map.Entry<RefBookField, Object> field = row.entrySet().stream()
-                        .filter(entry -> "name".equals(entry.getKey().getCode()))
-                        .findAny().orElse(null);
+        final Map.Entry<RefBookField, Object> field = row.entrySet().stream()
+                .filter(entry -> "name".equals(entry.getKey().getCode()))
+                .findAny().orElse(null);
 
         return (field != null) ? (String) field.getValue() : null;
+    }
+
+    /**
+     * Открытие страницы с url без query-параметров.
+     *
+     * @param clazz   класс страницы
+     * @param pageUrl url страницы
+     * @return Страница
+     */
+    private <T extends Page> T openPage(Class<T> clazz, String pageUrl) {
+        return open(clazz, pageUrl, null);
+    }
+
+    /**
+     * Ожидание результата действия.
+     *
+     * @param milliseconds Время ожидания (мс)
+     */
+    private void waitActionResult(long milliseconds) {
+
+        Selenide.sleep(milliseconds != 0 ? milliseconds : 1);
     }
 
     private static LocalDateTime now() {

@@ -9,19 +9,35 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>4.19.0-SNAPSHOT</version>
+        <version>4.26.0-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <!-- Но нужна как минимум версия 7.3.2 ! -->
-        <selenide.version>6.17.1</selenide.version>
-        <!-- Минимальная версия 4.21.0 для Chrome v.125 ! -->
-        <selenium.version>4.11.0</selenium.version>
-        <!-- Минимальная версия 33.2.0-jre из Selenide v.7.3.2 ! -->
-        <guava.version>32.1.2-jre</guava.version>
-        <allure-junit5.version>2.13.3</allure-junit5.version>
+        <java.version>17</java.version>
+        <encoding>UTF-8</encoding>
 
-        <maven-surefire.version>3.0.0-M3</maven-surefire.version>
+        <!-- ${maven-compiler-plugin.version} -->
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- Но нужна как минимум версия 7.3.2 ! -->
+        <selenide.version>7.5.1</selenide.version>
+        <!-- Минимальная версия 4.21.0 для Chrome v.125 ! -->
+        <selenium.version>4.25.0</selenium.version>
+        <!-- Минимальная версия 33.2.0-jre из Selenide v.7.3.2 ! -->
+        <google-guava.version>33.3.0-jre</google-guava.version>
+        <allure-junit5.version>2.27.0</allure-junit5.version>
+
+        <!-- From:
+         ? n2o-boot-platform
+         - org.springframework.data/spring-data-jpa
+         - org.springframework.data/spring-data-commons
+         - org.springframework.hateoas/spring-hateoas
+         -->
+        <maven-surefire.version>3.2.5</maven-surefire.version>
+        <!-- From:
+         - net.n2oapp.framework/framework
+         -->
         <allure-maven.version>2.10.0</allure-maven.version>
 
         <jacoco.skip>false</jacoco.skip>
@@ -32,92 +48,91 @@
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-autotest</artifactId>
             <version>${n2o.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.codeborne</groupId>
-                        <artifactId>selenide</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.seleniumhq.selenium</groupId>
-                        <artifactId>selenium-java</artifactId>
-                    </exclusion>
-                </exclusions>
+            <!--<exclusions>-->
+            <!--    <exclusion>-->
+            <!--        <groupId>com.codeborne</groupId>-->
+            <!--        <artifactId>selenide</artifactId>-->
+            <!--    </exclusion>-->
+            <!--    <exclusion>-->
+            <!--        <groupId>org.seleniumhq.selenium</groupId>-->
+            <!--        <artifactId>selenium-java</artifactId>-->
+            <!--    </exclusion>-->
+            <!--</exclusions>-->
         </dependency>
 
-        <dependency>
-            <groupId>com.codeborne</groupId>
-            <artifactId>selenide</artifactId>
-            <version>${selenide.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.codeborne</groupId>-->
+        <!--    <artifactId>selenide</artifactId>-->
+        <!--    <version>${selenide.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.codeborne</groupId>-->
+        <!--    <artifactId>selenide-clear-with-shortcut</artifactId>-->
+        <!--    <version>${selenide.version}</version>-->
+        <!--    &lt;!&ndash;<exclusions>&ndash;&gt;-->
+        <!--    &lt;!&ndash;    <exclusion>&ndash;&gt;-->
+        <!--    &lt;!&ndash;        <groupId>org.seleniumhq.selenium</groupId>&ndash;&gt;-->
+        <!--    &lt;!&ndash;        <artifactId>selenium-java</artifactId>&ndash;&gt;-->
+        <!--    &lt;!&ndash;    </exclusion>&ndash;&gt;-->
+        <!--    &lt;!&ndash;</exclusions>&ndash;&gt;-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>com.codeborne</groupId>
-            <artifactId>selenide-clear-with-shortcut</artifactId>
-            <version>${selenide.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.seleniumhq.selenium</groupId>
-                    <artifactId>selenium-java</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>${selenium.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-api</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-json</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-chrome-driver</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-remote-driver</artifactId>
-            <version>${selenium.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--    <artifactId>selenium-java</artifactId>-->
+        <!--    <version>${selenium.version}</version>-->
+        <!--    <exclusions>-->
+        <!--        <exclusion>-->
+        <!--            <artifactId>*</artifactId>-->
+        <!--            <groupId>org.slf4j</groupId>-->
+        <!--        </exclusion>-->
+        <!--    </exclusions>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--    <artifactId>selenium-api</artifactId>-->
+        <!--    <version>${selenium.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--    <artifactId>selenium-json</artifactId>-->
+        <!--    <version>${selenium.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--    <artifactId>selenium-chrome-driver</artifactId>-->
+        <!--    <version>${selenium.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.seleniumhq.selenium</groupId>-->
+        <!--    <artifactId>selenium-remote-driver</artifactId>-->
+        <!--    <version>${selenium.version}</version>-->
+        <!--</dependency>-->
 
         <!-- from Selenide -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.google.guava</groupId>-->
+        <!--    <artifactId>guava</artifactId>-->
+        <!--    <version>${google-guava.version}</version>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-junit5</artifactId>
-            <version>${allure-junit5.version}</version>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>io.qameta.allure</groupId>-->
+        <!--    <artifactId>allure-junit5</artifactId>-->
+        <!--    <version>${allure-junit5.version}</version>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-selenide</artifactId>
-            <version>${allure-junit5.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.codeborne</groupId>
-                    <artifactId>selenide</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>io.qameta.allure</groupId>-->
+        <!--    <artifactId>allure-selenide</artifactId>-->
+        <!--    <version>${allure-junit5.version}</version>-->
+        <!--    <exclusions>-->
+        <!--        <exclusion>-->
+        <!--            <groupId>com.codeborne</groupId>-->
+        <!--            <artifactId>selenide</artifactId>-->
+        <!--        </exclusion>-->
+        <!--    </exclusions>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>
@@ -125,16 +140,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire.version}</version>
+
                 <configuration>
                     <testFailureIgnore>false</testFailureIgnore>
                     <includes>
@@ -160,6 +179,7 @@
                         </property>
                     </systemProperties>
                 </configuration>
+
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
@@ -178,10 +198,12 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>${allure-maven.version}</version>
+
                 <configuration>
                     <reportDirectory>allure-report</reportDirectory>
                     <resultsDirectory>../allure-results</resultsDirectory>

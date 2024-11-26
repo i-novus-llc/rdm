@@ -8,12 +8,16 @@ import net.n2oapp.framework.autotest.impl.component.control.N2oInputText;
 import net.n2oapp.framework.autotest.impl.component.page.N2oSimplePage;
 import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 
-import java.util.List;
+import static java.util.Collections.singletonList;
 
 /**
  * Страница "Реестр НСИ".
  */
 public class RefBookListPage extends N2oSimplePage {
+
+    private static final String FILTER_LABEL_CODE = "Код";
+    private static final String FILTER_LABEL_NAME = "Наименование справочника";
+    private static final String SEARCH_BUTTON_LABEL = "Найти";
 
     @Override
     public void shouldExists() {
@@ -30,7 +34,7 @@ public class RefBookListPage extends N2oSimplePage {
         createRefBookButton.click();
         createRefBookButton.menuItem("Создать справочник").click();
 
-        CreateRefBookWidget createWidget = widget(CreateRefBookWidget.class);
+        final CreateRefBookWidget createWidget = widget(CreateRefBookWidget.class);
         createWidget.setOpenedFromPage(this);
         return createWidget;
     }
@@ -44,19 +48,23 @@ public class RefBookListPage extends N2oSimplePage {
     }
 
     public N2oInputText codeFilter() {
-        return table().filters().fields().field("Код").control(N2oInputText.class);
+        return filterInputTextBy(FILTER_LABEL_CODE);
     }
 
     public N2oInputText nameFilter() {
-        return table().filters().fields().field("Название справочника").control(N2oInputText.class);
+        return filterInputTextBy(FILTER_LABEL_NAME);
+    }
+
+    public N2oInputText filterInputTextBy(String label) {
+        return table().filters().fields().field(label).control(N2oInputText.class);
     }
 
     public void search() {
-        table().filters().toolbar().button("Найти").click();
+        table().filters().toolbar().button(SEARCH_BUTTON_LABEL).click();
     }
 
-    public void rowShouldHaveTexts(int columnNumber, List<String> text) {
-        table().columns().rows().columnShouldHaveTexts(columnNumber, text);
+    public void columnCodeShouldHaveText(String code) {
+        table().columns().rows().columnShouldHaveTexts(0, singletonList(code));
     }
 
     public void rowShouldHaveSize(int size) {
