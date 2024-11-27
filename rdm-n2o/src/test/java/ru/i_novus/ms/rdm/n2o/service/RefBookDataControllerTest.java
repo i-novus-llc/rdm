@@ -187,6 +187,9 @@ public class RefBookDataControllerTest  {
 
         when(conflictService.countConflictedRowIds(any(RefBookConflictCriteria.class))).thenReturn(0L);
 
+        when(refBookDataDecorator.getDataStructure(eq(REFBOOK_VERSION_ID), any(DataCriteria.class)))
+                .thenReturn(version.getStructure());
+
         final DataCriteria criteria = createCriteria(true);
         final Page<DataGridRow> dataGridRows = controller.getList(criteria);
         assertNotNull(dataGridRows);
