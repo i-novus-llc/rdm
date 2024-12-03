@@ -3,11 +3,10 @@ package ru.i_novus.ms.rdm.loader.client.service;
 import net.n2oapp.platform.loader.client.ClientLoader;
 import net.n2oapp.platform.loader.client.LoadingException;
 import net.n2oapp.platform.loader.client.RestClientLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestOperations;
@@ -24,6 +23,8 @@ import static ru.i_novus.ms.rdm.loader.client.util.RefBookDataUtil.isEmpty;
 
 public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<String, Object>> implements ClientLoader {
 
+    private static final Logger logger = LoggerFactory.getLogger(RefBookDataClientLoader.class);
+
     public RefBookDataClientLoader(RestOperations restTemplate) {
         super(restTemplate);
     }
@@ -35,14 +36,49 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
     @Override
     public void load(URI server, String subject, String target, Resource file) {
 
-        List<RefBookDataModel> models = RefBookDataUtil.toRefBookDataModels(file);
+        final List<RefBookDataModel> models = RefBookDataUtil.toRefBookDataModels(file);
+        final String url = getUrl(server, subject, target);
 
-        String url = getUrl(server, subject, target);
-        MultiValueMap<String, String> headers = getHeaders();
-
-        models.forEach(model -> load(url, getData(model), headers));
+        models.forEach(model -> load(url, model));
     }
 
+    private void load(String url, RefBookDataModel model) {
+
+        final MultiValueMap<String, Object> data = getData(model);
+        final MultiValueMap<String, String> headers = getHeaders();
+
+        logger.debug("POST: request to load {}", model.getCode());
+        final HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
+        final ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
+        logger.debug("POST: response from load {}", model.getCode());
+
+        final HttpStatusCode statusCode = response.getStatusCode();
+        logger.debug("POST: response status: {}", statusCode.value());
+
+        if (!statusCode.is2xxSuccessful())
+            throw new LoadingException("Loading failed status " + statusCode.value() + " response " + response.getBody());
+    }
+
+    @Override
+    protected MultiValueMap<String, String> getHeaders() {
+
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(1);
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE);
+
+        return headers;
+    }
+
+    @Override
+    protected MultiValueMap<String, Object> getData(Resource file) {
+        return null; // Nothing to do.
+    }
+
+    /**
+     * Формирование данных по модели справочника.
+     *
+     * @param model модель справочника
+     * @return Данные
+     */
     private MultiValueMap<String, Object> getData(RefBookDataModel model) {
 
         final MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(7);
@@ -70,33 +106,18 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
         }
 
         if (model.getFile() != null) {
-            body.add(FIELD_REF_BOOK_FILE, model.getFile());
+            body.add(FIELD_REF_BOOK_FILE, getFilePart(model));
         }
 
         return body;
     }
 
-    @Override
-    protected MultiValueMap<String, String> getHeaders() {
+    private HttpEntity<Resource> getFilePart(RefBookDataModel model) {
 
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>(1);
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE);
+        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_XML_VALUE);
+        headers.put(HttpHeaders.CONTENT_DISPOSITION, List.of("filename=" + model.getFile().getFilename()));
 
-        return headers;
-    }
-
-    @Override
-    protected MultiValueMap<String, Object> getData(Resource file) {
-
-        return null; // Nothing to do.
-    }
-
-    private void load(String url, MultiValueMap<String, Object> data, MultiValueMap<String, String> headers) {
-
-        final HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(data, headers);
-        final ResponseEntity<String> response = getRestTemplate().postForEntity(url, request, String.class);
-
-        if (!response.getStatusCode().is2xxSuccessful())
-            throw new LoadingException("Loading failed status " + response.getStatusCodeValue() + " response " + response.getBody());
+        return new HttpEntity<>(model.getFile(), headers);
     }
 }

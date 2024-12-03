@@ -10,7 +10,7 @@ RDM поддерживает загрузку справочников из xml-
 ```xml
 <dependency>
   <groupId>ru.i-novus.ms.rdm</groupId>
-  <artifactId>rdm-loader-client</artifactId>
+  <artifactId>rdm-loader-client-starter</artifactId>
 </dependency>
 ```
 
@@ -30,11 +30,11 @@ RDM поддерживает загрузку справочников из xml-
 * Настройте параметры конфигурации в `application.properties` клиента:
   - `rdm.loader.client.url` -- адрес REST-сервиса RDM. По умолчанию "http://docker.one:8807/rdm/api".
   - `rdm.loader.client.subject` -- владелец справочников. По умолчанию "client".
-  - `rdm.loader.client.file.path` -- путь к файлу конфигурации. По умолчанию "rdm.json".
+  - `rdm.loader.client.file-path` -- путь к файлу конфигурации. По умолчанию "rdm.json".
   - `rdm.loader.client.enabled` -- разрешает загрузку справочников через механизм лоадеров. По умолчанию "true".
 
 Параметры `rdm.loader.client.url` и `rdm.loader.client.subject` обязательны для корректной работы.
-Параметр `rdm.loader.client.file.path` не обязателен, если путь к файлу конфигурации соответствует "`rdm.json`".
+Параметр `rdm.loader.client.file-path` не обязателен, если путь к файлу конфигурации соответствует "`rdm.json`".
 Параметр `rdm.loader.client.enabled` позволяет при необходимости отключать загрузку справочников.
 
 ## Формат файла конфигурации

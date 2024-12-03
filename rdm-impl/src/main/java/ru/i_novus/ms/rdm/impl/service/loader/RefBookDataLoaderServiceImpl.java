@@ -146,15 +146,11 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         }
 
         final RefBookDataUpdateTypeEnum updateType = request.getUpdateType();
-        switch (updateType) {
-            case CREATE_ONLY:
-                return createAndPublish(refBook, request);
-            case FORCE_UPDATE:
-            case SKIP_ON_DRAFT:
-                return createOrUpdate(refBook, request);
-            default:
-                return null;
-        }
+        return switch (updateType) {
+            case CREATE_ONLY -> createAndPublish(refBook, request);
+            case FORCE_UPDATE,
+                    SKIP_ON_DRAFT -> createOrUpdate(refBook, request);
+        };
     }
 
     private RefBookDataResponse createAndPublish(RefBook refBook, RefBookDataRequest request) {
