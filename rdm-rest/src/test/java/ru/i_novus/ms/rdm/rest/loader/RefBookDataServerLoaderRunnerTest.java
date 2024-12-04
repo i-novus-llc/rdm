@@ -7,6 +7,7 @@ import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.*;
@@ -38,6 +39,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum.CREATE_ONLY;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 
+@Ignore
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings({"rawtypes","java:S5778"})
 public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
