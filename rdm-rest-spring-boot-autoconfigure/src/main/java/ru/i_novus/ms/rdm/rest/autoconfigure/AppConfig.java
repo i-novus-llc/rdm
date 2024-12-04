@@ -24,10 +24,9 @@ public class AppConfig {
     @ConditionalOnMissingBean
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
     public RefBookDataServerLoaderRunner refBookDataServerLoaderRunner(
-            List<ServerLoader> loaders,
-            FileStorageService fileStorageService
+            List<ServerLoader> loaders
     ) {
-        return new RefBookDataServerLoaderRunner(loaders, fileStorageService);
+        return new RefBookDataServerLoaderRunner(loaders);
     }
 
     @Bean

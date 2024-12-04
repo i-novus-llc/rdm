@@ -44,17 +44,15 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.*;
 @SuppressWarnings({"rawtypes", "java:S3740"})
 public class RefBookDataServerLoaderRunner extends BaseLoaderRunner implements ServerLoaderRestService {
 
-    private final FileStorageService fileStorageService;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @Value("${rdm.loader.enabled:true}")
     private boolean loaderEnabled;
 
     @Autowired
-    public RefBookDataServerLoaderRunner(List<ServerLoader> loaders,
-                                         FileStorageService fileStorageService) {
+    public RefBookDataServerLoaderRunner(List<ServerLoader> loaders) {
         super(loaders);
-
-        this.fileStorageService = fileStorageService;
     }
 
     @POST
