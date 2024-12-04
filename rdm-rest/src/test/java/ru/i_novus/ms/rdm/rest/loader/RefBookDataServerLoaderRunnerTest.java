@@ -47,7 +47,6 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
 
     private static final int LOADED_FILE_SUCCESS_INDEX = 1;
 
-    @InjectMocks
     private RefBookDataServerLoaderRunner runner;
 
     @Spy
@@ -69,6 +68,7 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
     @Before
     public void setUp() {
 
+        runner = new RefBookDataServerLoaderRunner(loaders, fileStorageService);
         setField(runner, "loaderEnabled", true);
     }
 
