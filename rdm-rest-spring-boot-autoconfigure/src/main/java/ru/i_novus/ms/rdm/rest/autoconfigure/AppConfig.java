@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 
 import java.util.List;
@@ -22,8 +23,11 @@ public class AppConfig {
     @Bean
     @ConditionalOnMissingBean
     @SuppressWarnings("I-novus:MethodNameWordCountRule")
-    public RefBookDataServerLoaderRunner refBookDataServerLoaderRunner(List<ServerLoader> loaders) {
-        return new RefBookDataServerLoaderRunner(loaders);
+    public RefBookDataServerLoaderRunner refBookDataServerLoaderRunner(
+            List<ServerLoader> loaders,
+            FileStorageService fileStorageService
+    ) {
+        return new RefBookDataServerLoaderRunner(loaders, fileStorageService);
     }
 
     @Bean
