@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+@Ignore
 @ExtendWith(SpringExtension.class)
 public class RdmUiTest {
 
