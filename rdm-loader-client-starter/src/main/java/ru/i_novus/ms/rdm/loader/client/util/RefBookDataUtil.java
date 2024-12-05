@@ -101,7 +101,7 @@ public final class RefBookDataUtil {
             return null;
 
         final String code = getByKey(jsonNode, JSON_REF_BOOK_CODE, JsonNode::asText);
-        final String filePath = getByKey(jsonNode,JSON_REF_BOOK_FILE, JsonNode::asText);
+        final String filePath = getByKey(jsonNode, JSON_REF_BOOK_FILE, JsonNode::asText);
         if (isEmpty(code) && isEmpty(filePath))
             return null; // Ошибка записи: код справочника обязателен!
 

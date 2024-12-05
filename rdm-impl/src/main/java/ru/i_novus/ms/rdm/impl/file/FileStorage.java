@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.i_novus.common.file.storage.BaseFileStorage;
 
 @Component
-public class FileStorage extends BaseFileStorage{
+public class FileStorage extends BaseFileStorage {
 
     @Override
     protected String getWorkspaceName() {
