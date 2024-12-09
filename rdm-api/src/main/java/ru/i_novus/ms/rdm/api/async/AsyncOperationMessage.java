@@ -1,7 +1,6 @@
-package ru.i_novus.ms.rdm.impl.async;
+package ru.i_novus.ms.rdm.api.async;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.audit.model.User;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
@@ -13,7 +12,7 @@ import java.util.UUID;
 /**
  * Асинхронная операция: Сообщение.
  */
-class AsyncOperationMessage implements Serializable {
+public class AsyncOperationMessage implements Serializable {
 
     public static final String ARGS_KEY = "args";
     public static final String USER_KEY = "user";
@@ -43,9 +42,13 @@ class AsyncOperationMessage implements Serializable {
      */
     private String userName;
 
-    public AsyncOperationMessage(UUID operationId, AsyncOperationTypeEnum operationType,
-                                 String code, Serializable[] args, User user) {
-
+    public AsyncOperationMessage(
+            UUID operationId,
+            AsyncOperationTypeEnum operationType,
+            String code,
+            Serializable[] args,
+            User user
+    ) {
         this.operationId = operationId;
         this.operationType = operationType;
 

@@ -381,43 +381,8 @@ public class RefBookServiceImpl implements RefBookService {
 
         if (entity == null) return null;
 
-        RefBook model = new RefBook(ModelGenerator.versionModel(entity));
-
-        if (entity.getRefBookOperation() != null) {
-            model.setCurrentOperation(entity.getRefBookOperation().getOperation());
-        }
-
-        Structure structure = entity.getStructure();
-        List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
-        model.setHasPrimaryAttribute(!primaries.isEmpty());
-
-        RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(model.getId());
-
-        if (!excludeDraft) {
-            RefBookVersionEntity draftVersion = detailModel.getDraftVersion();
-            if (draftVersion != null) {
-                model.setDraftVersionId(draftVersion.getId());
-            }
-        }
-
-        RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();
-        if (lastPublishedVersion != null) {
-            model.setLastPublishedVersionId(lastPublishedVersion.getId());
-            model.setLastPublishedVersion(lastPublishedVersion.getVersion());
-            model.setLastPublishedDate(lastPublishedVersion.getFromDate());
-        }
-
-        final boolean hasReferrer = Boolean.TRUE.equals(detailModel.getHasReferrer());
-        model.setRemovable(Boolean.TRUE.equals(detailModel.getRemovable()) && !hasReferrer);
-        model.setHasReferrer(hasReferrer);
-
-        model.setHasDataConflict(detailModel.getHasDataConflict());
-        model.setHasUpdatedConflict(detailModel.getHasUpdatedConflict());
-        model.setHasAlteredConflict(detailModel.getHasAlteredConflict());
-        model.setHasStructureConflict(detailModel.getHasStructureConflict());
-        model.setLastHasConflict(detailModel.getLastHasConflict());
-
-        return model;
+        final RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(entity.getId());
+        return ModelGenerator.refBookModel(entity, detailModel, excludeDraft);
     }
 
     private RefBookVersionEntity findVersionOrThrow(Integer id) {

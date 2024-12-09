@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookStatusType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
@@ -20,8 +19,8 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.version.ReferrerVersionCriteria;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
+import ru.i_novus.ms.rdm.api.service.async.AsyncOperationMessageService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -42,6 +41,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum.PUBLICATION;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PublishServiceTest {
@@ -83,7 +83,7 @@ public class PublishServiceTest {
     private BasePublishStrategy basePublishStrategy;
 
     @Mock
-    private AsyncOperationQueue asyncQueue;
+    private AsyncOperationMessageService asyncOperationMessageService;
 
     @Before
     public void setUp() {
@@ -186,7 +186,7 @@ public class PublishServiceTest {
         when(versionRepository.getOne(DRAFT_ID)).thenReturn(draftEntity);
 
         UUID operationId = UUID.randomUUID();
-        when(asyncQueue.send(eq(AsyncOperationTypeEnum.PUBLICATION), eq(REFBOOK_CODE), any(Serializable[].class)))
+        when(asyncOperationMessageService.send(eq(PUBLICATION), eq(REFBOOK_CODE), any(Serializable[].class)))
                 .thenReturn(operationId);
 
         PublishRequest request = new PublishRequest(draftEntity.getOptLockValue());
@@ -194,7 +194,7 @@ public class PublishServiceTest {
         assertSame(operationId, result);
 
         ArgumentCaptor<Serializable> argsCaptor = ArgumentCaptor.forClass(Serializable.class);
-        verify(asyncQueue).send(eq(AsyncOperationTypeEnum.PUBLICATION), eq(REFBOOK_CODE), (Serializable[]) argsCaptor.capture());
+        verify(asyncOperationMessageService).send(eq(PUBLICATION), eq(REFBOOK_CODE), (Serializable[]) argsCaptor.capture());
 
         Serializable[] args = (Serializable[]) argsCaptor.getValue();
         assertEquals(2, args.length);

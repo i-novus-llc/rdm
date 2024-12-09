@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.autoconfigure;
+package ru.i_novus.ms.rdm.rest.autoconfigure.config;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;

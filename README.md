@@ -32,11 +32,11 @@
 - `rdm-rest` - общие классы для REST-API.
  
 *Автоконфигураторы*:
-- `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкэнда (для проектов, использующих RDM).
+- `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкенда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-autoconfigure` - автоконфигуратор UI (для проектов, использующих RDM).
 
 *Стартеры*:
-- `rdm-rest-spring-boot-starter` - стартер REST-API бэкэнда (для проектов, использующих RDM).
+- `rdm-rest-spring-boot-starter` - стартер REST-API бэкенда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-starter` - стартер UI (для проектов, использующих RDM).
 
 *Запускаемые модули*:

@@ -1,7 +1,9 @@
 package ru.i_novus.ms.rdm.impl.async;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import ru.i_novus.ms.rdm.api.async.AsyncOperationMessage;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationResolver;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
@@ -12,13 +14,24 @@ import java.io.Serializable;
 @Component
 public class AsyncPublishResolver implements AsyncOperationResolver {
 
+    static final String NAME = "AsyncPublish";
+
     private static final String PUBLISH_REQUEST_IS_UNKNOWN = "Request for publication of '%s' is unknown (draft = %s, request: %s)";
 
-    private final PublishService publishService;
+    private PublishService publishService;
+
+    public AsyncPublishResolver() {
+        // Nothing to do.
+    }
 
     @Autowired
-    public AsyncPublishResolver(PublishService publishService) {
+    public void setPublishService(@Lazy PublishService publishService) {
         this.publishService = publishService;
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 
     @Override
@@ -28,17 +41,25 @@ public class AsyncPublishResolver implements AsyncOperationResolver {
     }
 
     @Override
-    public Serializable resolve(String code, Serializable[] args) {
+    public Serializable resolve(AsyncOperationMessage message) {
 
-        Integer draftId = (Integer) args[0];
+        if (message == null) return null;
 
-        Serializable argRequest = args[1];
-        if (argRequest instanceof PublishRequest) {
-            publishService.publish(draftId, (PublishRequest) argRequest);
+        final AsyncOperationTypeEnum operationType = message.getOperationType();
+        if (!isSatisfied(operationType)) return null;
+
+        final Serializable[] args = message.getArgs();
+        final Integer draftId = (Integer) args[0];
+        final Serializable argRequest = args[1];
+
+        if (argRequest instanceof PublishRequest publishRequest) {
+
+            publishService.publish(draftId, publishRequest);
 
             return null;
         }
 
-        throw new IllegalArgumentException(String.format(PUBLISH_REQUEST_IS_UNKNOWN, code, draftId, argRequest));
+        final String errorMessage = String.format(PUBLISH_REQUEST_IS_UNKNOWN, message.getCode(), draftId, argRequest);
+        throw new IllegalArgumentException(errorMessage);
     }
 }

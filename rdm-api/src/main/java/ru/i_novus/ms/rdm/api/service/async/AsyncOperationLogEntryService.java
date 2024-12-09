@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.api.service;
+package ru.i_novus.ms.rdm.api.service.async;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

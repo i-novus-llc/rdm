@@ -52,7 +52,7 @@ import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;

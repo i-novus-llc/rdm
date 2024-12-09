@@ -5,17 +5,17 @@ import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
+import ru.i_novus.ms.rdm.api.service.async.AsyncOperationMessageService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -29,6 +29,8 @@ import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum.PUBLICATION;
 
 @Primary
 @Service
@@ -52,7 +54,7 @@ public class PublishServiceImpl implements PublishService {
 
     private final StrategyLocator strategyLocator;
 
-    private final AsyncOperationQueue asyncQueue;
+    private final AsyncOperationMessageService asyncOperationMessageService;
 
     @Autowired
     @SuppressWarnings("squid:S00107")
@@ -62,7 +64,7 @@ public class PublishServiceImpl implements PublishService {
                               VersionValidation versionValidation,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator,
-                              AsyncOperationQueue asyncQueue) {
+                              @Lazy AsyncOperationMessageService asyncOperationMessageService) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -74,7 +76,7 @@ public class PublishServiceImpl implements PublishService {
 
         this.strategyLocator = strategyLocator;
 
-        this.asyncQueue = asyncQueue;
+        this.asyncOperationMessageService = asyncOperationMessageService;
     }
 
     /**
@@ -101,7 +103,7 @@ public class PublishServiceImpl implements PublishService {
     public UUID publishAsync(Integer draftId, PublishRequest request) {
 
         final String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return asyncQueue.send(AsyncOperationTypeEnum.PUBLICATION, code, new Serializable[]{draftId, request});
+        return asyncOperationMessageService.send(PUBLICATION, code, new Serializable[] {draftId, request});
     }
 
     private RefBookVersionEntity getVersionOrThrow(Integer versionId) {

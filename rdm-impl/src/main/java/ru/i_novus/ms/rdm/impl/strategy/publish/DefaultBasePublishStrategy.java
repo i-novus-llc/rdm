@@ -4,9 +4,9 @@ import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.draft.PostPublishRequest;
@@ -16,17 +16,17 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
+import ru.i_novus.ms.rdm.api.service.async.AsyncOperationMessageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
+import ru.i_novus.ms.rdm.impl.strategy.version.number.VersionNumberStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
+import static ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum.L10N_PUBLICATION;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
 
 @Component
@@ -75,8 +76,9 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     @Autowired
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
+    @Lazy
     @Autowired
-    private AsyncOperationQueue asyncQueue;
+    private AsyncOperationMessageService asyncOperationMessageService;
 
     @Autowired
     @Qualifier("defaultPublishEndStrategy")
@@ -262,6 +264,6 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     private UUID postPublish(String code, PostPublishRequest request) {
 
         // to-do: Отвязать от l10n, например, сделать POST_PUBLICATION.
-        return asyncQueue.send(AsyncOperationTypeEnum.L10N_PUBLICATION, code, new Serializable[]{request});
+        return asyncOperationMessageService.send(L10N_PUBLICATION, code, new Serializable[] {request});
     }
 }

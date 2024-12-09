@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.autoconfigure;
+package ru.i_novus.ms.rdm.rest.autoconfigure.config;
 
 import jakarta.servlet.MultipartConfigElement;
 import net.n2oapp.platform.loader.server.ServerLoader;

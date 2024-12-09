@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl;
+package ru.i_novus.ms.rdm.impl.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

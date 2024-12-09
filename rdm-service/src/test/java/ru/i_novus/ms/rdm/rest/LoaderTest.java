@@ -24,8 +24,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.autoconfigure.AppConfig;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.AppConfig;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.ms.rdm.service.Application;
 

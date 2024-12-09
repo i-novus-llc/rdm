@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.rest.service;
+package ru.i_novus.ms.rdm.rest.provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

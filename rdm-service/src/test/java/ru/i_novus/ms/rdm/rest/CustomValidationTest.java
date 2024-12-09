@@ -21,7 +21,7 @@ import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersionAttribute;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
 
 import java.util.Iterator;

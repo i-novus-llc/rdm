@@ -7,6 +7,9 @@ import io.swagger.annotations.ApiModelProperty;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Асинхронная операция: Модель.
+ */
 @ApiModel("Асинхронная операция")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AsyncOperationLogEntry {

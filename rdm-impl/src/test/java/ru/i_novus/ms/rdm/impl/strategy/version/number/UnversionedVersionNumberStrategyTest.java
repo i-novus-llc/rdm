@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.util;
+package ru.i_novus.ms.rdm.impl.strategy.version.number;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

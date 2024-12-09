@@ -1,8 +1,7 @@
-package ru.i_novus.ms.rdm.impl.util;
+package ru.i_novus.ms.rdm.impl.strategy.version.number;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 
 @Component
 public class UnversionedVersionNumberStrategy implements VersionNumberStrategy {

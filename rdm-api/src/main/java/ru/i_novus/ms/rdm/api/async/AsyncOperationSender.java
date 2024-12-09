@@ -1,19 +1,19 @@
 package ru.i_novus.ms.rdm.api.async;
 
-import java.io.Serializable;
+import java.util.UUID;
 
 /**
- * Асинхронная операция: Исполнитель операции.
+ * Асинхронная операция: Отправка информации.
  * <p>
  * Внимание:
  * Сервисы необходимо подключать через setter'ы с @Lazy-аргументом,
  * чтобы исключить появление циклических зависимостей.
  */
-public interface AsyncOperationResolver {
+public interface AsyncOperationSender {
 
     String getName();
 
     boolean isSatisfied(AsyncOperationTypeEnum operationType);
 
-    Serializable resolve(AsyncOperationMessage message);
+    UUID send(AsyncOperationMessage message);
 }

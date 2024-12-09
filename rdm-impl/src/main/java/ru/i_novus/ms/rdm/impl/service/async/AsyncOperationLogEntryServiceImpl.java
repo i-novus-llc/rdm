@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.impl.service;
+package ru.i_novus.ms.rdm.impl.service.async;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -11,10 +11,11 @@ import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntry;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationLogEntryCriteria;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationStatusEnum;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
-import ru.i_novus.ms.rdm.api.service.AsyncOperationLogEntryService;
+import ru.i_novus.ms.rdm.api.service.async.AsyncOperationLogEntryService;
 import ru.i_novus.ms.rdm.impl.entity.AsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.entity.QAsyncOperationLogEntryEntity;
 import ru.i_novus.ms.rdm.impl.repository.AsyncOperationLogEntryRepository;
+import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,13 +39,12 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
     @Override
     public Page<AsyncOperationLogEntry> search(AsyncOperationLogEntryCriteria criteria) {
 
-        Predicate predicate = toPredicate(criteria);
-
-        Page<AsyncOperationLogEntryEntity> page = (predicate == null)
+        final Predicate predicate = toPredicate(criteria);
+        final Page<AsyncOperationLogEntryEntity> page = (predicate == null)
                 ? repository.findAll(criteria)
                 : repository.findAll(predicate, criteria);
 
-        return page.map(this::toModel);
+        return page.map(ModelGenerator::asyncOperationLogEntryModel);
     }
 
     /**
@@ -57,8 +57,8 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
         criteria.setPageNumber(Math.max(-1, criteria.getPageNumber() - 1));
 
-        QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
-        BooleanBuilder builder = new BooleanBuilder();
+        final QAsyncOperationLogEntryEntity q = QAsyncOperationLogEntryEntity.asyncOperationLogEntryEntity;
+        final BooleanBuilder builder = new BooleanBuilder();
 
         if (criteria.getId() != null)
             builder.and(q.uuid.eq(criteria.getId()));
@@ -77,7 +77,7 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
 
     @Override
     public AsyncOperationLogEntry get(UUID id) {
-        return toModel(repository.findByUuid(id));
+        return ModelGenerator.asyncOperationLogEntryModel(repository.findByUuid(id));
     }
 
     @Override
@@ -90,25 +90,4 @@ public class AsyncOperationLogEntryServiceImpl implements AsyncOperationLogEntry
         return new PageImpl<>(ASYNC_OPERATION_STATUS_LIST);
     }
 
-    private AsyncOperationLogEntry toModel(AsyncOperationLogEntryEntity entity) {
-
-        if (entity == null)
-            return null;
-
-        AsyncOperationLogEntry model = new AsyncOperationLogEntry();
-        model.setId(entity.getUuid());
-        model.setOperationType(entity.getOperationType());
-        model.setCode(entity.getCode());
-
-        model.setStatus(entity.getStatus());
-        model.setTsStart(entity.getTsStart());
-        model.setTsEnd(entity.getTsEnd());
-
-        model.setPayload(entity.getPayload());
-        model.setResult(entity.getResult());
-        model.setError(entity.getError());
-        model.setStackTrace(entity.getStackTrace());
-
-        return model;
-    }
 }

@@ -1,8 +1,7 @@
-package ru.i_novus.ms.rdm.rest.autoconfigure;
+package ru.i_novus.ms.rdm.rest.autoconfigure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import jakarta.jms.ConnectionFactory;
 import net.n2oapp.framework.security.autoconfigure.userinfo.UserInfoModel;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.jaxrs.LocalDateTimeISOParameterConverter;
@@ -12,13 +11,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.client.RestTemplate;
 import ru.i_novus.ms.rdm.api.audit.SourceApplicationAccessor;
 import ru.i_novus.ms.rdm.api.audit.UserAccessor;
@@ -26,11 +22,10 @@ import ru.i_novus.ms.rdm.api.audit.model.User;
 import ru.i_novus.ms.rdm.api.provider.*;
 import ru.i_novus.ms.rdm.api.util.json.LocalDateTimeMapperPreparer;
 import ru.i_novus.ms.rdm.rest.provider.StaleStateExceptionMapper;
-import ru.i_novus.ms.rdm.rest.service.PublishListener;
 import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 
-import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_ID;
-import static ru.i_novus.ms.rdm.rest.autoconfigure.SecurityContextUtils.DEFAULT_USER_NAME;
+import static ru.i_novus.ms.rdm.rest.autoconfigure.config.SecurityContextUtils.DEFAULT_USER_ID;
+import static ru.i_novus.ms.rdm.rest.autoconfigure.config.SecurityContextUtils.DEFAULT_USER_NAME;
 
 @Configuration
 @SuppressWarnings({"unused","FieldCanBeLocal","I-novus:MethodNameWordCountRule"})
@@ -120,56 +115,6 @@ public class BackendConfiguration {
     @ConditionalOnClass(Messages.class)
     public MessageExceptionMapper messageExceptionMapper(Messages messages) {
         return new MessageExceptionMapper(messages);
-    }
-
-    @Bean
-    @Qualifier("topicJmsTemplate")
-    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public JmsTemplate topicJmsTemplate(
-            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
-    ) {
-        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
-        jmsTemplate.setPubSubDomain(true);
-        jmsTemplate.setExplicitQosEnabled(true);
-        long oneHour = 60 * 60000L;
-        jmsTemplate.setTimeToLive(oneHour);
-        return jmsTemplate;
-    }
-
-    @Bean
-    @Qualifier("queueJmsTemplate")
-    public JmsTemplate queueJmsTemplate(
-            @Qualifier("jmsConnectionFactory")ConnectionFactory connectionFactory
-    ) {
-        return new JmsTemplate(connectionFactory);
-    }
-
-    @Bean
-    public DefaultJmsListenerContainerFactory internalAsyncOperationContainerFactory(
-            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
-    ) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setSessionTransacted(true);
-        return factory;
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public DefaultJmsListenerContainerFactory publishTopicListenerContainerFactory(
-            @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
-    ) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        factory.setPubSubDomain(true);
-        factory.setSubscriptionShared(false);
-        return factory;
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "rdm.enable.publish.topic", havingValue = "true")
-    public PublishListener publishListener() {
-        return new PublishListener();
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package ru.i_novus.ms.rdm.api.util;
+package ru.i_novus.ms.rdm.impl.strategy.version.number;
 
 public interface VersionNumberStrategy {
 
