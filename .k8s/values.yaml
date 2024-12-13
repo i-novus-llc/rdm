@@ -44,7 +44,8 @@ genericServices:
   activemq:
     enabled: false
     port: 61616
-    image: rmohr/activemq:5.15.9
+    imageName: rmohr/activemq
+    imageTag: 5.15.9
     resources:
       limits:
         memory: 512M
@@ -53,7 +54,7 @@ genericServices:
   postgresql:
     enabled: false
     port: 5432
-    image: ${DOCKER_REGISTRY}/rdm/db:4.26.0-SNAPSHOT-20241213.142748
+    imageName: rdm/db
     resources:
       limits:
         memory: 512M
