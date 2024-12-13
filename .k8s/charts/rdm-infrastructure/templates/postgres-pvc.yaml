@@ -1,0 +1,15 @@
+{{- if ne .Values.genericServices.postgresql.enabled false }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rdm-db-data
+  annotations:
+    "helm.sh/resource-policy": keep
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: {{ coalesce .Values.genericServices.postgresql.storageClassName "retain" }}
+{{- end }}

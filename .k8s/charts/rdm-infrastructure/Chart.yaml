@@ -1,0 +1,10 @@
+apiVersion: v2
+name: rdm-infrastructure
+version: ${project.version}
+
+dependencies:
+  # template chart for application generic services
+  - name: generic-app-template
+    version: 1.2.1
+    repository: oci://harbor.i-novus.ru/library/helm/n2o
+    alias: genericServices

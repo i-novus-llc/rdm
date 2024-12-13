@@ -1,4 +1,5 @@
 CREATE DATABASE rdm;
+CREATE DATABASE security;
 
 \connect rdm
 CREATE TEXT SEARCH DICTIONARY ispell_ru (template= ispell,dictfile= ru, afffile = ru);

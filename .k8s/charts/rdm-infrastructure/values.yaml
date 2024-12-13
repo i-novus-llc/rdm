@@ -1,0 +1,25 @@
+# List of all generic services with specific values for each.
+genericServices:
+
+  activemq:
+    port: 61616
+    image: rmohr/activemq:5.15.9
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+
+  postgresql:
+    port: 5432
+    image: ${DOCKER_REGISTRY}/rdm/db:${docker.image.tag}
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+    volume:
+      - name: rdm-db-data
+        persistentVolumeClaim:
+          claimName: rdm-db-data
+    volumeMounts:
+      - mountPath: /pg/12
+        name: rdm-db-data

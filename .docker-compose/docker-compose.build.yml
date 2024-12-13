@@ -1,26 +1,31 @@
 version: "3.6"
 
 services:
+
   backend:
+    image: "${DOCKER_REGISTRY}/rdm/backend:${docker.image.tag}"
     build:
-      context: .
+      context: ..
       args:
         JAR_FILE: rdm-service/target/rdm-service.jar
 
   frontend:
+    image: "${DOCKER_REGISTRY}/rdm/frontend:${docker.image.tag}"
     build:
-      context: .
+      context: ..
       args:
         JAR_FILE: rdm-frontend/target/rdm.jar
 
   esnsi:
+    image: "${DOCKER_REGISTRY}/rdm/esnsi:${docker.image.tag}"
     build:
-      context: .
+      context: ..
       args:
         JAR_FILE: rdm-esnsi/target/rdm-esnsi.jar
 
   db:
+    image: "${DOCKER_REGISTRY}/rdm/db:${docker.image.tag}"
     build:
-      context: db
+      context: ../db
       args:
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
