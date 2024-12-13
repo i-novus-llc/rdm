@@ -1,6 +1,4 @@
 global:
-  infrastructure:
-    install: false
   observability:
     enabled: false
   ## Current build tag for images of this project.
@@ -9,7 +7,7 @@ global:
   spring:
     ## Global environment variables injected in every spring service.
     env:
-      SPRING_CLOUD_CONSUL_CONFIG_PREFIX: "n2o-cloud-demo"
+      SPRING_CLOUD_CONSUL_CONFIG_PREFIX: "rdm"
       JAVA_OPTS: "-XX:MaxRAMPercentage=66"
 
 
@@ -41,3 +39,29 @@ springServices:
       RDM_CLIENT_SYNC_URL: "${RDM_BACKEND_PATH}"
       RDM_CLIENT_EXPORT_URL: "${RDM_BACKEND_PATH}"
       JAXRS_SWAGGER_SCHEMES: "https"
+
+genericServices:
+  activemq:
+    enabled: false
+    port: 61616
+    image: rmohr/activemq:5.15.9
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+
+  postgresql:
+    enabled: false
+    port: 5432
+    image: ${DOCKER_REGISTRY}/rdm/db:4.26.0-SNAPSHOT-20241213.142748
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+    volume:
+      - name: rdm-db-data
+        persistentVolumeClaim:
+          claimName: rdm-db-data
+    volumeMounts:
+      - mountPath: /pg/12
+        name: rdm-db-data

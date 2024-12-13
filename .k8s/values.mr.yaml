@@ -1,6 +1,4 @@
 global:
-  infrastructure:
-    install: true
   spring:
     dbUrl: "jdbc:postgresql://postgresql:5432/"
     dbUsername: "postgres"
@@ -22,7 +20,6 @@ rdm-infrastructure:
       storageClassName: 'nfs-delete'
 
 springServices:
-
   frontend:
     env:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ADMIN_WEB_CLIENT_ID: admin-web
@@ -33,3 +30,10 @@ springServices:
       ADMIN_CLIENT_ID: access-admin
       ADMIN_CLIENT_SECRET: 0a889967-3fa4-4dd7-898c-7625e99bd793
       ACCESS_KEYCLOAK_REALM: "security-admin"
+
+genericServices:
+  postgresql:
+    enabled: true
+
+  activemq:
+    enabled: true
