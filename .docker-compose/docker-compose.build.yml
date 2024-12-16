@@ -7,25 +7,23 @@ services:
     build:
       context: ${project.basedir}
       args:
-        JAR_FILE: rdm-service/target/rdm-service.jar
+        JAR_FILE: target/rdm-service.jar
 
   frontend:
     image: "${DOCKER_REGISTRY}/rdm/frontend:${docker.image.tag}"
     build:
       context: ${project.basedir}
       args:
-        JAR_FILE: rdm-frontend/target/rdm.jar
+        JAR_FILE: target/rdm.jar
 
   esnsi:
     image: "${DOCKER_REGISTRY}/rdm/esnsi:${docker.image.tag}"
     build:
       context: ${project.basedir}
       args:
-        JAR_FILE: rdm-esnsi/target/rdm-esnsi.jar
+        JAR_FILE: target/rdm-esnsi.jar
 
   db:
     image: "${DOCKER_REGISTRY}/rdm/db:${docker.image.tag}"
     build:
       context: ${project.basedir}/db
-      args:
-        DOCKER_REGISTRY: ${DOCKER_REGISTRY}

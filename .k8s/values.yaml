@@ -54,7 +54,7 @@ genericServices:
   postgresql:
     enabled: false
     port: 5432
-    imageName: rdm/db
+    imageName: /rdm/db
     resources:
       limits:
         memory: 512M
