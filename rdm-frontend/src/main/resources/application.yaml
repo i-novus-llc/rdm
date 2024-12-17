@@ -66,11 +66,20 @@ n2o:
       id: rdm
   version:
     copyright:
-      text: 2013-2021
+      text: 2013-2025
 
   loader:
     client:
       commands:
+        - server: ${access.service.url}/api
+          target: systems
+          subject: admin
+          file: classpath:loaders/systems/systems.json
+          auth:
+            client-id: ${spring.security.oauth2.client.registration.admin-web.client-id}
+            client-secret: ${spring.security.oauth2.client.registration.admin-web.client-secret}
+            token-uri: ${access.keycloak.server-url}/realms/${access.keycloak.realm}/protocol/openid-connect/token
+
         - server: ${access.service.url}/api
           target: permissions
           subject: rdm
