@@ -7,6 +7,7 @@ include:
 deploy mr stand:
   variables:
     HELM_TIMEOUT: '15m'
+    HELM_OPTIONAL_FLAGS: '--wait-for-jobs'
 
 build and verify:
   variables:
