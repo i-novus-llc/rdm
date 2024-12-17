@@ -73,7 +73,7 @@ jobs:
   ui-test-loaders-invoker:
     enabled: false
     imageName: rdm/ui-test-loaders-invoker
-    backoffLimit: 10
+    backoffLimit: 20
     activeDeadlineSeconds: 700
     resources:
       limits:
