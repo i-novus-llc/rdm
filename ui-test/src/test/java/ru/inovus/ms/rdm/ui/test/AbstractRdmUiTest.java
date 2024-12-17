@@ -124,10 +124,10 @@ abstract class AbstractRdmUiTest {
         refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
 
         // Редактирование.
-        //final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
-        //editRefBook(refBookEditPage, refBook);
-        //search(refBookListPage, refBook);
-        //refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+        final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        editRefBook(refBookEditPage, refBook);
+        search(refBookListPage, refBook);
+        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
 
         // Удаление.
         refBookListPage.deleteRow(0);
@@ -149,9 +149,9 @@ abstract class AbstractRdmUiTest {
 
         search(refBookListPage, referredBook);
         refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
-        if (Objects.equals(referredType, RefBook.getUnversionedType())) {
-            publishRefBook(refBookListPage.openRefBookEditPage(0));
-        }
+//        if (Objects.equals(referredType, RefBook.getUnversionedType())) {
+//            publishRefBook(refBookListPage.openRefBookEditPage(0));
+//        }
 
         // Создание ссылочного справочника.
         createRefBook(refBookListPage, referrerBook);
@@ -317,7 +317,11 @@ abstract class AbstractRdmUiTest {
         nameColumnValues.set(0, newNameValue);
         dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
 
-        publishRefBook(refBookEditPage);
+        if (refBook.isUnversioned()) {
+            openRefBookListPage();
+        } else {
+            publishRefBook(refBookEditPage);
+        }
     }
 
     private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
@@ -429,12 +433,12 @@ abstract class AbstractRdmUiTest {
         if (refBook.getType() != null) {
 
             final N2oInputSelect typeInput = widget.typeInput();
-            typeInput.shouldBeEmpty();
-            typeInput.setValue(refBook.getType());
             typeInput.openPopup();
-            typeInput.setValue(refBook.getType());
+            final DropDown dropdown = typeInput.dropdown();
+            dropdown.selectItemBy(Condition.text(refBook.getType()));
             typeInput.closePopup();
             typeInput.shouldHaveValue(refBook.getType());
+
         }
     }
 

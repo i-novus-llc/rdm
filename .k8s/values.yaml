@@ -29,7 +29,7 @@ springServices:
       RDM_BACKEND_PATH: "http://backend:8080/rdm/api"
       ACCESS_SERVICE_URL: "http://security:8080"
     ingress:
-      path: '/rdm'
+      path: '/'
 
   security:
     imageName: security-admin/backend
