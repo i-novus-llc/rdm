@@ -1,0 +1,8 @@
+version: "3.6"
+
+services:
+
+  ui-test-loaders-invoker:
+    image: "${DOCKER_REGISTRY}/rdm/ui-test-loaders-invoker:${docker.image.tag}"
+    build:
+      context: ${project.basedir}/ui-test/ui-test-loaders-invoker

@@ -11,6 +11,7 @@ deploy mr stand:
 build and verify:
   variables:
     MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
+    DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
 
 autotesting mr stand:
   extends: .autotesting mr stand

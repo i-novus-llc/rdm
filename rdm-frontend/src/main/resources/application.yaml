@@ -1,0 +1,90 @@
+rdm:
+  l10n:
+    support: ${rdm.l10n.support}
+  permissions:
+    refbook:
+      status:
+        list: rdm.edit,rdm.archive
+    draft:
+      version: rdm.edit,rdm.archive
+  sso:
+    token:
+      username: username
+  backend:
+    path: ${backend.default.path}
+  context-path: ''
+spring:
+  main:
+    allow-bean-definition-overriding: 'true'
+  cloud:
+    consul:
+      config:
+        enabled: ${config.server.enable}
+  application:
+    name: rdm-frontend
+  servlet:
+    multipart:
+      max-file-size: '-1'
+      max-request-size: '-1'
+  messages:
+    basename: n2o_api_messages,n2o_rest_messages,messages.rdmui ${rdm.l10n.messages}
+audit:
+  client:
+    enabled: 'false'
+    filter-url-pattern: /n2o/data/*
+  service:
+    url: http://yandex.develop:9952/audit/service/api
+server:
+  servlet:
+    jsp:
+      class-name: org.apache.jasper.servlet.JspServlet
+      registered: 'true'
+    context-path: ''
+    encoding:
+      force: 'true'
+      force-response: 'true'
+  port: ${frontend.default.port}
+cxf:
+  jaxrs:
+    client:
+      connection:
+        timeout: '1500000'
+      receive:
+        timeout: '1500000'
+n2o:
+  application:
+    id: rdm
+  ui:
+    min:
+      width: 1024px
+  api:
+    control:
+      visibility:
+        auto_reset: 'false'
+  access:
+    schema:
+      id: rdm
+  version:
+    copyright:
+      text: 2013-2021
+
+  loader:
+    client:
+      commands:
+        - server: ${access.service.url}/api
+          target: permissions
+          subject: rdm
+          file: classpath:loaders/permissions/rdm.json
+          auth:
+            client-id: ${spring.security.oauth2.client.registration.admin-web.client-id}
+            client-secret: ${spring.security.oauth2.client.registration.admin-web.client-secret}
+            token-uri: ${access.keycloak.server-url}/realms/${access.keycloak.realm}/protocol/openid-connect/token
+
+        - server: ${access.service.url}/api
+          target: roles
+          subject: rdm
+          file: classpath:loaders/roles/rdm.json
+          auth:
+            client-id: ${spring.security.oauth2.client.registration.admin-web.client-id}
+            client-secret: ${spring.security.oauth2.client.registration.admin-web.client-secret}
+            token-uri: ${access.keycloak.server-url}/realms/${access.keycloak.realm}/protocol/openid-connect/token

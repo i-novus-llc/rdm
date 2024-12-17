@@ -13,6 +13,10 @@ global:
       ACCESS_KEYCLOAK_SERVER_URL: https://keycloak8.i-novus.ru/auth
       ACCESS_KEYCLOAK_REALM: "security-admin"
       SPRING_ACTIVEMQ_BROKER_URL: "tcp://activemq:61616"
+#     Выключаем tracing, чтобы не сыпал ошибками в логах
+      SPRING_SLEUTH_ENABLED: 'false'
+      SPRING_ZIPKIN_ENABLED: 'false'
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: '0.0'
 
 springServices:
   frontend:
@@ -32,3 +36,9 @@ genericServices:
 
   activemq:
     enabled: true
+
+jobs:
+  ui-test-loaders-invoker:
+    enabled: true
+    env:
+      RDM_WEB_ENDPOINT: 'frontend:8080'

@@ -21,6 +21,7 @@ springServices:
     overrideDbName: rdm
 
   frontend:
+    replicaCount: 1 # Чтобы сделать больше, нужен redis для распределённой сессии
     imageName: rdm/frontend
     resources:
       limits:
@@ -67,3 +68,13 @@ genericServices:
     volumeMounts:
       - mountPath: /pg/12
         name: rdm-db-data
+
+jobs:
+  ui-test-loaders-invoker:
+    enabled: false
+    imageName: rdm/ui-test-loaders-invoker
+    backoffLimit: 10
+    activeDeadlineSeconds: 700
+    resources:
+      limits:
+        memory: 250M
