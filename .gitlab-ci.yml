@@ -2,7 +2,14 @@ include:
   - project: ${PIPELINE_REPOSITORY_PREFIX}devenv/gitlab/pipelines
     file:
       - merge-request.gitlab-ci.yml
+    ref: NNOC-216
 
 deploy mr stand:
   variables:
     HELM_TIMEOUT: '15m'
+
+autotesting mr stand:
+  extends: .autotesting mr stand
+  variables:
+    AUTOTEST_MODULE_DIR: './ui-test'
+    AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'

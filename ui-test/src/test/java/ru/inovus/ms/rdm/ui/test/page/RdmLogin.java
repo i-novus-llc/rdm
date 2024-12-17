@@ -1,30 +1,28 @@
 package ru.inovus.ms.rdm.ui.test.page;
 
 import net.n2oapp.framework.autotest.N2oSelenide;
-import net.n2oapp.framework.autotest.impl.component.page.N2oPage;
 
 import static com.codeborne.selenide.Selectors.byId;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
 
-/**
- * Страница логина.
- */
-public class LoginPage extends N2oPage {
+public class RdmLogin {
 
-    public RefBookListPage login(String username, String password) {
-
+    public static void login(String username, String password) {
+        open("/");
         fillInput("username", username);
         fillInput("password", password);
         login();
 
-        return N2oSelenide.page(RefBookListPage.class);
+        N2oSelenide.page(RefBookListPage.class);
     }
 
-    private void login() {
+    private static void login() {
         $(byId("kc-login")).pressEnter();
     }
 
-    private void fillInput(String field, String value) {
+    private static void fillInput(String field, String value) {
         $(byId(field)).val(value);
     }
+
 }

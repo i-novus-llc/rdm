@@ -23,6 +23,12 @@ public class DataWithConflictsWidget extends N2oTableWidget {
     }
 
     public void rowShouldHaveSize(int size) {
-        columns().rows().shouldHaveSize(size);
+        if (size == 0) {
+//          Нет заголовка -- нет данных
+            columns().headers().shouldHaveSize(0);
+        } else {
+            columns().rows().shouldHaveSize(size);
+        }
     }
+
 }
