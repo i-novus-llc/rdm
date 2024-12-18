@@ -244,7 +244,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
                 versionRepository.save(entity);
 
             } else {
-                // Опубликованные поздее - удаляем:
+                // Опубликованные позднее - удаляем:
                 versionRepository.deleteById(entity.getId());
             }
         });

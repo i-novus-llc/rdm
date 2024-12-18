@@ -146,17 +146,18 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
     private void createDynamicField(Structure.Attribute attribute, List<QuerySimpleField> list) {
 
         switch (attribute.getType()) {
+            case STRING,
+                    INTEGER,
+                    FLOAT,
+                    DATE,
+                    BOOLEAN ->
+                    list.add(createField(attribute));
 
-            case STRING: case INTEGER: case FLOAT: case DATE: case BOOLEAN:
-                list.add(createField(attribute));
-                break;
+            case REFERENCE ->
+                    list.addAll(createReferenceFields(attribute));
 
-            case REFERENCE:
-                list.addAll(createReferenceFields(attribute));
-                break;
-
-            default:
-                throw new IllegalArgumentException(String.format("Unknown attribute type in: %s", attribute));
+            default ->
+                    throw new IllegalArgumentException(String.format("Unknown attribute type in: %s", attribute));
         }
     }
 

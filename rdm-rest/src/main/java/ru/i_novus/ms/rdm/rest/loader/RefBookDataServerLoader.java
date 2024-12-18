@@ -13,7 +13,9 @@ import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-/** Загрузчик справочника. */
+/**
+ * Загрузчик справочника.
+ */
 @Component
 public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest> {
 
@@ -55,7 +57,9 @@ public class RefBookDataServerLoader implements ServerLoader<RefBookDataRequest>
     private void load(RefBookDataRequest request) {
 
         logger.info("Data loading request = {}", request);
+
         final RefBookDataResponse response = service.load(request);
+
         logger.info("Data loading response = {}", response);
     }
 }

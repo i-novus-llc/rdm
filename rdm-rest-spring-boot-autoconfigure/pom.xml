@@ -11,8 +11,7 @@
 
     <properties>
         <sonar.coverage.exclusions>
-            **/AppConfig.java, **/BackendConfiguration.java,
-            **/SecurityContextUtils.java, **/RdmRestAutoConfiguration.java
+            **/autoconfigure/config/*.java
         </sonar.coverage.exclusions>
     </properties>
 
@@ -39,5 +38,22 @@
         </dependency>
         <!-- / SECURITY -->
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>l10n</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>ru.i-novus.components</groupId>
+                    <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+                    <version>${l10n.vds.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

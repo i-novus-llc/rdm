@@ -13,7 +13,6 @@ import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
@@ -55,7 +54,6 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
@@ -205,11 +203,11 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
-            case "XLSX": return createByXlsx(fileModel);
-            case "XML": return createByXml(fileModel);
-            default: throw new FileExtensionException();
-        }
+        return switch (FileUtil.getExtension(fileModel.getName())) {
+            case "XLSX" -> createByXlsx(fileModel);
+            case "XML" -> createByXml(fileModel);
+            default -> throw new FileExtensionException();
+        };
     }
 
     @SuppressWarnings("unused")

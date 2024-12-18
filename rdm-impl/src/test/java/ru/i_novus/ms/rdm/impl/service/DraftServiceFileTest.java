@@ -383,8 +383,7 @@ public class DraftServiceFileTest {
     /** Получение кода сообщения об ошибке из исключения. */
     private static String getExceptionMessage(Exception e) {
 
-        if (e instanceof UserException) {
-            UserException ue = (UserException) e;
+        if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
                 return ue.getMessages().get(0).getCode();
