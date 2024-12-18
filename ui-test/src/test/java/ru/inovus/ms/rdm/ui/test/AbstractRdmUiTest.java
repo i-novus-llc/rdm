@@ -1,7 +1,10 @@
 package ru.inovus.ms.rdm.ui.test;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.UIAssertionError;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.system.SystemProperties;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
@@ -35,6 +39,7 @@ import ru.inovus.ms.rdm.ui.test.page.RefBookEditPage;
 import ru.inovus.ms.rdm.ui.test.page.RefBookListPage;
 import ru.inovus.ms.rdm.ui.test.page.StructureWidget;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -44,7 +49,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -149,9 +153,6 @@ abstract class AbstractRdmUiTest {
 
         search(refBookListPage, referredBook);
         refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
-//        if (Objects.equals(referredType, RefBook.getUnversionedType())) {
-//            publishRefBook(refBookListPage.openRefBookEditPage(0));
-//        }
 
         // Создание ссылочного справочника.
         createRefBook(refBookListPage, referrerBook);
@@ -444,16 +445,27 @@ abstract class AbstractRdmUiTest {
 
     private void fillInputControl(Control control, String value) {
 
+        new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofMillis(Configuration.timeout))
+                .ignoring(UIAssertionError.class)
+                .until(
+                        unused -> {
+                            setValue(control, value);
+                            return true;
+                        }
+                );
+    }
+
+    private static void setValue(final Control control, final String value) {
         control.shouldExists();
 
-        if (control instanceof InputText) {
-            ((InputText) control).setValue(value);
+        if (control instanceof InputText inputText) {
+            inputText.setValue(value);
 
-        } else if(control instanceof TextArea) {
-            ((TextArea) control).setValue(value);
+        } else if(control instanceof TextArea textArea) {
+            textArea.setValue(value);
 
-        } else if(control instanceof N2oDateInput) {
-            ((N2oDateInput) control).setValue(value);
+        } else if (control instanceof N2oDateInput dateInput) {
+            dateInput.setValue(value);
 
         } else {
             throw new IllegalArgumentException("Control is not for input");
@@ -488,10 +500,16 @@ abstract class AbstractRdmUiTest {
             throw new IllegalArgumentException("Control is not reference input");
 
         final N2oInputSelect control = (N2oInputSelect) referenceInput;
-        // to-do: Очищать только при наличии значения!
-        control.clear();
-        waitActionResult(SLEEP_TIME / 2);
-        
+        new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofMillis(Configuration.timeout))
+                .ignoring(UIAssertionError.class)
+                .until(
+                        unused -> {
+                            // to-do: Очищать только при наличии значения!
+                            control.clear();
+                            return true;
+                        }
+                );
+
         final DropDown dropDown = control.dropdown();
         dropDown.selectItem((int) value);
         //control.select((int) value);

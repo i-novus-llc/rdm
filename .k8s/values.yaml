@@ -18,6 +18,7 @@ springServices:
       limits:
         memory: 1000M
     env:
+      FILESTORAGE_ROOT: /app/rdm
     overrideDbName: rdm
 
   frontend:
