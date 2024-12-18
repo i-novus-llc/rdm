@@ -70,6 +70,8 @@ n2o:
 
   loader:
     client:
+      start: MANUAL
+      fail-fast: false
       commands:
         - server: ${access.service.url}/api
           target: systems
