@@ -36,7 +36,7 @@ public class RefBookEditPage extends N2oStandardPage {
         return tabItem.content().widget(StructureWidget.class);
     }
 
-    public DataListWidget data() {
+    public DataTableWidget dataTable() {
 
         final CustomTabItem tabItem = getTab("Данные");
         //final TabsRegion.TabItem tabItem = getTab("Данные");
@@ -44,17 +44,17 @@ public class RefBookEditPage extends N2oStandardPage {
         tabItem.click();
         tabItem.shouldBeActive();
 
-        return tabItem.content(DATA_GRID_CLASS_NAME).widget(DataListWidget.class);
+        return tabItem.content(DATA_GRID_CLASS_NAME).widget(DataTableWidget.class);
     }
 
-    public DataWithConflictsWidget dataWithConflicts() {
+    public DataTableWithConflictsWidget dataTableWithConflicts() {
 
         final CustomTabItem tabItem = getTab("Данные с конфликтами");
         //final TabsRegion.TabItem tabItem = getTab("Данные с конфликтами");
         tabItem.click();
         tabItem.shouldBeActive();
 
-        return tabItem.content(DATA_GRID_CLASS_NAME).widget(DataWithConflictsWidget.class);
+        return tabItem.content(DATA_GRID_CLASS_NAME).widget(DataTableWithConflictsWidget.class);
     }
 
     public void publish() {

@@ -5,7 +5,7 @@ import net.n2oapp.framework.autotest.N2oSelenide;
 /**
  * Таблица на вкладке "Данные с конфликтами" версии справочника.
  */
-public class DataWithConflictsWidget extends RefBookEditTableWidget {
+public class DataTableWithConflictsWidget extends RefBookEditTableWidget {
 
     public DataRowForm fixRowForm(int rowNum) {
 

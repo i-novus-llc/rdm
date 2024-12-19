@@ -1,19 +1,41 @@
 package ru.inovus.ms.rdm.ui.test.util;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
+import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.component.DropDown;
 import net.n2oapp.framework.autotest.api.component.control.Control;
 import net.n2oapp.framework.autotest.api.component.control.InputText;
 import net.n2oapp.framework.autotest.api.component.control.TextArea;
+import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
 import net.n2oapp.framework.autotest.impl.component.control.N2oDateInput;
 import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
 import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.concurrent.TimeUnit;
+
 public final class UiTestUtil {
+
+    private static final ZoneId UNIVERSAL_TIMEZONE = ZoneId.of("UTC");
+
+    private static final long DEFAULT_SLEEP_TIME = TimeUnit.SECONDS.toMillis(1);
 
     private UiTestUtil() {
         // Nothing to do.
+    }
+
+    /**
+     * Открытие страницы с полным url без query-параметров.
+     *
+     * @param clazz   класс страницы
+     * @param pageUrl url страницы
+     * @return Страница
+     */
+    public static <T extends Page> T openPage(Class<T> clazz, String pageUrl) {
+        return N2oSelenide.open(pageUrl, clazz);
     }
 
     public static void fillInputControl(Control control, String value) {
@@ -80,4 +102,34 @@ public final class UiTestUtil {
             control.shouldBeEmpty();
         }
     }
+
+    /**
+     * Получение текущего времени в UTC.
+     *
+     * @return Текущее время
+     */
+    public static LocalDateTime nowUtc() {
+        return LocalDateTime.now(UNIVERSAL_TIMEZONE);
+    }
+
+    /**
+     * Ожидание результата действия.
+     *
+     * @param milliseconds Время ожидания (мс)
+     */
+    public static void waitActionResult(long milliseconds) {
+
+        Selenide.sleep(milliseconds != 0 ? milliseconds : DEFAULT_SLEEP_TIME);
+    }
+
+    //private static String getRestExceptionMessage(RestException re) {
+    //
+    //    if (!StringUtils.isEmpty(re.getMessage()))
+    //        return re.getMessage();
+    //
+    //    if (!isEmpty(re.getErrors()))
+    //        return re.getErrors().get(0).getMessage();
+    //
+    //    return null;
+    //}
 }

@@ -7,7 +7,7 @@ import net.n2oapp.framework.autotest.impl.component.page.N2oSimplePage;
 /**
  * Таблица на вкладке "Данные" версии справочника.
  */
-public class DataListWidget extends RefBookEditTableWidget {
+public class DataTableWidget extends RefBookEditTableWidget {
 
     public DataRowForm openAddRowForm() {
 
