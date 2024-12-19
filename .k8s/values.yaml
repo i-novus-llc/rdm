@@ -1,0 +1,81 @@
+global:
+  observability:
+    enabled: false
+  ## Current build tag for images of this project.
+  imageTag: "${docker.image.tag}"
+  ## Global values for all spring services.
+  spring:
+    ## Global environment variables injected in every spring service.
+    env:
+      SPRING_CLOUD_CONSUL_CONFIG_PREFIX: "rdm"
+      JAVA_OPTS: "-XX:MaxRAMPercentage=66"
+
+
+springServices:
+  backend:
+    imageName: rdm/backend
+    resources:
+      limits:
+        memory: 1000M
+    env:
+      FILESTORAGE_ROOT: /app/rdm
+    overrideDbName: rdm
+
+  frontend:
+    replicaCount: 1 # Чтобы сделать больше, нужен redis для распределённой сессии
+    imageName: rdm/frontend
+    resources:
+      limits:
+        memory: 1000M
+    env:
+      RDM_BACKEND_PATH: "http://backend:8080/rdm/api"
+      ACCESS_SERVICE_URL: "http://security:8080"
+    ingress:
+      path: '/'
+
+  security:
+    imageName: security-admin/backend
+    imageTag: '8.0.1'
+    env:
+      RDM_BACKEND_PATH: "http://backend:8080"
+      RDM_CLIENT_SYNC_URL: "${RDM_BACKEND_PATH}"
+      RDM_CLIENT_EXPORT_URL: "${RDM_BACKEND_PATH}"
+      JAXRS_SWAGGER_SCHEMES: "https"
+
+genericServices:
+  activemq:
+    enabled: false
+    port: 61616
+    imageName: rmohr/activemq
+    imageTag: 5.15.9
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+
+  postgresql:
+    enabled: false
+    port: 5432
+    imageName: rdm/db
+    useGlobalRegistry: true
+    resources:
+      limits:
+        memory: 512M
+    replicaCount: 1
+    volumes:
+      - name: rdm-db-data
+        persistentVolumeClaim:
+          claimName: rdm-db-data
+    volumeMounts:
+      - mountPath: /pg/12
+        name: rdm-db-data
+
+jobs:
+  ui-test-loaders-invoker:
+    enabled: false
+    imageName: rdm/ui-test-loaders-invoker
+    backoffLimit: 20
+    activeDeadlineSeconds: 700
+    resources:
+      limits:
+        memory: 250M

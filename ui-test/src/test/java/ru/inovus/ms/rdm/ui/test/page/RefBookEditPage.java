@@ -1,6 +1,7 @@
 package ru.inovus.ms.rdm.ui.test.page;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import net.n2oapp.framework.autotest.api.component.page.Page;
 import net.n2oapp.framework.autotest.api.component.region.TabsRegion;
 import net.n2oapp.framework.autotest.impl.component.button.N2oDropdownButton;
@@ -8,6 +9,7 @@ import net.n2oapp.framework.autotest.impl.component.page.N2oSimplePage;
 import net.n2oapp.framework.autotest.impl.component.page.N2oStandardPage;
 import net.n2oapp.framework.autotest.impl.component.region.N2oTabsRegion;
 import net.n2oapp.framework.autotest.impl.component.widget.N2oFormWidget;
+import net.n2oapp.framework.autotest.impl.component.widget.table.N2oTableWidget;
 
 import static net.n2oapp.framework.autotest.N2oSelenide.page;
 
@@ -35,22 +37,20 @@ public class RefBookEditPage extends N2oStandardPage {
         return tabItem.content().widget(StructureWidget.class);
     }
 
-    public DataListWidget data() {
-
-        TabsRegion.TabItem tabItem = getTab("Данные");
-        tabItem.click();
-        tabItem.shouldBeActive();
-
-        return tabItem.content().widget(DataListWidget.class);
+    public DataGridWidget data() {
+        return getDataGrid("Данные", new DataGridWidget());
     }
 
     public DataWithConflictsWidget dataWithConflicts() {
+        return getDataGrid("Данные с конфликтами", new DataWithConflictsWidget());
+    }
 
-        TabsRegion.TabItem tabItem = getTab("Данные с конфликтами");
+    private <D extends N2oTableWidget> D getDataGrid(final String tabName, final D target) {
+        TabsRegion.TabItem tabItem = getTab(tabName);
         tabItem.click();
         tabItem.shouldBeActive();
-
-        return tabItem.content().widget(DataWithConflictsWidget.class);
+        target.setElement(Selenide.$(".active .rdm-data-grid"));
+        return target;
     }
 
     public void publish() {

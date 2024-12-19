@@ -12,7 +12,7 @@ import static net.n2oapp.framework.autotest.N2oSelenide.page;
 /**
  * Таблица на вкладке "Данные" версии справочника.
  */
-public class DataListWidget extends N2oTableWidget {
+public class DataGridWidget extends N2oTableWidget {
 
     public DataRowForm openAddRowForm() {
 

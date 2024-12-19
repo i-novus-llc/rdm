@@ -1,0 +1,13 @@
+[
+  {
+    "code": "rdm.admin",
+    "name": "Администратор РДМ",
+    "permissions": [
+      "rdm",
+      "rdm.read",
+      "rdm.download",
+      "rdm.edit",
+      "rdm.archive"
+    ]
+  }
+]

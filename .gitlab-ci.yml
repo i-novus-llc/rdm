@@ -1,0 +1,21 @@
+include:
+  - project: ${PIPELINE_REPOSITORY_PREFIX}devenv/gitlab/pipelines
+    file:
+      - merge-request.gitlab-ci.yml
+      - jira.gitlab-ci.yml
+
+deploy mr stand:
+  variables:
+    HELM_TIMEOUT: '15m'
+    HELM_OPTIONAL_FLAGS: '--wait-for-jobs'
+
+build and verify:
+  variables:
+    MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
+    DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
+
+autotesting mr stand:
+  extends: .autotesting mr stand
+  variables:
+    AUTOTEST_MODULE_DIR: './ui-test'
+    AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'

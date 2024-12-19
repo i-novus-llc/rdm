@@ -1,0 +1,26 @@
+[
+  {
+    "code": "rdm",
+    "name": "Подсистема НСИ"
+  },
+  {
+    "code": "rdm.read",
+    "name": "Просмотр справочника",
+    "parentCode": "rdm"
+  },
+  {
+    "code": "rdm.download",
+    "name": "Выгрузка справочника",
+    "parentCode": "rdm"
+  },
+  {
+    "code": "rdm.edit",
+    "name": "Добавление/редактирование справочников",
+    "parentCode": "rdm"
+  },
+  {
+    "code": "rdm.archive",
+    "name": "Отправка справочника в архив",
+    "parentCode": "rdm"
+  }
+]

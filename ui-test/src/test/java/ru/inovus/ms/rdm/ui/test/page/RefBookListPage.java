@@ -44,11 +44,11 @@ public class RefBookListPage extends N2oSimplePage {
     }
 
     public N2oInputText codeFilter() {
-        return table().filters().fields().field("Код").control(N2oInputText.class);
+        return table().filters().fields().field("Код справочника").control(N2oInputText.class);
     }
 
     public N2oInputText nameFilter() {
-        return table().filters().fields().field("Название справочника").control(N2oInputText.class);
+        return table().filters().fields().field("Наименование справочника").control(N2oInputText.class);
     }
 
     public void search() {

@@ -20,7 +20,8 @@
         <sonar.coverage.exclusions>
             **/FrontendApplication.java,
             **/SecurityConfig.java, **/SecurityContextUtils.java,
-            **/UserInfoCxfInterceptor.java, **/FrontendConfiguration.java
+            **/UserInfoCxfInterceptor.java, **/FrontendConfiguration.java,
+            **/CxfConfiguration.java
         </sonar.coverage.exclusions>
 
         <rdm.l10n.support>false</rdm.l10n.support>
@@ -65,6 +66,11 @@
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-i18n-autoconfigure</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>net.n2oapp.platform</groupId>
+            <artifactId>n2o-platform-starter-loader-client</artifactId>
         </dependency>
 
         <!--<dependency>-->
@@ -113,6 +119,18 @@
             </resource>
         </resources>
 
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>false</executable>
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -195,17 +213,6 @@
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <executable>true</executable>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
 
         <profile>
