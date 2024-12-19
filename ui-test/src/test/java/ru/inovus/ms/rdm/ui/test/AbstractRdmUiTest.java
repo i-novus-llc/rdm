@@ -39,9 +39,9 @@ import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.*;
  * Общий абстрактный класс для тестов RDM UI.
  * <p>
  * Для корректной работы необходимо указание значений настроек:
- * <p>- selenide.baseUrl - базовый url для rdm ui
- * <p>- rdm.username - логин пользователя rdm с администраторскими правами
- * <p>- rdm.password - пароль пользователя с логином rdm.username
+ * selenide.baseUrl - базовый url для rdm ui
+ * rdm.username - логин пользователя rdm с администраторскими правами
+ * rdm.password - пароль пользователя с логином rdm.username
  * <p>
  * Пример:
  * <p>- для командной строки:
@@ -430,7 +430,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
 
         refBookEditPage.publish();
         waitActionResult(REFBOOK_PUBLISH_WAIT_TIME);
-    }
+        }
 
     /**
      * Формирование информации о справочнике для создания.
@@ -467,7 +467,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
      */
     List<Map<RefBookField, Object>> generateRows(
             int rowCount,
-            List<FieldType> fieldTypes,
+                                                         List<FieldType> fieldTypes,
             RefBook referredBook
     ) {
         final List<Map<RefBookField, Object>> result = new ArrayList<>(rowCount);
@@ -596,8 +596,8 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
     String getNameColumnText(Map<RefBookField, Object> row) {
 
         final Map.Entry<RefBookField, Object> field = row.entrySet().stream()
-                .filter(entry -> "name".equals(entry.getKey().getCode()))
-                .findAny().orElse(null);
+                        .filter(entry -> "name".equals(entry.getKey().getCode()))
+                        .findAny().orElse(null);
 
         return (field != null) ? (String) field.getValue() : null;
     }

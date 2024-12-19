@@ -10,7 +10,7 @@
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>6.1.4</version>
+        <version>6.2.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -21,27 +21,21 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
-        <npm.registry>https://registry.yarnpkg.com/</npm.registry>
+        <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <!-- N2O -->
         <n2o.version>7.28.2</n2o.version>
         <!-- / N2O -->
 
         <!-- STORAGE -->
-        <vds.version>3.27</vds.version>
-        <l10n.vds.version>3.32</l10n.vds.version>
+        <vds.version>3.28-SNAPSHOT</vds.version>
+        <l10n.vds.version>3.33-SNAPSHOT</l10n.vds.version>
         <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
-        <jackson.version>2.15.3</jackson.version>
+        <jackson.version>2.17.2</jackson.version>
         <jackson-databind.version>${jackson.version}</jackson-databind.version>
         <jackson-datatype.version>${jackson.version}</jackson-datatype.version>
-
-        <!-- from spring-boot-dependencies -->
-        <spring.boot.version>2.7.5</spring.boot.version>
-        <hibernate.version>6.4.1.Final</hibernate.version>
-        <lombok.version>1.18.30</lombok.version>
 
         <jakarta-inteceptor.version>2.1.0</jakarta-inteceptor.version>
         <apache.poi.version>4.1.2</apache.poi.version>
@@ -313,6 +307,16 @@
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>process-docker-config</id>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

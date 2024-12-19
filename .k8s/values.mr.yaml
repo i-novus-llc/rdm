@@ -1,0 +1,44 @@
+global:
+  spring:
+    dbUrl: "jdbc:postgresql://postgresql:5432/"
+    dbUsername: "postgres"
+    dbPassword: "postgres"
+    useDefaultConsul: false
+    env:
+      N2O_PLATFORM_SECURITY_KEY_SET_URI: "https://keycloak8.i-novus.ru/auth/realms/security-admin/protocol/openid-connect/certs"
+      N2O_PLATFORM_SECURITY_ACCESS_TOKEN_URI: "https://keycloak8.i-novus.ru/auth/realms/security-admin/protocol/openid-connect/token"
+      N2O_PLATFORM_SECURITY_RESOURCE_ID: "admin-web"
+      N2O_PLATFORM_SECURITY_CHECK_TOKEN_EXPIRED: false
+      N2O_PLATFORM_SECURITY_CHECK_AUD: false
+      ACCESS_KEYCLOAK_SERVER_URL: https://keycloak8.i-novus.ru/auth
+      ACCESS_KEYCLOAK_REALM: "security-admin"
+      SPRING_ACTIVEMQ_BROKER_URL: "tcp://activemq:61616"
+#     Выключаем tracing, чтобы не сыпал ошибками в логах
+      SPRING_SLEUTH_ENABLED: 'false'
+      SPRING_ZIPKIN_ENABLED: 'false'
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: '0.0'
+
+springServices:
+  frontend:
+    env:
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ADMIN_WEB_CLIENT_ID: admin-web
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_ADMIN_WEB_CLIENT_SECRET: fbcf4023-afe0-4ba1-944e-7a0f675b0b98
+
+  security:
+    env:
+      ACCESS_KEYCLOAK_ADMIN_CLIENT_ID: access-admin
+      ACCESS_KEYCLOAK_ADMIN_CLIENT_SECRET: 0a889967-3fa4-4dd7-898c-7625e99bd793
+
+genericServices:
+  postgresql:
+    enabled: true
+    storageClassName: 'nfs-delete'
+
+  activemq:
+    enabled: true
+
+jobs:
+  ui-test-loaders-invoker:
+    enabled: true
+    env:
+      RDM_WEB_ENDPOINT: 'frontend:8080'
