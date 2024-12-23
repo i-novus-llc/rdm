@@ -26,8 +26,7 @@ autotesting mr stand:
 # Поэтому, чтобы работал jira-updater, добавляем такой job со stage=test
 # Как только появится deploy dev стенда -- данный job можно удалить
 fake_job:
-  stage:
-    - test
+  stage: test
   script:
     - echo "This is fake job for jira updater"
   tags:
