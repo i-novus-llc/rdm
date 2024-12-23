@@ -3,6 +3,7 @@ include:
     file:
       - merge-request.gitlab-ci.yml
       - jira.gitlab-ci.yml
+    ref: RDM-1162
 
 deploy mr stand:
   variables:
