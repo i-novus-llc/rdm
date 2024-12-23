@@ -102,10 +102,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "spring.main.allow-bean-definition-overriding=true",
-                //"spring.jms.cache.enabled=false",
                 "backend.default.port=8081",
-                "spring.datasource.url=jdbc:postgresql://localhost:15432/rdm",
-                //"testcontainers.pg.version=11",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
                 "logging.pattern.console=%d{HH:mm:ss} %-5level %logger{36} - %msg%n",
@@ -290,12 +287,12 @@ public class ApplicationTest {
 
     /**
      * Создание справочника.
-     * В архив.
-     * Изменение метеданных справочника
-     * Добавление/изменение/удаление атрибута
-     * Получение справоника по идентификатору версии.
+     * Изменение метаданных справочника.
+     * Добавление/изменение/удаление атрибута.
+     * Отправка справочника в архив.
+     * Получение справочника по идентификатору версии.
+     * Удаление справочника.
      */
-
     @Test
     public void testLifecycle() {
 
@@ -315,7 +312,7 @@ public class ApplicationTest {
         updateData(referredDraft.getId(), referredRow, null);
         publish(referredDraft.getId(), null, null, null, false);
 
-        // создание справочника
+        // Создание справочника.
         RefBook refBook = refBookService.create(refBookCreateRequest);
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
@@ -328,14 +325,14 @@ public class ApplicationTest {
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
 
-        // получение черновика
+        // Получение черновика.
         Draft draft = draftService.getDraft(refBook.getId());
         assertNotNull(draft);
         assertNotNull(draft.getStorageCode());
         final Integer draftId = draft.getId();
         assertNotNull(draftId);
 
-        // изменение метаданных справочника
+        // Изменение метаданных справочника.
         refBookUpdateRequest.setVersionId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
@@ -348,7 +345,7 @@ public class ApplicationTest {
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
 
-        // добавление атрибута и проверка
+        // Добавление атрибута и проверка.
         CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(null, idAttribute, null);
         draftService.createAttribute(draftId, createAttributeRequest);
 
@@ -359,14 +356,14 @@ public class ApplicationTest {
         assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
 
-        // изменение атрибута и проверка
+        // Изменение атрибута и проверка.
         UpdateAttributeRequest updateAttributeRequest = new UpdateAttributeRequest(null, updateAttribute, createReference);
         draftService.updateAttribute(draftId, updateAttributeRequest);
         structure = versionService.getStructure(draftId);
         assertEquals(updateAttribute, structure.getAttribute(updateAttributeRequest.getCode()));
         assertEquals(createReference, structure.getReference(updateAttributeRequest.getCode()));
 
-        // удаление атрибута и проверка
+        // Удаление атрибута и проверка.
         createAttributeRequest.setAttribute(deleteAttribute);
         createAttributeRequest.setReference(new Structure.Reference(null, null, null));
         draftService.createAttribute(draftId, createAttributeRequest);
@@ -376,16 +373,16 @@ public class ApplicationTest {
         structure = versionService.getStructure(draftId);
         assertEquals(2, structure.getAttributes().size());
 
-        // в архив
+        // Отправка справочника в архив.
         refBookService.toArchive(refBook.getRefBookId());
 
-        // получение по идентификатору версии
+        // Получение справочника по идентификатору версии.
         RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
         assertRefBooksEqual(refBook, refBookById);
 
-        // удаление
+        // Удаление справочника.
         refBookService.delete(REMOVABLE_REF_BOOK_ID);
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REMOVABLE_REF_BOOK_CODE);
