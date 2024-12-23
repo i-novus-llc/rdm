@@ -22,4 +22,5 @@ autotesting mr stand:
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
 
 post dev:
-  when: never
+  rules:
+    - when: never
