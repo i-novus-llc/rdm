@@ -29,5 +29,8 @@ post dev:
 
 # Т.к. у нас нет dev-стенда -- убираем deploy dev stand
 deploy dev stand:
+  variables:
+#    При добавлении dev-стенда нужно разкомментировать, иначе ui будет работать неправильно
+#    MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
   rules:
     - when: never
