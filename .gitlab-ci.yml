@@ -3,6 +3,7 @@ include:
     file:
       - merge-request.gitlab-ci.yml
       - jira.gitlab-ci.yml
+    ref: RDM-1162
 
 deploy mr stand:
   variables:
@@ -19,3 +20,8 @@ autotesting mr stand:
   variables:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
+
+# Т.к. у нас нет dev-стенда -- убираем post-dev, чтобы в Jira не проставлялась дата установки на develop
+post dev:
+  rules:
+    - when: never
