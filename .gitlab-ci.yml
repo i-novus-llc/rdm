@@ -21,6 +21,19 @@ autotesting mr stand:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
 
+# Фейковый job, чтобы работал job jira-updater
+# У job jira-updater stage равен .pre или .post (их два, один на .pre, другой на .post)
+# В gitlab pipeline почему-то если между .pre и .post нет других job-ов -- pipeline вообще не запускается
+# Поэтому, чтобы работал jira-updater, добавляем такой job со stage=test
+# Как только появится deploy dev стенда -- данный job можно удалить
+fake_job:
+  stage:
+    - test
+  script:
+    - echo "This is fake job for jira updater"
+  tags:
+    - yc-dev-k8s-jira-updater
+
 # Т.к. у нас нет dev-стенда -- убираем post-dev, чтобы в Jira не проставлялась дата установки на develop
 post dev:
   rules:
