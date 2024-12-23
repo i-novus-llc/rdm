@@ -21,3 +21,5 @@ autotesting mr stand:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
 
+post dev:
+  when: never
