@@ -19,3 +19,4 @@ autotesting mr stand:
   variables:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
+
