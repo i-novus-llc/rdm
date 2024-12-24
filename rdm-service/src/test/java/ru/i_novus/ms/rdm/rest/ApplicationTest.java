@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
@@ -116,6 +117,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
 @DefinePort
 @EnableTestcontainersPg
 @EnableJms
+@ActiveProfiles("test")
 @Import(BackendConfiguration.class)
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
