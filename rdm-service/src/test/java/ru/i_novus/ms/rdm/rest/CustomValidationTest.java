@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
@@ -48,11 +49,14 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "rdm.enable.publish.topic=false",
+                "rdm.enable.async.operation=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
+@ActiveProfiles("test")
 @Import(BackendConfiguration.class)
 public class CustomValidationTest {
 
@@ -64,10 +68,10 @@ public class CustomValidationTest {
     @Qualifier("draftRestServiceJaxRsProxyClient")
     private DraftRestService draftService;
 
-    private String STRING_ATTR = "stringAttr";
-    private String INTEGER_ATTR = "integerAttr";
-    private String FLOAT_ATTR = "floatAttr";
-    private String DATE_ATTR = "dateAttr";
+    private final String STRING_ATTR = "stringAttr";
+    private final String INTEGER_ATTR = "integerAttr";
+    private final String FLOAT_ATTR = "floatAttr";
+    private final String DATE_ATTR = "dateAttr";
 
     /**
      * Проверка добавления и удаления проверки

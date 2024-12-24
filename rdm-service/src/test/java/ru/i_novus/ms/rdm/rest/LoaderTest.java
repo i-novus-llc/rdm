@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
@@ -50,11 +51,14 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_B
                 "spring.main.allow-bean-definition-overriding=true",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "rdm.enable.publish.topic=false",
+                "rdm.enable.async.operation=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
+@ActiveProfiles("test")
 @Import({BackendConfiguration.class, AppConfig.class})
 @SuppressWarnings("FieldCanBeLocal")
 public class LoaderTest {

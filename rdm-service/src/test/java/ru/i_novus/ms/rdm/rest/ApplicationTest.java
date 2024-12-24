@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
@@ -106,17 +105,13 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "backend.default.port=8081",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
-                "logging.pattern.console=%d{HH:mm:ss} %-5level %logger{36} - %msg%n",
-                "spring.jpa.show-sql=true",
-                "logging.level.org.hibernate.SQL=DEBUG",
-                "logging.level.org.hibernate.type.descriptor.sql=TRACE",
-                "logging.level.org.hibernate.type.EnumType=TRACE",
+                "rdm.enable.publish.topic=false",
+                "rdm.enable.async.operation=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
-@EnableJms
 @ActiveProfiles("test")
 @Import(BackendConfiguration.class)
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
