@@ -5,17 +5,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
-import ru.i_novus.ms.rdm.rest.async.AsyncOperationQueueListener;
-import ru.i_novus.ms.rdm.rest.async.AsyncOperationQueueSender;
 
 /**
  * Асинхронные операции: Конфигурация для использования JMS.
  */
 @Configuration
 @ConditionalOnProperty(name = "rdm.enable.async.operation", havingValue = "true", matchIfMissing = true)
+@ComponentScan(basePackages = {
+        "ru.i_novus.ms.rdm.async.impl", // rdm-async-impl
+})
 @SuppressWarnings({"unused","I-novus:MethodNameWordCountRule"})
 public class AsyncOperationJmsConfiguration {
 
@@ -43,16 +45,6 @@ public class AsyncOperationJmsConfiguration {
         factory.setSessionTransacted(true);
 
         return factory;
-    }
-
-    @Bean
-    public AsyncOperationQueueSender queueAsyncOperationSender() {
-        return new AsyncOperationQueueSender();
-    }
-
-    @Bean
-    public AsyncOperationQueueListener asyncOperationQueueListener() {
-        return new AsyncOperationQueueListener();
     }
 
 }
