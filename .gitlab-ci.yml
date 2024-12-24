@@ -3,7 +3,7 @@ include:
     file:
       - merge-request.gitlab-ci.yml
       - jira.gitlab-ci.yml
-    ref: RDM-1162
+      - dev-stand.gitlab-ci.yml
 
 deploy mr stand:
   variables:
@@ -21,7 +21,16 @@ autotesting mr stand:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
 
-# Т.к. у нас нет dev-стенда -- убираем post-dev, чтобы в Jira не проставлялась дата установки на develop
+# Т.к. у нас нет dev-стенда -- убираем post dev, чтобы в Jira не проставлялась дата установки на develop
+# Нам из dev-stand.gitlab-ci.yml нужен только build
 post dev:
+  rules:
+    - when: never
+
+# Т.к. у нас нет dev-стенда -- убираем deploy dev stand
+deploy dev stand:
+  variables:
+#    При добавлении dev-стенда нужно разкомментировать, иначе ui будет работать неправильно
+#    MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
   rules:
     - when: never
