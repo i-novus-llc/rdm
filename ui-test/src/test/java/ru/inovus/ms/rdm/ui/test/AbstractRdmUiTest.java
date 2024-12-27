@@ -1,6 +1,5 @@
 package ru.inovus.ms.rdm.ui.test;
 
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import lombok.extern.slf4j.Slf4j;
 import net.n2oapp.framework.autotest.api.component.DropDown;
@@ -15,9 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.openqa.selenium.MutableCapabilities;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.CapabilityType;
 import org.springframework.boot.system.SystemProperties;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
@@ -44,7 +40,7 @@ import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.*;
  * rdm.password - пароль пользователя с логином rdm.username
  * <p>
  * Пример:
- * <p>- для командной строки:
+ * <p>- для VM options:
  * <pre>
  * -Dselenide.baseUrl=http://localhost:8080 -Drdm.username=rdm_admin -Drdm.password=rdm.admin
  * </pre>
@@ -52,6 +48,10 @@ import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.*;
  * <pre>
  * selenide.baseUrl=http://localhost:8080;rdm.username=rdm_admin;rdm.password=rdm.admin
  * </pre>
+ * <p>
+ * В случае, если при запуске тестов падает без открытия страницы,
+ * надо применить временный фикс бага с white-page: https://github.com/SeleniumHQ/selenium/issues/14544
+ * -Dselenide.headless=false
  */
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -105,34 +105,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
     public static void beforeClass() {
 
         log.debug("Start configure Selenide");
-
-        // Временный фикс для повторного бага с white-page:
-        // https://github.com/SeleniumHQ/selenium/issues/14544
-        System.setProperty("selenide.headless", "false");
-
         configureSelenide();
-
-        final MutableCapabilities capabilities = Configuration.browserCapabilities;
-        //capabilities.setCapability("acceptSslCerts", true); // error
-        capabilities.setCapability("acceptInsecureCerts", true);
-        //capabilities.setCapability("ignore-certificate-errors", true); // error
-
-        final ChromeOptions options = new ChromeOptions();
-        options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
-        options.setCapability(CapabilityType.ENABLE_DOWNLOADS, true);
-        options.setExperimentalOption("useAutomationExtension", false);
-        options.setExperimentalOption("excludeSwitches",
-                new String[] {"enable-automation", "load-extension", "enable-logging"});
-        options.addArguments("--disable-blink-features=AutomationControlled");
-
-        capabilities.setCapability(ChromeOptions.CAPABILITY, options);
-
-        //Configuration.browserSize = "1920x1200";
-        Configuration.browserSize = "1280x800"; // debug only
-
-        //Configuration.baseUrl = getAppUrl(); // from selenide.baseUrl
-        Configuration.timeout = 8000;
-
         log.debug("Finish configure Selenide");
     }
 

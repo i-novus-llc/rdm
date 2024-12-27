@@ -20,14 +20,6 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <!-- Но нужна как минимум версия 7.3.2 ! -->
-        <selenide.version>7.5.1</selenide.version>
-        <!-- Минимальная версия 4.21.0 для Chrome v.125 ! -->
-        <selenium.version>4.25.0</selenium.version>
-        <!-- Минимальная версия 33.2.0-jre из Selenide v.7.3.2 ! -->
-        <google-guava.version>33.3.0-jre</google-guava.version>
-        <allure-junit5.version>2.27.0</allure-junit5.version>
-
         <!-- From:
          ? n2o-boot-platform
          - org.springframework.data/spring-data-jpa

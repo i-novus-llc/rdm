@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static ru.inovus.ms.rdm.ui.test.model.RefBook.getUnversionedType;
 
-public class DefaultReferrerToUnversionedTest extends AbstractRdmUiTest {
+class DefaultReferrerToUnversionedTest extends AbstractRdmUiTest {
 
     /**
      * Проверка работы с обычным справочником, ссылающимся на неверсионный справочник.
