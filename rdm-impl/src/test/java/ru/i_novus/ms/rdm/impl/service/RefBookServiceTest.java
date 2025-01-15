@@ -84,7 +84,7 @@ public class RefBookServiceTest {
     @Mock
     private DraftService draftService;
     @Mock
-    private PublishService publishService;
+    private PublishService syncPublishService;
 
     @Mock
     private VersionFileServiceImpl versionFileService;
@@ -366,7 +366,7 @@ public class RefBookServiceTest {
 
         refBookService.changeData(request);
 
-        verify(publishService).publish(eq(draft.getId()), any(PublishRequest.class));
+        verify(syncPublishService).publish(eq(draft.getId()), any(PublishRequest.class));
     }
 
     private RefBookEntity createRefBookEntity(Integer id) {

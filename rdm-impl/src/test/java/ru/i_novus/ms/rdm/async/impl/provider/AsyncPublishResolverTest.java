@@ -32,7 +32,7 @@ public class AsyncPublishResolverTest extends BaseTest {
     private AsyncPublishResolver resolver;
 
     @Mock
-    private PublishService publishService;
+    private PublishService syncPublishService;
 
     @Test
     public void testGetName() {

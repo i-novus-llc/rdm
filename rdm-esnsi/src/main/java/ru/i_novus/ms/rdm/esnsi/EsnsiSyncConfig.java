@@ -13,9 +13,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.PublishRestService;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.esnsi.smev.BufferCleaner;
 import ru.i_novus.ms.rdm.esnsi.smev.MsgFetcher;
@@ -33,7 +33,12 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @Configuration
 @DependsOn("liquibase")
 @EnableJaxRsProxyClient(
-    classes = {RefBookService.class, DraftService.class, FileStorageService.class, PublishService.class},
+    classes = {
+            RefBookService.class,
+            DraftRestService.class,
+            PublishRestService.class,
+            FileStorageService.class
+    },
     address = "${rdm.backend.path}"
 )
 public class EsnsiSyncConfig {

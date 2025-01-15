@@ -47,6 +47,7 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.PublishRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
@@ -98,6 +99,7 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
         classes = Application.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
+                "debug=true",
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
@@ -172,8 +174,8 @@ public class ApplicationTest {
     private DraftRestService draftService;
 
     @Autowired
-    @Qualifier("publishServiceJaxRsProxyClient")
-    private PublishService publishService;
+    @Qualifier("publishRestServiceJaxRsProxyClient")
+    private PublishRestService publishService;
 
     @Autowired
     @Qualifier("compareServiceJaxRsProxyClient")
@@ -3113,7 +3115,7 @@ public class ApplicationTest {
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
-        PublishRequest request = new PublishRequest(null);
+        final PublishRequest request = new PublishRequest(null);
         request.setVersionName(versionName);
         request.setFromDate(fromDate);
         request.setToDate(toDate);

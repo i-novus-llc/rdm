@@ -11,15 +11,14 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBook;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.PublishRestService;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
-import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.n2o.model.UiRefBookPublish;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +44,7 @@ public class RefBookPublishController {
 
     private final RefBookService refBookService;
     private final DraftRestService draftService;
-    private final PublishService publishService;
+    private final PublishRestService publishService;
     private final ConflictService conflictService;
 
     private final RefBookAdapter refBookAdapter;
@@ -55,7 +54,7 @@ public class RefBookPublishController {
     @Autowired
     public RefBookPublishController(RefBookService refBookService,
                                     DraftRestService draftService,
-                                    PublishService publishService,
+                                    PublishRestService publishService,
                                     ConflictService conflictService,
                                     RefBookAdapter refBookAdapter,
                                     Messages messages) {
@@ -122,10 +121,11 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishDraft(Integer draftId, Integer optLockValue) {
+    public void publishDraft(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(optLockValue);
-        return publishService.publishAsync(draftId, request);
+        final PublishRequest request = new PublishRequest(optLockValue);
+
+        publishService.publishAsync(draftId, request);
     }
 
     /**
@@ -133,11 +133,12 @@ public class RefBookPublishController {
      *
      * @param draftId идентификатор черновика
      */
-    public UUID publishAndRefresh(Integer draftId, Integer optLockValue) {
+    public void publishAndRefresh(Integer draftId, Integer optLockValue) {
 
-        PublishRequest request = new PublishRequest(optLockValue);
+        final PublishRequest request = new PublishRequest(optLockValue);
         request.setResolveConflicts(true);
-        return publishService.publishAsync(draftId, request);
+
+        publishService.publishAsync(draftId, request);
     }
 
     /**

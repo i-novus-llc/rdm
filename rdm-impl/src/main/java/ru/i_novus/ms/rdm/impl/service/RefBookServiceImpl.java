@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -30,7 +31,6 @@ import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
@@ -81,7 +81,7 @@ public class RefBookServiceImpl implements RefBookService {
     private final VersionValidation versionValidation;
 
     private final DraftService draftService;
-    private final PublishService publishService;
+    private final PublishService syncPublishService;
 
     private final VersionFileService versionFileService;
 
@@ -91,16 +91,21 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
-                              RefBookDetailModelRepository refBookDetailModelRepository,
-                              DropDataService dropDataService,
-                              RefBookLockService refBookLockService,
-                              PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, FileStorage fileStorage,
-                              DraftService draftService, PublishService publishService,
-                              VersionFileService versionFileService,
-                              AuditLogService auditLogService,
-                              StrategyLocator strategyLocator) {
+    public RefBookServiceImpl(
+            RefBookRepository refBookRepository,
+            RefBookVersionRepository versionRepository,
+            RefBookDetailModelRepository refBookDetailModelRepository,
+            DropDataService dropDataService,
+            RefBookLockService refBookLockService,
+            PassportValueRepository passportValueRepository,
+            RefBookVersionQueryProvider refBookVersionQueryProvider,
+            VersionValidation versionValidation,
+            DraftService draftService,
+            @Qualifier("syncPublishService") PublishService syncPublishService,
+            VersionFileService versionFileService,
+            AuditLogService auditLogService,
+            StrategyLocator strategyLocator
+    ) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -116,7 +121,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.versionValidation = versionValidation;
 
         this.draftService = draftService;
-        this.publishService = publishService;
+        this.syncPublishService = syncPublishService;
 
         this.versionFileService = versionFileService;
         
@@ -358,7 +363,7 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         Draft draft = draftService.getDraft(draftId);
-        publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
+        syncPublishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
     }
 
     private Draft findOrCreateDraft(RefBookEntity refBook) {

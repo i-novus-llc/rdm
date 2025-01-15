@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.async.impl.provider;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
@@ -18,15 +19,15 @@ public class AsyncPublishResolver implements AsyncOperationResolver {
 
     private static final String PUBLISH_REQUEST_IS_UNKNOWN = "Request for publication of '%s' is unknown (draft = %s, request: %s)";
 
-    private PublishService publishService;
+    private PublishService syncPublishService;
 
     public AsyncPublishResolver() {
         // Nothing to do.
     }
 
     @Autowired
-    public void setPublishService(@Lazy PublishService publishService) {
-        this.publishService = publishService;
+    public void setSyncPublishService(@Lazy @Qualifier("syncPublishService") PublishService syncPublishService) {
+        this.syncPublishService = syncPublishService;
     }
 
     @Override
@@ -54,8 +55,7 @@ public class AsyncPublishResolver implements AsyncOperationResolver {
 
         if (argRequest instanceof PublishRequest publishRequest) {
 
-            publishService.publish(draftId, publishRequest);
-
+            syncPublishService.publish(draftId, publishRequest);
             return null;
         }
 

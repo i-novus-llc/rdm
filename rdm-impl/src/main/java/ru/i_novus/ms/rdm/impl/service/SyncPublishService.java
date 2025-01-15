@@ -5,17 +5,14 @@ import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookSourceType;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.async.api.service.AsyncOperationMessageService;
 import ru.i_novus.ms.rdm.impl.audit.AuditAction;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -26,17 +23,13 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.ms.rdm.impl.util.ReferrerEntityIteratorProvider;
 
-import java.io.Serializable;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum.PUBLICATION;
 
 @Primary
 @Service
-public class PublishServiceImpl implements PublishService {
+public class SyncPublishService implements PublishService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PublishServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(SyncPublishService.class);
 
     private static final String LOG_ERROR_REFRESHING_CONFLICTING_REFERRERS = "Error refreshing conflicting referrers";
     private static final String LOG_ERROR_PUBLISHING_NONCONFLICT_REFERRERS = "Error publishing nonconflict referrers";
@@ -54,17 +47,16 @@ public class PublishServiceImpl implements PublishService {
 
     private final StrategyLocator strategyLocator;
 
-    private final AsyncOperationMessageService asyncOperationMessageService;
-
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public PublishServiceImpl(RefBookVersionRepository versionRepository,
-                              RefBookConflictRepository conflictRepository,
-                              ReferenceService referenceService,
-                              VersionValidation versionValidation,
-                              AuditLogService auditLogService,
-                              StrategyLocator strategyLocator,
-                              @Lazy AsyncOperationMessageService asyncOperationMessageService) {
+    public SyncPublishService(
+            RefBookVersionRepository versionRepository,
+            RefBookConflictRepository conflictRepository,
+            ReferenceService referenceService,
+            VersionValidation versionValidation,
+            AuditLogService auditLogService,
+            StrategyLocator strategyLocator
+    ) {
         this.versionRepository = versionRepository;
         this.conflictRepository = conflictRepository;
 
@@ -75,8 +67,6 @@ public class PublishServiceImpl implements PublishService {
         this.auditLogService = auditLogService;
 
         this.strategyLocator = strategyLocator;
-
-        this.asyncOperationMessageService = asyncOperationMessageService;
     }
 
     /**
@@ -85,7 +75,7 @@ public class PublishServiceImpl implements PublishService {
      * @param request параметры публикации
      */
     @Override
-    public PublishResponse publish(Integer draftId, PublishRequest request) {
+    public void publish(Integer draftId, PublishRequest request) {
 
         versionValidation.validateDraftNotArchived(draftId);
 
@@ -94,16 +84,6 @@ public class PublishServiceImpl implements PublishService {
         if (response != null) {
             resolveConflicts(request, response);
         }
-
-        return response;
-    }
-
-    @Override
-    @Transactional
-    public UUID publishAsync(Integer draftId, PublishRequest request) {
-
-        final String code = versionRepository.getOne(draftId).getRefBook().getCode();
-        return asyncOperationMessageService.send(PUBLICATION, code, new Serializable[] {draftId, request});
     }
 
     private RefBookVersionEntity getVersionOrThrow(Integer versionId) {
@@ -177,7 +157,7 @@ public class PublishServiceImpl implements PublishService {
 
         if (isOk.get()) {
             auditLogService.addAction(AuditAction.REFERRER_PUBLICATION,
-                    () -> versionRepository.getOne(publishedVersionId)
+                    () -> versionRepository.getReferenceById(publishedVersionId)
             );
         }
     }

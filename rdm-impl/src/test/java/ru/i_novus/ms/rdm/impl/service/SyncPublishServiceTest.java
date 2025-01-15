@@ -32,8 +32,10 @@ import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.publish.BasePublishStrategy;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -41,10 +43,9 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
-import static ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum.PUBLICATION;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PublishServiceTest {
+public class SyncPublishServiceTest {
 
     private static final int REFBOOK_ID = 2;
     private static final String REFBOOK_CODE = "refbook_code";
@@ -63,7 +64,7 @@ public class PublishServiceTest {
     private static final ReferrerVersionCriteria FIND_REFERRERS_CRITERIA = new ReferrerVersionCriteria(REFBOOK_CODE, FIND_REFERRERS_STATUS, FIND_REFERRERS_SOURCE);
 
     @InjectMocks
-    private PublishServiceImpl service;
+    private SyncPublishService service;
 
     @Mock
     private RefBookVersionRepository versionRepository;
@@ -179,29 +180,6 @@ public class PublishServiceTest {
         verifyNoMoreInteractions(basePublishStrategy);
     }
 
-    @Test
-    public void testPublishAsync() {
-
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        when(versionRepository.getOne(DRAFT_ID)).thenReturn(draftEntity);
-
-        UUID operationId = UUID.randomUUID();
-        when(asyncOperationMessageService.send(eq(PUBLICATION), eq(REFBOOK_CODE), any(Serializable[].class)))
-                .thenReturn(operationId);
-
-        PublishRequest request = new PublishRequest(draftEntity.getOptLockValue());
-        UUID result = service.publishAsync(DRAFT_ID, request);
-        assertSame(operationId, result);
-
-        ArgumentCaptor<Serializable> argsCaptor = ArgumentCaptor.forClass(Serializable.class);
-        verify(asyncOperationMessageService).send(eq(PUBLICATION), eq(REFBOOK_CODE), (Serializable[]) argsCaptor.capture());
-
-        Serializable[] args = (Serializable[]) argsCaptor.getValue();
-        assertEquals(2, args.length);
-        assertEquals(DRAFT_ID, args[0]);
-        assertEquals(request, args[1]);
-    }
-
     private void verifyBasePublish(RefBookVersionEntity entity, PublishRequest request) {
 
         ArgumentCaptor<RefBookVersionEntity> captor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
@@ -211,7 +189,7 @@ public class PublishServiceTest {
 
     private RefBookEntity createRefBookEntity() {
 
-        RefBookEntity entity = new DefaultRefBookEntity();
+        final RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(REFBOOK_ID);
         entity.setCode(REFBOOK_CODE);
 
@@ -220,7 +198,7 @@ public class PublishServiceTest {
 
     private RefBookVersionEntity createDraftEntity() {
 
-        RefBookVersionEntity entity = new RefBookVersionEntity();
+        final RefBookVersionEntity entity = new RefBookVersionEntity();
         entity.setId(DRAFT_ID);
         entity.setStorageCode(DRAFT_STORAGE_CODE);
         entity.setRefBook(createRefBookEntity());
