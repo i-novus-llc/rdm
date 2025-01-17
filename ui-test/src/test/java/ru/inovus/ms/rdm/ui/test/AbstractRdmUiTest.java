@@ -440,7 +440,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
      */
     List<Map<RefBookField, Object>> generateRows(
             int rowCount,
-                                                         List<FieldType> fieldTypes,
+            List<FieldType> fieldTypes,
             RefBook referredBook
     ) {
         final List<Map<RefBookField, Object>> result = new ArrayList<>(rowCount);

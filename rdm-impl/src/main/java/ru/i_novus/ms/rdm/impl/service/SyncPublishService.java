@@ -69,11 +69,6 @@ public class SyncPublishService implements PublishService {
         this.strategyLocator = strategyLocator;
     }
 
-    /**
-     * Публикация справочника.
-     *
-     * @param request параметры публикации
-     */
     @Override
     public void publish(Integer draftId, PublishRequest request) {
 

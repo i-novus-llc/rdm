@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="202501161548-shedlock_1.0" author="arahmatullin" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="shedlock" schemaName="public"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE public.shedlock(
+              name          VARCHAR(64) NOT NULL,
+              lock_until    TIMESTAMP NOT NULL,
+              locked_at     TIMESTAMP NOT NULL DEFAULT current_timestamp,
+              locked_by     VARCHAR(255) NOT NULL,
+
+              PRIMARY KEY (name)
+            );
+
+            COMMENT ON TABLE public.shedlock IS 'Блокировка задач'
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

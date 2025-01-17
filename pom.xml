@@ -63,6 +63,10 @@
         <!-- Текущая версия использует spring-boot 2.3.4 -->
         <!--<i-novus.audit.version>2.4.28</i-novus.audit.version>-->
 
+        <!-- job -->
+        <shedlock.version>6.2.0</shedlock.version>
+        <!-- / job -->
+
         <!-- test -->
         <xmlunit.version>1.6</xmlunit.version>
     </properties>
@@ -236,6 +240,20 @@
                 <version>${security.admin.version}</version>
             </dependency>
             <!-- / SECURITY -->
+
+            <!-- JOB -->
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-spring</artifactId>
+                <version>${shedlock.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-provider-jdbc-template</artifactId>
+                <version>${shedlock.version}</version>
+            </dependency>
+            <!-- / JOB -->
 
             <!-- JAX -->
             <dependency>

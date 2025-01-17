@@ -20,6 +20,10 @@ autotesting mr stand:
   variables:
     AUTOTEST_MODULE_DIR: './ui-test'
     AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
+  artifacts:
+    paths:
+      - ./ui-test/build/reports/
+    expire_in: 1 week
 
 # Т.к. у нас нет dev-стенда -- убираем post dev, чтобы в Jira не проставлялась дата установки на develop
 # Нам из dev-stand.gitlab-ci.yml нужен только build
