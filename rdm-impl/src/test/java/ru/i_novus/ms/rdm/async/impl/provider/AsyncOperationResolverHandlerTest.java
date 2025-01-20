@@ -49,7 +49,7 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
     public void testHandleSingleResolver() {
 
         final List<AsyncOperationResolver> singleResolverList = singletonList(
-                new TestFirstPublicationResolver()
+                new TestFirstResolver()
         );
         final AsyncOperationResolverHandler handler = new AsyncOperationResolverHandlerImpl(singleResolverList);
 
@@ -62,8 +62,8 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
     public void testHandleDoubleResolver() {
 
         final List<AsyncOperationResolver> doubleResolverList = List.of(
-                new TestFirstPublicationResolver(),
-                new TestSecondPublicationResolver()
+                new TestFirstResolver(),
+                new TestSecondResolver()
         );
         final AsyncOperationResolverHandler handler = new AsyncOperationResolverHandlerImpl(doubleResolverList);
 
@@ -76,9 +76,9 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
     public void testHandleNormalResolver() {
 
         final List<AsyncOperationResolver> resolvers = List.of(
-                new TestFirstPublicationResolver(),
-                new TestSecondPublicationResolver(),
-                new TestNormalPublicationResolver()
+                new TestFirstResolver(),
+                new TestSecondResolver(),
+                new TestNormalResolver()
         );
         final AsyncOperationResolverHandler handler = new AsyncOperationResolverHandlerImpl(resolvers);
 
@@ -94,9 +94,9 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
     public void testHandleThrownResolver() {
 
         final List<AsyncOperationResolver> resolvers = List.of(
-                new TestFirstPublicationResolver(),
-                new TestSecondPublicationResolver(),
-                new TestThrownPublicationResolver()
+                new TestFirstResolver(),
+                new TestSecondResolver(),
+                new TestThrownResolver()
         );
         final AsyncOperationResolverHandler handler = new AsyncOperationResolverHandlerImpl(resolvers);
 
@@ -110,7 +110,7 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
         }
     }
 
-    private static class TestFirstPublicationResolver implements AsyncOperationResolver {
+    private static class TestFirstResolver implements AsyncOperationResolver {
 
         @Override
         public String getName() {
@@ -128,7 +128,7 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
         }
     }
 
-    private static class TestSecondPublicationResolver implements AsyncOperationResolver {
+    private static class TestSecondResolver implements AsyncOperationResolver {
 
         @Override
         public String getName() {
@@ -146,7 +146,7 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
         }
     }
 
-    private static class TestNormalPublicationResolver implements AsyncOperationResolver {
+    private static class TestNormalResolver implements AsyncOperationResolver {
 
         @Override
         public String getName() {
@@ -164,7 +164,7 @@ public class AsyncOperationResolverHandlerTest extends BaseTest {
         }
     }
 
-    private static class TestThrownPublicationResolver implements AsyncOperationResolver {
+    private static class TestThrownResolver implements AsyncOperationResolver {
 
         @Override
         public String getName() {

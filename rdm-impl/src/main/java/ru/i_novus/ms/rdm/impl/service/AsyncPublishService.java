@@ -78,6 +78,6 @@ public class AsyncPublishService implements PublishService {
     private UserException lockError(String code) {
 
         logger.error("RefBook {} is already publishing", code);
-        return new UserException(new Message("refbook.with.code.lock.draft.is.publishing", code));
+        return new UserException(new Message("refbook.with.code.lock.is.publishing", code));
     }
 }

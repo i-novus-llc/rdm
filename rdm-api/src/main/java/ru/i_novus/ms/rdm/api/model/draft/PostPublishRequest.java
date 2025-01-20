@@ -8,9 +8,12 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-@ApiModel(value = "Модель пост-публикации черновика",
-        description = "Набор входных параметров для пост-публикации черновика")
+@ApiModel(value = "Модель для операций после публикации справочника",
+        description = "Набор входных параметров для операций после публикации справочника")
 public class PostPublishRequest implements Serializable {
+
+    @ApiModelProperty("Код справочника")
+    private String refBookCode;
 
     @ApiModelProperty("Код хранилища ранее опубликованной версии")
     private String lastStorageCode;
@@ -31,15 +34,12 @@ public class PostPublishRequest implements Serializable {
         // Nothing to do.
     }
 
-    public PostPublishRequest(String lastStorageCode, String oldStorageCode, String newStorageCode,
-                              LocalDateTime fromDate, LocalDateTime toDate) {
+    public String getRefBookCode() {
+        return refBookCode;
+    }
 
-        this.lastStorageCode = lastStorageCode;
-        this.oldStorageCode = oldStorageCode;
-        this.newStorageCode = newStorageCode;
-
-        this.fromDate = fromDate;
-        this.toDate = toDate;
+    public void setRefBookCode(String refBookCode) {
+        this.refBookCode = refBookCode;
     }
 
     public String getLastStorageCode() {
@@ -87,17 +87,23 @@ public class PostPublishRequest implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        PostPublishRequest that = (PostPublishRequest) o;
-        return Objects.equals(lastStorageCode, that.lastStorageCode) &&
+        final PostPublishRequest that = (PostPublishRequest) o;
+        return Objects.equals(refBookCode, that.refBookCode) &&
+
+                Objects.equals(lastStorageCode, that.lastStorageCode) &&
                 Objects.equals(oldStorageCode, that.oldStorageCode) &&
                 Objects.equals(newStorageCode, that.newStorageCode) &&
+
                 Objects.equals(fromDate, that.fromDate) &&
                 Objects.equals(toDate, that.toDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
+        return Objects.hash(refBookCode,
+                lastStorageCode, oldStorageCode, newStorageCode,
+                fromDate, toDate
+        );
     }
 
     @Override
