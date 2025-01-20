@@ -20,7 +20,6 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 import ru.i_novus.ms.rdm.api.model.version.ReferrerVersionCriteria;
 import ru.i_novus.ms.rdm.api.service.ReferenceService;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.async.api.service.AsyncOperationMessageService;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
@@ -82,9 +81,6 @@ public class SyncPublishServiceTest {
 
     @Mock
     private BasePublishStrategy basePublishStrategy;
-
-    @Mock
-    private AsyncOperationMessageService asyncOperationMessageService;
 
     @Before
     public void setUp() {

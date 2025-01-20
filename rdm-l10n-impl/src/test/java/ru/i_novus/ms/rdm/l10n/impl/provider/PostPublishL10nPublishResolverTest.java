@@ -11,8 +11,6 @@ import ru.i_novus.platform.l10n.versioned_data_storage.api.service.L10nDraftData
 
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -28,15 +26,31 @@ public class PostPublishL10nPublishResolverTest extends BaseTest {
     @Test
     public void testResolve() {
 
-        final PostPublishRequest request = new PostPublishRequest();
+        final PostPublishRequest request = createRequest();
         resolver.resolve(request);
 
         verify(draftDataService).applyLocalizedDraft(
-                anyString(), anyString(), anyString(),
-                any(LocalDateTime.class), any(LocalDateTime.class)
+                request.getLastStorageCode(),
+                request.getOldStorageCode(), request.getNewStorageCode(),
+                request.getFromDate(), request.getToDate()
         );
 
         verifyNoMoreInteractions(draftDataService);
+    }
+
+    private PostPublishRequest createRequest() {
+
+        final PostPublishRequest request = new PostPublishRequest();
+        request.setRefBookCode("ref_book_code");
+
+        request.setLastStorageCode("last-storage-code");
+        request.setOldStorageCode("old-storage-code");
+        request.setNewStorageCode("new-storage-code");
+
+        request.setFromDate(LocalDateTime.now());
+        request.setToDate(LocalDateTime.now());
+
+        return request;
     }
 
     @Test

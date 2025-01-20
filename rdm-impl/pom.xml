@@ -13,8 +13,8 @@
     <properties>
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>
-            **/Q*Entity.java, **/*Repository.java, **/*QueryProvider.java,
-            **/*StrategyLocatorConfig.java, **/service/async/*.java
+            **/Q*Entity.java, **/*Repository.java, **/queryprovider/*QueryProvider.java,
+            **/*StrategyLocatorConfig.java, **/provider/*HandlerImpl.java
         </sonar.coverage.exclusions>
     </properties>
 

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Service
+@SuppressWarnings("unused")
 public class AsyncPublishService implements PublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncPublishService.class);

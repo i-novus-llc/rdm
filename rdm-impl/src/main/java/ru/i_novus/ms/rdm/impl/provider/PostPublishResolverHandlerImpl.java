@@ -11,6 +11,7 @@ import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
+@SuppressWarnings("unused")
 public class PostPublishResolverHandlerImpl implements PostPublishResolverHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(PostPublishResolverHandlerImpl.class);

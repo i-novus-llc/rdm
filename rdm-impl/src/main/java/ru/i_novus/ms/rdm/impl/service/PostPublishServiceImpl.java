@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Service
+@SuppressWarnings("unused")
 public class PostPublishServiceImpl implements PostPublishService {
 
     private static final Logger logger = LoggerFactory.getLogger(PostPublishServiceImpl.class);
