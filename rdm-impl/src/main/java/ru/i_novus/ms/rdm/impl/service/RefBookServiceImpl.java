@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.Structure;
@@ -56,6 +55,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newAbsentFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary
@@ -204,10 +205,12 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        switch (fileModel.getExtension()) {
+        final String extension = fileModel.getExtension();
+        switch (extension) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
-            default: throw new FileExtensionException();
+            case "": throw newAbsentFileExtensionException(fileModel.getName());
+            default: throw newInvalidFileExtensionException(extension);
         }
     }
 

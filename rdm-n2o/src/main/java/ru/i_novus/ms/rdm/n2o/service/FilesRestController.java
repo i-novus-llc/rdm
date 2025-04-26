@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
@@ -21,6 +20,8 @@ import ru.i_novus.ms.rdm.api.service.FileStorageService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 
 import java.io.IOException;
+
+import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newAbsentFileExtensionException;
 
 @RestController
 @RequestMapping("/files")
@@ -67,7 +68,7 @@ public class FilesRestController {
 
         String extension = FilenameUtils.getExtension(originalFilename);
         if (StringUtils.isEmpty(extension))
-            throw new FileExtensionException();
+            throw newAbsentFileExtensionException(extension);
 
         return System.currentTimeMillis() + "." + extension;
     }

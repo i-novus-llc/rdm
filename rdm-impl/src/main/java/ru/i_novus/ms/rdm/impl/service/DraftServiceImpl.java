@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -81,6 +80,8 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newAbsentFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
@@ -184,10 +185,12 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        switch (fileModel.getExtension()) {
+        final String extension = fileModel.getExtension();
+        switch (extension) {
             case "XLSX": return createFromXlsx(refBookId, fileModel);
             case "XML": return createFromXml(refBookId, fileModel);
-            default: throw new FileExtensionException();
+            case "": throw newAbsentFileExtensionException(fileModel.getName());
+            default: throw newInvalidFileExtensionException(extension);
         }
     }
 
