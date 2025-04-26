@@ -46,7 +46,6 @@ import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateFirstVersionStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.CreateRefBookEntityStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.refbook.RefBookCreateValidationStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
-import ru.i_novus.ms.rdm.impl.util.FileUtil;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 
@@ -205,7 +204,7 @@ public class RefBookServiceImpl implements RefBookService {
     @Transactional(timeout = 1200000)
     public Draft create(FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
+        switch (fileModel.getExtension()) {
             case "XLSX": return createByXlsx(fileModel);
             case "XML": return createByXml(fileModel);
             default: throw new FileExtensionException();

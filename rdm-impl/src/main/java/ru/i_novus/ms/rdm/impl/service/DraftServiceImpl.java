@@ -52,7 +52,10 @@ import ru.i_novus.ms.rdm.impl.strategy.structure.CreateAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.DeleteAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.UpdateAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
-import ru.i_novus.ms.rdm.impl.util.*;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.ms.rdm.impl.util.RowDiff;
+import ru.i_novus.ms.rdm.impl.util.RowDiffUtils;
 import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.PlainRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
@@ -181,7 +184,7 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
+        switch (fileModel.getExtension()) {
             case "XLSX": return createFromXlsx(refBookId, fileModel);
             case "XML": return createFromXml(refBookId, fileModel);
             default: throw new FileExtensionException();
