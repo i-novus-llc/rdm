@@ -55,8 +55,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newAbsentFileExtensionException;
-import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary

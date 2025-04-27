@@ -3,7 +3,7 @@ package ru.i_novus.ms.rdm.impl.file.process;
 import ru.i_novus.ms.rdm.api.util.row.RowMapper;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
 
-import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 
 public class FileProcessorFactory {
 

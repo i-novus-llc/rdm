@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isNumeric;
-import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newAbsentFileExtensionException;
-import static ru.i_novus.ms.rdm.api.exception.FileExtensionException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 
 @RestController
 @RequestMapping("/files")
