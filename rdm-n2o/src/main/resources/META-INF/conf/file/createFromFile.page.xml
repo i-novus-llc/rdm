@@ -7,7 +7,7 @@
 
         <fields>
             <file-upload id="file" label="Файл с данными (xml)" label-field-id="name"
-                         upload-url="files" accept=".xml"/>
+                         upload-url="/files" accept=".xml"/>
         </fields>
     </form>
     
