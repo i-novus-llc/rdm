@@ -6,8 +6,8 @@
         <datasource object-id="refBook"/>
 
         <fields>
-            <file-upload id="file" label="Файл с данными (xml)" label-field-id="name"
-                         upload-url="/files" accept=".xml"/>
+            <file-upload id="file" label="Файл справочника (xml)" label-field-id="name"
+                         upload-url="/files/refbook" accept=".xml"/>
         </fields>
     </form>
     

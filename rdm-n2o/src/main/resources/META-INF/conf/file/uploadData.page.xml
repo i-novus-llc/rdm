@@ -13,7 +13,7 @@
             <output-text id="versionId" visible="false"/>
 
             <file-upload id="file" label="Файл с данными (xml, xlsx)" label-field-id="name"
-                         upload-url="/files" accept=".xml,.xlsx"/>
+                         upload-url="/files/refdata" accept=".xml,.xlsx"/>
         </fields>
 
         <toolbar place="bottomRight">

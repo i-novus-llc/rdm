@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
 import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -13,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
+import ru.i_novus.ms.rdm.api.exception.FileException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
@@ -23,9 +23,10 @@ import ru.i_novus.ms.rdm.api.util.StringUtils;
 import java.io.IOException;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
-import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
-import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.*;
+import static ru.i_novus.ms.rdm.api.util.FileUtils.getRefBookFileExtension;
 
 @RestController
 @RequestMapping("/files")
@@ -35,6 +36,9 @@ public class FilesRestController {
     private static final String FILE_IS_TOO_BIG_EXCEPTION_CODE = "file.is.too.big";
 
     private static final long KILOBYTE = 1024;
+    private static final List<String> REFBOOK_EXTENSIONS = singletonList("XML");
+    private static final List<String> DRAFT_EXTENSIONS = List.of("XML", "XSLX");
+    private static final List<String> REFDATA_EXTENSIONS = List.of("XML", "XSLX");
 
     private final FileStorageService fileStorageService;
 
@@ -55,17 +59,36 @@ public class FilesRestController {
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "")
-    public FileModel uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping(value = "/refbook")
+    public FileModel uploadRefBook(@RequestParam("file") MultipartFile file) throws IOException {
 
-        if (toMbSize(file.getSize()) > maxFileSizeMb)
-            throw new UserException(new Message(FILE_IS_TOO_BIG_EXCEPTION_CODE, maxFileSizeMb));
+        return uploadFile(file, REFBOOK_EXTENSIONS);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/draft")
+    public FileModel uploadRefDraft(@RequestParam("file") MultipartFile file) throws IOException {
+
+        return uploadFile(file, DRAFT_EXTENSIONS);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/refdata")
+    public FileModel uploadRefData(@RequestParam("file") MultipartFile file) throws IOException {
+
+        return uploadFile(file, REFDATA_EXTENSIONS);
+    }
+
+    private FileModel uploadFile(MultipartFile file, List<String> allowExtensions) throws IOException {
+
+        validate(file);
 
         final String originalFilename = file.getOriginalFilename();
-        final List<String> extensions = FileUtils.getExtensions(originalFilename);
-        validateFileName(originalFilename, extensions);
+        final String fileExtension = getRefBookFileExtension(originalFilename);
+        if (!allowExtensions.contains(fileExtension))
+            throw newInvalidFileExtensionException(fileExtension);
 
-        final String storageFileName = toStorageFileName(extensions.get(0));
+        final String storageFileName = toStorageFileName(fileExtension);
 
         final FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
         save.setName(originalFilename);
@@ -73,12 +96,25 @@ public class FilesRestController {
         return save;
     }
 
+    private void validate(MultipartFile file) {
+
+        if (toMbSize(file.getSize()) > maxFileSizeMb)
+            throw new FileException(new Message(FILE_IS_TOO_BIG_EXCEPTION_CODE, maxFileSizeMb));
+
+        final String filename = file.getOriginalFilename();
+        if (StringUtils.isEmpty(filename))
+            throw newAbsentFileNameException();
+
+        final List<String> extensions = FileUtils.getExtensions(filename);
+        validateExtensions(filename, extensions);
+    }
+
     private long toMbSize(long size) {
 
         return size / KILOBYTE / KILOBYTE;
     }
 
-    private void validateFileName(String originalFilename, List<String> extensions) {
+    private void validateExtensions(String originalFilename, List<String> extensions) {
 
         if (CollectionUtils.isEmpty(extensions))
             throw newAbsentFileExtensionException(originalFilename);
