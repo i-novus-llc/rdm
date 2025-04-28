@@ -12,8 +12,6 @@ deploy mr stand:
 
 build and verify:
   variables:
-    JDK_VERSION: 'jdk17'
-    NODE_VERSION: 'node18'
     MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
     DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
 
