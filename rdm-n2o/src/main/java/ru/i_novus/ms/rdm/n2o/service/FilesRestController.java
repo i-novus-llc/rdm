@@ -66,14 +66,14 @@ public class FilesRestController {
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "/draft")
+    @PostMapping(value = "/refbook/draft")
     public FileModel uploadRefDraft(@RequestParam("file") MultipartFile file) throws IOException {
 
         return uploadFile(file, DRAFT_EXTENSIONS);
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "/refdata")
+    @PostMapping(value = "/refbook/data")
     public FileModel uploadRefData(@RequestParam("file") MultipartFile file) throws IOException {
 
         return uploadFile(file, REFDATA_EXTENSIONS);
