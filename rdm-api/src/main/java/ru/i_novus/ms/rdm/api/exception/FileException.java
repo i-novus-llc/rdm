@@ -13,10 +13,6 @@ public class FileException extends UserException {
         super(message);
     }
 
-    public FileException(Message message, Throwable cause) {
-        super(message, cause);
-    }
-
     public static FileException newAbsentFileNameException() {
         return new FileException(new Message(ABSENT_FILE_NAME_EXCEPTION_CODE));
     }
