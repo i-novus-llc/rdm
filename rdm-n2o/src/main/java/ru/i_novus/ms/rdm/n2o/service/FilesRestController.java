@@ -22,7 +22,7 @@ import static ru.i_novus.ms.rdm.api.util.FileUtils.getRefBookFileExtension;
 
 @RestController
 @RequestMapping("/files")
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "java:S5122"}) // cors
 public class FilesRestController {
 
     private final FileStorageService fileStorageService;
