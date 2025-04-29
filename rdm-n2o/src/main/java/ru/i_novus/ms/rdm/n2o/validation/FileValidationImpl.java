@@ -21,11 +21,10 @@ public class FileValidationImpl implements FileValidation {
 
     private static final long KILOBYTE = 1024;
 
-    private final int maxFileSizeMb;
+    @Value("${rdm.max-file-size-mb:55}")
+    private int maxFileSizeMb;
 
-    public FileValidationImpl(
-            @Value("${rdm.max-file-size-mb:55}") int maxFileSizeMb
-    ) {
+    public void setMaxFileSizeMb(int maxFileSizeMb) {
         this.maxFileSizeMb = maxFileSizeMb;
     }
 
