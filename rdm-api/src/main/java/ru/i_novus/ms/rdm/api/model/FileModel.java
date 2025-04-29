@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.api.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import ru.i_novus.ms.rdm.api.util.FileUtils;
 import ru.i_novus.ms.rdm.api.util.json.JsonUtil;
 
 import java.io.Serializable;
@@ -44,6 +45,16 @@ public class FileModel implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Получение расширения файла для выбора действий с этим файлом.
+     *
+     * @return Последнее расширение файла в верхнем регистре без крайних пробелов или пустая строка
+     */
+    public String getExtension() {
+
+        return FileUtils.getRefBookFileExtension(name);
     }
 
     public String generateFullPath() {

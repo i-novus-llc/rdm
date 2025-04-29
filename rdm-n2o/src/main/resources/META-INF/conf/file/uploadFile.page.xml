@@ -16,7 +16,7 @@
                    text="Внимание: Все неопубликованные данные будут удалены."/>
 
             <file-upload id="file" label="Файл с данными (xml, xlsx)" label-field-id="name"
-                         upload-url="/files"/>
+                         upload-url="/files/refbook/draft" accept=".xml,.xlsx"/>
         </fields>
     </form>
     

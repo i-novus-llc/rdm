@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.enumeration.ConflictType;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -52,7 +51,10 @@ import ru.i_novus.ms.rdm.impl.strategy.structure.CreateAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.DeleteAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.structure.UpdateAttributeStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.version.ValidateVersionNotArchivedStrategy;
-import ru.i_novus.ms.rdm.impl.util.*;
+import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
+import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
+import ru.i_novus.ms.rdm.impl.util.RowDiff;
+import ru.i_novus.ms.rdm.impl.util.RowDiffUtils;
 import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.PlainRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
@@ -78,6 +80,8 @@ import java.util.function.Supplier;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
+import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
@@ -181,10 +185,12 @@ public class DraftServiceImpl implements DraftService {
     /** Создание и обновление данных черновика справочника из файла. */
     private Draft createFromFile(Integer refBookId, FileModel fileModel) {
 
-        switch (FileUtil.getExtension(fileModel.getName())) {
+        final String extension = fileModel.getExtension();
+        switch (extension) {
             case "XLSX": return createFromXlsx(refBookId, fileModel);
             case "XML": return createFromXml(refBookId, fileModel);
-            default: throw new FileExtensionException();
+            case "": throw newAbsentFileExtensionException(fileModel.getName());
+            default: throw newInvalidFileExtensionException(extension);
         }
     }
 

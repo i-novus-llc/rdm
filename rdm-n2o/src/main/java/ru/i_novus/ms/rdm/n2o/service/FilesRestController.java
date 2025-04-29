@@ -1,10 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.service;
 
-import net.n2oapp.platform.i18n.Message;
-import net.n2oapp.platform.i18n.UserException;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -13,61 +9,79 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
+import ru.i_novus.ms.rdm.api.enumeration.FileUsageTypeEnum;
 import ru.i_novus.ms.rdm.api.model.ExportFile;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.FileStorageService;
-import ru.i_novus.ms.rdm.api.util.StringUtils;
+import ru.i_novus.ms.rdm.n2o.validation.FileValidation;
 
 import java.io.IOException;
 
+import static ru.i_novus.ms.rdm.api.util.FileUtils.getRefBookFileExtension;
+
 @RestController
 @RequestMapping("/files")
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "java:S5122"}) // cors
 public class FilesRestController {
 
-    private static final String FILE_IS_TOO_BIG_EXCEPTION_CODE = "file.is.too.big";
-
     private final FileStorageService fileStorageService;
+    private final FileValidation fileValidation;
 
     private final VersionRestService versionService;
 
-    private final int maxFileSizeMb;
-
     @Autowired
     public FilesRestController(FileStorageService fileStorageService,
-                               VersionRestService versionService,
-                               @Value("${rdm.max-file-size-mb:55}") int maxFileSizeMb) {
+                               FileValidation fileValidation,
+                               VersionRestService versionService) {
 
         this.fileStorageService = fileStorageService;
+        this.fileValidation = fileValidation;
 
         this.versionService = versionService;
-
-        this.maxFileSizeMb = maxFileSizeMb;
     }
 
     @CrossOrigin(origins = "*")
-    @PostMapping(value = "")
-    public FileModel uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping(value = "/refbook")
+    public FileModel uploadRefBook(@RequestParam("file") MultipartFile file) throws IOException {
 
-        long size = file.getSize();
-        if (size / 1024 / 1024 > maxFileSizeMb)
-            throw new UserException(new Message(FILE_IS_TOO_BIG_EXCEPTION_CODE, maxFileSizeMb));
+        return uploadFile(file, FileUsageTypeEnum.REF_BOOK);
+    }
 
-        String storageFileName = toStorageFileName(file.getOriginalFilename());
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/refbook/draft")
+    public FileModel uploadRefDraft(@RequestParam("file") MultipartFile file) throws IOException {
 
-        FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
-        save.setName(file.getOriginalFilename());
+        return uploadFile(file, FileUsageTypeEnum.REF_DRAFT);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/refbook/data")
+    public FileModel uploadRefData(@RequestParam("file") MultipartFile file) throws IOException {
+
+        return uploadFile(file, FileUsageTypeEnum.REF_DATA);
+    }
+
+    private FileModel uploadFile(MultipartFile file, FileUsageTypeEnum fileUsageType) throws IOException {
+
+        fileValidation.validateSize(file.getSize());
+
+        final String filename = file.getOriginalFilename();
+        fileValidation.validateName(filename);
+        fileValidation.validateExtensions(filename);
+
+        final String fileExtension = getRefBookFileExtension(filename);
+        fileValidation.validateExtensionByUsage(fileExtension, fileUsageType);
+
+        final String storageFileName = toStorageFileName(fileExtension);
+
+        final FileModel save = fileStorageService.save(file.getInputStream(), storageFileName);
+        save.setName(filename);
 
         return save;
     }
 
-    private String toStorageFileName(String originalFilename) {
-
-        String extension = FilenameUtils.getExtension(originalFilename);
-        if (StringUtils.isEmpty(extension))
-            throw new FileExtensionException();
+    private String toStorageFileName(String extension) {
 
         return System.currentTimeMillis() + "." + extension;
     }

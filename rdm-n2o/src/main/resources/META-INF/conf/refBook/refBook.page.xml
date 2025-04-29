@@ -182,7 +182,7 @@
                                 <toolbar>
                                     <button label="Загрузить из файла" color="primary">
                                         <invoke operation-id="uploadFromFile"
-                                                redirect-url="${rdm.context-path}/main/:refBookId/edit"
+                                                redirect-url="${rdm.context-path}/main"
                                                 redirect-target="application"/>
                                         <!--<a href="${rdm.context-path}/main/:refBookId/edit" target="application"/>-->
                                     </button>
