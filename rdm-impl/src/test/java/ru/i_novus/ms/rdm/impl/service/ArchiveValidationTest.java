@@ -27,7 +27,6 @@ import ru.i_novus.ms.rdm.impl.BaseTest;
 import ru.i_novus.ms.rdm.impl.entity.DefaultRefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.repository.RefBookRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
@@ -81,9 +80,6 @@ public class ArchiveValidationTest extends BaseTest {
 
     @Mock
     private FieldFactory fieldFactory;
-
-    @Mock
-    private FileStorage fileStorage;
 
     @Mock
     private VersionFileRepository versionFileRepository;

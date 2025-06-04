@@ -30,7 +30,6 @@ import ru.i_novus.ms.rdm.impl.entity.PassportValueEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookDetailModel;
 import ru.i_novus.ms.rdm.impl.entity.RefBookEntity;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
-import ru.i_novus.ms.rdm.impl.file.FileStorage;
 import ru.i_novus.ms.rdm.impl.file.process.XmlCreateRefBookFileProcessor;
 import ru.i_novus.ms.rdm.impl.queryprovider.RefBookVersionQueryProvider;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
@@ -93,13 +92,16 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public RefBookServiceImpl(RefBookRepository refBookRepository, RefBookVersionRepository versionRepository,
+    public RefBookServiceImpl(RefBookRepository refBookRepository,
+                              RefBookVersionRepository versionRepository,
                               RefBookDetailModelRepository refBookDetailModelRepository,
                               DropDataService dropDataService,
                               RefBookLockService refBookLockService,
-                              PassportValueRepository passportValueRepository, RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation, FileStorage fileStorage,
-                              DraftService draftService, PublishService publishService,
+                              PassportValueRepository passportValueRepository,
+                              RefBookVersionQueryProvider refBookVersionQueryProvider,
+                              VersionValidation versionValidation,
+                              DraftService draftService,
+                              PublishService publishService,
                               VersionFileService versionFileService,
                               AuditLogService auditLogService,
                               StrategyLocator strategyLocator) {
