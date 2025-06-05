@@ -52,7 +52,8 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_B
                 "spring.main.allow-bean-definition-overriding=true",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
-                "rdm.audit.disabledActions=all"
+                "rdm.audit.disabledActions=all",
+                "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
