@@ -124,10 +124,10 @@ public class RefBookDataController {
 
             long conflictsCount = conflictService.countConflictedRowIds(toConflictCriteria(criteria));
             if (conflictsCount == 0) {
-                //return new RestPage<>(getEmptyContent(), EMPTY_SEARCH_DATA_CRITERIA, 0);
                 // Временный фикс для правильной работы кнопок на вкладке "Данные с конфликтами":
+                // NB: Use getEmptyContent() only after fix buttons
                 final List<DataGridRow> result = getDataGridContent(criteria, version, emptyList());
-                return new RestPage<>(result, criteria, 0);
+                return new RestPage<>(result, EMPTY_SEARCH_DATA_CRITERIA, 0);
             }
 
             long dataCount = versionService.search(version.getId(), EMPTY_SEARCH_DATA_CRITERIA).getTotalElements();
@@ -282,7 +282,7 @@ public class RefBookDataController {
             return emptyList();
 
         try {
-            return orders.stream().map(order -> toSortOrder(structure, order)).collect(toList());
+            return orders.stream().map(order -> toSortOrder(structure, order)).toList();
 
         } catch (UserException e) {
             throw e;
