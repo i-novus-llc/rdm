@@ -25,7 +25,7 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataClientLoader.class);
 
-    public static final MultiValueMap<String, Object> EMPTY_GET_DATA = new LinkedMultiValueMap<>(0);
+    private static final MultiValueMap<String, Object> EMPTY_GET_DATA = new LinkedMultiValueMap<>(0);
 
     public RefBookDataClientLoader(RestOperations restTemplate) {
         super(restTemplate);
