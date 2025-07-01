@@ -51,6 +51,13 @@ cxf:
         timeout: '1500000'
       receive:
         timeout: '1500000'
+
+# Disable tracing:
+# cxf 4.0.5 is incompatible with brave-instrumentation-http 6.0.3
+management:
+  tracing:
+    enabled: false
+
 n2o:
   application:
     id: rdm

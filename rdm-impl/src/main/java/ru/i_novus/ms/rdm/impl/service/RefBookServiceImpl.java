@@ -210,11 +210,11 @@ public class RefBookServiceImpl implements RefBookService {
 
         final String extension = fileModel.getExtension();
         return switch (extension) {
-            case "XLSX": createByXlsx(fileModel);
-            case "XML": createByXml(fileModel);
-            case "": throw newAbsentFileExtensionException(fileModel.getName());
-            default: throw newInvalidFileExtensionException(extension);
-        }
+            case "XLSX" -> createByXlsx(fileModel);
+            case "XML" -> createByXml(fileModel);
+            case "" -> throw newAbsentFileExtensionException(fileModel.getName());
+            default -> throw newInvalidFileExtensionException(extension);
+        };
     }
 
     @SuppressWarnings("unused")

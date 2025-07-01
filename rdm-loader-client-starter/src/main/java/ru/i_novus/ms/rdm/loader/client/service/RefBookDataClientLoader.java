@@ -25,6 +25,8 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
 
     private static final Logger logger = LoggerFactory.getLogger(RefBookDataClientLoader.class);
 
+    private static final MultiValueMap<String, Object> EMPTY_GET_DATA = new LinkedMultiValueMap<>(0);
+
     public RefBookDataClientLoader(RestOperations restTemplate) {
         super(restTemplate);
     }
@@ -68,9 +70,10 @@ public class RefBookDataClientLoader extends RestClientLoader<MultiValueMap<Stri
         return headers;
     }
 
+    // Метод не используется, так как метод load полностью переопределён.
     @Override
     protected MultiValueMap<String, Object> getData(Resource file) {
-        return null; // Nothing to do.
+        return EMPTY_GET_DATA; // Nothing to do.
     }
 
     /**
