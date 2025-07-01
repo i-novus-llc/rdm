@@ -1,8 +1,9 @@
 package ru.i_novus.ms.rdm.impl.file.process;
 
-import ru.i_novus.ms.rdm.api.exception.FileExtensionException;
 import ru.i_novus.ms.rdm.api.util.row.RowMapper;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
+
+import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 
 public class FileProcessorFactory {
 
@@ -15,7 +16,7 @@ public class FileProcessorFactory {
         switch (extension) {
             case "XLSX": return new XlsxPerRowProcessor(rowMapper, rowsProcessor);
             case "XML": return new XmlPerRowProcessor(rowMapper, rowsProcessor);
-            default: throw new FileExtensionException();
+            default: throw newInvalidFileExtensionException(extension);
         }
     }
 }

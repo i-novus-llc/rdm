@@ -7,10 +7,6 @@ public class FileContentException extends UserException {
 
     private static final Message DEFAULT_EXCEPTION = new Message("file.content.invalid");
 
-    public FileContentException() {
-        super(DEFAULT_EXCEPTION);
-    }
-
     public FileContentException(Throwable cause) {
         super(DEFAULT_EXCEPTION, cause);
     }

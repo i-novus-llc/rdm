@@ -30,7 +30,6 @@ import ru.i_novus.ms.rdm.impl.strategy.Strategy;
 import ru.i_novus.ms.rdm.impl.strategy.StrategyLocator;
 import ru.i_novus.ms.rdm.impl.strategy.file.AllowStoreVersionFileStrategy;
 import ru.i_novus.ms.rdm.impl.strategy.file.GenerateFileNameStrategy;
-import ru.i_novus.ms.rdm.impl.util.FileUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -224,7 +223,7 @@ public class VersionFileServiceImpl implements VersionFileService {
     @Override
     public void processRows(FileModel fileModel, RowsProcessor rowsProcessor, RowMapper rowMapper) {
 
-        String extension = FileUtil.getExtension(fileModel.getName());
+        final String extension = fileModel.getExtension();
         Supplier<InputStream> fileSupplier = supply(fileModel.getPath());
 
         try (FilePerRowProcessor processor = FileProcessorFactory.createProcessor(extension, rowsProcessor, rowMapper)) {
