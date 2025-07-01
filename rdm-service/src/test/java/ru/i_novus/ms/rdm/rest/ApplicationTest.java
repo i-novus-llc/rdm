@@ -2752,7 +2752,7 @@ public class ApplicationTest {
     public void testCreateRefBookFromBadXmlFile() {
 
         // Общие проверки файла:
-        failCreateRefBook("badNoExt", "file.extension.invalid");
+        failCreateRefBook("badNoExt", "file.extension.absent");
         failCreateRefBook("badAnsi.xml", "file.content.invalid");
 
         // Проверки файла по блокам:
