@@ -29,8 +29,8 @@
         <!-- / N2O -->
 
         <!-- STORAGE -->
-        <vds.version>3.28</vds.version>
-        <l10n.vds.version>3.33</l10n.vds.version>
+        <vds.version>3.30</vds.version>
+        <l10n.vds.version>3.35</l10n.vds.version>
         <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
