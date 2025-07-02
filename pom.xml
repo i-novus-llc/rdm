@@ -34,7 +34,7 @@
         <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
-        <jackson.version>2.15.3</jackson.version>
+        <jackson.version>2.15.4</jackson.version>
         <jackson-databind.version>${jackson.version}</jackson-databind.version>
         <jackson-datatype.version>${jackson.version}</jackson-datatype.version>
 
@@ -305,6 +305,32 @@
             <!--    <version>${i-novus.audit.version}</version>-->
             <!--</dependency>-->
 
+            <!-- l10n -->
+            <dependency>
+                <groupId>ru.i-novus.components</groupId>
+                <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
+                <version>${l10n.vds.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-l10n-api</artifactId>
+                <version>4.27.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-l10n-impl</artifactId>
+                <version>4.27.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>ru.i-novus.ms.rdm</groupId>
+                <artifactId>rdm-n2o-l10n</artifactId>
+                <version>4.27.0-SNAPSHOT</version>
+            </dependency>
+            <!-- l10n -->
+
             <!-- test -->
             <dependency>
                 <groupId>xmlunit</groupId>
@@ -388,34 +414,6 @@
 
                 <module>rdm-n2o-l10n</module>
             </modules>
-
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>ru.i-novus.components</groupId>
-                        <artifactId>l10n-versioned-data-storage-pg-impl</artifactId>
-                        <version>${l10n.vds.version}</version>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>ru.i-novus.ms.rdm</groupId>
-                        <artifactId>rdm-l10n-api</artifactId>
-                        <version>4.27.0-SNAPSHOT</version>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>ru.i-novus.ms.rdm</groupId>
-                        <artifactId>rdm-l10n-impl</artifactId>
-                        <version>4.27.0-SNAPSHOT</version>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>ru.i-novus.ms.rdm</groupId>
-                        <artifactId>rdm-n2o-l10n</artifactId>
-                        <version>4.27.0-SNAPSHOT</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
 
         <profile>
