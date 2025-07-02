@@ -61,7 +61,7 @@ public class XlsxCompareFileGeneratorTest {
     private static int NEW_VERSION_ID = 2;
 
     @Rule
-    private TemporaryFolder tempFolder = new TemporaryFolder();
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private CompareService compareService;
