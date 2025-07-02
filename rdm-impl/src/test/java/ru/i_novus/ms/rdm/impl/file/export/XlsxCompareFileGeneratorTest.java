@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.file.export;
 
 import com.monitorjbl.xlsx.StreamingReader;
+import lombok.extern.slf4j.Slf4j;
 import net.n2oapp.platform.i18n.UserException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -8,7 +9,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentMatcher;
@@ -41,7 +44,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
@@ -50,11 +53,15 @@ import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.getCellValue;
 /**
  * Created by znurgaliev on 22.10.2018.
  */
+@Slf4j
 @RunWith(MockitoJUnitRunner.class)
 public class XlsxCompareFileGeneratorTest {
 
     private static int OLD_VERSION_ID = 1;
     private static int NEW_VERSION_ID = 2;
+
+    @Rule
+    private TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private CompareService compareService;
@@ -197,6 +204,20 @@ public class XlsxCompareFileGeneratorTest {
     @After
     public void closeGenerator() throws IOException {
         xlsxCompareGenerator.close();
+    }
+
+    @Test
+    public void testTempDir() {
+
+        final File tempRoot = tempFolder.getRoot();
+        assertNotNull(tempRoot);
+
+        log.debug("temp root: {}", tempRoot);
+
+        assertTrue(tempRoot.exists());
+        assertTrue(tempRoot.isDirectory());
+        assertTrue(tempRoot.canRead());
+        assertTrue(tempRoot.canWrite());
     }
 
     @Test
