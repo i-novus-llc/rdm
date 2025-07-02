@@ -223,7 +223,7 @@ public class XlsxCompareFileGeneratorTest {
     @Test
     public void testGenerate() throws Exception {
 
-        File actualFile = File.createTempFile("compare_with_data", "xlsx");
+        File actualFile = File.createTempFile("compare_with_data", "xlsx", tempFolder.getRoot());
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
