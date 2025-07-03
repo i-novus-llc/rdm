@@ -8,9 +8,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentMatcher;
@@ -57,9 +55,6 @@ public class XlsxCompareFileGeneratorTest {
 
     private static int OLD_VERSION_ID = 1;
     private static int NEW_VERSION_ID = 2;
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private CompareService compareService;
@@ -207,7 +202,7 @@ public class XlsxCompareFileGeneratorTest {
     @Test
     public void testGenerate() throws Exception {
 
-        File actualFile = File.createTempFile("compare_with_data", "xlsx", tempFolder.getRoot());
+        File actualFile = File.createTempFile("compare_with_data", "xlsx");
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
