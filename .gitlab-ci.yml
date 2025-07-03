@@ -21,17 +21,17 @@ build and verify:
       set -x
       echo "Проверка прав доступа к /tmp"
       ls -ld /tmp
-      mkdir /tmp/poifiles
+      mkdir -p /tmp/poifiles
       ls -ld /tmp/poifiles
       touch /tmp/poifiles/file1.ext # Попытка создать файл в /tmp
       if [ -f /tmp/poifiles/file1.ext ]; then echo "Файл успешно создан"; else echo "Ошибка создания файла"; fi
     - |
       set -x
-      echo "Настройка прав доступа к /tmp"
+      # echo "Настройка прав доступа к /tmp"
       # sudo chmod 1777 /tmp
-      ls -ld /tmp
-      touch /tmp/file2.ext # Попытка создать файл в /tmp
-      if [ -f /tmp/file2.ext ]; then echo "Файл успешно создан"; else echo "Ошибка создания файла"; fi
+      # ls -ld /tmp
+      # touch /tmp/file2.ext # Попытка создать файл в /tmp
+      # if [ -f /tmp/file2.ext ]; then echo "Файл успешно создан"; else echo "Ошибка создания файла"; fi
     - mvn $MAVEN_RUN_OPTIONS $MAVEN_GOAL $MAVEN_EXTRA_GOAL $MAVEN_PIPELINE_OPTIONS $MAVEN_DEFAULT_BUILD_OPTIONS $MAVEN_EXTRA_BUILD_OPTIONS
     - set +x
 
