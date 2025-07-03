@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.file;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.util.TempFile;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -42,13 +43,19 @@ public class TempFileTest {
         testDirectory("temp folder", tempRoot);
     }
 
+    @Test
+    public void testTempPoiFile() {
+
+        testCreateApachePoiTempFile();
+    }
+
     private void testDirectory(String name, File directory) {
 
         log.info("Directory: {}={}", name, directory);
         assertDirectory(directory);
 
         testCreateFile(directory);
-        testCreateTempFile(directory);
+        testCreateJavaIoTempFile(directory);
     }
 
     private void testCreateFile(File directory) {
@@ -63,17 +70,17 @@ public class TempFileTest {
         }
     }
 
-    private void testCreateTempFile(File directory) {
+    private void testCreateJavaIoTempFile(File directory) {
 
         File file = null;
         try {
             file = File.createTempFile("tempfile", ".ext", directory);
-            log.info("Temp file '{}' created successfully", file);
+            log.info("java.io: Temp file '{}' created successfully", file);
 
             assertFile(file);
 
         } catch (IOException e) {
-            log.error("Error creating temp file '{}':\n{}", file, e.getMessage());
+            log.error("java.io: Error creating temp file '{}':\n{}", file, e.getMessage());
             throw new RuntimeException(e);
 
         } finally {
@@ -81,7 +88,25 @@ public class TempFileTest {
         }
     }
 
-    private void createFile(File file) {
+    private void testCreateApachePoiTempFile() {
+
+        File file = null;
+        try {
+            file = TempFile.createTempFile("poifile", ".ext");
+            log.info("apache.poi: Temp file '{}' created successfully", file);
+
+            assertFile(file);
+
+        } catch (IOException e) {
+            log.error("apache.poi: Error creating temp file '{}':\n{}", file, e.getMessage());
+            throw new RuntimeException(e);
+
+        } finally {
+            deleteFile(file);
+        }
+    }
+
+    private static void createFile(File file) {
         try {
             final boolean created = file.createNewFile();
             if (created)
@@ -96,7 +121,7 @@ public class TempFileTest {
         }
     }
 
-    private void deleteFile(File file) {
+    private static void deleteFile(File file) {
 
         if (file == null || !file.exists())
             return;
