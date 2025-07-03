@@ -1,6 +1,7 @@
 package ru.i_novus.ms.rdm.impl.file;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.util.DefaultTempFileCreationStrategy;
 import org.apache.poi.util.TempFile;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,6 +20,8 @@ import static org.junit.Assert.assertTrue;
 public class TempFileTest {
 
     private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
+
+    private static final String TEMP_SUBDIR_NAME = "poifiles";
 
     static {
         System.setProperty("logging.level.ru.i_novus.ms.rdm.impl.file.TempFileTest","INFO");
@@ -90,6 +93,8 @@ public class TempFileTest {
 
     private void testCreateApachePoiTempFile() {
 
+        updateTempSubdirectory();
+
         File file = null;
         try {
             file = TempFile.createTempFile("poifile", ".ext");
@@ -151,5 +156,25 @@ public class TempFileTest {
         assertTrue(directory.isDirectory());
         assertTrue(directory.canRead());
         assertTrue(directory.canWrite());
+    }
+
+    private static void updateTempSubdirectory() {
+
+        final File subdir = new File(getTmpDir(), TEMP_SUBDIR_NAME);
+        final boolean created = subdir.mkdir();
+        if (created)
+            log.info("Directory '{}' created successfully", subdir);
+        else
+            log.info("Directory '{}' already exists", subdir);
+
+        TempFile.setTempFileCreationStrategy(new DefaultTempFileCreationStrategy(subdir));
+    }
+
+    private static File getTmpDir() {
+
+        final String tmpDir = System.getProperty(TEMP_DIR_PROPERTY);
+        assertNotNull(tmpDir);
+
+        return new File(tmpDir);
     }
 }
