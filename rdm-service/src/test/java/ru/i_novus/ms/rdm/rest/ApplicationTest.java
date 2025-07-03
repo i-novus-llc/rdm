@@ -260,6 +260,8 @@ public class ApplicationTest {
         version3.setVersion("1");
 
         versionList = asList(version0, version1, version2, version3);
+
+        TempFileUtil.updateTempSubdirectory();
     }
 
     @AfterClass
