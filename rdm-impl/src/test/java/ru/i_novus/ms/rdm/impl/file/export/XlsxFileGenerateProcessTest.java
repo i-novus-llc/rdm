@@ -5,6 +5,7 @@ import ru.i_novus.ms.rdm.api.model.Result;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.api.util.row.RowsProcessor;
+import ru.i_novus.ms.rdm.impl.file.TempFileUtil;
 import ru.i_novus.ms.rdm.impl.file.process.XlsxPerRowProcessor;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -53,6 +54,8 @@ public class XlsxFileGenerateProcessTest {
                     d_a_floatCol.valueOf(BigDecimal.valueOf(i + 0.1)) // Дробная часть обязательна для valueOf
             )));
         }
+
+        TempFileUtil.updateTempSubdirectory();
 
         final Structure structure = createTestStructure();
         final List<Row> actual = new ArrayList<>();

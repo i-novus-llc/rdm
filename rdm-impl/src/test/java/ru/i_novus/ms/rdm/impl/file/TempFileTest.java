@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.file;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.util.DefaultTempFileCreationStrategy;
 import org.apache.poi.util.TempFile;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,10 +18,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class TempFileTest {
 
-    private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
-
-    private static final String TEMP_SUBDIR_NAME = "/rdmfiles";
-
     static {
         System.setProperty("logging.level.ru.i_novus.ms.rdm.impl.file.TempFileTest","INFO");
     }
@@ -31,12 +26,12 @@ public class TempFileTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Test
-    public void testTmpDir() {
+    public void testTempDir() {
 
-        final String tmpDir = System.getProperty(TEMP_DIR_PROPERTY);
-        assertNotNull(tmpDir);
+        final String tempDirProperty = TempFileUtil.getTempDirProperty();
+        final File tempDir = TempFileUtil.getTempDir();
 
-        testDirectory(TEMP_DIR_PROPERTY, new File(tmpDir));
+        testDirectory(tempDirProperty, tempDir);
     }
 
     @Test
@@ -93,7 +88,7 @@ public class TempFileTest {
 
     private void testCreateApachePoiTempFile() {
 
-        updateTempSubdirectory();
+        TempFileUtil.updateTempSubdirectory();
 
         File file = null;
         try {
@@ -156,25 +151,5 @@ public class TempFileTest {
         assertTrue(directory.isDirectory());
         assertTrue(directory.canRead());
         assertTrue(directory.canWrite());
-    }
-
-    private static void updateTempSubdirectory() {
-
-        final File subdir = new File(getTmpDir(), TEMP_SUBDIR_NAME);
-        final boolean created = subdir.mkdirs();
-        if (created)
-            log.info("Directory '{}' created successfully", subdir);
-        else
-            log.info("Directory '{}' already exists", subdir);
-
-        TempFile.setTempFileCreationStrategy(new DefaultTempFileCreationStrategy(subdir));
-    }
-
-    private static File getTmpDir() {
-
-        final String tmpDir = System.getProperty(TEMP_DIR_PROPERTY);
-        assertNotNull(tmpDir);
-
-        return new File(tmpDir);
     }
 }
