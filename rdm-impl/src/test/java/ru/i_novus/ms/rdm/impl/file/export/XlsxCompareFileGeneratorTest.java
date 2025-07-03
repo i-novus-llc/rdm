@@ -42,6 +42,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
@@ -52,6 +53,8 @@ import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.getCellValue;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class XlsxCompareFileGeneratorTest {
+
+    private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
 
     private static int OLD_VERSION_ID = 1;
     private static int NEW_VERSION_ID = 2;
@@ -202,7 +205,7 @@ public class XlsxCompareFileGeneratorTest {
     @Test
     public void testGenerate() throws Exception {
 
-        File actualFile = File.createTempFile("compare_with_data", ".xlsx");
+        File actualFile = File.createTempFile("compare_with_data", ".xlsx", getTmpDir());
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
@@ -221,7 +224,7 @@ public class XlsxCompareFileGeneratorTest {
 
         when(compareService.compareData(any())).thenThrow(new UserException("comparing is unavailable"));
 
-        File actualFile = File.createTempFile("compare_no_data", ".xlsx");
+        File actualFile = File.createTempFile("compare_no_data", ".xlsx", getTmpDir());
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
@@ -274,5 +277,13 @@ public class XlsxCompareFileGeneratorTest {
                     Objects.equals(expected.getPrimaryAttributesFilters(), actual.getPrimaryAttributesFilters()) &&
                     Objects.equals(expected.getCountOnly(), actual.getCountOnly());
         }
+    }
+
+    private File getTmpDir() {
+
+        final String tmpDir = System.getProperty(TEMP_DIR_PROPERTY);
+        assertNotNull(tmpDir);
+
+        return new File(tmpDir);
     }
 }

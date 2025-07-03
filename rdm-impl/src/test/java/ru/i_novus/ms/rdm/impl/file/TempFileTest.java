@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class TempFileTest {
 
-    private static final String TEMP_DIR = "java.io.tmpdir";
+    private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
 
     static {
         System.setProperty("logging.level.ru.i_novus.ms.rdm.impl.file.TempFileTest","INFO");
@@ -29,10 +29,10 @@ public class TempFileTest {
     @Test
     public void testTmpDir() {
 
-        final String tmpDir = System.getProperty(TEMP_DIR);
+        final String tmpDir = System.getProperty(TEMP_DIR_PROPERTY);
         assertNotNull(tmpDir);
 
-        testDirectory(TEMP_DIR, new File(tmpDir));
+        testDirectory(TEMP_DIR_PROPERTY, new File(tmpDir));
     }
 
     @Test
