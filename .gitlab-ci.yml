@@ -16,6 +16,23 @@ build and verify:
     MAVEN_RUN_OPTIONS: '-Djava.io.tmpdir=/tmp'
     MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
     DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
+  before_script:
+    - |
+      set -x
+      echo "Проверка прав доступа к /tmp"
+      ls -ld /tmp
+      # mkdir /tmp/poifiles
+      touch /tmp/file1.ext # Попытка создать файл в /tmp
+      if [ -f /tmp/file1.ext ]; then echo "Файл успешно создан"; else echo "Ошибка создания файла"; fi
+    - |
+      set -x
+      echo "Настройка прав доступа к /tmp"
+      sudo chmod 1777 /tmp
+      ls -ld /tmp
+      touch /tmp/file2.ext # Попытка создать файл в /tmp
+      if [ -f /tmp/file2.ext ]; then echo "Файл успешно создан"; else echo "Ошибка создания файла"; fi
+    - mvn $MAVEN_RUN_OPTIONS $MAVEN_GOAL $MAVEN_EXTRA_GOAL $MAVEN_PIPELINE_OPTIONS $MAVEN_DEFAULT_BUILD_OPTIONS $MAVEN_EXTRA_BUILD_OPTIONS
+    - set +x
 
 autotesting mr stand:
   extends: .autotesting mr stand
