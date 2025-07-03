@@ -202,7 +202,7 @@ public class XlsxCompareFileGeneratorTest {
     @Test
     public void testGenerate() throws Exception {
 
-        File actualFile = File.createTempFile("compare_with_data", "xlsx");
+        File actualFile = File.createTempFile("compare_with_data", ".xlsx");
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
@@ -221,7 +221,7 @@ public class XlsxCompareFileGeneratorTest {
 
         when(compareService.compareData(any())).thenThrow(new UserException("comparing is unavailable"));
 
-        File actualFile = File.createTempFile("compare_no_data", "xlsx");
+        File actualFile = File.createTempFile("compare_no_data", ".xlsx");
         try (OutputStream os = new FileOutputStream(actualFile)) {
             xlsxCompareGenerator.generate(os);
         }
