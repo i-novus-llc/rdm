@@ -21,7 +21,7 @@ public class TempFileTest {
 
     private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
 
-    private static final String TEMP_SUBDIR_NAME = "poifiles";
+    private static final String TEMP_SUBDIR_NAME = "/rdmfiles";
 
     static {
         System.setProperty("logging.level.ru.i_novus.ms.rdm.impl.file.TempFileTest","INFO");
@@ -161,7 +161,7 @@ public class TempFileTest {
     private static void updateTempSubdirectory() {
 
         final File subdir = new File(getTmpDir(), TEMP_SUBDIR_NAME);
-        final boolean created = subdir.mkdir();
+        final boolean created = subdir.mkdirs();
         if (created)
             log.info("Directory '{}' created successfully", subdir);
         else
