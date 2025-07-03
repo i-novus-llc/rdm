@@ -80,7 +80,9 @@ public final class XlsxUtil {
                     : getNumericCellValue(cell);
             case STRING -> cell.getRichStringCellValue().getString();
             case BOOLEAN -> cell.getBooleanCellValue() ? "TRUE" : "FALSE";
-            default -> cell.getCellFormula();
+            case ERROR -> "Error: " + cell.getErrorCellValue();
+            case BLANK -> "";
+            default -> cell.getStringCellValue();
         };
     }
 

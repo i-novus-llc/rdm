@@ -18,6 +18,9 @@ public interface RefBookVersionRepository extends
         JpaRepository<RefBookVersionEntity, Integer>,
         QuerydslPredicateExecutor<RefBookVersionEntity> {
 
+    String SELECT_REFERRER_VERSIONS = "SELECT DISTINCT bv.*";
+    String SELECT_REFERRER_VERSIONS_COUNT = "SELECT count(DISTINCT bv.*)";
+
     /*
      * Ссылающийся справочник должен иметь:
      *   1) структуру,
@@ -26,48 +29,51 @@ public interface RefBookVersionRepository extends
      * <p/>
      * Аналогичен запросу {@link RefBookDetailModelRepository#CHECK_REFERRER_VERSION}.
      */
-    String FIND_REFERRER_VERSIONS = "select distinct bv.* \n" +
-            "  from n2o_rdm_management.ref_book_version bv \n" +
-            " cross join lateral \n" +
-            "       jsonb_to_recordset(bv.\"structure\" -> 'attributes') \n" +
-            "           as akey(\"code\" varchar, \"isPrimary\" bool) \n" +
-            " cross join lateral \n" +
-            "       jsonb_to_recordset(bv.\"structure\" -> 'attributes') \n" +
-            "           as aref(\"type\" varchar, \"referenceCode\" varchar) \n" +
-            " where bv.\"structure\" is not null \n" +
-            "   and (bv.\"structure\" -> 'attributes') is not null \n" +
-            "   and akey.\"isPrimary\" = true \n" +
-            "   and aref.\"type\" = 'REFERENCE' \n" +
-            "   and aref.\"referenceCode\" = :refBookCode \n";
+    String FROM_REFERRER_VERSIONS = """
+              FROM n2o_rdm_management.ref_book_version AS bv
+             CROSS JOIN LATERAL jsonb_to_recordset(bv."structure" -> 'attributes')
+                AS akey("code" varchar, "isPrimary" bool)
+             CROSS JOIN LATERAL jsonb_to_recordset(bv."structure" -> 'attributes')
+                AS aref("type" varchar, "referenceCode" varchar)
+             WHERE bv."structure" IS NOT NULL
+               AND (bv."structure" -> 'attributes') IS NOT NULL
+               AND akey."isPrimary" = TRUE
+               AND aref."type" = 'REFERENCE'
+               AND aref."referenceCode" = :refBookCode
+            """;
 
-    String WHERE_REF_BOOK_STATUS = "   and ( \n" +
-            "       (:refBookStatus = 'ALL') or \n" +
-            "       exists( \n" +
-            "         select 1 \n" +
-            "           from n2o_rdm_management.ref_book b \n" +
-            "          where b.id = bv.ref_book_id \n" +
-            "            and ((:refBookStatus = 'USED' and not b.archived) or \n" +
-            "                 (:refBookStatus = 'ARCHIVED' and b.archived)) )\n" +
-            "       ) \n";
+    String WHERE_REF_BOOK_STATUS = """
+               AND (
+                     (:refBookStatus = 'ALL') OR
+                     EXISTS(
+                       SELECT 1
+                         FROM n2o_rdm_management.ref_book AS b
+                        WHERE b.id = bv.ref_book_id
+                          AND ( (:refBookStatus = 'USED' AND NOT b.archived) OR
+                                (:refBookStatus = 'ARCHIVED' AND b.archived)) )
+                   )
+            """;
 
-    String WHERE_REF_BOOK_SOURCE = "   and ( \n" +
-            "       (:refBookSource = 'ALL') or \n" +
-            "       (:refBookSource = 'ACTUAL' and bv.status = 'PUBLISHED' and \n" +
-            "        bv.from_date <= timezone('utc', now()) and \n" +
-            "        (bv.to_date > timezone('utc', now()) or bv.to_date is null)) or \n" +
-            "       (:refBookSource = 'DRAFT' and bv.status = 'DRAFT') or \n" +
-            // with subquery:
-            "       (:refBookSource != 'LAST_PUBLISHED' or \n" +
-            "        (:refBookSource = 'LAST_PUBLISHED' and bv.status = 'PUBLISHED')) and \n" +
-            "       bv.id = ( \n" +
-            "         select lv.id \n" +
-            "           from n2o_rdm_management.ref_book_version lv \n" +
-            "          where lv.ref_book_id = bv.ref_book_id \n" +
-            "            and ( (:refBookSource = 'LAST_VERSION') or \n" +
-            "                  (:refBookSource = 'LAST_PUBLISHED' and lv.status = bv.status) ) \n" +
-            "          order by lv.from_date desc \n" +
-            "          limit 1 )\n" +
-            "       ) \n";
+    // with subquery:
+    String WHERE_REF_BOOK_SOURCE = """
+               AND (
+                     (:refBookSource = 'ALL') OR
+                     (:refBookSource = 'ACTUAL' AND bv.status = 'PUBLISHED' AND
+                      bv.from_date <= timezone('utc', now()) AND
+                      ( bv.to_date IS NULL OR bv.to_date > timezone('utc', now()) )) OR
+                     (:refBookSource = 'DRAFT' AND bv.status = 'DRAFT') OR
+                     ( (:refBookSource != 'LAST_PUBLISHED') OR
+                       (:refBookSource = 'LAST_PUBLISHED' AND bv.status = 'PUBLISHED') ) AND
+                       bv.id = (
+                         SELECT lv.id
+                           FROM n2o_rdm_management.ref_book_version AS lv
+                          WHERE lv.ref_book_id = bv.ref_book_id
+                            AND ( (:refBookSource = 'LAST_VERSION') OR
+                                  (:refBookSource = 'LAST_PUBLISHED' AND lv.status = bv.status) )
+                          ORDER BY lv.from_date DESC
+                          LIMIT 1 )
+                   )
+            """;
 
     boolean existsById(@NonNull Integer id);
 
@@ -108,7 +114,10 @@ public interface RefBookVersionRepository extends
      * @return Страница со списком ссылающихся справочников
      */
     @Query(nativeQuery = true,
-            value = FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
+            value = SELECT_REFERRER_VERSIONS + FROM_REFERRER_VERSIONS +
+                    WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE,
+            countQuery = SELECT_REFERRER_VERSIONS_COUNT + FROM_REFERRER_VERSIONS +
+                    WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE)
     Page<RefBookVersionEntity> findReferrerVersions(@Param("refBookCode") String refBookCode,
                                                     @Param("refBookStatus") String refBookStatus,
                                                     @Param("refBookSource") String refBookSource,
@@ -123,9 +132,10 @@ public interface RefBookVersionRepository extends
      * @return Результат проверки
      */
     @Query(nativeQuery = true,
-            value = "select exists( \n" +
-                    FIND_REFERRER_VERSIONS + WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE +
-                    ") \n")
+            value = "SELECT EXISTS(\n" +
+                    SELECT_REFERRER_VERSIONS + FROM_REFERRER_VERSIONS +
+                    WHERE_REF_BOOK_STATUS + WHERE_REF_BOOK_SOURCE +
+                    ")\n")
     Boolean existsReferrerVersions(@Param("refBookCode") String refBookCode,
                                    @Param("refBookStatus") String refBookStatus,
                                    @Param("refBookSource") String refBookSource);

@@ -123,8 +123,12 @@ public class RefBookDataController {
         if (criteria.isHasDataConflict()) {
 
             long conflictsCount = conflictService.countConflictedRowIds(toConflictCriteria(criteria));
-            if (conflictsCount == 0)
-                return new RestPage<>(getEmptyContent(), EMPTY_SEARCH_DATA_CRITERIA, 0);
+            if (conflictsCount == 0) {
+                // Временный фикс для правильной работы кнопок на вкладке "Данные с конфликтами":
+                // NB: Use getEmptyContent() only after fix buttons
+                final List<DataGridRow> result = getDataGridContent(criteria, version, emptyList());
+                return new RestPage<>(result, EMPTY_SEARCH_DATA_CRITERIA, 0);
+            }
 
             long dataCount = versionService.search(version.getId(), EMPTY_SEARCH_DATA_CRITERIA).getTotalElements();
             if (conflictsCount != dataCount) {
@@ -146,7 +150,7 @@ public class RefBookDataController {
         else
             total = rowValues.getTotalElements();
 
-        return new RestPage<>(result, searchDataCriteria, total);
+        return new RestPage<>(result, criteria, total);
     }
 
     /**
@@ -221,7 +225,6 @@ public class RefBookDataController {
     private List<AttributeFilter> toAttributeFilterList(DataCriteria criteria, Structure structure) {
 
         final Map<String, Serializable> filterMap = criteria.getFilter();
-
         if (isEmpty(filterMap))
             return emptyList();
 
@@ -275,10 +278,11 @@ public class RefBookDataController {
 
     private List<Sort.Order> toSortOrders(List<Sort.Order> orders, Structure structure) {
 
+        if (isEmpty(orders))
+            return emptyList();
+
         try {
-            return isEmpty(orders) ? emptyList() : orders.stream()
-                    .map(order -> toSortOrder(structure, order))
-                    .collect(toList());
+            return orders.stream().map(order -> toSortOrder(structure, order)).toList();
 
         } catch (UserException e) {
             throw e;
@@ -292,6 +296,7 @@ public class RefBookDataController {
 
         final String orderName = order.getProperty();
         final String attributeCode = deletePrefix(orderName);
+
         final Structure.Attribute attribute = structure.getAttribute(attributeCode);
         if (attribute == null || attribute.getType() == null)
             throw new NotFoundException(new Message(DATA_SORT_FIELD_NOT_FOUND_EXCEPTION_CODE, attributeCode, orderName));
@@ -313,8 +318,6 @@ public class RefBookDataController {
                                                  RefBookVersion version,
                                                  List<RefBookRowValue> searchContent) {
 
-        final Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
-
         final List<RefBookRowValue> dataContent = refBookDataDecorator.getDataContent(searchContent, criteria);
         List<DataGridRow> dataGridRows = toDataGridRows(criteria, version, dataContent);
         if (isEmpty(dataGridRows)) {
@@ -322,7 +325,8 @@ public class RefBookDataController {
         }
 
         final DataGridRow firstRow = dataGridRows.get(0);
-        firstRow.setColumnsConfig(createColumnConfig(dataStructure));
+        final Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
+        firstRow.setColumnsConfig(createColumnConfig(dataStructure != null ? dataStructure : Structure.EMPTY));
 
         return dataGridRows;
     }
