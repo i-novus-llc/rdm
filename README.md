@@ -12,10 +12,10 @@
 - JPA 2
 - JAX-RS
 - JMS
-- Spring Boot 3.2.2
-- Spring Cloud 2021
+- Spring Boot 3.2
+- Spring Cloud 2023
 - Liquibase 4.24
-- N2O Platform 6.1.3
+- N2O Platform 6.2
 - N2O UI Framework 7.28
 - React
 
