@@ -1,49 +1,37 @@
-rdm:
-  l10n:
-    support: ${rdm.l10n.support}
-  permissions:
-    refbook:
-      status:
-        list: rdm.edit,rdm.archive
-    draft:
-      version: rdm.edit,rdm.archive
-  sso:
-    token:
-      username: username
-  backend:
-    path: ${backend.default.path}
-  context-path: ''
+server:
+  port: ${frontend.default.port}
+  servlet:
+    context-path: ''
+    jsp:
+      class-name: org.apache.jasper.servlet.JspServlet
+      registered: 'true'
+    encoding:
+      force: 'true'
+      force-response: 'true'
+
+# bootstrap:
 spring:
+  application:
+    name: rdm-frontend
   main:
     allow-bean-definition-overriding: 'true'
   cloud:
     consul:
       config:
         enabled: ${config.server.enable}
-  application:
-    name: rdm-frontend
+  http:
+    encoding:
+      force: true
+      forceResponse: true
   servlet:
     multipart:
       max-file-size: '-1'
       max-request-size: '-1'
+  # i18n
   messages:
     basename: n2o_api_messages,n2o_rest_messages,messages.rdmui ${rdm.l10n.messages}
-audit:
-  client:
-    enabled: 'false'
-    filter-url-pattern: /n2o/data/*
-  service:
-    url: http://yandex.develop:9952/audit/service/api
-server:
-  servlet:
-    jsp:
-      class-name: org.apache.jasper.servlet.JspServlet
-      registered: 'true'
-    context-path: ''
-    encoding:
-      force: 'true'
-      force-response: 'true'
-  port: ${frontend.default.port}
+
+# Timeout for cxf proxy-client
 cxf:
   jaxrs:
     client:
@@ -58,9 +46,34 @@ management:
   tracing:
     enabled: false
 
+# RDM
+rdm:
+  context-path: ''
+  backend:
+    path: ${backend.default.path}
+  # l10n
+  l10n:
+    support: ${rdm.l10n.support}
+  permissions:
+    refbook:
+      status:
+        list: rdm.edit,rdm.archive
+    draft:
+      version: rdm.edit,rdm.archive
+  sso:
+    token:
+      username: username
+
+# N2O
 n2o:
   application:
     id: rdm
+  access:
+    schema:
+      id: rdm
+  version:
+    copyright:
+      text: 2013-2025
   ui:
     min:
       width: 1024px
@@ -68,13 +81,7 @@ n2o:
     control:
       visibility:
         auto_reset: 'false'
-  access:
-    schema:
-      id: rdm
-  version:
-    copyright:
-      text: 2013-2025
-
+  # N2O loader client
   loader:
     client:
       start: MANUAL
