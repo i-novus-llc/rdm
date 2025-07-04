@@ -55,8 +55,6 @@ import static ru.i_novus.ms.rdm.impl.util.XlsxUtil.getCellValue;
 @RunWith(MockitoJUnitRunner.class)
 public class XlsxCompareFileGeneratorTest {
 
-    private static final String TEMP_DIR_PROPERTY = "java.io.tmpdir";
-
     private static int OLD_VERSION_ID = 1;
     private static int NEW_VERSION_ID = 2;
 
