@@ -19,11 +19,10 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Primary
 @Service
 public class VersionRestServiceImpl implements VersionRestService {
 
-    private VersionService versionService;
+    private final VersionService versionService;
 
     @Autowired
     public VersionRestServiceImpl(VersionService versionService) {

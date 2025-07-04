@@ -8,7 +8,6 @@ import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.rest.PublishRestService;
 import ru.i_novus.ms.rdm.api.service.PublishService;
 
-@Primary
 @Service
 public class PublishRestServiceImpl implements PublishRestService {
 

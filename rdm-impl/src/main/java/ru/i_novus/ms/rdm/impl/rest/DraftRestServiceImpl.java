@@ -21,11 +21,10 @@ import ru.i_novus.ms.rdm.api.service.DraftService;
 
 import java.util.List;
 
-@Primary
 @Service
 public class DraftRestServiceImpl implements DraftRestService {
 
-    private DraftService draftService;
+    private final DraftService draftService;
 
     @Autowired
     public DraftRestServiceImpl(DraftService draftService) {
