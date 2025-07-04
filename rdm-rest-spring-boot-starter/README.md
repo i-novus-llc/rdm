@@ -33,7 +33,5 @@
 | rdm.compare.data.diff.max.size                        | 1000                               | Ограничение на размер разницы между данными.                                                       |
 | rdm.enable.publish.topic                              | false                              | Отправка события публикации справочника в брокер                                                   |
 | rdm.publish.topic                                     | publish_topic                      | Название топика, по которому вещаются события публикации справочника                               |
-| rdm.enable.async.operation                            | true                               | Отправка сообщений асинхронных операций через брокер, иначе используется явный вызов обработчика   |
-| rdm.async.operation.queue                             | RDM-INTERNAL-ASYNC-OPERATION-QUEUE | Наименование очереди для асинхронных операций                                                      |
 | rdm.audit.application.name                            | rdm                                | Наименование системы для отправки в аудит                                                          |
 

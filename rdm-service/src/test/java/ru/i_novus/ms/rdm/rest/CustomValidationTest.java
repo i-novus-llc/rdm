@@ -50,7 +50,6 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
                 "rdm.enable.publish.topic=false",
-                "rdm.enable.async.operation=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
