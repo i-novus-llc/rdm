@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.publish;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
@@ -21,8 +20,7 @@ public class DefaultPublishEndStrategy implements PublishEndStrategy {
     private AuditLogService auditLogService;
 
     @Autowired(required = false)
-    @Qualifier("topicJmsTemplate")
-    private JmsTemplate jmsTemplate;
+    private JmsTemplate topicJmsTemplate;
 
     @Value("${rdm.publish.topic:publish_topic}")
     private String publishTopic;
@@ -38,7 +36,7 @@ public class DefaultPublishEndStrategy implements PublishEndStrategy {
         auditLogService.addAction(AuditAction.PUBLICATION, () -> versionRepository.findById(entity.getId()).orElse(null));
 
         if (enablePublishTopic) {
-            jmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
+            topicJmsTemplate.convertAndSend(publishTopic, entity.getRefBook().getCode());
         }
     }
 }

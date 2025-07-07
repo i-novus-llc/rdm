@@ -24,7 +24,6 @@ public class PublishJmsConfiguration {
     }
 
     @Bean
-    @Qualifier("topicJmsTemplate")
     public JmsTemplate topicJmsTemplate(
             @Qualifier("jmsConnectionFactory") ConnectionFactory connectionFactory
     ) {

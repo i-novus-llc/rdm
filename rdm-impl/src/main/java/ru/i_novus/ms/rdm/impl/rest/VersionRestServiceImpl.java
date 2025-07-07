@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
