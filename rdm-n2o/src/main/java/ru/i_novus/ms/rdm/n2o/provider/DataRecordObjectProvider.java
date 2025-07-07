@@ -67,7 +67,7 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
         final List<N2oObject.Operation> operations = getSatisfiedResolvers(request.getDataAction())
                 .map(resolver -> createOperation(resolver, request))
-                .collect(toList());
+                .toList();
 
         return operations.toArray(N2oObject.Operation[]::new);
     }
@@ -111,16 +111,20 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
 
     private ObjectSimpleField createDynamicParam(String codeWithPrefix, Structure.Attribute attribute) {
 
-        switch (attribute.getType()) {
+        return switch (attribute.getType()) {
+            case STRING,
+                    INTEGER,
+                    FLOAT,
+                    DATE,
+                    BOOLEAN ->
+                    createSimpleParam(codeWithPrefix, attribute.getType());
 
-            case STRING: case INTEGER: case FLOAT: case DATE: case BOOLEAN:
-                return createSimpleParam(codeWithPrefix, attribute.getType());
+            case REFERENCE ->
+                    createReferenceParam(codeWithPrefix);
 
-            case REFERENCE:
-                return createReferenceParam(codeWithPrefix);
-
-            default: throw new IllegalArgumentException("attribute type not supported");
-        }
+            default ->
+                    throw new IllegalArgumentException("attribute type not supported");
+        };
     }
 
     /** Заполнение полей примитивного параметра. */
@@ -132,16 +136,13 @@ public class DataRecordObjectProvider extends DataRecordBaseProvider implements 
         parameter.setDomain(N2oDomain.fieldTypeToDomain(type));
 
         switch (type) {
+            case DATE ->
+                    parameter.setNormalize("T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
 
-            case DATE:
-                parameter.setNormalize("T(ru.i_novus.ms.rdm.api.util.TimeUtils).parseLocalDate(#this)");
-                break;
+            case BOOLEAN ->
+                    parameter.setDefaultValue("false");
 
-            case BOOLEAN:
-                parameter.setDefaultValue("false");
-                break;
-
-            default: {
+            default -> {
                 // Nothing to do.
             }
         }

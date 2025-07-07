@@ -8,8 +8,7 @@ class DefaultReferrerToDefaultTest extends AbstractRdmUiTest {
      * Проверка работы с обычным справочником, ссылающимся на обычный справочник.
      */
     @Test
-    void testDefaultReferrerToDefault() {
-        testReferrerRefBook(null, null);
+    void testReferrer() {
+        runUiTest(refBookListPage -> testReferrerRefBook(refBookListPage, null, null));
     }
-
 }

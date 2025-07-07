@@ -19,20 +19,23 @@ import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.service.ConflictService;
 import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.entity.*;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGenerator;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.repository.PassportValueRepository;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
 import ru.i_novus.ms.rdm.impl.repository.VersionFileRepository;
+import ru.i_novus.ms.rdm.impl.service.PostPublishService;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
+import ru.i_novus.ms.rdm.impl.strategy.version.number.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.impl.util.ModelGenerator;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
-import ru.i_novus.platform.datastorage.temporal.service.*;
+import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
+import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
+import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
+import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -99,7 +102,7 @@ public class DefaultBasePublishStrategyTest {
     private FieldFactory fieldFactory;
 
     @Mock
-    private AsyncOperationQueue asyncQueue;
+    private PostPublishService postPublishService;
 
     @Mock
     private PublishEndStrategy publishEndStrategy;
@@ -256,8 +259,12 @@ public class DefaultBasePublishStrategyTest {
         );
     }
 
-    private RefBookVersionEntity createVersionEntity(Integer refBookId, Integer versionId, RefBookVersionStatus status,
-                                                     LocalDateTime fromDate, LocalDateTime toDate) {
+    private RefBookVersionEntity createVersionEntity(
+            Integer refBookId, Integer versionId,
+            RefBookVersionStatus status,
+            LocalDateTime fromDate,
+            LocalDateTime toDate
+    ) {
         RefBookVersionEntity versionEntity = new RefBookVersionEntity();
 
         RefBookEntity refBookEntity = new DefaultRefBookEntity();

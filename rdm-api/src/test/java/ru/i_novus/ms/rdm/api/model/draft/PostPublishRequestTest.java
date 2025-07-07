@@ -17,16 +17,14 @@ public class PostPublishRequestTest extends BaseTest {
         PostPublishRequest newRequest = createRequest();
         assertObjects(Assert::assertNotEquals, emptyRequest, newRequest);
 
-        PostPublishRequest cloneRequest = cloneRequest(newRequest);
-        assertObjects(Assert::assertEquals, newRequest, cloneRequest);
-        
         PostPublishRequest copyRequest = copyRequest(newRequest);
         assertObjects(Assert::assertEquals, newRequest, copyRequest);
     }
 
     private PostPublishRequest createRequest() {
 
-        PostPublishRequest request = new PostPublishRequest();
+        final PostPublishRequest request = new PostPublishRequest();
+        request.setRefBookCode("ref_book_code");
 
         request.setLastStorageCode("last-storage-code");
         request.setOldStorageCode("old-storage-code");
@@ -38,16 +36,10 @@ public class PostPublishRequestTest extends BaseTest {
         return request;
     }
 
-    private PostPublishRequest cloneRequest(PostPublishRequest criteria) {
-
-        return new PostPublishRequest(criteria.getLastStorageCode(),
-                criteria.getOldStorageCode(), criteria.getNewStorageCode(),
-                criteria.getFromDate(), criteria.getToDate());
-    }
-
     private PostPublishRequest copyRequest(PostPublishRequest criteria) {
 
-        PostPublishRequest result = new PostPublishRequest();
+        final PostPublishRequest result = new PostPublishRequest();
+        result.setRefBookCode(criteria.getRefBookCode());
 
         result.setLastStorageCode(criteria.getLastStorageCode());
         result.setOldStorageCode(criteria.getOldStorageCode());

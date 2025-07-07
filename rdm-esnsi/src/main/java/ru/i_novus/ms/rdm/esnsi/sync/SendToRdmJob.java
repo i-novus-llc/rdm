@@ -6,12 +6,16 @@ import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.exception.RdmException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
-import ru.i_novus.ms.rdm.api.service.*;
+import ru.i_novus.ms.rdm.api.service.DraftService;
+import ru.i_novus.ms.rdm.api.service.FileStorageService;
+import ru.i_novus.ms.rdm.api.service.PublishService;
+import ru.i_novus.ms.rdm.api.service.RefBookService;
 import ru.i_novus.ms.rdm.esnsi.api.ClassifierAttribute;
 import ru.i_novus.ms.rdm.esnsi.api.GetClassifierStructureResponseType;
 import ru.i_novus.ms.rdm.esnsi.file_gen.RdmXmlFileGenerator;
@@ -49,6 +53,7 @@ public class SendToRdmJob extends AbstractEsnsiDictionaryProcessingJob {
     private FileStorageService fileStorageService;
 
     @Autowired
+    @Qualifier("syncPublishService")
     private PublishService publishService;
 
     private String fileName;

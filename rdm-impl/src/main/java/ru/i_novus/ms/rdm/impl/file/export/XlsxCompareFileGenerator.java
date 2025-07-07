@@ -177,7 +177,9 @@ class XlsxCompareFileGenerator implements FileGenerator {
 
     @Override
     public void close() throws IOException {
+
         wb.close();
+        wb.dispose();
     }
 
     private void addPassportCompare() {

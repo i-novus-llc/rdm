@@ -20,11 +20,12 @@ public interface AsyncOperationLogEntryRepository extends
     @Transactional
     @Modifying
     @Query(nativeQuery = true,
-            value = "INSERT INTO n2o_rdm_management.async_log_entry \n" +
-                    "       (id, op_enum, code, payload) \n" +
-                    "VALUES (:id, :op_enum, :code, :payload) \n" +
-                    "ON CONFLICT (id) DO \n" +
-                    "       UPDATE SET status = 'IN_PROGRESS'")
+            value = """
+                    INSERT INTO n2o_rdm_management.async_log_entry
+                           (id, op_enum, code, payload)
+                    VALUES (:id, :op_enum, :code, :payload)
+                    ON CONFLICT (id) DO UPDATE SET status = 'IN_PROGRESS'
+                    """)
     void saveWithoutConflict(@Param("id") UUID id, @Param("op_enum") String operationType,
                              @Param("code") String code, @Param("payload") String payload);
 }

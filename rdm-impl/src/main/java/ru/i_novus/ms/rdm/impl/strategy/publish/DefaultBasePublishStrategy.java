@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.i_novus.ms.rdm.api.async.AsyncOperationTypeEnum;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.model.draft.PostPublishRequest;
@@ -18,24 +17,22 @@ import ru.i_novus.ms.rdm.api.service.VersionFileService;
 import ru.i_novus.ms.rdm.api.service.VersionService;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.api.util.TimeUtils;
-import ru.i_novus.ms.rdm.api.util.VersionNumberStrategy;
 import ru.i_novus.ms.rdm.api.validation.VersionPeriodPublishValidation;
 import ru.i_novus.ms.rdm.api.validation.VersionValidation;
-import ru.i_novus.ms.rdm.impl.async.AsyncOperationQueue;
 import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 import ru.i_novus.ms.rdm.impl.file.export.PerRowFileGeneratorFactory;
 import ru.i_novus.ms.rdm.impl.file.export.VersionDataIterator;
 import ru.i_novus.ms.rdm.impl.repository.RefBookVersionRepository;
+import ru.i_novus.ms.rdm.impl.service.PostPublishService;
 import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
+import ru.i_novus.ms.rdm.impl.strategy.version.number.VersionNumberStrategy;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
 import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import ru.i_novus.platform.datastorage.temporal.service.SearchDataService;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static ru.i_novus.ms.rdm.impl.predicate.RefBookVersionPredicates.*;
@@ -76,7 +73,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
     private VersionPeriodPublishValidation versionPeriodPublishValidation;
 
     @Autowired
-    private AsyncOperationQueue asyncQueue;
+    private PostPublishService postPublishService;
 
     @Autowired
     @Qualifier("defaultPublishEndStrategy")
@@ -165,8 +162,15 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             saveVersionToFiles(entity.getId());
 
             // Выполнение действий после публикации
-            PostPublishRequest postRequest = new PostPublishRequest(lastStorageCode, oldStorageCode, newStorageCode, fromDate, toDate);
-            postPublish(entity.getRefBook().getCode(), postRequest);
+            final PostPublishRequest postRequest = new PostPublishRequest();
+            postRequest.setRefBookCode(entity.getRefBook().getCode());
+            postRequest.setLastStorageCode(lastStorageCode);
+            postRequest.setOldStorageCode(oldStorageCode);
+            postRequest.setNewStorageCode(newStorageCode);
+            postRequest.setFromDate(fromDate);
+            postRequest.setToDate(toDate);
+
+            postPublishService.process(postRequest);
 
         } catch (Exception e) {
             // Откат создания хранилища
@@ -242,7 +246,7 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
                 versionRepository.save(entity);
 
             } else {
-                // Опубликованные поздее - удаляем:
+                // Опубликованные позднее - удаляем:
                 versionRepository.deleteById(entity.getId());
             }
         });
@@ -256,12 +260,5 @@ public class DefaultBasePublishStrategy implements BasePublishStrategy {
             VersionDataIterator dataIterator = new VersionDataIterator(versionService, singletonList(draftVersion.getId()));
             versionFileService.save(draftVersion, fileType, versionFileService.generate(draftVersion, fileType, dataIterator));
         }
-    }
-
-    @SuppressWarnings("UnusedReturnValue")
-    private UUID postPublish(String code, PostPublishRequest request) {
-
-        // to-do: Отвязать от l10n, например, сделать POST_PUBLICATION.
-        return asyncQueue.send(AsyncOperationTypeEnum.L10N_PUBLICATION, code, new Serializable[]{request});
     }
 }

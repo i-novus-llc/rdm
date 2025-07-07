@@ -7,7 +7,6 @@ import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import ru.i_novus.common.file.storage.api.FileStorage;
@@ -47,12 +47,13 @@ import ru.i_novus.ms.rdm.api.model.refbook.RefBookUpdateRequest;
 import ru.i_novus.ms.rdm.api.model.refdata.*;
 import ru.i_novus.ms.rdm.api.model.version.*;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
+import ru.i_novus.ms.rdm.api.rest.PublishRestService;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.*;
 import ru.i_novus.ms.rdm.api.util.StringUtils;
 import ru.i_novus.ms.rdm.impl.util.ConverterUtil;
 import ru.i_novus.ms.rdm.impl.validation.ReferenceValueValidation;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
 import ru.i_novus.platform.datastorage.temporal.enums.DiffStatusEnum;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
@@ -93,12 +94,12 @@ import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.fields;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.rowValue;
 import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.toPlaceholder;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties = {
+                "debug=true",
                 "cxf.jaxrs.client.classes-scan=true",
                 "cxf.jaxrs.client.classes-scan-packages=ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
@@ -106,14 +107,15 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "spring.jms.cache.enabled=false",
                 "backend.default.port=8081",
                 "spring.datasource.url=jdbc:postgresql://localhost:15432/rdm",
-                //"testcontainers.pg.version=11",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "rdm.enable.publish.topic=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
+@ActiveProfiles("test")
 @Import(BackendConfiguration.class)
 @SuppressWarnings({"rawtypes","java:S5778","java:S5961"})
 public class ApplicationTest {
@@ -173,8 +175,8 @@ public class ApplicationTest {
     private DraftRestService draftService;
 
     @Autowired
-    @Qualifier("publishServiceJaxRsProxyClient")
-    private PublishService publishService;
+    @Qualifier("publishRestServiceJaxRsProxyClient")
+    private PublishRestService publishService;
 
     @Autowired
     @Qualifier("compareServiceJaxRsProxyClient")
@@ -259,6 +261,8 @@ public class ApplicationTest {
         version3.setVersion("1");
 
         versionList = asList(version0, version1, version2, version3);
+
+        TempFileUtil.updateTempSubdirectory();
     }
 
     @AfterClass
@@ -285,12 +289,12 @@ public class ApplicationTest {
 
     /**
      * Создание справочника.
-     * В архив.
-     * Изменение метеданных справочника
-     * Добавление/изменение/удаление атрибута
-     * Получение справоника по идентификатору версии.
+     * Изменение метаданных справочника.
+     * Добавление/изменение/удаление атрибута.
+     * Отправка справочника в архив.
+     * Получение справочника по идентификатору версии.
+     * Удаление справочника.
      */
-
     @Test
     public void testLifecycle() {
 
@@ -310,7 +314,7 @@ public class ApplicationTest {
         updateData(referredDraft.getId(), referredRow, null);
         publish(referredDraft.getId(), null, null, null, false);
 
-        // создание справочника
+        // Создание справочника.
         RefBook refBook = refBookService.create(refBookCreateRequest);
         assertNotNull(refBook.getId());
         assertNotNull(refBook.getRefBookId());
@@ -323,14 +327,14 @@ public class ApplicationTest {
         assertFalse(refBook.getArchived());
         assertNull(refBook.getFromDate());
 
-        // получение черновика
+        // Получение черновика.
         Draft draft = draftService.getDraft(refBook.getId());
         assertNotNull(draft);
         assertNotNull(draft.getStorageCode());
         final Integer draftId = draft.getId();
         assertNotNull(draftId);
 
-        // изменение метаданных справочника
+        // Изменение метаданных справочника.
         refBookUpdateRequest.setVersionId(refBook.getId());
         RefBook updatedRefBook = refBookService.update(refBookUpdateRequest);
         refBook.setCode(refBookUpdateRequest.getCode());
@@ -343,7 +347,7 @@ public class ApplicationTest {
         refBook.setComment(refBookUpdateRequest.getComment());
         assertRefBooksEqual(refBook, updatedRefBook);
 
-        // добавление атрибута и проверка
+        // Добавление атрибута и проверка.
         CreateAttributeRequest createAttributeRequest = new CreateAttributeRequest(null, idAttribute, null);
         draftService.createAttribute(draftId, createAttributeRequest);
 
@@ -354,14 +358,14 @@ public class ApplicationTest {
         assertEquals(createAttribute, structure.getAttribute(createAttribute.getCode()));
         assertEquals(createReference, structure.getReference(createAttribute.getCode()));
 
-        // изменение атрибута и проверка
+        // Изменение атрибута и проверка.
         UpdateAttributeRequest updateAttributeRequest = new UpdateAttributeRequest(null, updateAttribute, createReference);
         draftService.updateAttribute(draftId, updateAttributeRequest);
         structure = versionService.getStructure(draftId);
         assertEquals(updateAttribute, structure.getAttribute(updateAttributeRequest.getCode()));
         assertEquals(createReference, structure.getReference(updateAttributeRequest.getCode()));
 
-        // удаление атрибута и проверка
+        // Удаление атрибута и проверка.
         createAttributeRequest.setAttribute(deleteAttribute);
         createAttributeRequest.setReference(new Structure.Reference(null, null, null));
         draftService.createAttribute(draftId, createAttributeRequest);
@@ -371,16 +375,16 @@ public class ApplicationTest {
         structure = versionService.getStructure(draftId);
         assertEquals(2, structure.getAttributes().size());
 
-        // в архив
+        // Отправка справочника в архив.
         refBookService.toArchive(refBook.getRefBookId());
 
-        // получение по идентификатору версии
+        // Получение справочника по идентификатору версии.
         RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
         assertRefBooksEqual(refBook, refBookById);
 
-        // удаление
+        // Удаление справочника.
         refBookService.delete(REMOVABLE_REF_BOOK_ID);
         RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REMOVABLE_REF_BOOK_CODE);
@@ -2751,7 +2755,7 @@ public class ApplicationTest {
     public void testCreateRefBookFromBadXmlFile() {
 
         // Общие проверки файла:
-        failCreateRefBook("badNoExt", "file.extension.invalid");
+        failCreateRefBook("badNoExt", "file.extension.absent");
         failCreateRefBook("badAnsi.xml", "file.content.invalid");
 
         // Проверки файла по блокам:
@@ -3114,7 +3118,7 @@ public class ApplicationTest {
     private void publish(Integer draftId, String versionName,
                          LocalDateTime fromDate, LocalDateTime toDate,
                          boolean resolveConflicts) {
-        PublishRequest request = new PublishRequest(null);
+        final PublishRequest request = new PublishRequest(null);
         request.setVersionName(versionName);
         request.setFromDate(fromDate);
         request.setToDate(toDate);
@@ -3186,8 +3190,7 @@ public class ApplicationTest {
     /** Получение кода сообщения об ошибке из исключения. */
     private static String getExceptionMessage(Exception e) {
 
-        if (e instanceof UserException) {
-            UserException ue = (UserException) e;
+        if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
                 return ue.getMessages().get(0).getCode();

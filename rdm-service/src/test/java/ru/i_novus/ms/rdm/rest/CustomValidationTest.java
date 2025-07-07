@@ -3,13 +3,13 @@ package ru.i_novus.ms.rdm.rest;
 import net.n2oapp.platform.jaxrs.RestException;
 import net.n2oapp.platform.test.autoconfigure.DefinePort;
 import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.CreateDraftRequest;
@@ -22,7 +22,7 @@ import ru.i_novus.ms.rdm.api.model.validation.*;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersionAttribute;
 import ru.i_novus.ms.rdm.api.rest.DraftRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.service.Application;
 
 import java.util.Iterator;
@@ -39,7 +39,6 @@ import static ru.i_novus.ms.rdm.api.model.validation.AttributeValidationType.*;
 import static ru.i_novus.ms.rdm.impl.validation.resolver.IntRangeAttributeValidationResolver.INT_RANGE_EXCEPTION_CODE;
 import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
@@ -50,11 +49,13 @@ import static ru.i_novus.platform.datastorage.temporal.enums.FieldType.*;
                 "cxf.jaxrs.client.address=http://localhost:${server.port}/rdm/api",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "rdm.enable.publish.topic=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
+@ActiveProfiles("test")
 @Import(BackendConfiguration.class)
 public class CustomValidationTest {
 
@@ -66,10 +67,10 @@ public class CustomValidationTest {
     @Qualifier("draftRestServiceJaxRsProxyClient")
     private DraftRestService draftService;
 
-    private String STRING_ATTR = "stringAttr";
-    private String INTEGER_ATTR = "integerAttr";
-    private String FLOAT_ATTR = "floatAttr";
-    private String DATE_ATTR = "dateAttr";
+    private final String STRING_ATTR = "stringAttr";
+    private final String INTEGER_ATTR = "integerAttr";
+    private final String FLOAT_ATTR = "floatAttr";
+    private final String DATE_ATTR = "dateAttr";
 
     /**
      * Проверка добавления и удаления проверки

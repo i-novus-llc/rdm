@@ -20,10 +20,6 @@
                 <field id="versionId" mapping="['draftId']" domain="integer"/>
                 <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
-
-            <out>
-                <field id="opId" mapping="toString()" default-value="123" domain="string"/>
-            </out>
         </operation>
 
         <operation id="publishAndRefresh">
@@ -43,10 +39,6 @@
                 <field id="versionId" mapping="['draftId']" domain="integer"/>
                 <field id="optLockValue" mapping="['optLockValue']" domain="integer"/>
             </in>
-
-            <out>
-                <field id="opId" mapping="toString()" domain="string"/>
-            </out>
         </operation>
     </operations>
 

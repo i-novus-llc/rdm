@@ -88,9 +88,14 @@ public class XlsxFileGenerator extends PerRowFileGenerator {
         final OutputStream ncos = new NoCloseOutputStreamWrapper(getOutputStream());
         try {
             autoSizeAllSheet();
+
             workbook.write(ncos);
+
             workbook.close();
+            workbook.dispose();
+
             ncos.flush();
+
             fieldColumns.clear();
             styleFactory = null;
 

@@ -1,179 +1,209 @@
 package ru.inovus.ms.rdm.ui.test;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.WebDriverRunner;
-import com.codeborne.selenide.ex.UIAssertionError;
-import com.codeborne.selenide.logevents.SelenideLogger;
-import io.qameta.allure.selenide.AllureSelenide;
 import lombok.extern.slf4j.Slf4j;
-import net.n2oapp.framework.autotest.N2oSelenide;
 import net.n2oapp.framework.autotest.api.component.DropDown;
 import net.n2oapp.framework.autotest.api.component.control.Control;
-import net.n2oapp.framework.autotest.api.component.control.InputText;
-import net.n2oapp.framework.autotest.api.component.control.TextArea;
-import net.n2oapp.framework.autotest.impl.component.control.N2oCheckbox;
-import net.n2oapp.framework.autotest.impl.component.control.N2oDateInput;
 import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
 import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
+import net.n2oapp.framework.autotest.run.AutoTestBase;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.system.SystemProperties;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
 import ru.inovus.ms.rdm.ui.test.model.RefBook;
 import ru.inovus.ms.rdm.ui.test.model.RefBookField;
-import ru.inovus.ms.rdm.ui.test.page.AttributeForm;
-import ru.inovus.ms.rdm.ui.test.page.CreateRefBookWidget;
-import ru.inovus.ms.rdm.ui.test.page.DataGridWidget;
-import ru.inovus.ms.rdm.ui.test.page.DataRowForm;
-import ru.inovus.ms.rdm.ui.test.page.DataWithConflictsWidget;
-import ru.inovus.ms.rdm.ui.test.page.RdmLogin;
-import ru.inovus.ms.rdm.ui.test.page.RefBookEditPage;
-import ru.inovus.ms.rdm.ui.test.page.RefBookListPage;
-import ru.inovus.ms.rdm.ui.test.page.StructureWidget;
+import ru.inovus.ms.rdm.ui.test.page.*;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static ru.inovus.ms.rdm.ui.test.util.UiTestUtil.*;
 
+/**
+ * Общий абстрактный класс для тестов RDM UI.
+ * <p>
+ * Для корректной работы необходимо указание значений настроек:
+ * selenide.baseUrl - базовый url для rdm ui
+ * rdm.username - логин пользователя rdm с администраторскими правами
+ * rdm.password - пароль пользователя с логином rdm.username
+ * <p>
+ * Пример:
+ * <p>- для VM options:
+ * <pre>
+ * -Dselenide.baseUrl=http://localhost:8080 -Drdm.username=rdm_admin -Drdm.password=rdm.admin
+ * </pre>
+ * <p>- для переменных окружения:
+ * <pre>
+ * selenide.baseUrl=http://localhost:8080;rdm.username=rdm_admin;rdm.password=rdm.admin
+ * </pre>
+ * <p>
+ * В случае, если при запуске тестов падает без открытия страницы,
+ * надо применить временный фикс бага с white-page: https://github.com/SeleniumHQ/selenium/issues/14544
+ * -Dselenide.headless=false
+ */
 @Slf4j
 @ExtendWith(SpringExtension.class)
-abstract class AbstractRdmUiTest {
+abstract class AbstractRdmUiTest extends AutoTestBase {
 
-    private static final String USERNAME = SystemProperties.get("rdm.username");
-    private static final String PASSWORD = SystemProperties.get("rdm.password");
+    static final String BASE_URL = SystemProperties.get("selenide.baseUrl");
+    static final String USERNAME = SystemProperties.get("rdm.username");
+    static final String PASSWORD = SystemProperties.get("rdm.password");
 
     // Время создания справочника (для локализации ошибки).
-    private static final ZoneId UNIVERSAL_TIMEZONE = ZoneId.of("UTC");
-    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+    static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+    static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
-    private static final int DATA_ROWS_CREATE_COUNT = 3;
-    private static final long SLEEP_TIME = TimeUnit.SECONDS.toMillis(6);
+    static final int DATA_ROWS_COUNT = 3;
+    //static final int DATA_ROWS_COUNT = 1; // debug only
+
+    static final long LOGIN_PAGE_WAIT_TIME = TimeUnit.SECONDS.toMillis(1);
+    static final long REFERRED_ATTRIBUTE_LOAD_WAIT_TIME = TimeUnit.SECONDS.toMillis(2);
+    static final long REFBOOK_PUBLISH_WAIT_TIME = TimeUnit.SECONDS.toMillis(6);
+    static final long CONFLICTS_RESOLVE_WAIT_TIME = TimeUnit.SECONDS.toMillis(6);
+    static final long INPUT_SELECT_CLEAR_WAIT_TIME = TimeUnit.SECONDS.toMillis(2);
 
     // Все простые поля для проверки справочников.
-    private static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
+    static final List<FieldType> DEFAULT_FIELD_TYPES = List.of(
             // В списке дата всегда должна быть последней, иначе календарь перекрывает другие поля.
             FieldType.INTEGER, FieldType.STRING, FieldType.DOUBLE, FieldType.BOOLEAN, FieldType.DATE
     );
 
     // Минимальное количество полей для проверки ссылочных справочников.
-    private static final List<FieldType> REFERRED_FIELD_TYPES = List.of(
+    static final List<FieldType> REFERRED_FIELD_TYPES = List.of(
             FieldType.INTEGER, FieldType.STRING
     );
-    private static final List<FieldType> REFERRER_FIELD_TYPES = List.of(
+    static final List<FieldType> REFERRER_FIELD_TYPES = List.of(
             // STRING нужен, иначе вылетает по таймауту.
             FieldType.INTEGER, FieldType.STRING, FieldType.REFERENCE
     );
 
     // Наименования атрибутов/полей.
-    private static final String ATTR_ID_NAME = "Идентификатор";
-    private static final String ATTR_NAME_NAME = "Наименование";
-    private static final String ATTR_REFERENCE_NAME = "Ссылочное поле";
+    static final String ATTR_ID_NAME = "Идентификатор";
+    static final String ATTR_NAME_NAME = "Наименование";
+    static final String ATTR_REFERENCE_NAME = "Ссылочное поле";
 
     // Формат поля даты при редактировании значения.
-    private static final String EDIT_FIELD_DATE_PATTERN = "dd.MM.yyyy";
-    private static final DateTimeFormatter EDIT_FIELD_DATE_FORMATTER = DateTimeFormatter.ofPattern(EDIT_FIELD_DATE_PATTERN);
+    static final String EDIT_FIELD_DATE_PATTERN = "dd.MM.yyyy";
+    static final DateTimeFormatter EDIT_FIELD_DATE_FORMATTER = DateTimeFormatter.ofPattern(EDIT_FIELD_DATE_PATTERN);
 
     // Легче работать с упорядоченным по id списком, поэтому через этот класс задаём порядок.
     private final AtomicInteger refBookDataIdSeq = new AtomicInteger();
 
     @BeforeAll
-    static void setUpAll() {
-        SelenideLogger.addListener("AllureSelenide", new AllureSelenide());
-    }
+    public static void beforeClass() {
 
-    @BeforeEach
-    void setUp() {
-        RdmLogin.login(USERNAME, PASSWORD);
+        log.debug("Start configure Selenide");
+        configureSelenide();
+        log.debug("Finish configure Selenide");
     }
 
     @AfterAll
-    static void tearDown() {
+    public static void afterClass() {
+
         Selenide.closeWebDriver();
+        log.debug("Web driver is closed");
     }
 
-    void testRefBook(String type) {
+    /**
+     * URL запущенного фронтенда RDM.
+     */
+    @Override
+    protected String getBaseUrl() {
+        return BASE_URL;
+    }
 
-        final RefBook refBook = generateRefBook(type, DATA_ROWS_CREATE_COUNT, DEFAULT_FIELD_TYPES, null);
+    @BeforeEach
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+    }
 
-        final RefBookListPage refBookListPage = N2oSelenide.page(RefBookListPage.class);
-        refBookListPage.shouldExists();
+    @AfterEach
+    public void cleanUp() {
+        logout();
+    }
+
+    /**
+     * Проверка работы со справочником указанного типа.
+     *
+     * @param refBookListPage страница 'Список справочников'
+     * @param type            тип справочника
+     */
+    protected void testRefBook(RefBookListPage refBookListPage, String type) {
 
         // Создание.
+        final RefBook refBook = generateRefBook(type, DATA_ROWS_COUNT, DEFAULT_FIELD_TYPES, null);
         createRefBook(refBookListPage, refBook);
         refBookListPage.shouldExists();
 
         search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(refBook.getCode());
 
         // Редактирование.
         final RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
         editRefBook(refBookEditPage, refBook);
+
         search(refBookListPage, refBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(refBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(refBook.getCode());
 
         // Удаление.
         refBookListPage.deleteRow(0);
+
         search(refBookListPage, refBook);
         refBookListPage.rowShouldHaveSize(0);
     }
 
-    void testReferrerRefBook(String referredType, String referrerType) {
-
-        final RefBook referredBook = generateRefBook(referredType, DATA_ROWS_CREATE_COUNT, REFERRED_FIELD_TYPES, null);
-        final RefBook referrerBook = generateRefBook(referrerType, DATA_ROWS_CREATE_COUNT, REFERRER_FIELD_TYPES, referredBook);
-
-        final RefBookListPage refBookListPage = N2oSelenide.page(RefBookListPage.class);
-        refBookListPage.shouldExists();
+    /**
+     * Проверка работы со справочником, который ссылается на другой справочник.
+     *
+     * @param refBookListPage страница 'Список справочников'
+     * @param referredType    тип справочника, на который ссылаемся (исходный)
+     * @param referrerType    тип справочника, который ссылается (ссылочный)
+     */
+    @SuppressWarnings("SameParameterValue")
+    protected void testReferrerRefBook(RefBookListPage refBookListPage, String referredType, String referrerType) {
 
         // Создание обычного справочника.
+        final RefBook referredBook = generateRefBook(referredType, DATA_ROWS_COUNT, REFERRED_FIELD_TYPES, null);
         createRefBook(refBookListPage, referredBook);
         refBookListPage.shouldExists();
 
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
         // Создание ссылочного справочника.
+        final RefBook referrerBook = generateRefBook(referrerType, DATA_ROWS_COUNT, REFERRER_FIELD_TYPES, referredBook);
         createRefBook(refBookListPage, referrerBook);
 
         // Создание конфликтов.
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
-        RefBookEditPage refBookEditPage = openRefBookEditPage(refBookListPage, 0);
-        createDataConflicts(refBookEditPage, referredBook);
+        final RefBookEditPage referredBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        createDataConflicts(referredBookEditPage, referredBook);
 
         // Разрешение конфликтов.
         search(refBookListPage, referrerBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referrerBook.getCode());
 
-        refBookEditPage = openRefBookEditPage(refBookListPage, 0);
-        resolveDataConflicts(refBookEditPage, referrerBook);
+        final RefBookEditPage referrerBookEditPage = openRefBookEditPage(refBookListPage, 0);
+        resolveDataConflicts(referrerBookEditPage, referrerBook);
 
         // Удаление ссылочного справочника.
         search(refBookListPage, referrerBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referrerBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referrerBook.getCode());
 
         refBookListPage.deleteRow(0);
         search(refBookListPage, referrerBook);
@@ -181,14 +211,14 @@ abstract class AbstractRdmUiTest {
 
         // Удаление обычного справочника.
         search(refBookListPage, referredBook);
-        refBookListPage.rowShouldHaveTexts(0, singletonList(referredBook.getCode()));
+        refBookListPage.columnCodeShouldHaveText(referredBook.getCode());
 
         refBookListPage.deleteRow(0);
         search(refBookListPage, referredBook);
         refBookListPage.rowShouldHaveSize(0);
     }
 
-    private void search(RefBookListPage refBookListPage, RefBook refBook) {
+    void search(RefBookListPage refBookListPage, RefBook refBook) {
 
         fillInputControl(refBookListPage.codeFilter(), refBook.getCode());
         fillInputControl(refBookListPage.nameFilter(), refBook.getName());
@@ -197,7 +227,7 @@ abstract class AbstractRdmUiTest {
         refBookListPage.search();
     }
 
-    private void createRefBook(RefBookListPage refBookListPage, RefBook refBook) {
+    void createRefBook(RefBookListPage refBookListPage, RefBook refBook) {
 
         final CreateRefBookWidget createRefBookWidget = refBookListPage.openCreateRefBookPage();
         createRefBookWidget.shouldExists();
@@ -212,20 +242,22 @@ abstract class AbstractRdmUiTest {
         final Set<RefBookField> fieldsToFirstRefBook = refBook.getRows().get(0).keySet();
         createStructure(structureWidget, fieldsToFirstRefBook);
 
-        final DataGridWidget dataGridWidget = refBookEditPage.data();
-        dataGridWidget.shouldExists();
+        final DataTableWidget dataTableWidget = refBookEditPage.dataTable();
+        dataTableWidget.shouldExists();
+        dataTableWidget.shouldBeVisible();
+        // Don't use: dataTableWidget.shouldBeEnabled()
 
-        final List<String> addedRowsNameColumnValues = new ArrayList<>();
+        final List<String> nameColumnTexts = new ArrayList<>(refBook.getRows().size());
         for (Map<RefBookField, Object> row : refBook.getRows()) {
 
-            final DataRowForm dataForm = dataGridWidget.openAddRowForm();
+            final DataRowForm dataForm = dataTableWidget.openAddRowForm();
             dataForm.shouldExists();
 
             fillDataRowForm(dataForm, row);
             dataForm.save();
 
-            addedRowsNameColumnValues.add(getNameColumnValue(row));
-            dataGridWidget.rowShouldHaveTexts(1, addedRowsNameColumnValues);
+            nameColumnTexts.add(getNameColumnText(row));
+            dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
         }
 
         if (refBook.isUnversioned()) {
@@ -235,10 +267,10 @@ abstract class AbstractRdmUiTest {
         }
     }
 
-    private void createStructure(StructureWidget structureWidget, Set<RefBookField> fieldsToFirstRefBook) {
+    void createStructure(StructureWidget structureWidget, Set<RefBookField> fieldsToFirstRefBook) {
 
-        final List<String> addedRowsCodeColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
-        final List<String> addedRowsNameColumnValues = new ArrayList<>(fieldsToFirstRefBook.size());
+        final List<String> codeColumnTexts = new ArrayList<>(fieldsToFirstRefBook.size());
+        final List<String> nameColumnTexts = new ArrayList<>(fieldsToFirstRefBook.size());
 
         fieldsToFirstRefBook.forEach(field -> {
 
@@ -248,45 +280,45 @@ abstract class AbstractRdmUiTest {
             fillAttributeForm(attributeForm, field);
             attributeForm.save();
 
-            addedRowsCodeColumnValues.add(field.getCode());
-            addedRowsNameColumnValues.add(field.getName());
+            codeColumnTexts.add(field.getCode());
+            nameColumnTexts.add(field.getName());
 
-            structureWidget.rowShouldHaveTexts(1, addedRowsCodeColumnValues);
-            structureWidget.rowShouldHaveTexts(2, addedRowsNameColumnValues);
+            structureWidget.columnShouldHaveTexts(1, codeColumnTexts);
+            structureWidget.columnShouldHaveTexts(2, nameColumnTexts);
         });
     }
 
-    private void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
+    void editRefBook(RefBookEditPage refBookEditPage, RefBook refBook) {
 
-        List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
+        final List<Map<RefBookField, Object>> existedRows = refBook.getRows();
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
 
         refBookEditPage.shouldExists();
-        DataGridWidget dataGridWidget = refBookEditPage.data();
+        final DataTableWidget dataTableWidget = refBookEditPage.dataTable();
 
         final List<Map<RefBookField, Object>> refBookRows = generateRows(1, DEFAULT_FIELD_TYPES, null);
         final Map<RefBookField, Object> row = refBookRows.get(0);
 
-        final DataRowForm addForm = dataGridWidget.openAddRowForm();
+        final DataRowForm addForm = dataTableWidget.openAddRowForm();
         fillDataRowForm(addForm, row);
         addForm.save();
 
-        nameColumnValues.add(getNameColumnValue(row));
-        dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.add(getNameColumnText(row));
+        dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
-        final int lastRowNum = nameColumnValues.size() - 1;
-        final DataRowForm editForm = dataGridWidget.openEditRowForm(lastRowNum);
+        final int lastRowNum = nameColumnTexts.size() - 1;
+        final DataRowForm editForm = dataTableWidget.openEditRowForm(lastRowNum);
         final String newNameValue = "Другое наименование";
         fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
-        nameColumnValues.set(lastRowNum, newNameValue);
-        dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.set(lastRowNum, newNameValue);
+        dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
-        dataGridWidget.deleteRow(lastRowNum);
+        dataTableWidget.deleteRow(lastRowNum);
 
-        nameColumnValues.remove(lastRowNum);
-        dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.remove(lastRowNum);
+        dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         if (refBook.isUnversioned()) {
             openRefBookListPage();
@@ -295,28 +327,29 @@ abstract class AbstractRdmUiTest {
         }
     }
 
-    private void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
-
-        final List<Map<RefBookField, Object>> existedRows = refBook.getRows();
-        final List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
+    void createDataConflicts(RefBookEditPage refBookEditPage, RefBook refBook) {
 
         refBookEditPage.shouldExists();
-        DataGridWidget dataGridWidget = refBookEditPage.data();
+
+        final List<Map<RefBookField, Object>> existedRows = refBook.getRows();
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
+
+        final DataTableWidget dataTableWidget = refBookEditPage.dataTable();
 
         // Конфликт DELETED.
-        dataGridWidget.deleteRow(0);
+        dataTableWidget.deleteRow(0);
 
-        nameColumnValues.remove(0);
-        dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.remove(0);
+        dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         // Конфликт UPDATED.
-        final DataRowForm editForm = dataGridWidget.openEditRowForm(0);
-        final String newNameValue = nameColumnValues.get(0) + "_updated";
+        final DataRowForm editForm = dataTableWidget.openEditRowForm(0);
+        final String newNameValue = nameColumnTexts.get(0) + "_updated";
         fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
-        nameColumnValues.set(0, newNameValue);
-        dataGridWidget.rowShouldHaveTexts(1, nameColumnValues);
+        nameColumnTexts.set(0, newNameValue);
+        dataTableWidget.columnShouldHaveTexts(1, nameColumnTexts);
 
         if (refBook.isUnversioned()) {
             openRefBookListPage();
@@ -325,211 +358,70 @@ abstract class AbstractRdmUiTest {
         }
     }
 
-    private void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
-
-        final List<Map<RefBookField, Object>> existedRows = referrer.getRows();
-        final List<String> nameColumnValues = existedRows.stream().map(this::getNameColumnValue).collect(toList());
-        final List<String> nameColumnConflictedValues = nameColumnValues.subList(0, 2);
+    void resolveDataConflicts(RefBookEditPage refBookEditPage, RefBook referrer) {
 
         refBookEditPage.shouldExists();
-        //final DataWidget dataWidget = refBookEditPage.data();
-        //dataWidget.rowShouldHaveTexts(1, nameColumnValues);
 
-        DataWithConflictsWidget dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
-        dataWithConflictsWidget.rowShouldHaveSize(2); // Два конфликта
-        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        final List<Map<RefBookField, Object>> existedRows = referrer.getRows();
+        final List<String> nameColumnTexts = existedRows.stream().map(this::getNameColumnText).collect(toList());
+        final List<String> conflictedNameColumnTexts = nameColumnTexts.subList(0, 2);
+
+        //final DataWidget dataWidget = refBookEditPage.data();
+        //dataWidget.columnShouldHaveTexts(1, nameColumnTexts);
+
+        final DataTableWithConflictsWidget widget2 = refBookEditPage.dataTableWithConflicts();
+        widget2.rowShouldHaveSize(2); // Два конфликта
+        widget2.columnShouldHaveTexts(1, conflictedNameColumnTexts);
 
         refBookEditPage.refreshReferrer();
-        waitActionResult(SLEEP_TIME);
+        waitActionResult(CONFLICTS_RESOLVE_WAIT_TIME);
 
-        nameColumnConflictedValues.remove(1);
-        dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
-        dataWithConflictsWidget.rowShouldHaveSize(1); // Один конфликт
-        dataWithConflictsWidget.rowShouldHaveTexts(1, nameColumnConflictedValues);
+        conflictedNameColumnTexts.remove(1);
+        final DataTableWithConflictsWidget widget1 = refBookEditPage.dataTableWithConflicts();
+        widget1.rowShouldHaveSize(1); // Один конфликт
+        widget1.columnShouldHaveTexts(1, conflictedNameColumnTexts);
 
-        final DataRowForm editForm = dataWithConflictsWidget.fixRowForm(0);
+        final DataRowForm editForm = widget1.fixRowForm(0);
         fillReference(editForm.referenceInput(ATTR_REFERENCE_NAME), 0);
         editForm.edit();
 
-        dataWithConflictsWidget = refBookEditPage.dataWithConflicts();
-        Selenide.refresh();
-        dataWithConflictsWidget.rowShouldHaveSize(0); // Нет конфликтов
+        final DataTableWithConflictsWidget widget0 = refBookEditPage.dataTableWithConflicts();
+        widget0.rowShouldHaveSize(0); // Нет конфликтов
 
         openRefBookListPage();
     }
 
-    private void openRefBookListPage() {
-
-        N2oSelenide.open("/", RefBookListPage.class);
+    void openRefBookListPage() {
+        openPage(RefBookListPage.class, BASE_URL + "/");
     }
 
-    private RefBookEditPage openRefBookEditPage(RefBookListPage refBookListPage, int rowNum) {
-
+    RefBookEditPage openRefBookEditPage(RefBookListPage refBookListPage, int rowNum) {
         return refBookListPage.openRefBookEditPage(rowNum);
     }
 
-    private void publishRefBook(RefBookEditPage refBookEditPage) {
+    void publishRefBook(RefBookEditPage refBookEditPage) {
 
         refBookEditPage.publish();
-        waitActionResult(SLEEP_TIME);
-    }
-
-    private void fillDataRowForm(DataRowForm form, Map<RefBookField, Object> row) {
-
-        row.forEach((key, value) -> {
-            switch (key.getType()) {
-                case STRING: fillInputControl(form.stringInput(key.getName()), value.toString()); break;
-                case INTEGER: fillInputControl(form.integerInput(key.getName()), value.toString()); break;
-                case DOUBLE: fillInputControl(form.doubleInput(key.getName()), value.toString()); break;
-                case DATE: fillInputControl(form.dateInput(key.getName()), (value.toString())); break;
-                case BOOLEAN: fillCheckBox(form.booleanInput(key.getName()), true); break;
-                case REFERENCE: fillReference(form.referenceInput(key.getName()), value); break;
-                default: throw new IllegalArgumentException(key.getType() + " invalid field type");
-            }
-        });
-
-    }
-
-    private void fillAttributeForm(AttributeForm form, RefBookField refBookField) {
-
-        fillInputControl(form.codeInput(), refBookField.getCode());
-        fillInputControl(form.nameInput(), refBookField.getName());
-
-        final N2oSelect typeInput = form.typeInput();
-        typeInput.openPopup();
-        final DropDown typeDropDown = typeInput.dropdown();
-        typeDropDown.selectItemBy(Condition.text(refBookField.getType().getLabel()));
-        typeInput.shouldHaveValue(refBookField.getType().getLabel());
-
-        if (refBookField.isReferenceType()) {
-
-            final N2oInputSelect refBookInput = form.refBookInput();
-            refBookInput.setValue(refBookField.getReferredBook().getCode());
-            final DropDown refBookDropDown = refBookInput.dropdown();
-            refBookDropDown.shouldHaveOptions(1);
-            refBookDropDown.selectItem(0);
-
-            final N2oInputSelect displayAttrInput = form.displayAttrInput();
-            final Map.Entry<Integer, String> referredField = refBookField.getReferredField();
-            displayAttrInput.setValue(referredField.getValue());
-            final DropDown displayAttrInputDropDown = displayAttrInput.dropdown();
-            displayAttrInputDropDown.shouldHaveOptions(1);
-            displayAttrInputDropDown.selectItem(0);
-
+        waitActionResult(REFBOOK_PUBLISH_WAIT_TIME);
         }
 
-        if (refBookField.isPrimary()) {
-
-            fillCheckBox(form.primaryKeyInput(), true);
-        }
-    }
-
-    private void fillRefBookWidget(CreateRefBookWidget widget, RefBook refBook) {
-
-        fillInputControl(widget.codeInput(), refBook.getCode());
-        fillInputControl(widget.nameInput(), refBook.getName());
-        fillInputControl(widget.shortNameInput(), refBook.getShortName());
-        fillInputControl(widget.descriptionInput(), refBook.getDescription());
-
-        if (refBook.getType() != null) {
-
-            final N2oInputSelect typeInput = widget.typeInput();
-            typeInput.openPopup();
-            final DropDown dropdown = typeInput.dropdown();
-            dropdown.selectItemBy(Condition.text(refBook.getType()));
-            typeInput.closePopup();
-            typeInput.shouldHaveValue(refBook.getType());
-
-        }
-    }
-
-    private void fillInputControl(Control control, String value) {
-
-        new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofMillis(Configuration.timeout))
-                .ignoring(UIAssertionError.class)
-                .until(
-                        unused -> {
-                            setValue(control, value);
-                            return true;
-                        }
-                );
-    }
-
-    private static void setValue(final Control control, final String value) {
-        control.shouldExists();
-
-        if (control instanceof InputText inputText) {
-            inputText.setValue(value);
-
-        } else if(control instanceof TextArea textArea) {
-            textArea.setValue(value);
-
-        } else if (control instanceof N2oDateInput dateInput) {
-            dateInput.setValue(value);
-
-        } else {
-            throw new IllegalArgumentException("Control is not for input");
-        }
-
-        control.shouldHaveValue(value);
-    }
-
+    /**
+     * Формирование информации о справочнике для создания.
+     *
+     * @param type         тип справочника
+     * @param rowCount     количество создаваемых записей
+     * @param fieldTypes   типы полей записи / атрибутов справочника
+     * @param referredBook справочник, на который ссылаются
+     * @return Информация о справочнике
+     */
     @SuppressWarnings("SameParameterValue")
-    private void fillCheckBox(Control checkBox, boolean value) {
-
-        checkBox.shouldExists();
-
-        if (!(checkBox instanceof N2oCheckbox))
-            throw new IllegalArgumentException("Control is not check box");
-
-        final N2oCheckbox control = (N2oCheckbox) checkBox;
-        control.setChecked(value);
-
-        if (value) {
-            control.shouldBeChecked();
-        } else {
-            control.shouldBeEmpty();
-        }
-    }
-
-    private void fillReference(Control referenceInput, Object value) {
-
-        referenceInput.shouldExists();
-
-        if (!(referenceInput instanceof N2oInputSelect))
-            throw new IllegalArgumentException("Control is not reference input");
-
-        final N2oInputSelect control = (N2oInputSelect) referenceInput;
-        new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofMillis(Configuration.timeout))
-                .ignoring(UIAssertionError.class)
-                .until(
-                        unused -> {
-                            // to-do: Очищать только при наличии значения!
-                            control.clear();
-                            return true;
-                        }
-                );
-
-        final DropDown dropDown = control.dropdown();
-        dropDown.selectItem((int) value);
-        //control.select((int) value);
-    }
-
-    /** Ожидание результата действия. */
-    private void waitActionResult(long sleepTime) {
-        
-        Selenide.sleep(sleepTime != 0 ? sleepTime : 1);
-    }
-
-    /** Формирование информации о справочнике для создания. */
-    @SuppressWarnings("SameParameterValue")
-    private RefBook generateRefBook(String type, int rowCount, List<FieldType> fieldTypes, RefBook referredBook) {
+    RefBook generateRefBook(String type, int rowCount, List<FieldType> fieldTypes, RefBook referredBook) {
 
         return new RefBook(
-                "a_" + RandomStringUtils.randomAlphabetic(5),
+                "a_a" + RandomStringUtils.randomAlphabetic(5).toUpperCase(),
                 "a " + RandomStringUtils.randomAlphabetic(5) +
                         (referredBook != null ? " to " + referredBook.getCode() : "") +
-                        " (" + now().format(DATE_TIME_FORMATTER) + ")",
+                        " (" + nowUtc().format(DATE_TIME_FORMATTER) + ")",
                 "shortName",
                 "system",
                 "description",
@@ -538,42 +430,50 @@ abstract class AbstractRdmUiTest {
         );
     }
 
-    /** Формирование информации о записях справочника. */
-    private List<Map<RefBookField, Object>> generateRows(int rowCount,
-                                                         List<FieldType> fieldTypes,
-                                                         RefBook referredBook) {
-
+    /**
+     * Формирование информации о записях справочника.
+     *
+     * @param rowCount     количество записей
+     * @param fieldTypes   типы полей записи / атрибутов справочника
+     * @param referredBook справочник, на который ссылаются
+     * @return Информация в виде списка записей
+     */
+    List<Map<RefBookField, Object>> generateRows(
+            int rowCount,
+            List<FieldType> fieldTypes,
+            RefBook referredBook
+    ) {
         final List<Map<RefBookField, Object>> result = new ArrayList<>(rowCount);
         for(int i = 0; i < rowCount; i++) {
             Map<RefBookField, Object> row = new LinkedHashMap<>(fieldTypes.size());
             for (FieldType fieldType : fieldTypes) {
                 switch (fieldType) {
-                    case STRING: row.put(
+                    case STRING -> row.put(
                             new RefBookField("name", ATTR_NAME_NAME, fieldType, false),
                             RandomStringUtils.randomAlphabetic(5)
-                    ); break;
-                    case INTEGER: row.put(
+                    );
+                    case INTEGER -> row.put(
                             new RefBookField("id", ATTR_ID_NAME, fieldType, true),
                             String.valueOf(refBookDataIdSeq.getAndIncrement())
-                    ); break;
-                    case DOUBLE: row.put(
-                            new RefBookField("some_double", "Некоторое дробное поле", fieldType, false),
+                    );
+                    case DOUBLE -> row.put(
+                            new RefBookField("some_double", "Некоторая дробное число", fieldType, false),
                             String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
-                    ); break;
-                    case DATE: row.put(
+                    );
+                    case DATE -> row.put(
                             new RefBookField("some_date", "Некоторая дата", fieldType, false),
                             LocalDate.now().format(EDIT_FIELD_DATE_FORMATTER)
-                    ); break;
-                    case BOOLEAN: row.put(
-                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType,
-                                    false), RandomUtils.nextBoolean()
-                    ); break;
-                    case REFERENCE: row.put(
+                    );
+                    case BOOLEAN -> row.put(
+                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType, false),
+                            RandomUtils.nextBoolean()
+                    );
+                    case REFERENCE -> row.put(
                             new RefBookField("some_reference", ATTR_REFERENCE_NAME, fieldType, false,
                                     referredBook, new AbstractMap.SimpleEntry<>(1, ATTR_NAME_NAME)),
                             referredBook != null && referredBook.getRows().size() > i ? i : null
-                    ); break;
-                    default: throw new IllegalArgumentException(fieldType + " invalid field type");
+                    );
+                    default -> throw new IllegalArgumentException(fieldType + " invalid field type");
                 }
             }
             result.add(row);
@@ -581,16 +481,135 @@ abstract class AbstractRdmUiTest {
         return result;
     }
 
-    private String getNameColumnValue(Map<RefBookField, Object> row) {
+    void fillRefBookWidget(CreateRefBookWidget widget, RefBook refBook) {
 
-        Map.Entry<RefBookField, Object> field = row.entrySet().stream()
+        fillInputControl(widget.codeInput(), refBook.getCode());
+        fillInputControl(widget.nameInput(), refBook.getName());
+        fillInputControl(widget.shortNameInput(), refBook.getShortName());
+        fillInputControl(widget.descriptionInput(), refBook.getDescription());
+
+        if (refBook.getType() != null) {
+            final N2oInputSelect typeInput = widget.typeInput();
+            fillInputControl(typeInput, refBook.getType());
+        }
+    }
+
+    void fillAttributeForm(AttributeForm form, RefBookField refBookField) {
+
+        fillInputControl(form.codeInput(), refBookField.getCode());
+        fillInputControl(form.nameInput(), refBookField.getName());
+
+        final N2oSelect typeInput = form.typeInput();
+        typeInput.shouldBeEmpty();
+        fillInputControl(typeInput, refBookField.getType().getLabel());
+
+        if (refBookField.isReferenceType()) {
+
+            final N2oInputSelect refBookInput = form.refBookInput();
+            refBookInput.shouldBeEmpty();
+
+            final String referredBookCode = refBookField.getReferredBook().getCode();
+            refBookInput.setValue(referredBookCode);
+            fillN2oInputSelectValue(refBookInput, referredBookCode);
+            waitActionResult(REFERRED_ATTRIBUTE_LOAD_WAIT_TIME); // Ожидание для подгрузки атрибутов
+
+            final Map.Entry<Integer, String> referredField = refBookField.getReferredField();
+            if (referredField != null) {
+
+                final N2oInputSelect displayAttrInput = form.displayAttrInput();
+                displayAttrInput.shouldBeEmpty();
+                displayAttrInput.setValue(referredField.getValue());
+                fillN2oInputSelectValue(displayAttrInput, referredField.getValue());
+            }
+        }
+
+        if (refBookField.isPrimary()) {
+            fillCheckBox(form.primaryKeyInput(), true);
+        }
+    }
+
+    void fillDataRowForm(DataRowForm form, Map<RefBookField, Object> row) {
+
+        row.forEach((key, value) -> {
+            switch (key.getType()) {
+                case STRING -> fillInputControl(form.stringInput(key.getName()), value.toString());
+                case INTEGER -> fillInputControl(form.integerInput(key.getName()), value.toString());
+                case DOUBLE -> fillInputControl(form.doubleInput(key.getName()), value.toString());
+                case DATE -> fillInputControl(form.dateInput(key.getName()), (value.toString()));
+                case BOOLEAN -> fillCheckBox(form.booleanInput(key.getName()), true);
+                case REFERENCE -> fillReference(form.referenceInput(key.getName()), value);
+                default -> throw new IllegalArgumentException(key.getType() + " invalid field type");
+            }
+        });
+    }
+
+    void fillReference(Control referenceInput, Object value) {
+
+        if (!(referenceInput instanceof N2oInputSelect control))
+            throw new IllegalArgumentException("Control is not reference input");
+
+        referenceInput.shouldExists();
+
+        // to-do: Очищать только при наличии значения!
+        control.clear();
+        waitActionResult(INPUT_SELECT_CLEAR_WAIT_TIME);
+
+        control.openPopup();
+        final DropDown dropDown = control.dropdown();
+        dropDown.selectItem((int) value);
+        control.closePopup();
+    }
+
+    /**
+     * Получение строкового значения колонки name для записи row.
+     *
+     * @param row запись
+     * @return Строковое значение колонки
+     */
+    String getNameColumnText(Map<RefBookField, Object> row) {
+
+        final Map.Entry<RefBookField, Object> field = row.entrySet().stream()
                         .filter(entry -> "name".equals(entry.getKey().getCode()))
                         .findAny().orElse(null);
 
         return (field != null) ? (String) field.getValue() : null;
     }
 
-    private static LocalDateTime now() {
-        return LocalDateTime.now(UNIVERSAL_TIMEZONE);
+    RefBookListPage login() {
+
+        waitActionResult(LOGIN_PAGE_WAIT_TIME);
+
+        log.debug("User log in");
+        final RdmLoginPage loginPage = open(RdmLoginPage.class); // with logs
+        loginPage.shouldExists();
+
+        waitActionResult(LOGIN_PAGE_WAIT_TIME);
+
+        final RefBookListPage refBookListPage = loginPage.login(USERNAME, PASSWORD);
+        refBookListPage.shouldExists();
+        log.debug("User logged in");
+
+        //log.info("Main page");
+        //final RefBookListPage refBookListPage = openPage(RefBookListPage.class, DEFAULT_URL + "/");
+        return refBookListPage;
+    }
+
+    void logout() {
+
+        log.debug("User log out");
+        final RdmLoginPage loginPage = openPage(RdmLoginPage.class,  BASE_URL + "/logout");
+        loginPage.shouldExists();
+        log.debug("User logged out");
+    }
+
+    void runUiTest(Consumer<RefBookListPage> uiTestConsumer) {
+
+        final RefBookListPage refBookListPage = login();
+        try {
+            uiTestConsumer.accept(refBookListPage);
+
+        } finally {
+            logout();
+        }
     }
 }

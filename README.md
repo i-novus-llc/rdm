@@ -12,10 +12,10 @@
 - JPA 2
 - JAX-RS
 - JMS
-- Spring Boot 3.2.2
-- Spring Cloud 2021
+- Spring Boot 3.2
+- Spring Cloud 2023
 - Liquibase 4.24
-- N2O Platform 6.1.3
+- N2O Platform 6.2
 - N2O UI Framework 7.28
 - React
 
@@ -32,11 +32,11 @@
 - `rdm-rest` - общие классы для REST-API.
  
 *Автоконфигураторы*:
-- `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкэнда (для проектов, использующих RDM).
+- `rdm-rest-spring-boot-autoconfigure` - автоконфигуратор REST-API бэкенда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-autoconfigure` - автоконфигуратор UI (для проектов, использующих RDM).
 
 *Стартеры*:
-- `rdm-rest-spring-boot-starter` - стартер REST-API бэкэнда (для проектов, использующих RDM).
+- `rdm-rest-spring-boot-starter` - стартер REST-API бэкенда (для проектов, использующих RDM).
 - `rdm-web-spring-boot-starter` - стартер UI (для проектов, использующих RDM).
 
 *Запускаемые модули*:

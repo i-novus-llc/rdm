@@ -13,15 +13,23 @@
     </parent>
 
     <properties>
-        <!-- Но нужна как минимум версия 7.3.2 ! -->
-        <selenide.version>6.17.1</selenide.version>
-        <!-- Минимальная версия 4.21.0 для Chrome v.125 ! -->
-        <selenium.version>4.11.0</selenium.version>
-        <!-- Минимальная версия 33.2.0-jre из Selenide v.7.3.2 ! -->
-        <guava.version>32.1.2-jre</guava.version>
-        <allure-junit5.version>2.13.3</allure-junit5.version>
+        <java.version>17</java.version>
+        <encoding>UTF-8</encoding>
 
-        <maven-surefire.version>3.0.0-M3</maven-surefire.version>
+        <!-- ${maven-compiler-plugin.version} -->
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- From:
+         ? n2o-boot-platform
+         - org.springframework.data/spring-data-jpa
+         - org.springframework.data/spring-data-commons
+         - org.springframework.hateoas/spring-hateoas
+         -->
+        <maven-surefire.version>3.2.5</maven-surefire.version>
+        <!-- From:
+         - net.n2oapp.framework/framework
+         -->
         <allure-maven.version>2.10.0</allure-maven.version>
 
         <jacoco.skip>false</jacoco.skip>
@@ -33,31 +41,6 @@
             <artifactId>n2o-autotest</artifactId>
             <version>${n2o.version}</version>
         </dependency>
-
-        <!-- from Selenide -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-junit5</artifactId>
-            <version>${allure-junit5.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-selenide</artifactId>
-            <version>${allure-junit5.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.codeborne</groupId>
-                    <artifactId>selenide</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>
@@ -65,20 +48,24 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire.version}</version>
+
                 <configuration>
                     <testFailureIgnore>false</testFailureIgnore>
                     <includes>
-                         <include>**/*Test.java</include>
+                        <include>**/*Test.java</include>
                     </includes>
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
@@ -89,17 +76,12 @@
                             <value>io.qameta.allure.junit5.AllureJunit5</value>
                         </property>
                     </properties>
-                    <systemProperties>
-                        <property>
-                            <name>allure.results.directory</name>
-                            <value>${project.basedir}/allure-results</value>
-                        </property>
-                        <property>
-                            <name>junit.jupiter.extensions.autodetection.enabled</name>
-                            <value>true</value>
-                        </property>
-                    </systemProperties>
+                    <systemPropertyVariables>
+                        <allure.results.directory>${project.basedir}/allure-results</allure.results.directory>
+                        <junit.jupiter.extensions.autodetection.enabled>true</junit.jupiter.extensions.autodetection.enabled>
+                    </systemPropertyVariables>
                 </configuration>
+
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
@@ -118,10 +100,12 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>${allure-maven.version}</version>
+
                 <configuration>
                     <reportDirectory>allure-report</reportDirectory>
                     <resultsDirectory>../allure-results</resultsDirectory>

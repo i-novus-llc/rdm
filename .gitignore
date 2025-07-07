@@ -30,6 +30,7 @@ buildNumber.properties
 ~$*.*
 **/package-lock.json
 
+*.log
 /rdm-frontend/rdm-react/node/node_modules/
 /rdm-frontend/rdm-react/node/
 /rdm_log/

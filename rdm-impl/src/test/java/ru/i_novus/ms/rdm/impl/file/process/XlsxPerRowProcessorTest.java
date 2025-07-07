@@ -30,7 +30,7 @@ public class XlsxPerRowProcessorTest {
             put("DATEBEG", date);
             put("DATEEND", null);
         }});
-        expected.add(new HashMap<String, Object>() {{
+        expected.add(new HashMap<>() {{
             put("Kod", BigInteger.valueOf(1));
             put("Opis", "Бумажный полис ОМС");
             put("DATEBEG", date);

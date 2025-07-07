@@ -16,7 +16,7 @@ public class StaleStateExceptionMapper implements RestExceptionMapper<StaleState
 
     private static final Logger logger = LoggerFactory.getLogger(StaleStateExceptionMapper.class);
 
-    private Messages messages;
+    private final Messages messages;
 
     public StaleStateExceptionMapper(Messages messages) {
         this.messages = messages;
@@ -24,7 +24,8 @@ public class StaleStateExceptionMapper implements RestExceptionMapper<StaleState
 
     @Override
     public RestMessage toMessage(StaleStateException e) {
-        logger.error("stale state error", e);
+
+        logger.error("Stale state error", e);
         return new RestMessage(messages.getMessage(STALE_STATE_ERROR_EXCEPTION_CODE) + "\n" + e.getMessage());
     }
 

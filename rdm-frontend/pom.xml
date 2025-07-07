@@ -18,10 +18,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <jacoco.skip>false</jacoco.skip>
         <sonar.coverage.exclusions>
-            **/FrontendApplication.java,
-            **/SecurityConfig.java, **/SecurityContextUtils.java,
-            **/UserInfoCxfInterceptor.java, **/FrontendConfiguration.java,
-            **/CxfConfiguration.java
+            **/rdm/config/*.java
         </sonar.coverage.exclusions>
 
         <rdm.l10n.support>false</rdm.l10n.support>

@@ -1,7 +1,6 @@
 package ru.i_novus.ms.rdm.impl.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.i_novus.ms.rdm.api.enumeration.FileType;
@@ -19,11 +18,10 @@ import ru.i_novus.ms.rdm.api.util.TimeUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Primary
 @Service
 public class VersionRestServiceImpl implements VersionRestService {
 
-    private VersionService versionService;
+    private final VersionService versionService;
 
     @Autowired
     public VersionRestServiceImpl(VersionService versionService) {

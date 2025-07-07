@@ -11,7 +11,6 @@ import net.n2oapp.platform.test.autoconfigure.pg.EnableTestcontainersPg;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +20,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.i_novus.ms.rdm.api.model.version.RefBookVersion;
 import ru.i_novus.ms.rdm.api.rest.VersionRestService;
 import ru.i_novus.ms.rdm.api.service.RefBookService;
-import ru.i_novus.ms.rdm.rest.autoconfigure.AppConfig;
-import ru.i_novus.ms.rdm.rest.autoconfigure.BackendConfiguration;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.AppConfig;
+import ru.i_novus.ms.rdm.rest.autoconfigure.config.BackendConfiguration;
 import ru.i_novus.ms.rdm.rest.loader.RefBookDataServerLoaderRunner;
 import ru.i_novus.ms.rdm.service.Application;
 
@@ -40,7 +40,6 @@ import static org.junit.Assert.*;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_CODE;
 import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_BOOK_FILE;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
@@ -52,11 +51,13 @@ import static ru.i_novus.ms.rdm.api.util.loader.RefBookDataConstants.FIELD_REF_B
                 "spring.main.allow-bean-definition-overriding=true",
                 "fileStorage.root=src/test/resources/rdm/temp",
                 "i18n.global.enabled=false",
+                "rdm.enable.publish.topic=false",
                 "rdm.audit.disabledActions=all",
                 "management.tracing.enabled=false"
         })
 @DefinePort
 @EnableTestcontainersPg
+@ActiveProfiles("test")
 @Import({BackendConfiguration.class, AppConfig.class})
 @SuppressWarnings("FieldCanBeLocal")
 public class LoaderTest {

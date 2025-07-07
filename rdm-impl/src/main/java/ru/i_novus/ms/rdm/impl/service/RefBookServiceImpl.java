@@ -3,6 +3,7 @@ package ru.i_novus.ms.rdm.impl.service;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -12,7 +13,6 @@ import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
-import ru.i_novus.ms.rdm.api.model.Structure;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
 import ru.i_novus.ms.rdm.api.model.refbook.*;
@@ -52,7 +52,6 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
@@ -82,7 +81,7 @@ public class RefBookServiceImpl implements RefBookService {
     private final VersionValidation versionValidation;
 
     private final DraftService draftService;
-    private final PublishService publishService;
+    private final PublishService syncPublishService;
 
     private final VersionFileService versionFileService;
 
@@ -92,19 +91,21 @@ public class RefBookServiceImpl implements RefBookService {
 
     @Autowired
     @SuppressWarnings("squid:S00107")
-    public RefBookServiceImpl(RefBookRepository refBookRepository,
-                              RefBookVersionRepository versionRepository,
-                              RefBookDetailModelRepository refBookDetailModelRepository,
-                              DropDataService dropDataService,
-                              RefBookLockService refBookLockService,
-                              PassportValueRepository passportValueRepository,
-                              RefBookVersionQueryProvider refBookVersionQueryProvider,
-                              VersionValidation versionValidation,
-                              DraftService draftService,
-                              PublishService publishService,
-                              VersionFileService versionFileService,
-                              AuditLogService auditLogService,
-                              StrategyLocator strategyLocator) {
+    public RefBookServiceImpl(
+            RefBookRepository refBookRepository,
+            RefBookVersionRepository versionRepository,
+            RefBookDetailModelRepository refBookDetailModelRepository,
+            DropDataService dropDataService,
+            RefBookLockService refBookLockService,
+            PassportValueRepository passportValueRepository,
+            RefBookVersionQueryProvider refBookVersionQueryProvider,
+            VersionValidation versionValidation,
+            DraftService draftService,
+            @Qualifier("syncPublishService") PublishService syncPublishService,
+            VersionFileService versionFileService,
+            AuditLogService auditLogService,
+            StrategyLocator strategyLocator
+    ) {
         this.refBookRepository = refBookRepository;
         this.versionRepository = versionRepository;
 
@@ -120,7 +121,7 @@ public class RefBookServiceImpl implements RefBookService {
         this.versionValidation = versionValidation;
 
         this.draftService = draftService;
-        this.publishService = publishService;
+        this.syncPublishService = syncPublishService;
 
         this.versionFileService = versionFileService;
         
@@ -208,12 +209,12 @@ public class RefBookServiceImpl implements RefBookService {
     public Draft create(FileModel fileModel) {
 
         final String extension = fileModel.getExtension();
-        switch (extension) {
-            case "XLSX": return createByXlsx(fileModel);
-            case "XML": return createByXml(fileModel);
-            case "": throw newAbsentFileExtensionException(fileModel.getName());
-            default: throw newInvalidFileExtensionException(extension);
-        }
+        return switch (extension) {
+            case "XLSX" -> createByXlsx(fileModel);
+            case "XML" -> createByXml(fileModel);
+            case "" -> throw newAbsentFileExtensionException(fileModel.getName());
+            default -> throw newInvalidFileExtensionException(extension);
+        };
     }
 
     @SuppressWarnings("unused")
@@ -364,7 +365,7 @@ public class RefBookServiceImpl implements RefBookService {
         }
 
         Draft draft = draftService.getDraft(draftId);
-        publishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
+        syncPublishService.publish(draftId, new PublishRequest(draft.getOptLockValue()));
     }
 
     private Draft findOrCreateDraft(RefBookEntity refBook) {
@@ -385,43 +386,8 @@ public class RefBookServiceImpl implements RefBookService {
 
         if (entity == null) return null;
 
-        RefBook model = new RefBook(ModelGenerator.versionModel(entity));
-
-        if (entity.getRefBookOperation() != null) {
-            model.setCurrentOperation(entity.getRefBookOperation().getOperation());
-        }
-
-        Structure structure = entity.getStructure();
-        List<Structure.Attribute> primaries = (structure != null) ? structure.getPrimaries() : emptyList();
-        model.setHasPrimaryAttribute(!primaries.isEmpty());
-
-        RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(model.getId());
-
-        if (!excludeDraft) {
-            RefBookVersionEntity draftVersion = detailModel.getDraftVersion();
-            if (draftVersion != null) {
-                model.setDraftVersionId(draftVersion.getId());
-            }
-        }
-
-        RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();
-        if (lastPublishedVersion != null) {
-            model.setLastPublishedVersionId(lastPublishedVersion.getId());
-            model.setLastPublishedVersion(lastPublishedVersion.getVersion());
-            model.setLastPublishedDate(lastPublishedVersion.getFromDate());
-        }
-
-        final boolean hasReferrer = Boolean.TRUE.equals(detailModel.getHasReferrer());
-        model.setRemovable(Boolean.TRUE.equals(detailModel.getRemovable()) && !hasReferrer);
-        model.setHasReferrer(hasReferrer);
-
-        model.setHasDataConflict(detailModel.getHasDataConflict());
-        model.setHasUpdatedConflict(detailModel.getHasUpdatedConflict());
-        model.setHasAlteredConflict(detailModel.getHasAlteredConflict());
-        model.setHasStructureConflict(detailModel.getHasStructureConflict());
-        model.setLastHasConflict(detailModel.getLastHasConflict());
-
-        return model;
+        final RefBookDetailModel detailModel = refBookDetailModelRepository.findByVersionId(entity.getId());
+        return ModelGenerator.refBookModel(entity, detailModel, excludeDraft);
     }
 
     private RefBookVersionEntity findVersionOrThrow(Integer id) {

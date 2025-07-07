@@ -84,7 +84,7 @@ public class RefBookServiceTest {
     @Mock
     private DraftService draftService;
     @Mock
-    private PublishService publishService;
+    private PublishService syncPublishService;
 
     @Mock
     private VersionFileServiceImpl versionFileService;
@@ -366,7 +366,7 @@ public class RefBookServiceTest {
 
         refBookService.changeData(request);
 
-        verify(publishService).publish(eq(draft.getId()), any(PublishRequest.class));
+        verify(syncPublishService).publish(eq(draft.getId()), any(PublishRequest.class));
     }
 
     private RefBookEntity createRefBookEntity(Integer id) {
@@ -429,8 +429,7 @@ public class RefBookServiceTest {
     /** Получение кода сообщения об ошибке из исключения. */
     private static String getExceptionMessage(Exception e) {
 
-        if (e instanceof UserException) {
-            UserException ue = (UserException) e;
+        if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
                 return ue.getMessages().get(0).getCode();

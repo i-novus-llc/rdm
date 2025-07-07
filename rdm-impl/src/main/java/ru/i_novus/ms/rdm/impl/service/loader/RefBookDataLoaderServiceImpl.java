@@ -4,6 +4,7 @@ import net.n2oapp.platform.i18n.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.i_novus.ms.rdm.api.model.FileModel;
 import ru.i_novus.ms.rdm.api.model.draft.Draft;
 import ru.i_novus.ms.rdm.api.model.draft.PublishRequest;
-import ru.i_novus.ms.rdm.api.model.draft.PublishResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataRequest;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataResponse;
 import ru.i_novus.ms.rdm.api.model.loader.RefBookDataUpdateTypeEnum;
@@ -51,7 +51,8 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
     private DraftService draftService;
 
     @Autowired
-    private PublishService publishService;
+    @Qualifier("syncPublishService")
+    private PublishService syncPublishService;
 
     @Autowired
     private RefBookDataLoadLogRepository repository;
@@ -204,7 +205,7 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         final FileModel fileModel = request.getFileModel();
         final Draft draft = refBookService.create(fileModel);
 
-        return publishDraft(draft.getId(), TimeUtils.now());
+        return publishDraft(request.getCode(), draft.getId(), TimeUtils.now());
     }
 
     private RefBookDataResponse updateAndPublishFromFile(RefBook refBook, RefBookDataRequest request) {
@@ -212,17 +213,17 @@ public class RefBookDataLoaderServiceImpl implements RefBookDataLoaderService {
         final FileModel fileModel = request.getFileModel();
         final Draft draft = draftService.create(refBook.getRefBookId(), fileModel);
 
-        return publishDraft(draft.getId(), TimeUtils.now());
+        return publishDraft(refBook.getCode(), draft.getId(), TimeUtils.now());
     }
 
-    private RefBookDataResponse publishDraft(int draftId, LocalDateTime executedDate) {
+    private RefBookDataResponse publishDraft(String refBookCode, int draftId, LocalDateTime executedDate) {
 
         final PublishRequest publishRequest = new PublishRequest(null);
         publishRequest.setFromDate(executedDate);
 
-        final PublishResponse publishResponse = publishService.publish(draftId, publishRequest);
+        syncPublishService.publish(draftId, publishRequest);
 
-        final Integer refBookId = refBookService.getId(publishResponse.getRefBookCode());
+        final Integer refBookId = refBookService.getId(refBookCode);
         return new RefBookDataResponse(refBookId, executedDate);
     }
 }

@@ -8,8 +8,7 @@ class DefaultRefBookTest extends AbstractRdmUiTest {
      * Проверка работы с обычным (версионным) справочником.
      */
     @Test
-    void testCreateDefaultRefBook() {
-        testRefBook(null);
+    void testRefBook() {
+        runUiTest(refBookListPage -> testRefBook(refBookListPage, null));
     }
-
 }
