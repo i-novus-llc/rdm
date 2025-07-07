@@ -13,7 +13,6 @@ deploy mr stand:
 build and verify:
   variables:
     MAVEN_IMAGE_VERSION: 'v4'
-    MAVEN_RUN_OPTIONS: '-Djava.io.tmpdir=/tmp'
     MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
     DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
 
