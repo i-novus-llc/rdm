@@ -39,7 +39,6 @@ public class RefBookEditPage extends N2oStandardPage {
     public DataTableWidget dataTable() {
 
         final CustomTabItem tabItem = getTab("Данные");
-        //final TabsRegion.TabItem tabItem = getTab("Данные");
         tabItem.shouldExists();
         tabItem.click();
         tabItem.shouldBeActive();
@@ -50,7 +49,6 @@ public class RefBookEditPage extends N2oStandardPage {
     public DataTableWithConflictsWidget dataTableWithConflicts() {
 
         final CustomTabItem tabItem = getTab("Данные с конфликтами");
-        //final TabsRegion.TabItem tabItem = getTab("Данные с конфликтами");
         tabItem.click();
         tabItem.shouldBeActive();
 
@@ -80,22 +78,16 @@ public class RefBookEditPage extends N2oStandardPage {
     }
 
     /** Регион со вкладками. */
+    // NB: После доработки n2o вернуть оригинальный N2oTabsRegion
     private CustomTabsRegion getTabsRegion() {
         return regions().region(Condition.cssClass("n2o-tabs-region"), CustomTabsRegion.class);
     }
 
-    //private N2oTabsRegion getTabsRegion() {
-    //    return regions().region(Condition.cssClass("n2o-tabs-region"), N2oTabsRegion.class);
-    //}
-
     /** Вкладка с указанным заголовком. */
+    // NB: После доработки n2o вернуть оригинальный TabsRegion.TabItem
     private CustomTabItem getTab(String label) {
         return getTabsRegion().tab(Condition.text(label));
     }
-
-    //private TabsRegion.TabItem getTab(String label) {
-    //    return getTabsRegion().tab(Condition.text(label));
-    //}
 
     /** Меню "Действия". */
     private N2oDropdownButton getActionsButton(N2oSimplePage n2oSimplePage) {
