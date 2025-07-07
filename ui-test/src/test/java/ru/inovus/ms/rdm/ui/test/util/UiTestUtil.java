@@ -121,15 +121,4 @@ public final class UiTestUtil {
 
         Selenide.sleep(milliseconds != 0 ? milliseconds : DEFAULT_SLEEP_TIME);
     }
-
-    //private static String getRestExceptionMessage(RestException re) {
-    //
-    //    if (!StringUtils.isEmpty(re.getMessage()))
-    //        return re.getMessage();
-    //
-    //    if (!isEmpty(re.getErrors()))
-    //        return re.getErrors().get(0).getMessage();
-    //
-    //    return null;
-    //}
 }
