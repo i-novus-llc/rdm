@@ -10,6 +10,15 @@ deploy mr stand:
     HELM_TIMEOUT: '15m'
     HELM_OPTIONAL_FLAGS: '--wait-for-jobs'
 
+build:
+  variables:
+    JDK_VERSION: 'jdk21'
+    MAVEN_IMAGE_VERSION: 'v6'
+    NODE_VERSION: 'node22'
+    MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
+    DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
+
+
 build and verify:
   variables:
     JDK_VERSION: 'jdk21'
