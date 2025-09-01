@@ -16,7 +16,7 @@ public class DataRecordConstants {
 
     public static final String FIELD_VERSION_ID = "versionId";
     public static final String FIELD_OPT_LOCK_VALUE = "optLockValue";
-    public static final int DEFAULT_OPT_LOCK_VALUE = 0;
+    public static final String DEFAULT_OPT_LOCK_VALUE = "0";
     public static final String FIELD_LOCALE_CODE = "localeCode";
     public static final String DEFAULT_LOCALE_CODE = "";
     public static final String FIELD_DATA_ACTION = "dataAction";

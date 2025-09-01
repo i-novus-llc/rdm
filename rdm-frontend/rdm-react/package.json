@@ -2,11 +2,13 @@
   "name": "root",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/n2o-config-rdm",
+    "packages/rdm-frontend"
   ],
+  "packageManager": "yarn@3.6.4",
   "scripts": {
     "start:rdm": "lerna run --scope rdm-frontend start",
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap --no-mutex",
     "clean": "lerna clean",
     "build": "yarnpkg run build:config && yarnpkg run build:frontend",
     "build:config": "lerna run --scope n2o-config-rdm build",
@@ -17,7 +19,7 @@
     "release": "lerna publish from-package --yes --registry https://npm.i-novus.ru"
   },
   "dependencies": {
-    "n2o-framework": "7.28.2"
+    "n2o-framework": "7.29.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

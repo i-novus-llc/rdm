@@ -116,6 +116,8 @@
         <field id="displayStatus" domain="string"/>
         <field id="displayVersion" domain="string"
                mapping="displayOperation ?: (displayStatus != null ? displayStatus + ': ' : '') + displayNumber"/>
+
+        <field id="localeCode" domain="string" select="false"/>
     </fields>
 
 </query>

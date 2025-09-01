@@ -125,7 +125,7 @@ public class VersionServiceTest {
         assertEquals(entityPage.getTotalElements(), versionPage.getTotalElements());
         assertEquals(entityPage.getContent().size(), versionPage.getContent().size());
 
-        RefBookVersion version = versionPage.getContent().get(0);
+        RefBookVersion version = versionPage.getContent().getFirst();
         assertVersion(entity, version);
 
         ArgumentCaptor<PageRequest> captor = ArgumentCaptor.forClass(PageRequest.class);
@@ -245,7 +245,7 @@ public class VersionServiceTest {
         when(versionRepository.exists(any(Predicate.class))).thenReturn(true);
 
         RefBookVersionEntity entity = createVersionEntity();
-        when(versionRepository.getOne(entity.getId())).thenReturn(entity);
+        when(versionRepository.getReferenceById(entity.getId())).thenReturn(entity);
 
         when(searchDataService.findExistentHashes(eq(entity.getStorageCode()),
                 eq(entity.getFromDate()), eq(entity.getToDate()),
@@ -265,7 +265,7 @@ public class VersionServiceTest {
         RefBookVersionEntity entity = createVersionEntity();
         when(versionRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        RowValue dataRowValue = new LongRowValue(11L, emptyList());
+        RowValue<Long> dataRowValue = new LongRowValue(11L, emptyList());
         when(searchDataService.getData(any())).thenReturn(singletonList(dataRowValue));
 
         String rowId = ROW_HASH + "$" + VERSION_ID;

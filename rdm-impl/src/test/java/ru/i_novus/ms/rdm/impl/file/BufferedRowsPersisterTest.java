@@ -14,11 +14,9 @@ import ru.i_novus.ms.rdm.api.model.refdata.Row;
 import ru.i_novus.ms.rdm.impl.file.process.BufferedRowsPersister;
 import ru.i_novus.platform.datastorage.temporal.enums.FieldType;
 import ru.i_novus.platform.datastorage.temporal.exception.NotUniqueException;
-import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.value.RowValue;
 import ru.i_novus.platform.datastorage.temporal.service.DraftDataService;
-import ru.i_novus.platform.datastorage.temporal.service.FieldFactory;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.IntegerField;
 import ru.i_novus.platform.versioned_data_storage.pg_impl.model.StringField;
 
@@ -34,7 +32,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("unchecked")
 public class BufferedRowsPersisterTest {
 
     private static final String TEST_STORAGE_CODE = "test_storage_code";
@@ -43,12 +40,9 @@ public class BufferedRowsPersisterTest {
 
     private BufferedRowsPersister persister;
 
-    private Field nameField;
+    private StringField nameField;
 
-    private Field countField;
-
-    @Mock
-    private FieldFactory fieldFactory;
+    private IntegerField countField;
 
     @Mock
     private DraftDataService draftDataService;
@@ -58,11 +52,8 @@ public class BufferedRowsPersisterTest {
 
         persister = new BufferedRowsPersister(draftDataService, TEST_STORAGE_CODE, createTestStructure(), BUFFER_SIZE);
 
-        when(fieldFactory.createField(eq("name"), eq(FieldType.STRING))).thenReturn(new StringField("name"));
-        when(fieldFactory.createField(eq("count"), eq(FieldType.INTEGER))).thenReturn(new IntegerField("count"));
-
-        nameField = fieldFactory.createField("name", FieldType.STRING);
-        countField = fieldFactory.createField("count", FieldType.INTEGER);
+        nameField = new StringField("name");
+        countField = new IntegerField("count");
     }
 
     @Test

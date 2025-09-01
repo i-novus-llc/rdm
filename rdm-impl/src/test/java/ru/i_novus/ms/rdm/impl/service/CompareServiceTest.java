@@ -200,8 +200,8 @@ public class CompareServiceTest {
         newVersionP.setId(NEW_ID_P);
         newVersionP.setStatus(RefBookVersionStatus.PUBLISHED);
 
-        when(versionRepository.getOne(OLD_ID_P)).thenReturn(oldVersionP);
-        when(versionRepository.getOne(NEW_ID_P)).thenReturn(newVersionP);
+        when(versionRepository.getReferenceById(OLD_ID_P)).thenReturn(oldVersionP);
+        when(versionRepository.getReferenceById(NEW_ID_P)).thenReturn(newVersionP);
 
         RefBookVersionEntity oldVersion = new RefBookVersionEntity();
         oldVersion.setId(OLD_ID);
@@ -215,8 +215,8 @@ public class CompareServiceTest {
         newVersion.setStructure(new Structure(asList(id, code, common, name, upd2, typeI), emptyList()));
         newVersion.setStorageCode("storage" + NEW_ID);
 
-        when(versionRepository.getOne(OLD_ID)).thenReturn(oldVersion);
-        when(versionRepository.getOne(NEW_ID)).thenReturn(newVersion);
+        when(versionRepository.getReferenceById(OLD_ID)).thenReturn(oldVersion);
+        when(versionRepository.getReferenceById(NEW_ID)).thenReturn(newVersion);
 
         RefBookVersionEntity oldVersion1 = new RefBookVersionEntity();
         oldVersion1.setId(OLD_ID_1);
@@ -230,8 +230,8 @@ public class CompareServiceTest {
         newVersion1.setStructure(new Structure(asList(id, common), emptyList()));
         newVersion1.setStorageCode("storage" + NEW_ID_1);
 
-        when(versionRepository.getOne(OLD_ID_1)).thenReturn(oldVersion1);
-        when(versionRepository.getOne(NEW_ID_1)).thenReturn(newVersion1);
+        when(versionRepository.getReferenceById(OLD_ID_1)).thenReturn(oldVersion1);
+        when(versionRepository.getReferenceById(NEW_ID_1)).thenReturn(newVersion1);
     }
 
     private void prepareOldVersionData() {
@@ -479,7 +479,7 @@ public class CompareServiceTest {
                         new StringFieldValue(typeS.getCode(), "1")
                 ), NEW_ID)
         ), PageRequest.of(0, 10), 1);
-        when(versionService.search(eq(OLD_ID), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 1)))))
+        when(versionService.search(eq(OLD_ID), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, 1)))))
                 .thenReturn(deletedRows);
 
         List<DiffRowValue> diffRowValuesList = new ArrayList<>();
@@ -507,7 +507,7 @@ public class CompareServiceTest {
         ), DiffStatusEnum.DELETED));
 
 
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(createVdsDeletedCompareDataCriteria(OLD_ID, NEW_ID)))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(createVdsDeletedCompareDataCriteria(OLD_ID, NEW_ID)))))
                 .thenReturn(new DataDifference(
                         new DataPage<>(deletedDiffRowValuesList.size(), deletedDiffRowValuesList, createCriteria(0, DEF_PAGE_SIZE, 1))
                 ));
@@ -542,11 +542,11 @@ public class CompareServiceTest {
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(emptyList(), PageRequest.of(0, DEF_PAGE_SIZE), 4));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
+                .search(eq(NEW_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), PageRequest.of(0, DEF_PAGE_SIZE), 4));
 
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
+                .search(eq(OLD_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(oldVersionRows, PageRequest.of(0, DEF_PAGE_SIZE), 4));
 
 //        test first page
@@ -574,7 +574,7 @@ public class CompareServiceTest {
                 .thenReturn(new DataDifference(
                         new DataPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(1, DEF_PAGE_SIZE, 8))
                 ));
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(
                         new DataPage<>(4, emptyList(), createCriteria(0, 10, 4))
                 ));
@@ -607,20 +607,20 @@ public class CompareServiceTest {
                 .search(eq(NEW_ID_1), any(SearchDataCriteria.class)))
                 .thenReturn(new PageImpl<>(emptyList(), PageRequest.of(0, DEF_PAGE_SIZE), 5));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
+                .search(eq(NEW_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(0, 4), PageRequest.of(0, DEF_PAGE_SIZE), 5));
         when(versionService
-                .search(eq(NEW_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(1, DEF_PAGE_SIZE)))))
+                .search(eq(NEW_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(1, DEF_PAGE_SIZE)))))
                 .thenReturn(new PageImpl<>(newVersionRows.subList(4, 5), PageRequest.of(1, DEF_PAGE_SIZE), 5));
 
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 3)))))
+                .search(eq(OLD_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, 3)))))
                 .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 3), PageRequest.of(0, 3), 8));
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 7)))))
+                .search(eq(OLD_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, 7)))))
                 .thenReturn(new PageImpl<>(oldVersionRows.subList(0, 7), PageRequest.of(0, 7), 8));
         when(versionService
-                .search(eq(OLD_ID_1), argThat(new SearchDataCriteriaMatcher(new SearchDataCriteria(0, 11)))))
+                .search(eq(OLD_ID_1), argThat(new TestSearchDataCriteriaMatcher(new SearchDataCriteria(0, 11)))))
                 .thenReturn(new PageImpl<>(oldVersionRows, PageRequest.of(0, 11), 8));
 
         ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria compareDataCriteriaDeletedVds = createVdsDeletedCompareDataCriteria(OLD_ID_1, NEW_ID_1);
@@ -634,7 +634,7 @@ public class CompareServiceTest {
                 .thenReturn(new DataDifference(
                         new DataPage<>(diffRowValuesListPage1.size(), diffRowValuesListPage1, createCriteria(0, DEF_PAGE_SIZE, 13))
                 ));
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new DataPage<>(8, emptyList(), createCriteria(0, 10, 8))));
 
         Page<ComparableRow> actualCommonComparableRowsPage1 = compareService.getCommonComparableRows(compareDataCriteria);
@@ -655,7 +655,7 @@ public class CompareServiceTest {
                 .thenReturn(new DataDifference(
                         new DataPage<>(diffRowValuesListPage2.size(), diffRowValuesListPage2, createCriteria(1, DEF_PAGE_SIZE, 13))
                 ));
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new DataPage<>(8, emptyList(), createCriteria(0, 10, 8))));
 
         Page<ComparableRow> actualCommonComparableRowsPage2 = compareService.getCommonComparableRows(compareDataCriteria);
@@ -671,7 +671,7 @@ public class CompareServiceTest {
                 .thenReturn(new DataDifference(
                         new DataPage<>(diffRowValuesListPage3.size(), diffRowValuesListPage3, createCriteria(2, DEF_PAGE_SIZE, 13))
                 ));
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new DataPage<>(8, emptyList(), createCriteria(0, 10, 8))));
 
         Page<ComparableRow> actualCommonDataDiffPage3 = compareService.getCommonComparableRows(compareDataCriteria);
@@ -687,7 +687,7 @@ public class CompareServiceTest {
                 .thenReturn(new DataDifference(
                         new DataPage<>(diffRowValuesListPage4.size(), diffRowValuesListPage4, createCriteria(3, DEF_PAGE_SIZE, 13))
                 ));
-        when(compareDataService.getDataDifference(argThat(new CompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
+        when(compareDataService.getDataDifference(argThat(new TestCompareDataCriteriaMatcher(compareDataCriteriaDeletedVds))))
                 .thenReturn(new DataDifference(new DataPage<>(8, emptyList(), createCriteria(0, 10, 8))));
 
         Page<ComparableRow> actualCommonDataDiffPage4 = compareService.getCommonComparableRows(compareDataCriteria);
@@ -793,11 +793,11 @@ public class CompareServiceTest {
      * suppose that two vds CompareDataCriteria values are equal for mocking if equal version ids, countOnly flag and diffStatus
      * ignore page size and page number (from Criteria)
      */
-    private static class CompareDataCriteriaMatcher implements ArgumentMatcher<ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria> {
+    private static class TestCompareDataCriteriaMatcher implements ArgumentMatcher<ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria> {
 
-        private ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria expected;
+        private final ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria expected;
 
-        CompareDataCriteriaMatcher(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria criteria) {
+        TestCompareDataCriteriaMatcher(ru.i_novus.platform.datastorage.temporal.model.criteria.CompareDataCriteria criteria) {
             this.expected = criteria;
         }
 
@@ -817,11 +817,11 @@ public class CompareServiceTest {
      * suppose that two SearchDataCriteria values are equal for mocking if equal page size and page number
      * ignore attribute filters, common filter and fields filter
      */
-    private static class SearchDataCriteriaMatcher implements ArgumentMatcher<SearchDataCriteria> {
+    private static class TestSearchDataCriteriaMatcher implements ArgumentMatcher<SearchDataCriteria> {
 
-        private SearchDataCriteria expected;
+        private final SearchDataCriteria expected;
 
-        SearchDataCriteriaMatcher(SearchDataCriteria criteria) {
+        TestSearchDataCriteriaMatcher(SearchDataCriteria criteria) {
             this.expected = criteria;
         }
 

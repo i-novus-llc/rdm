@@ -93,10 +93,9 @@ public class L10nLocalizeRecordPageResolver implements DataRecordPageResolver {
     /** Проверка поля формы на соответствие непереводимому атрибуту. */
     private boolean isUnlocalizable(SourceComponent component, Structure structure) {
 
-        if (!(component instanceof N2oStandardField))
+        if (!(component instanceof N2oStandardField field))
             return false;
 
-        final N2oStandardField field = (N2oStandardField) component;
         if (!DataRecordUtils.hasPrefix(field.getId()))
             return false;
 

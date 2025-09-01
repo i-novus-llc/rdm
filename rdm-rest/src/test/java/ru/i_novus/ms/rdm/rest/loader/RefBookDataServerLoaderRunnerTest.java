@@ -129,19 +129,20 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(loaders.get(0), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
+        verify(loaders.getFirst(), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
 
         final List list = captor.getValue();
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        final Object item = list.get(0);
+        final Object item = list.getFirst();
         assertTrue(item instanceof RefBookDataRequest);
 
         final RefBookDataRequest actual = (RefBookDataRequest) item;
         assertObjects(Assert::assertEquals, expected, actual);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<Attachment> createJsonAttachments(int index) {
 
         return List.of(
@@ -170,19 +171,20 @@ public class RefBookDataServerLoaderRunnerTest extends BaseLoaderTest {
         runner.run(LOADED_SUBJECT, LOADED_TARGET, body);
 
         final ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
-        verify(loaders.get(0), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
+        verify(loaders.getFirst(), times(1)).load(captor.capture(), eq(LOADED_SUBJECT));
 
         final List list = captor.getValue();
         assertNotNull(list);
         assertEquals(1, list.size());
 
-        final Object item = list.get(0);
+        final Object item = list.getFirst();
         assertTrue(item instanceof RefBookDataRequest);
 
         final RefBookDataRequest actual = (RefBookDataRequest) item;
         assertObjects(Assert::assertEquals, expected, actual);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private List<Attachment> createFileAttachments(int index) {
 
         final Attachment changeSetIdAttachment = getPlainAttachment(index, FIELD_CHANGE_SET_ID, CHANGE_SET + index);

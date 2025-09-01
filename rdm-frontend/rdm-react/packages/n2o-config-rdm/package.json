@@ -24,18 +24,18 @@
     "clean:es": "rimraf dist/es"
   },
   "dependencies": {
+    "net": "^1.0.2",
     "react-autosize-textarea": "^6.0.0",
     "react-avatar": "^3.5.0",
     "react-sticky": "^6.0.3",
     "reactstrap": "^8.0.1",
-    "recharts": "^1.4.2",
-    "net": "^1.0.2"
+    "recharts": "^1.4.2"
   },
   "peerDependencies": {
     "@reduxjs/toolkit": "^2.2.5",
-    "n2o-framework": "*",
     "classnames": "*",
     "lodash": "*",
+    "n2o-framework": "*",
     "prop-types": "*",
     "react": "*",
     "react-dom": "*",

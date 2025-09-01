@@ -239,7 +239,7 @@ public class L10nServiceTest extends BaseTest {
         failLocalizeDataToSchema(BAD_SCHEMA_NAME, "locale.code.is.invalid", UserException.class);
     }
 
-    @SuppressWarnings("SameParameterValue")
+    @SuppressWarnings({"rawtypes", "SameParameterValue"})
     private void failLocalizeDataToSchema(String schemaName, String message, Class expectedExceptionClass) {
 
         RefBookVersionEntity versionEntity = createVersionEntity(createStructure());

@@ -57,12 +57,12 @@ public class ReferenceServiceTest extends BaseTest {
     public void testRefreshReferrerWithoutReferences() {
 
         RefBookVersionEntity draftEntity = createDraftEntity(createRefBookEntity());
-        when(versionRepository.getOne(DRAFT_ID)).thenReturn(draftEntity);
+        when(versionRepository.getReferenceById(DRAFT_ID)).thenReturn(draftEntity);
 
         referenceService.refreshReferrer(DRAFT_ID, null);
 
         verify(versionValidation).validateVersionExists(DRAFT_ID);
-        verify(versionRepository).getOne(DRAFT_ID);
+        verify(versionRepository).getReferenceById(DRAFT_ID);
         verify(versionValidation).validateOptLockValue(eq(DRAFT_ID), any(), any());
 
         verifyNoMoreInteractions(versionRepository, versionValidation);
@@ -85,9 +85,10 @@ public class ReferenceServiceTest extends BaseTest {
         return createRefBookEntity(REFBOOK_ID, REFBOOK_CODE);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private RefBookEntity createRefBookEntity(Integer id, String code) {
 
-        RefBookEntity entity = new DefaultRefBookEntity();
+        final RefBookEntity entity = new DefaultRefBookEntity();
         entity.setId(id);
         entity.setCode(code);
 

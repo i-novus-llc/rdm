@@ -59,10 +59,13 @@ public class L10nLocalizeVersionControllerTest extends BaseTest {
         assertEquals(expected.getOptLockValue(), actual.getOptLockValue());
         assertEquals(expected.getLocaleCode(), actual.getLocaleCode());
         assertEquals(expected.getRows().size(), actual.getRows().size());
-        assertEquals(expected.getRows().get(0).getSystemId(), actual.getRows().get(0).getSystemId());
+
+        final Row expectedRow = expected.getRows().getFirst();
+        final Row actualRow = actual.getRows().getFirst();
+        assertEquals(expectedRow.getSystemId(), actualRow.getSystemId());
         assertEquals(
-                expected.getRows().get(0).getData().get(TEST_FIELD_CODE),
-                actual.getRows().get(0).getData().get(TEST_FIELD_CODE)
+                expectedRow.getData().get(TEST_FIELD_CODE),
+                actualRow.getData().get(TEST_FIELD_CODE)
         );
     }
 

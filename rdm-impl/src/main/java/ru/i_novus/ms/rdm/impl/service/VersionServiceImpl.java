@@ -217,7 +217,7 @@ public class VersionServiceImpl implements VersionService {
 
         for (Map.Entry<Integer, List<String>> entry : hashes.entrySet()) {
             Integer versionId = entry.getKey();
-            RefBookVersionEntity entity = versionRepository.getOne(versionId);
+            RefBookVersionEntity entity = versionRepository.getReferenceById(versionId);
 
             List<String> versionHashes = new ArrayList<>(entry.getValue());
             List<String> existentHashes = searchDataService.findExistentHashes(entity.getStorageCode(),

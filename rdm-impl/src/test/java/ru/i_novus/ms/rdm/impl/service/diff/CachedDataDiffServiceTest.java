@@ -420,7 +420,7 @@ public class CachedDataDiffServiceTest {
     private Page<VersionDataDiff> createPage(List<VersionDataDiff> versionDataDiffs, int pageNumber) {
         int toIndex = PAGE_SIZE * (pageNumber + 1);
         return new PageImpl<>(
-                versionDataDiffs.subList(PAGE_SIZE * pageNumber, toIndex > versionDataDiffs.size() ? versionDataDiffs.size() : toIndex),
+                versionDataDiffs.subList(PAGE_SIZE * pageNumber, Math.min(toIndex, versionDataDiffs.size())),
                 PageRequest.of(pageNumber, PAGE_SIZE), versionDataDiffs.size());
     }
 
@@ -428,7 +428,10 @@ public class CachedDataDiffServiceTest {
         return new PageImpl<>(emptyList(), PageRequest.of(1, PAGE_SIZE), totalElements);
     }
 
-    private VersionDataDiff createVersionDataDiff(String pkName, int pkValue, DiffStatusEnum firstRowValuesStatus, DiffStatusEnum lastRowValueStatus) {
+    @SuppressWarnings("SameParameterValue")
+    private VersionDataDiff createVersionDataDiff(String pkName, int pkValue,
+                                                  DiffStatusEnum firstRowValuesStatus,
+                                                  DiffStatusEnum lastRowValueStatus) {
         return new VersionDataDiff(pkName + "=" + pkValue,
                 createDiffRowValue(BigInteger.valueOf(pkValue), firstRowValuesStatus),
                 createDiffRowValue(BigInteger.valueOf(pkValue), lastRowValueStatus));

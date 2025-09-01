@@ -33,18 +33,18 @@ public class BackendConfiguration {
 
     private final RestTemplate platformRestTemplate;
 
-    private final ClientHttpRequestInterceptor userinfoRestTemplateInterceptor;
+    private final ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor;
 
     private final FieldFactory fieldFactory; // Для десериализации объектов сторонних классов
 
     @Autowired
     public BackendConfiguration(
             @Qualifier("platformRestTemplate") RestTemplate platformRestTemplate,
-            @Qualifier("userinfoRestTemplateInterceptor") ClientHttpRequestInterceptor userinfoRestTemplateInterceptor,
+            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor,
             FieldFactory fieldFactory
     ) {
         this.platformRestTemplate = platformRestTemplate;
-        this.userinfoRestTemplateInterceptor = userinfoRestTemplateInterceptor;
+        this.userinfoClientHttpRequestInterceptor = userinfoClientHttpRequestInterceptor;
 
         this.fieldFactory = fieldFactory;
     }
@@ -52,7 +52,7 @@ public class BackendConfiguration {
     @PostConstruct
     private void configureRestTemplate() {
 
-        platformRestTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
+        platformRestTemplate.getInterceptors().add(userinfoClientHttpRequestInterceptor);
     }
 
     @Bean

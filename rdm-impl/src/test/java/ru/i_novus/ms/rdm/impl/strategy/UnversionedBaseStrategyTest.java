@@ -114,6 +114,7 @@ public abstract class UnversionedBaseStrategyTest extends DefaultBaseStrategyTes
         return structure;
     }
 
+    @SuppressWarnings("rawtypes")
     protected LongRowValue createReferrerRowValue(Long systemId, Integer referredId) {
 
         Reference reference = null;

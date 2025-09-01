@@ -50,10 +50,7 @@ public class ModelGenerator {
         if (model == null || detailModel == null) return model;
 
         if (!excludeDraft) {
-            final RefBookVersionEntity draftVersion = detailModel.getDraftVersion();
-            if (draftVersion != null) {
-                model.setDraftVersionId(draftVersion.getId());
-            }
+            model.setDraftVersionId(detailModel.getDraftVersionId());
         }
 
         final RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();

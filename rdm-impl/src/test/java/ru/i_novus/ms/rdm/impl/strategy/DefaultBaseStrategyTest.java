@@ -71,6 +71,7 @@ public abstract class DefaultBaseStrategyTest extends BaseTest {
         return entity;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected void fillOptLockValue(RefBookVersionEntity entity, int optLockValue) {
 
         setField(entity, "optLockValue", optLockValue);

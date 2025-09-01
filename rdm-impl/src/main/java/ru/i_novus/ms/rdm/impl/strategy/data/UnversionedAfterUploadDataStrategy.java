@@ -59,7 +59,7 @@ public class UnversionedAfterUploadDataStrategy implements AfterUploadDataStrate
 
         afterUploadDataStrategy.apply(entity);
 
-        final RefBookVersionEntity draftEntity = versionRepository.getOne(entity.getId());
+        final RefBookVersionEntity draftEntity = versionRepository.getReferenceById(entity.getId());
         editPublishStrategy.publish(draftEntity);
 
         processReferrers(draftEntity);

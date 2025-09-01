@@ -119,12 +119,12 @@ public class VersionLocaleServiceTest extends BaseTest {
 
         List<String> localeCodes = LOCALE_INFOS.stream().map(L10nLocaleInfo::getCode).collect(toList());
         Map<String, String> localeSchemas = localeCodes.stream().collect(toMap(identity(), this::toSchemaName));
-        localeSchemas.put(LOCALE_INFOS.get(0).getCode(), "data");
+        localeSchemas.put(LOCALE_INFOS.getFirst().getCode(), "data");
         when(storageCodeService.toSchemaNames(eq(localeCodes))).thenReturn(localeSchemas);
 
         List<L10nLocaleInfo> expectedLocaleInfos = LOCALE_INFOS.stream()
                 .filter(info -> !StorageUtils.isDefaultSchema(localeSchemas.get(info.getCode())))
-                .collect(toList());
+                .toList();
         List<L10nVersionLocale> actualVersionLocales = versionLocaleService
                 .searchVersionLocales(TEST_REFBOOK_VERSION_ID).getContent();
         assertEquals(expectedLocaleInfos.size(), actualVersionLocales.size());

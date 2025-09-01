@@ -5,7 +5,7 @@ const defaultData = []
 export const getColumnsFromDatasource = datasource => get(datasource, [0, 'columnsConfig'])
 
 export const getDataFromDatasource = model => {
-  if (!model) return defaultData;
+  if (!model) return defaultData
 
   return (
     model.reduce((out, item) => {

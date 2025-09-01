@@ -30,29 +30,30 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
     protected Argument[] getArguments() {
 
-        final Argument versionIdArgument = new Argument();
-        versionIdArgument.setType(Argument.Type.PRIMITIVE);
-        versionIdArgument.setName("versionId");
-        versionIdArgument.setClassName(Integer.class.getName());
-
-        final Argument optLockValueArgument = new Argument();
-        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
-        optLockValueArgument.setName("optLockValue");
-        optLockValueArgument.setClassName(Integer.class.getName());
+        final Argument versionIdArgument = createPrimitiveArgument("versionId", Integer.class.getName());
+        final Argument optLockValueArgument = createPrimitiveArgument("optLockValue", Integer.class.getName());
 
         final Argument rowArgument = new Argument();
-        rowArgument.setType(Argument.Type.CLASS);
+        rowArgument.setType(Argument.TypeEnum.CLASS);
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
         return new Argument[] {versionIdArgument, optLockValueArgument, rowArgument};
     }
 
+    protected Argument createPrimitiveArgument(String name, String className) {
+
+        final Argument argument = new Argument();
+        argument.setName(name);
+        argument.setClassName(className);
+        argument.setType(Argument.TypeEnum.PRIMITIVE);
+
+        return argument;
+    }
+
     protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        final ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setId(FIELD_VERSION_ID);
-        parameter.setMapping("['versionId']");
+        final ObjectSimpleField parameter = createParamField(FIELD_VERSION_ID, "['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
 
@@ -61,12 +62,19 @@ public abstract class DefaultRecordObjectResolver implements DataRecordObjectRes
 
     protected AbstractParameter createOptLockValueParameter() {
 
-        final ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setId(FIELD_OPT_LOCK_VALUE);
-        parameter.setMapping("['optLockValue']");
+        final ObjectSimpleField parameter = createParamField(FIELD_OPT_LOCK_VALUE, "['optLockValue']");
         parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
+        parameter.setDefaultValue(DEFAULT_OPT_LOCK_VALUE);
 
         return parameter;
+    }
+
+    protected ObjectSimpleField createParamField(String id, String mapping) {
+
+        final ObjectSimpleField field = new ObjectSimpleField();
+        field.setId(id);
+        field.setMapping(mapping);
+
+        return field;
     }
 }

@@ -36,7 +36,7 @@ public class RdmMetadataTest extends N2oTestBase {
 
     @Override
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         super.setUp();
     }
 
@@ -67,13 +67,15 @@ public class RdmMetadataTest extends N2oTestBase {
         });
     }
 
+    @SuppressWarnings("rawtypes")
     private void customProperties(N2oApplicationBuilder builder) {
 
         RDM_CUSTOM_PROPERTIES.forEach(builder::properties);
 
-        NamespaceReaderFactory readerFactory = builder.getEnvironment().getNamespaceReaderFactory();
-        IOProcessorImpl processor = new IOProcessorImpl(readerFactory);
+        final NamespaceReaderFactory readerFactory = builder.getEnvironment().getNamespaceReaderFactory();
+        IOProcessorImpl processor = new IOProcessorImpl(readerFactory, builder.getEnvironment());
         ((IOProcessorAware) readerFactory).setIOProcessor(processor);
+
         processor.setSystemProperties(builder.getEnvironment().getSystemProperties());
     }
 }

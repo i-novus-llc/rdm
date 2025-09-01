@@ -494,7 +494,7 @@ public class DraftServiceTest {
         }
 
         when(searchDataService.getPagedData(any())).thenReturn(pagedData);
-        when(versionRepository.getOne(draft.getId())).thenReturn(draft);
+        when(versionRepository.getReferenceById(draft.getId())).thenReturn(draft);
         when(versionRepository.findById(draft.getId())).thenReturn(Optional.of(draft));
         when(searchDataService.findRows(anyString(), anyList(), anyList())).thenReturn(List.of(row));
 

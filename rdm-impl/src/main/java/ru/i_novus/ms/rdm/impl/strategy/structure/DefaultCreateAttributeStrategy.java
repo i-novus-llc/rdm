@@ -68,7 +68,7 @@ public class DefaultCreateAttributeStrategy implements CreateAttributeStrategy {
             draftDataService.addField(entity.getStorageCode(), ConverterUtil.field(attribute));
 
         } catch (CodifiedException ce) {
-            throw new UserException(new Message(ce.getMessage(), ce.getArgs()), ce);
+            throw new UserException(new Message(ce.getCode(), ce.getArgs()), ce);
         }
     }
 }

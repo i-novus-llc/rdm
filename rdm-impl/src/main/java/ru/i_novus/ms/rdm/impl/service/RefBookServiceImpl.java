@@ -171,7 +171,7 @@ public class RefBookServiceImpl implements RefBookService {
     public String getCode(Integer refBookId) {
 
         versionValidation.validateRefBookExists(refBookId);
-        return refBookRepository.getOne(refBookId).getCode();
+        return refBookRepository.getReferenceById(refBookId).getCode();
     }
 
     @Override
@@ -284,7 +284,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
         refBookLockService.validateRefBookNotBusy(refBookId);
 
-        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getReferenceById(refBookId);
 
         if (versionValidation.hasReferrerVersions(refBookEntity.getCode()))
             throw new UserException(new Message(REFBOOK_HAS_REFERRERS_EXCEPTION_CODE, refBookEntity.getCode()));
@@ -316,7 +316,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         versionValidation.validateRefBookExists(refBookId);
 
-        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getReferenceById(refBookId);
         RefBookVersionEntity lastVersion = getLastVersion(refBookEntity.getVersionList());
 
         // NB: Add checking references to this refBook.
@@ -334,7 +334,7 @@ public class RefBookServiceImpl implements RefBookService {
 
         versionValidation.validateRefBookExists(refBookId);
 
-        RefBookEntity refBookEntity = refBookRepository.getOne(refBookId);
+        RefBookEntity refBookEntity = refBookRepository.getReferenceById(refBookId);
 
         refBookEntity.setArchived(Boolean.FALSE);
         refBookRepository.save(refBookEntity);

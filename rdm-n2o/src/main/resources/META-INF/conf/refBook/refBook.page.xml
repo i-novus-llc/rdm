@@ -243,7 +243,7 @@
                                 <toolbars>
                                     <toolbar>
                                         <button label="Сохранить" color="primary" model="resolve">
-                                            <invoke operation-id="createAttribute"
+                                            <invoke object-id="attribute" operation-id="createAttribute"
                                                     refresh-datasources="refBookVersion" close-on-success="true"/>
                                         </button>
                                         <button generate="close"/>
@@ -279,7 +279,7 @@
                                 <toolbars>
                                     <toolbar>
                                         <button label="Сохранить" color="primary" model="resolve">
-                                            <invoke operation-id="updateAttribute"
+                                            <invoke object-id="attribute" operation-id="updateAttribute"
                                                     refresh-datasources="refBookVersion" close-on-success="true"/>
                                         </button>
                                         <button generate="close"/>

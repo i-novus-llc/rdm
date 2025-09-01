@@ -47,6 +47,7 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected RefBookDataRequest createJsonDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();
@@ -63,6 +64,7 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected RefBookDataRequest createFileDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();

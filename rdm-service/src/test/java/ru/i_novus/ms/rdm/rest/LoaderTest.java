@@ -161,6 +161,7 @@ public class LoaderTest {
         );
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Attachment getStringAttachment(String name, String value) {
 
         final InputStream is = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
@@ -209,6 +210,7 @@ public class LoaderTest {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T> T getObject(Class<T> cls) {
             return (T) value;
         }

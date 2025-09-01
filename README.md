@@ -1,22 +1,22 @@
 # Требования
 
-- OpenJDK 17
+- OpenJDK 21
 - PostgreSQL 12
 - Artemis или ActiveMQ
-- N2O Security Admin 8.0.1
+- N2O Security Admin 9.0.1
 
 # Стек технологий
 
-- Java 17+
+- Java 21+
 - JDBC
 - JPA 2
 - JAX-RS
 - JMS
-- Spring Boot 3.2
-- Spring Cloud 2023
-- Liquibase 4.24
-- N2O Platform 6.2
-- N2O UI Framework 7.28
+- Spring Boot 3.5.3
+- Spring Cloud 2025
+- Liquibase 4.31
+- N2O Boot Platform 7.0
+- N2O UI Framework 7.29
 - React
 
 # Структура проекта
@@ -49,3 +49,47 @@
 1) Сборка всех модулей: maven-профиль `build-all-modules` (без сборки статики и без поддержки локализации).
 2) Сборка статики для фронтенда: maven-профиль `frontend-build`.
 3) Сборка с поддержкой локализации записей справочников: maven-профили `build-all-modules` и `l10n`.
+
+# Установка
+
+### Создать пользователя rdm/rdm
+
+```
+CREATE ROLE rdm
+   LOGIN
+   ENCRYPTED PASSWORD 'SCRAM-SHA-256$4096:u+JptXqe/kgjAT9EeGp2QQ==$1xSn7KweSg38yEoGxUYUTZQ2BnNHA0FckB9dLPNoh64=:LuGkaxoqOZfPlpe0uNEzEiABBtZyETodU2NziloUdFQ='
+   SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;
+```
+
+### Создать БД rdm
+
+```
+CREATE DATABASE rdm
+    WITH
+    OWNER = rdm
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'Russian_Russia.1251'
+    LC_CTYPE = 'Russian_Russia.1251'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1;
+```
+
+### Подключить FTS
+
+1. Скачать архив `ru-dict.zip`.
+2. Разархивировать файлы архива в /usr/local/share/tsearch_data
+3. На созданной БД выполнить из-под суперпользователя:
+
+```
+CREATE TEXT SEARCH DICTIONARY ispell_ru (
+    template = ispell,
+    dictfile = ru,
+    afffile  = ru
+);
+ 
+CREATE TEXT SEARCH CONFIGURATION ru (COPY = russian);
+ALTER TEXT SEARCH CONFIGURATION ru
+    ALTER MAPPING
+        FOR word, hword, hword_part
+        WITH ispell_ru, russian_stem;
+```

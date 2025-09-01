@@ -39,17 +39,6 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
         return operation;
     }
 
-    @Override
-    public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
-
-        return List.of(
-                createVersionIdParameter(request.getVersionId()),
-                createOptLockValueParameter(),
-                createLocaleCodeParameter(),
-                createSystemIdParameter()
-        );
-    }
-
     protected N2oJavaDataProvider createInvocation() {
 
         final N2oJavaDataProvider invocation = new N2oJavaDataProvider();
@@ -63,34 +52,42 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
     protected Argument[] getArguments() {
 
-        final Argument versionIdArgument = new Argument();
-        versionIdArgument.setType(Argument.Type.PRIMITIVE);
-        versionIdArgument.setName("versionId");
-        versionIdArgument.setClassName(Integer.class.getName());
-
-        final Argument optLockValueArgument = new Argument();
-        optLockValueArgument.setType(Argument.Type.PRIMITIVE);
-        optLockValueArgument.setName("optLockValue");
-        optLockValueArgument.setClassName(Integer.class.getName());
-
-        final Argument localeCodeArgument = new Argument();
-        localeCodeArgument.setType(Argument.Type.PRIMITIVE);
-        localeCodeArgument.setName("localeCode");
-        localeCodeArgument.setClassName(String.class.getName());
+        final Argument versionIdArgument = createPrimitiveArgument("versionId", Integer.class.getName());
+        final Argument optLockValueArgument = createPrimitiveArgument("optLockValue", Integer.class.getName());
+        final Argument localeCodeArgument = createPrimitiveArgument("localeCode", String.class.getName());
 
         final Argument rowArgument = new Argument();
-        rowArgument.setType(Argument.Type.CLASS);
+        rowArgument.setType(Argument.TypeEnum.CLASS);
         rowArgument.setName("row");
         rowArgument.setClassName(Row.class.getName());
 
         return new Argument[] {versionIdArgument, optLockValueArgument, localeCodeArgument, rowArgument};
     }
 
+    protected Argument createPrimitiveArgument(String name, String className) {
+
+        final Argument argument = new Argument();
+        argument.setName(name);
+        argument.setClassName(className);
+        argument.setType(Argument.TypeEnum.PRIMITIVE);
+
+        return argument;
+    }
+
+    @Override
+    public List<AbstractParameter> createRegularParams(DataRecordRequest request) {
+
+        return List.of(
+                createVersionIdParameter(request.getVersionId()),
+                createOptLockValueParameter(),
+                createLocaleCodeParameter(),
+                createSystemIdParameter()
+        );
+    }
+
     protected AbstractParameter createVersionIdParameter(Integer versionId) {
 
-        final ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setId(FIELD_VERSION_ID);
-        parameter.setMapping("['versionId']");
+        final ObjectSimpleField parameter = createParamField(FIELD_VERSION_ID, "['versionId']");
         parameter.setDomain(N2oDomain.INTEGER);
         parameter.setDefaultValue(String.valueOf(versionId));
 
@@ -99,20 +96,16 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
     protected AbstractParameter createOptLockValueParameter() {
 
-        final ObjectSimpleField optLockValueParameter = new ObjectSimpleField();
-        optLockValueParameter.setId(FIELD_OPT_LOCK_VALUE);
-        optLockValueParameter.setMapping("['optLockValue']");
+        final ObjectSimpleField optLockValueParameter = createParamField(FIELD_OPT_LOCK_VALUE, "['optLockValue']");
         optLockValueParameter.setDomain(N2oDomain.INTEGER);
-        optLockValueParameter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
+        optLockValueParameter.setDefaultValue(DEFAULT_OPT_LOCK_VALUE);
 
         return optLockValueParameter;
     }
 
     private AbstractParameter createLocaleCodeParameter() {
 
-        final ObjectSimpleField localeCodeParameter = new ObjectSimpleField();
-        localeCodeParameter.setId(FIELD_LOCALE_CODE);
-        localeCodeParameter.setMapping("['localeCode']");
+        final ObjectSimpleField localeCodeParameter = createParamField(FIELD_LOCALE_CODE, "['localeCode']");
         localeCodeParameter.setDomain(N2oDomain.STRING);
         localeCodeParameter.setDefaultValue(DEFAULT_LOCALE_CODE);
 
@@ -121,11 +114,18 @@ public class L10nLocalizeRecordObjectResolver implements DataRecordObjectResolve
 
     private AbstractParameter createSystemIdParameter() {
 
-        final ObjectSimpleField parameter = new ObjectSimpleField();
-        parameter.setId(FIELD_SYSTEM_ID);
+        final ObjectSimpleField parameter = createParamField(FIELD_SYSTEM_ID, "['row'].systemId");
         parameter.setDomain(N2oDomain.INTEGER);
-        parameter.setMapping("['row'].systemId");
 
         return parameter;
+    }
+
+    protected ObjectSimpleField createParamField(String id, String mapping) {
+
+        final ObjectSimpleField field = new ObjectSimpleField();
+        field.setId(id);
+        field.setMapping(mapping);
+
+        return field;
     }
 }

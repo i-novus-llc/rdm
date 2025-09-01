@@ -83,7 +83,7 @@ public class DefaultUpdateAttributeStrategy implements UpdateAttributeStrategy {
             draftDataService.updateField(entity.getStorageCode(), ConverterUtil.field(attribute));
 
         } catch (CodifiedException ce) {
-            throw new UserException(new Message(ce.getMessage(), ce.getArgs()), ce);
+            throw new UserException(new Message(ce.getCode(), ce.getArgs()), ce);
         }
     }
 
