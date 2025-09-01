@@ -54,7 +54,7 @@ public class PassportServiceImpl implements PassportService {
         Integer versionId = refBookUpdateRequest.getVersionId();
         versionValidation.validateVersionExists(versionId);
 
-        RefBookVersionEntity refBookVersionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity refBookVersionEntity = versionRepository.getReferenceById(versionId);
         updateVersionFromPassport(refBookVersionEntity, refBookUpdateRequest.getPassport());
 
         return ModelGenerator.versionModel(refBookVersionEntity);

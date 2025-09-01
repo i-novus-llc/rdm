@@ -3,7 +3,7 @@
              name="Атрибут">
 
     <form>
-        <datasource query-id="attribute" object-id="attribute"/>
+        <datasource/>
 
         <fields>
             <row>

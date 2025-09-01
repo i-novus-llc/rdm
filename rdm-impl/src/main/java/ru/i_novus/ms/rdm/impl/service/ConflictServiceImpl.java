@@ -177,7 +177,7 @@ public class ConflictServiceImpl implements ConflictService {
 
         versionValidation.validateVersionExists(versionId);
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getReferenceById(versionId);
         String refBookCode = versionEntity.getRefBook().getCode();
         RefBookVersionEntity lastPublishedEntity = versionRepository.findFirstByRefBookCodeAndStatusOrderByFromDateDesc(refBookCode, RefBookVersionStatus.PUBLISHED);
         if (lastPublishedEntity == null)

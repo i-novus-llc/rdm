@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
-import net.n2oapp.criteria.filters.FilterType;
+import net.n2oapp.framework.api.criteria.filters.FilterTypeEnum;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.dataprovider.N2oJavaDataProvider;
 import net.n2oapp.framework.api.metadata.dataprovider.SpringProvider;
@@ -87,11 +87,11 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
         final Argument criteriaArgument = new Argument();
         criteriaArgument.setName(CRITERIA_NAME);
-        criteriaArgument.setType(Argument.Type.CRITERIA);
+        criteriaArgument.setType(Argument.TypeEnum.CRITERIA);
         criteriaArgument.setClassName(CRITERIA_CLASS_NAME);
         provider.setArguments(new Argument[] {criteriaArgument});
 
-        final N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.Type.list);
+        final N2oQuery.Selection selection = new N2oQuery.Selection(N2oQuery.Selection.TypeEnum.LIST);
         selection.setResultMapping("#this");
         selection.setInvocation(provider);
 
@@ -209,34 +209,17 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
 
     private List<N2oQuery.Filter> createRegularFilters(DataRecordRequest request) {
 
-        final N2oQuery.Filter idFilter = new N2oQuery.Filter(FIELD_SYSTEM_ID, FilterType.eq);
-        idFilter.setFieldId(FIELD_SYSTEM_ID);
-        idFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_SYSTEM_ID);
-        idFilter.setDomain(N2oDomain.INTEGER);
+        final N2oQuery.Filter idFilter = createRegularFilter(FIELD_SYSTEM_ID,
+                N2oDomain.INTEGER, null);
 
-        final N2oQuery.Filter versionIdFilter = new N2oQuery.Filter(FIELD_VERSION_ID, FilterType.eq);
-        versionIdFilter.setFieldId(FIELD_VERSION_ID);
-        versionIdFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_VERSION_ID);
-        versionIdFilter.setDomain(N2oDomain.INTEGER);
-        versionIdFilter.setDefaultValue(String.valueOf(request.getVersionId()));
-
-        final N2oQuery.Filter optLockValueFilter = new N2oQuery.Filter(FIELD_OPT_LOCK_VALUE, FilterType.eq);
-        optLockValueFilter.setType(FilterType.eq);
-        optLockValueFilter.setFieldId(FIELD_OPT_LOCK_VALUE);
-        optLockValueFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_OPT_LOCK_VALUE);
-        optLockValueFilter.setDomain(N2oDomain.INTEGER);
-        optLockValueFilter.setDefaultValue(String.valueOf(DEFAULT_OPT_LOCK_VALUE));
-
-        final N2oQuery.Filter localeCodeFilter = new N2oQuery.Filter(FIELD_LOCALE_CODE, FilterType.eq);
-        localeCodeFilter.setFieldId(FIELD_LOCALE_CODE);
-        localeCodeFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_LOCALE_CODE);
-        localeCodeFilter.setDomain(N2oDomain.STRING);
-        localeCodeFilter.setDefaultValue(DEFAULT_LOCALE_CODE);
-
-        final N2oQuery.Filter dataActionFilter = new N2oQuery.Filter(FIELD_DATA_ACTION, FilterType.eq);
-        dataActionFilter.setFieldId(FIELD_DATA_ACTION);
-        dataActionFilter.setMapping(MAPPING_CRITERIA_PREFIX + FIELD_DATA_ACTION);
-        dataActionFilter.setDomain(N2oDomain.STRING);
+        final N2oQuery.Filter versionIdFilter = createRegularFilter(FIELD_VERSION_ID,
+                N2oDomain.INTEGER, String.valueOf(request.getVersionId()));
+        final N2oQuery.Filter optLockValueFilter = createRegularFilter(FIELD_OPT_LOCK_VALUE,
+                N2oDomain.INTEGER, DEFAULT_OPT_LOCK_VALUE);
+        final N2oQuery.Filter localeCodeFilter = createRegularFilter(FIELD_LOCALE_CODE,
+                N2oDomain.STRING, DEFAULT_LOCALE_CODE);
+        final N2oQuery.Filter dataActionFilter = createRegularFilter(FIELD_DATA_ACTION,
+                N2oDomain.STRING, null);
 
         final List<N2oQuery.Filter> list = new ArrayList<>(List.of(
                 idFilter, versionIdFilter, optLockValueFilter, localeCodeFilter, dataActionFilter
@@ -248,6 +231,24 @@ public class DataRecordQueryProvider extends DataRecordBaseProvider implements D
                 .forEach(list::addAll);
 
         return list;
+    }
+
+    private N2oQuery.Filter createRegularFilter(String filterId, String domain, String defaultValue) {
+
+        final N2oQuery.Filter filter = createQueryEqualFilter(filterId);
+        filter.setFieldId(filterId);
+        filter.setMapping(MAPPING_CRITERIA_PREFIX + filterId);
+        filter.setDomain(domain);
+        if (defaultValue != null) {
+            filter.setDefaultValue(defaultValue);
+        }
+
+        return filter;
+    }
+
+    private N2oQuery.Filter createQueryEqualFilter(String filterId) {
+
+        return new N2oQuery.Filter(filterId, FilterTypeEnum.EQ);
     }
 
     private Stream<DataRecordQueryResolver> getSatisfiedResolvers(String dataAction) {

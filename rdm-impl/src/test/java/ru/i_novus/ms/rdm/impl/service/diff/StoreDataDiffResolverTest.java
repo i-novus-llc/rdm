@@ -101,7 +101,7 @@ public class StoreDataDiffResolverTest extends BaseTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void testSaveLastVersionDataDiff() {
 
         RefBookVersionDiffEntity versionDiffEntity = createVersionDiffEntity();
@@ -188,7 +188,7 @@ public class StoreDataDiffResolverTest extends BaseTest {
                 dataDiffEntities.stream().map(VersionDataDiffEntity::getPrimaries).collect(toList())
         );
 
-        String dataDiffValues = dataDiffEntities.get(0).getValues();
+        String dataDiffValues = dataDiffEntities.getFirst().getValues();
         assertTrue(Stream.of(codeField, nameField, amountField, boolField)
                 .map(field -> field.getClass().getSimpleName())
                 .allMatch(dataDiffValues::contains)

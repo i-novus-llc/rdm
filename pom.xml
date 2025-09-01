@@ -4,71 +4,63 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
-    <version>4.28.0-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>net.n2oapp.platform</groupId>
         <artifactId>n2o-boot-platform-parent</artifactId>
-        <version>6.2.1</version>
+        <version>7.0.1</version>
     </parent>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- ${maven-compiler-plugin.version} -->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <!--<npm.registry>https://npm.i-novus.ru</npm.registry>-->
-        <npm.registry>https://registry.yarnpkg.com/</npm.registry>
+        <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <!-- N2O -->
-        <n2o.version>7.28.2</n2o.version>
+        <n2o.version>7.29.1</n2o.version>
         <!-- / N2O -->
 
         <!-- STORAGE -->
-        <vds.version>3.31-SNAPSHOT</vds.version>
-        <l10n.vds.version>3.36-SNAPSHOT</l10n.vds.version>
+        <vds.version>4.2.0</vds.version>
+        <l10n.vds.version>4.2.0</l10n.vds.version>
         <!-- / STORAGE -->
 
         <!-- from jackson-bom in spring-boot-dependencies -->
-        <jackson.version>2.15.4</jackson.version>
+        <jackson.version>2.19.1</jackson.version>
         <jackson-databind.version>${jackson.version}</jackson-databind.version>
         <jackson-datatype.version>${jackson.version}</jackson-datatype.version>
 
-        <!-- from spring-boot-dependencies -->
-        <!--<spring.boot.version>2.7.5</spring.boot.version>-->
-        <!--<spring.boot.version>3.3.5</spring.boot.version>-->
-        <!--<hibernate.version>6.4.1.Final</hibernate.version>-->
-        <!-- debug only -->
-        <!--<liquibase.version>4.25.1</liquibase.version>-->
-        <!--<lombok.version>1.18.30</lombok.version>-->
-        <!--<activemq.version>6.1.3</activemq.version>-->
-
-        <jakarta-inteceptor.version>2.1.0</jakarta-inteceptor.version>
-        <apache.poi.version>4.1.2</apache.poi.version>
+        <jakarta-inteceptor.version>2.2.0</jakarta-inteceptor.version>
         <filestorage.version>2.3</filestorage.version>
-        <commons.text.version>1.10.0</commons.text.version>
-        <itextpdf.version>5.5.13.3</itextpdf.version>
+        <commons.text.version>1.13.1</commons.text.version>
+        <itextpdf.version>5.5.13.4</itextpdf.version>
+        <apache.poi.version>4.1.2</apache.poi.version>
         <xlsx-streamer.version>2.2.0</xlsx-streamer.version>
         <jaxws.version>2.3.2</jaxws.version>
-        <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
+        <springdoc-openapi.version>2.8.9</springdoc-openapi.version>
 
         <!-- security -->
-        <security.admin.version>8.0.1</security.admin.version>
+        <security.admin.version>9.0.1</security.admin.version>
         <!-- / security-->
 
         <!-- Текущая версия использует spring-boot 2.3.4 -->
         <!--<i-novus.audit.version>2.4.28</i-novus.audit.version>-->
 
         <!-- job -->
-        <shedlock.version>6.2.0</shedlock.version>
+        <shedlock.version>6.9.0</shedlock.version>
         <!-- / job -->
 
         <!-- test -->
         <xmlunit.version>1.6</xmlunit.version>
+        <!-- / test -->
     </properties>
 
     <name>rdm</name>
@@ -110,56 +102,56 @@
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-api</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-impl</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
                 <scope>runtime</scope>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest-spring-boot-starter</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-rest-spring-boot-autoconfigure</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o-api</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-web-spring-boot-starter</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-web-spring-boot-autoconfigure</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
@@ -232,11 +224,13 @@
             <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
                 <artifactId>security-client-starter</artifactId>
+                <type>pom</type>
                 <version>${security.admin.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.n2oapp.framework.security</groupId>
                 <artifactId>security-userinfo-starter</artifactId>
+                <type>pom</type>
                 <version>${security.admin.version}</version>
             </dependency>
             <!-- / SECURITY -->
@@ -315,19 +309,19 @@
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-l10n-api</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-l10n-impl</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.i-novus.ms.rdm</groupId>
                 <artifactId>rdm-n2o-l10n</artifactId>
-                <version>4.28.0-SNAPSHOT</version>
+                <version>5.0.0-SNAPSHOT</version>
             </dependency>
             <!-- l10n -->
 

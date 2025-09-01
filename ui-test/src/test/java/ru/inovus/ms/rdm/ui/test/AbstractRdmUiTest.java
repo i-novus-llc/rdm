@@ -1,5 +1,6 @@
 package ru.inovus.ms.rdm.ui.test;
 
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import lombok.extern.slf4j.Slf4j;
 import net.n2oapp.framework.autotest.api.component.DropDown;
@@ -8,12 +9,15 @@ import net.n2oapp.framework.autotest.impl.component.control.N2oInputSelect;
 import net.n2oapp.framework.autotest.impl.component.control.N2oSelect;
 import net.n2oapp.framework.autotest.run.AutoTestBase;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.rng.UniformRandomProvider;
+import org.apache.commons.rng.simple.RandomSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.openqa.selenium.MutableCapabilities;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.boot.system.SystemProperties;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ru.inovus.ms.rdm.ui.test.model.FieldType;
@@ -61,6 +65,9 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
     static final String USERNAME = SystemProperties.get("rdm.username");
     static final String PASSWORD = SystemProperties.get("rdm.password");
 
+    // Генератор (псевдо)случайных чисел по умолчанию.
+    static final UniformRandomProvider RNG = RandomSource.JDK.create();
+
     // Время создания справочника (для локализации ошибки).
     static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
     static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
@@ -104,9 +111,17 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
     @BeforeAll
     public static void beforeClass() {
 
-        log.debug("Start configure Selenide");
         configureSelenide();
-        log.debug("Finish configure Selenide");
+
+        final ChromeOptions options = new ChromeOptions();
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.setExperimentalOption("excludeSwitches", Arrays.asList("enable-automation"));
+
+        final MutableCapabilities capabilities = Configuration.browserCapabilities;
+        capabilities.setCapability(ChromeOptions.CAPABILITY, options);
     }
 
     @AfterAll
@@ -239,7 +254,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
         final StructureWidget structureWidget = refBookEditPage.structure();
         structureWidget.shouldExists();
 
-        final Set<RefBookField> fieldsToFirstRefBook = refBook.getRows().get(0).keySet();
+        final Set<RefBookField> fieldsToFirstRefBook = refBook.getRows().getFirst().keySet();
         createStructure(structureWidget, fieldsToFirstRefBook);
 
         final DataTableWidget dataTableWidget = refBookEditPage.dataTable();
@@ -297,7 +312,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
         final DataTableWidget dataTableWidget = refBookEditPage.dataTable();
 
         final List<Map<RefBookField, Object>> refBookRows = generateRows(1, DEFAULT_FIELD_TYPES, null);
-        final Map<RefBookField, Object> row = refBookRows.get(0);
+        final Map<RefBookField, Object> row = refBookRows.getFirst();
 
         final DataRowForm addForm = dataTableWidget.openAddRowForm();
         fillDataRowForm(addForm, row);
@@ -344,7 +359,7 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
 
         // Конфликт UPDATED.
         final DataRowForm editForm = dataTableWidget.openEditRowForm(0);
-        final String newNameValue = nameColumnTexts.get(0) + "_updated";
+        final String newNameValue = nameColumnTexts.getFirst() + "_updated";
         fillInputControl(editForm.stringInput(ATTR_NAME_NAME), newNameValue);
         editForm.edit();
 
@@ -457,16 +472,16 @@ abstract class AbstractRdmUiTest extends AutoTestBase {
                             String.valueOf(refBookDataIdSeq.getAndIncrement())
                     );
                     case DOUBLE -> row.put(
-                            new RefBookField("some_double", "Некоторая дробное число", fieldType, false),
-                            String.valueOf(RandomUtils.nextDouble(1.01, 2)).substring(0, 3)
+                            new RefBookField("some_double", "Дробное число", fieldType, false),
+                            String.valueOf(RNG.nextDouble(1.01, 2)).substring(0, 3)
                     );
                     case DATE -> row.put(
-                            new RefBookField("some_date", "Некоторая дата", fieldType, false),
+                            new RefBookField("some_date", "Дата события", fieldType, false),
                             LocalDate.now().format(EDIT_FIELD_DATE_FORMATTER)
                     );
                     case BOOLEAN -> row.put(
-                            new RefBookField("some_boolean", "Некоторое логическое поле", fieldType, false),
-                            RandomUtils.nextBoolean()
+                            new RefBookField("some_boolean", "Логическое поле", fieldType, false),
+                            RNG.nextBoolean()
                     );
                     case REFERENCE -> row.put(
                             new RefBookField("some_reference", ATTR_REFERENCE_NAME, fieldType, false,

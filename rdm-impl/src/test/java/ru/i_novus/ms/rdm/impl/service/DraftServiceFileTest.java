@@ -229,7 +229,7 @@ public class DraftServiceFileTest {
         when(searchDataService.getPagedData(any())).thenReturn(new DataPage<>(0, emptyList(), new DataCriteria()));
 
         when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class))).thenReturn(uploadedDraftEntity);
-        when(versionRepository.getOne(uploadedDraftId)).thenReturn(uploadedDraftEntity);
+        when(versionRepository.getReferenceById(uploadedDraftId)).thenReturn(uploadedDraftEntity);
         when(versionRepository.findById(uploadedDraftId)).thenReturn(Optional.of(uploadedDraftEntity));
 
         mockCreateDraftEntityStrategy(uploadedDraftEntity.getRefBook(), uploadedDraftEntity.getStructure());
@@ -386,7 +386,7 @@ public class DraftServiceFileTest {
         if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
-                return ue.getMessages().get(0).getCode();
+                return ue.getMessages().getFirst().getCode();
         }
 
         if (!StringUtils.isEmpty(e.getMessage()))

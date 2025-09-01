@@ -18,6 +18,8 @@ spring:
   cloud:
     consul:
       config:
+        prefix: rdm
+        format: yaml
         enabled: ${config.server.enable}
   http:
     encoding:

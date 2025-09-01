@@ -88,8 +88,8 @@ public class CompareServiceImpl implements CompareService {
 
         validateVersionPairExists(oldVersionId, newVersionId);
 
-        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+        RefBookVersionEntity oldVersion = versionRepository.getReferenceById(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getReferenceById(newVersionId);
 
         List<PassportAttributeEntity> passportAttributes = passportAttributeRepository.findAllByComparableIsTrueOrderByPositionAsc();
         List<PassportAttributeDiff> passportAttributeDiffList = new ArrayList<>();
@@ -140,8 +140,8 @@ public class CompareServiceImpl implements CompareService {
 
         validateVersionPairExists(oldVersionId, newVersionId);
 
-        RefBookVersionEntity oldVersion = versionRepository.getOne(oldVersionId);
-        RefBookVersionEntity newVersion = versionRepository.getOne(newVersionId);
+        RefBookVersionEntity oldVersion = versionRepository.getReferenceById(oldVersionId);
+        RefBookVersionEntity newVersion = versionRepository.getReferenceById(newVersionId);
 
         Structure oldStructure = oldVersion.getStructure();
         Structure newStructure = newVersion.getStructure();
@@ -155,8 +155,8 @@ public class CompareServiceImpl implements CompareService {
 
         validateVersionPairExists(criteria.getOldVersionId(), criteria.getNewVersionId());
 
-        RefBookVersionEntity oldVersion = versionRepository.getOne(criteria.getOldVersionId());
-        RefBookVersionEntity newVersion = versionRepository.getOne(criteria.getNewVersionId());
+        RefBookVersionEntity oldVersion = versionRepository.getReferenceById(criteria.getOldVersionId());
+        RefBookVersionEntity newVersion = versionRepository.getReferenceById(criteria.getNewVersionId());
         validatePrimariesEquality(oldVersion, newVersion);
 
         RefBookAttributeDiff attributeDiff = compareAttributes(oldVersion.getStructure(), newVersion.getStructure());

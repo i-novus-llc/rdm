@@ -430,7 +430,7 @@ public class ApplicationTest {
 
         search = refBookService.search(nameCriteria);
         assertEquals(1, search.getTotalElements());
-        assertPassportEqual(refBook.getPassport(), search.getContent().get(0).getPassport());
+        assertPassportEqual(refBook.getPassport(), search.getContent().getFirst().getPassport());
     }
 
     /** Поиск справочника по различным статусам. */
@@ -521,7 +521,7 @@ public class ApplicationTest {
     public void testGetVersions() {
 
         VersionCriteria criteria = new VersionCriteria();
-        criteria.setRefBookId(versionList.get(0).getRefBookId());
+        criteria.setRefBookId(versionList.getFirst().getRefBookId());
         Page<RefBookVersion> search = versionService.getVersions(criteria);
 
         assertEquals(versionList.size(), search.getTotalElements());
@@ -567,7 +567,7 @@ public class ApplicationTest {
         failDraftReferrerCreate(structure, false, "reference.attribute.not.found");
 
         structure = createTestStructureWithReferenceType();
-        structure.getAttribute(structure.getReferences().get(0).getAttribute()).setIsPrimary(Boolean.TRUE);
+        structure.getAttribute(structure.getReferences().getFirst().getAttribute()).setIsPrimary(Boolean.TRUE);
         failDraftReferrerCreate(structure, false, "reference.attribute.cannot.be.primary.key");
 
         structure = createTestStructureWithReferenceType();
@@ -608,7 +608,7 @@ public class ApplicationTest {
     public void testVersionSearch() {
         Page<RefBookRowValue> rowValues = versionService.search(-1, new SearchDataCriteria());
 
-        List<FieldValue> fieldValues = rowValues.getContent().get(0).getFieldValues();
+        List<FieldValue> fieldValues = rowValues.getContent().getFirst().getFieldValues();
         StringFieldValue name = new StringFieldValue("name", "name");
         IntegerFieldValue count = new IntegerFieldValue("count", 2);
 
@@ -625,7 +625,7 @@ public class ApplicationTest {
         RefBook refBook = refBookService.getByVersionId(TEST_PUBLISHING_VERSION_ID);
         assertEquals(TEST_PUBLISHING_BOOK_CODE, refBook.getCode());
 
-        List fieldValues = rowValuesInVersion.getContent().get(0).getFieldValues();
+        List fieldValues = rowValuesInVersion.getContent().getFirst().getFieldValues();
         FieldValue name = new StringFieldValue("name", "name");
         FieldValue count = new IntegerFieldValue("count", 2);
 
@@ -1097,7 +1097,7 @@ public class ApplicationTest {
         assertEquals(expected, actual);
 
         Page<RefBookRowValue> search = draftService.search(expected.getId(), new SearchDataCriteria());
-        List actualData = search.getContent().get(0).getFieldValues();
+        List actualData = search.getContent().getFirst().getFieldValues();
 
         assertEquals(expectedData, actualData);
     }
@@ -1191,7 +1191,7 @@ public class ApplicationTest {
         List<RowValue> rowValues = asList(rowValue(row1, structure), rowValue(row2, structure));
         draftDataService.addRows(draft.getStorageCode(), rowValues);
 
-        List<RowValue> expectedRowValues = singletonList(rowValues.get(0));
+        List<RowValue> expectedRowValues = singletonList(rowValues.getFirst());
 
         List<Field> fields = fields(structure);
 
@@ -1470,46 +1470,46 @@ public class ApplicationTest {
         structure.getAttribute("integer").setType(FieldType.STRING);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("integer"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("integer") instanceof StringFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("integer") instanceof StringFieldValue);
 
         structure.getAttribute("integer").setType(FieldType.INTEGER);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("integer"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("integer") instanceof IntegerFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("integer") instanceof IntegerFieldValue);
 
         // boolean -> string -> boolean
         structure.getAttribute("boolean").setType(FieldType.STRING);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("boolean"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("boolean") instanceof StringFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("boolean") instanceof StringFieldValue);
 
         structure.getAttribute("boolean").setType(FieldType.BOOLEAN);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("boolean"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("boolean") instanceof BooleanFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("boolean") instanceof BooleanFieldValue);
 
         reference.setAttribute("reference");
         // reference -> string -> reference
         structure.getAttribute("reference").setType(FieldType.STRING);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("reference"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("reference") instanceof StringFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("reference") instanceof StringFieldValue);
 
         structure.getAttribute("reference").setType(FieldType.REFERENCE);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("reference"), reference));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("reference") instanceof ReferenceFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("reference") instanceof ReferenceFieldValue);
 
         // float -> string -> float
         structure.getAttribute("float").setType(FieldType.STRING);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("float"), null));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("float") instanceof StringFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("float") instanceof StringFieldValue);
 
         structure.getAttribute("float").setType(FieldType.FLOAT);
         draftService.updateAttribute(draftId, new UpdateAttributeRequest(null, structure.getAttribute("float"), reference));
         rowValues = versionService.search(draftId, new SearchDataCriteria()).getContent();
-        assertTrue(rowValues.get(0).getFieldValue("float") instanceof FloatFieldValue);
+        assertTrue(rowValues.getFirst().getFieldValue("float") instanceof FloatFieldValue);
     }
 
     /**
@@ -2180,7 +2180,7 @@ public class ApplicationTest {
         criteria.setRefRecordId(rowValue.getSystemId());
         criteria.setPageSize(1);
         Page<RefBookConflict> conflicts = conflictService.search(criteria);
-        return (conflicts == null || isEmpty(conflicts.getContent())) ? null : conflicts.getContent().get(0);
+        return (conflicts == null || isEmpty(conflicts.getContent())) ? null : conflicts.getContent().getFirst();
     }
 
     @Test
@@ -2705,7 +2705,7 @@ public class ApplicationTest {
         criteria.setRowSystemIds(singletonList(systemId));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+        return (rowValues != null && !isEmpty(rowValues.getContent())) ? rowValues.getContent().getFirst() : null;
     }
 
     /**
@@ -2735,7 +2735,7 @@ public class ApplicationTest {
             add(new DateFieldValue("dt", LocalDate.of(2002, 2, 2)));
             add(new BooleanFieldValue("flag", true));
         }};
-        List actualData0 = search.getContent().get(0).getFieldValues();
+        List actualData0 = search.getContent().getFirst().getFieldValues();
         assertEquals(expectedData0, actualData0);
 
         List<FieldValue> expectedData1 = new ArrayList<>(4) {{
@@ -3173,7 +3173,7 @@ public class ApplicationTest {
         criteria.addAttributeFilterList(singletonList(filter));
 
         Page<RefBookRowValue> rowValues = versionService.search(versionId, criteria);
-        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().get(0) : null;
+        return (rowValues != null && !CollectionUtils.isEmpty(rowValues.getContent())) ? rowValues.getContent().getFirst() : null;
     }
 
     private static String getRestExceptionMessage(RestException re) {
@@ -3182,7 +3182,7 @@ public class ApplicationTest {
             return re.getMessage();
 
         if (!isEmpty(re.getErrors()))
-            return re.getErrors().get(0).getMessage();
+            return re.getErrors().getFirst().getMessage();
 
         return null;
     }
@@ -3193,7 +3193,7 @@ public class ApplicationTest {
         if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
-                return ue.getMessages().get(0).getCode();
+                return ue.getMessages().getFirst().getCode();
         }
 
         if (!StringUtils.isEmpty(e.getMessage()))

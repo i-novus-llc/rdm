@@ -114,11 +114,9 @@ public class VersionFileServiceTest {
 
         versionFileService.save(version, FILE_TYPE, is);
 
-        verify(versionRepository).getOne(version.getId());
+        verify(versionRepository).getReferenceById(version.getId());
 
-        VersionFileEntity insertedEntity = new VersionFileEntity();
-        insertedEntity.setType(FILE_TYPE);
-        insertedEntity.setPath(FILE_PATH);
+        VersionFileEntity insertedEntity = createVersionFileEntity();
         verify(versionFileRepository).save(insertedEntity);
     }
 
@@ -129,13 +127,12 @@ public class VersionFileServiceTest {
         RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
-        VersionFileEntity fileEntity = new VersionFileEntity();
-        fileEntity.setPath(FILE_PATH);
+        final VersionFileEntity fileEntity = createVersionFileEntity();
         when(versionFileRepository.findByVersionIdAndType(version.getId(), FILE_TYPE)).thenReturn(fileEntity);
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(true);
 
         // .buildExportFile
-        InputStream is = mock(InputStream.class);
+        final InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
         when(generateFileNameStrategy.generateZipName(eq(version), eq(FILE_TYPE))).thenReturn(ZIP_NAME);
 
@@ -148,7 +145,7 @@ public class VersionFileServiceTest {
     public void testGetFileWhenAbsentInsert() {
 
         // .getFile
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
         when(versionFileRepository.findByVersionIdAndType(version.getId(), FILE_TYPE))
@@ -170,7 +167,7 @@ public class VersionFileServiceTest {
         when(fileStorage.isExistContent(FILE_PATH)).thenReturn(true);
 
         // .buildExportFile
-        InputStream is = mock(InputStream.class);
+        final InputStream is = mock(InputStream.class);
         when(fileStorage.getContent(FILE_PATH)).thenReturn(is);
 
         ExportFile expected = new ExportFile(is, ZIP_NAME);
@@ -178,23 +175,23 @@ public class VersionFileServiceTest {
         assertEquals(expected, actual);
 
         // .saveEntity
-        verify(versionRepository).getOne(version.getId());
+        verify(versionRepository).getReferenceById(version.getId());
 
-        VersionFileEntity insertedEntity = new VersionFileEntity();
-        insertedEntity.setType(FILE_TYPE);
-        insertedEntity.setPath(FILE_PATH);
+        final VersionFileEntity insertedEntity = createVersionFileEntity();
         verify(versionFileRepository).save(insertedEntity);
+
+        verifyNoMoreInteractions(versionRepository);
     }
 
     @Test
     public void testGetFileWhenAbsentUpdate() {
 
         // .getFile
-        RefBookVersion version = createVersion();
+        final RefBookVersion version = createVersion();
         when(allowStoreVersionFileStrategy.allow(version)).thenReturn(true);
 
-        VersionFileEntity fileEntity = new VersionFileEntity();
-        fileEntity.setPath(FILE_PATH);
+        final VersionFileEntity fileEntity = createVersionFileEntity();
+
         when(versionFileRepository.findByVersionIdAndType(version.getId(), FILE_TYPE))
                 .thenReturn(null) // findFilePath
                 .thenReturn(fileEntity); // saveEntity
@@ -221,24 +218,31 @@ public class VersionFileServiceTest {
         ExportFile actual = versionFileService.getFile(version, FILE_TYPE, versionService);
         assertEquals(expected, actual);
 
-        verifyNoMoreInteractions(versionRepository);
-
         // .saveEntity
-        VersionFileEntity updatedEntity = new VersionFileEntity();
-        updatedEntity.setType(FILE_TYPE);
-        updatedEntity.setPath(FILE_PATH);
-        verify(versionFileRepository).save(any(VersionFileEntity.class));
+        VersionFileEntity updatedEntity = createVersionFileEntity();
+        verify(versionFileRepository).save(updatedEntity);
+
+        verifyNoMoreInteractions(versionRepository);
     }
 
     private RefBookVersion createVersion() {
 
-        RefBookVersion version = new RefBookVersion();
+        final RefBookVersion version = new RefBookVersion();
         version.setId(VERSION_ID);
 
         version.setRefBookId(REFBOOK_ID);
         version.setCode(REFBOOK_CODE);
 
         return version;
+    }
+
+    private VersionFileEntity createVersionFileEntity() {
+
+        final VersionFileEntity entity = new VersionFileEntity();
+        entity.setType(FILE_TYPE);
+        entity.setPath(FILE_PATH);
+
+        return entity;
     }
 
     private Map<RefBookTypeEnum, Map<Class<? extends Strategy>, Strategy>> getStrategiesMap() {

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Provider
 public class NotFoundExceptionMapper implements RestExceptionMapper<NotFoundException> {
 
-    private Messages messages;
+    private final Messages messages;
 
     public NotFoundExceptionMapper(Messages messages) {
         this.messages = messages;
@@ -22,7 +22,7 @@ public class NotFoundExceptionMapper implements RestExceptionMapper<NotFoundExce
     @Override
     public RestMessage toMessage(NotFoundException exception) {
         if (exception.getMessages() != null) {
-            return new RestMessage(exception.getMessages().stream().map(this::toError).collect(Collectors.toList()));
+            return new RestMessage(exception.getMessages().stream().map(this::toError).toList());
         }
         return new RestMessage(messages.getMessage(exception.getMessage(), exception.getArgs()));
     }

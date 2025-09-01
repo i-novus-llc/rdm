@@ -39,6 +39,7 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected Draft createDraft(int index) {
 
         final Draft result = new Draft();
@@ -63,6 +64,7 @@ public class BaseLoaderTest extends BaseTest {
         return result;
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected RefBookDataRequest createFileDataRequest(int index, RefBookDataUpdateTypeEnum updateType) {
 
         final RefBookDataRequest result = new RefBookDataRequest();

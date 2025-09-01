@@ -13,12 +13,19 @@
     </parent>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <encoding>UTF-8</encoding>
 
-        <!-- ${maven-compiler-plugin.version} -->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <!-- Нужна как минимум версия 7.3.2 ! -->
+        <!--<selenide.version>7.5.1</selenide.version>-->
+        <!-- Минимальная версия 4.21.0 для Chrome v.125 ! -->
+        <!--<selenium.version>4.25.0</selenium.version>-->
+        <!-- Минимальная версия 33.2.0-jre из Selenide v.7.3.2 ! -->
+        <!--<google-guava.version>33.3.0-jre</google-guava.version>-->
+        <!--<allure-junit5.version>2.27.0</allure-junit5.version>-->
 
         <!-- From:
          ? n2o-boot-platform
@@ -26,11 +33,13 @@
          - org.springframework.data/spring-data-commons
          - org.springframework.hateoas/spring-hateoas
          -->
-        <maven-surefire.version>3.2.5</maven-surefire.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <!-- From:
          - net.n2oapp.framework/framework
          -->
         <allure-maven.version>2.10.0</allure-maven.version>
+
+        <commons.rng.version>1.6</commons.rng.version>
 
         <jacoco.skip>false</jacoco.skip>
     </properties>
@@ -40,6 +49,13 @@
             <groupId>net.n2oapp.framework</groupId>
             <artifactId>n2o-autotest</artifactId>
             <version>${n2o.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-rng-simple</artifactId>
+            <version>${commons.rng.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -60,7 +76,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire.version}</version>
+                <version>${maven-surefire-plugin.version}</version>
 
                 <configuration>
                     <testFailureIgnore>false</testFailureIgnore>

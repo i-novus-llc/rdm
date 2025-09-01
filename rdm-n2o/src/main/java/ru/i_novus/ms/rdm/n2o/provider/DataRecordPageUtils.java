@@ -15,13 +15,13 @@ public final class DataRecordPageUtils {
 
     public static N2oStandardField createField(FieldType type) {
 
-        switch (type) {
-            case INTEGER: return createIntegerField();
-            case FLOAT: return createFloatField();
-            case DATE: return createDateField();
-            case BOOLEAN: return createBooleanField();
-            default: return new N2oInputText();
-        }
+        return switch (type) {
+            case INTEGER -> createIntegerField();
+            case FLOAT -> createFloatField();
+            case DATE -> createDateField();
+            case BOOLEAN -> createBooleanField();
+            default -> new N2oInputText();
+        };
     }
 
     private static N2oInputText createIntegerField() {

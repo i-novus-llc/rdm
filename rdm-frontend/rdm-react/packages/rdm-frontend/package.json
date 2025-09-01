@@ -10,13 +10,12 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "http-proxy-middleware": "^0.20.0"
-  },
-  "peerDependencies": {
+    "http-proxy-middleware": "^0.20.0",
+    "n2o-config-rdm": "2.1.0",
     "n2o-framework": "*",
-    "react": "*",
-    "react-dom": "*",
-    "n2o-config-rdm": "2.1.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recompose": "^0.30.0"
   },
   "eslintConfig": {
     "extends": "react-app"

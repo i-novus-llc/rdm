@@ -7,7 +7,7 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>4.28.0-SNAPSHOT</version>
+        <version>5.0.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -32,6 +32,7 @@
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-ms</artifactId>
+            <type>pom</type>
         </dependency>
 
         <dependency>
@@ -43,6 +44,7 @@
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-jaxrs-server</artifactId>
+            <type>pom</type>
         </dependency>
 
         <dependency>
@@ -74,6 +76,7 @@
         <dependency>
             <groupId>net.n2oapp.platform</groupId>
             <artifactId>n2o-platform-starter-loader-server</artifactId>
+            <type>pom</type>
         </dependency>
 
         <!-- fix NoClassDefFoundError for CommonsMultipartResolver -->

@@ -2,8 +2,6 @@
 <table xmlns="http://n2oapp.net/framework/config/schema/widget-5.0"
        name="Структура">
 
-    <datasource query-id="attribute" object-id="attribute"/>
-
     <rows>
         <switch value-field-id="hasStructureConflict">
             <case value="true">bg-danger</case>

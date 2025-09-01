@@ -109,7 +109,7 @@ public class CustomValidationTest {
             fail();
 
         } catch (RestException e) {
-            assertEquals(INT_RANGE_EXCEPTION_CODE, e.getErrors().get(0).getMessage());
+            assertEquals(INT_RANGE_EXCEPTION_CODE, e.getErrors().getFirst().getMessage());
         }
 
         // Удаление проверки
@@ -140,7 +140,7 @@ public class CustomValidationTest {
 
         List<AttributeValidation> actual = draftService.getAttributeValidations(draft.getId(), INTEGER_ATTR);
         assertEquals(1, actual.size());
-        assertValidationEquals(expectedRequired, actual.get(0));
+        assertValidationEquals(expectedRequired, actual.getFirst());
 
         //обновление проверки
         List<AttributeValidation> expectedValidations =
@@ -173,41 +173,51 @@ public class CustomValidationTest {
     }
 
     private void assertValidationEquals(AttributeValidation expected, AttributeValidation actual) {
+
         switch (expected.getType()) {
+
             case REQUIRED:
                 assertEquals(REQUIRED, actual.getType());
                 break;
+
             case UNIQUE:
                 assertEquals(UNIQUE, actual.getType());
                 break;
+
             case PLAIN_SIZE:
                 assertEquals(PLAIN_SIZE, actual.getType());
-                assertEquals(((PlainSizeAttributeValidation) expected).getSize(), ((PlainSizeAttributeValidation) expected).getSize());
+                assertEquals(((PlainSizeAttributeValidation) expected).getSize(), ((PlainSizeAttributeValidation) actual).getSize());
                 break;
+
             case FLOAT_SIZE:
                 assertEquals(FLOAT_SIZE, actual.getType());
-                assertEquals(((FloatSizeAttributeValidation) expected).getIntPartSize(), ((FloatSizeAttributeValidation) expected).getIntPartSize());
-                assertEquals(((FloatSizeAttributeValidation) expected).getFracPartSize(), ((FloatSizeAttributeValidation) expected).getFracPartSize());
+                assertEquals(((FloatSizeAttributeValidation) expected).getIntPartSize(), ((FloatSizeAttributeValidation) actual).getIntPartSize());
+                assertEquals(((FloatSizeAttributeValidation) expected).getFracPartSize(), ((FloatSizeAttributeValidation) actual).getFracPartSize());
                 break;
+
             case INT_RANGE:
                 assertEquals(INT_RANGE, actual.getType());
-                assertEquals(((IntRangeAttributeValidation) expected).getMin(), ((IntRangeAttributeValidation) expected).getMin());
-                assertEquals(((IntRangeAttributeValidation) expected).getMax(), ((IntRangeAttributeValidation) expected).getMax());
+                assertEquals(((IntRangeAttributeValidation) expected).getMin(), ((IntRangeAttributeValidation) actual).getMin());
+                assertEquals(((IntRangeAttributeValidation) expected).getMax(), ((IntRangeAttributeValidation) actual).getMax());
                 break;
+
             case FLOAT_RANGE:
                 assertEquals(FLOAT_RANGE, actual.getType());
-                assertEquals(((FloatRangeAttributeValidation) expected).getMin(), ((FloatRangeAttributeValidation) expected).getMin());
-                assertEquals(((FloatRangeAttributeValidation) expected).getMax(), ((FloatRangeAttributeValidation) expected).getMax());
+                assertEquals(((FloatRangeAttributeValidation) expected).getMin(), ((FloatRangeAttributeValidation) actual).getMin());
+                assertEquals(((FloatRangeAttributeValidation) expected).getMax(), ((FloatRangeAttributeValidation) actual).getMax());
                 break;
+
             case DATE_RANGE:
                 assertEquals(DATE_RANGE, actual.getType());
-                assertEquals(((DateRangeAttributeValidation) expected).getMin(), ((DateRangeAttributeValidation) expected).getMin());
-                assertEquals(((DateRangeAttributeValidation) expected).getMax(), ((DateRangeAttributeValidation) expected).getMax());
+                assertEquals(((DateRangeAttributeValidation) expected).getMin(), ((DateRangeAttributeValidation) actual).getMin());
+                assertEquals(((DateRangeAttributeValidation) expected).getMax(), ((DateRangeAttributeValidation) actual).getMax());
                 break;
+
             case REG_EXP:
                 assertEquals(REG_EXP, actual.getType());
-                assertEquals(((RegExpAttributeValidation) expected).getRegExp(), ((RegExpAttributeValidation) expected).getRegExp());
+                assertEquals(((RegExpAttributeValidation) expected).getRegExp(), ((RegExpAttributeValidation) actual).getRegExp());
                 break;
+
             default:
                 fail();
         }

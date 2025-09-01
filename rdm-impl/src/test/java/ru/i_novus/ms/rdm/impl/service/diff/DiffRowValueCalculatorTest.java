@@ -743,6 +743,7 @@ public class DiffRowValueCalculatorTest {
         assertNull(calculator.calculate());
     }
 
+    @SuppressWarnings("rawtypes")
     private void assertFieldValue(String fieldName, DiffFieldValue expected, DiffFieldValue actual, boolean isNew) {
         Object expectedNewValue = isNew ? expected.getNewValue() : expected.getOldValue();
         Object actualNewValue = isNew ? actual.getNewValue() : actual.getOldValue();

@@ -187,6 +187,7 @@ public class RefBookDataLoaderServiceTest extends BaseLoaderTest {
         when(refBookService.search(any())).thenReturn(refBooks);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void mockSearchRefBooks(int index) {
 
         final RefBook refBook = createRefBook(index);

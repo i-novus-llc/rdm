@@ -1,7 +1,7 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
 import net.n2oapp.criteria.api.Sorting;
-import net.n2oapp.criteria.api.SortingDirection;
+import net.n2oapp.criteria.api.SortingDirectionEnum;
 import net.n2oapp.criteria.dataset.DataSet;
 import net.n2oapp.framework.api.processing.DataProcessing;
 import net.n2oapp.framework.api.ui.QueryRequestInfo;
@@ -34,6 +34,6 @@ public class DataRecordSortingProcessing implements DataProcessing {
 
     private Sorting toSorting(Map.Entry<String, Object> entry) {
 
-        return new Sorting(entry.getKey(), SortingDirection.valueOf((String) entry.getValue()));
+        return new Sorting(entry.getKey(), SortingDirectionEnum.valueOf((String) entry.getValue()));
     }
 }

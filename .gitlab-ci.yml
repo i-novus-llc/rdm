@@ -12,19 +12,25 @@ deploy mr stand:
 
 build and verify:
   variables:
-    MAVEN_IMAGE_VERSION: 'v4'
+    JDK_VERSION: 'jdk21'
+    MAVEN_IMAGE_VERSION: 'v6'
+    NODE_VERSION: 'node22'
     MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
     DC_EXTRA_BUILD_CONFIG: '-f .docker-compose/target/docker-compose.build.mr.yml'
 
 autotesting mr stand:
   extends: .autotesting mr stand
   variables:
+    AUTOTEST_IMAGE: 'harbor.i-novus.ru/pipeline/maven-build:jdk21-node22-v6'
     AUTOTEST_MODULE_DIR: './ui-test'
-    AUTOTEST_PARAMS: '-Drdm.username=admin -Drdm.password=admin'
+    AUTOTEST_PARAMS: >
+      -Drdm.username=rdm_admin
+      -Drdm.password=rdm.admin
   artifacts:
     paths:
       - ./ui-test/build/reports/
     expire_in: 1 week
+
 
 # Т.к. у нас нет dev-стенда -- убираем post dev, чтобы в Jira не проставлялась дата установки на develop
 # Нам из dev-stand.gitlab-ci.yml нужен только build
@@ -35,7 +41,7 @@ post dev:
 # Т.к. у нас нет dev-стенда -- убираем deploy dev stand
 deploy dev stand:
   variables:
-#    При добавлении dev-стенда нужно разкомментировать, иначе ui будет работать неправильно
+#    При добавлении dev-стенда нужно раcкомментировать, иначе ui будет работать неправильно
 #    MAVEN_EXTRA_BUILD_OPTIONS: '-Pfrontend-build'
   rules:
     - when: never

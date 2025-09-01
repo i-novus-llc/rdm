@@ -59,7 +59,7 @@ public interface RefBookDetailModelRepository extends
                       FROM n2o_rdm_management.ref_book_version AS lv
                      WHERE lv.ref_book_id = b.id AND lv.status = 'DRAFT'
                      LIMIT 1 ) AS draft_id,
-            
+
                    (SELECT lv.id
                       FROM n2o_rdm_management.ref_book_version AS lv
                      WHERE lv.ref_book_id = b.id AND lv.status = 'PUBLISHED'

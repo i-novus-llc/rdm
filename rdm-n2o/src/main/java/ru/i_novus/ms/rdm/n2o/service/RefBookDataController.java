@@ -7,7 +7,7 @@ import net.n2oapp.framework.api.metadata.control.plain.N2oInputText;
 import net.n2oapp.framework.api.metadata.meta.cell.AbstractCell;
 import net.n2oapp.framework.api.metadata.meta.control.Control;
 import net.n2oapp.framework.api.metadata.meta.control.StandardField;
-import net.n2oapp.framework.api.metadata.meta.widget.table.ColumnHeader;
+import net.n2oapp.framework.api.metadata.meta.widget.table.SimpleColumn;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.Messages;
 import net.n2oapp.platform.i18n.UserException;
@@ -324,7 +324,7 @@ public class RefBookDataController {
             dataGridRows = getEmptyContent();
         }
 
-        final DataGridRow firstRow = dataGridRows.get(0);
+        final DataGridRow firstRow = dataGridRows.getFirst();
         final Structure dataStructure = refBookDataDecorator.getDataStructure(version.getId(), criteria);
         firstRow.setColumnsConfig(createColumnConfig(dataStructure != null ? dataStructure : Structure.EMPTY));
 
@@ -417,7 +417,7 @@ public class RefBookDataController {
         return new DataGridColumnsConfig(createColumnHeaders(structure), createColumnCells(structure));
     }
 
-    private List<ColumnHeader> createColumnHeaders(Structure structure) {
+    private List<SimpleColumn> createColumnHeaders(Structure structure) {
         return structure.getAttributes().stream().map(this::toColumnHeader).collect(toList());
     }
 
@@ -425,7 +425,7 @@ public class RefBookDataController {
         return structure.getAttributes().stream().map(this::toColumnCell).collect(toList());
     }
 
-    private ColumnHeader toColumnHeader(Structure.Attribute attribute) {
+    private SimpleColumn toColumnHeader(Structure.Attribute attribute) {
 
         final String id = addPrefix(attribute.getCode());
 

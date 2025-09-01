@@ -1,6 +1,6 @@
 package ru.i_novus.ms.rdm.n2o.provider;
 
-import net.n2oapp.criteria.filters.FilterType;
+import net.n2oapp.framework.api.criteria.filters.FilterTypeEnum;
 import net.n2oapp.framework.api.metadata.SourceComponent;
 import net.n2oapp.framework.api.metadata.SourceMetadata;
 import net.n2oapp.framework.api.metadata.control.N2oField;
@@ -96,20 +96,19 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
 
     private N2oPreFilter[] createPreFilters() {
 
-        final N2oPreFilter idFilter = createParamEqualFilter(FIELD_SYSTEM_ID, FIELD_SYSTEM_ID);
+        final N2oPreFilter idFilter = createParamEqualFilter(FIELD_SYSTEM_ID);
 
-        final N2oPreFilter optLockValueFilter = createParamEqualFilter(FIELD_OPT_LOCK_VALUE, FIELD_OPT_LOCK_VALUE);
-        final N2oPreFilter localeCodeFilter = createParamEqualFilter(FIELD_LOCALE_CODE, FIELD_LOCALE_CODE);
-        final N2oPreFilter dataActionFilter = createParamEqualFilter(FIELD_DATA_ACTION, FIELD_DATA_ACTION);
+        final N2oPreFilter optLockValueFilter = createParamEqualFilter(FIELD_OPT_LOCK_VALUE);
+        final N2oPreFilter localeCodeFilter = createParamEqualFilter(FIELD_LOCALE_CODE);
+        final N2oPreFilter dataActionFilter = createParamEqualFilter(FIELD_DATA_ACTION);
 
         return new N2oPreFilter[] {idFilter, optLockValueFilter, localeCodeFilter, dataActionFilter};
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private N2oPreFilter createParamEqualFilter(String fieldId, String param) {
+    private N2oPreFilter createParamEqualFilter(String fieldId) {
 
-        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, FilterType.eq);
-        preFilter.setParam(param);
+        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, FilterTypeEnum.EQ);
+        preFilter.setParam(fieldId);
 
         return preFilter;
     }
@@ -191,19 +190,21 @@ public class DataRecordPageProvider extends DataRecordBaseProvider implements Dy
         referenceField.setLabelFieldId(REFERENCE_DISPLAY_VALUE);
         referenceField.setDomain(N2oDomain.STRING);
 
-        final N2oPreFilter versionFilter = new N2oPreFilter();
-        versionFilter.setType(FilterType.eq);
-        versionFilter.setFieldId("versionId");
-        versionFilter.setValueAttr(versionId.toString());
-
-        final N2oPreFilter referenceFilter = new N2oPreFilter();
-        referenceFilter.setType(FilterType.eq);
-        referenceFilter.setFieldId("reference");
-        referenceFilter.setValueAttr(attribute.getCode());
+        final N2oPreFilter versionFilter = createValueEqualFilter("versionId", versionId.toString());
+        final N2oPreFilter referenceFilter = createValueEqualFilter("reference", attribute.getCode());
 
         referenceField.setPreFilters(new N2oPreFilter[] {versionFilter, referenceFilter});
 
         return referenceField;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private N2oPreFilter createValueEqualFilter(String fieldId, String valueAttr) {
+
+        final N2oPreFilter preFilter = new N2oPreFilter(fieldId, FilterTypeEnum.EQ);
+        preFilter.setValueAttr(valueAttr);
+
+        return preFilter;
     }
 
     private Stream<DataRecordPageResolver> getSatisfiedResolvers(String dataAction) {

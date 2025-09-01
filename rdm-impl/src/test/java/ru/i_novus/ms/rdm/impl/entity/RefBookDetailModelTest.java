@@ -24,7 +24,7 @@ public class RefBookDetailModelTest extends BaseTest {
         RefBookDetailModel data = new RefBookDetailModel();
 
         data.setCurrentVersionId(1);
-        data.setDraftVersion(new RefBookVersionEntity());
+        data.setDraftVersionId(2);
         data.setLastPublishedVersion(new RefBookVersionEntity());
 
         data.setRemovable(true);
@@ -44,7 +44,7 @@ public class RefBookDetailModelTest extends BaseTest {
         RefBookDetailModel data = new RefBookDetailModel();
 
         data.setCurrentVersionId(origin.getCurrentVersionId());
-        data.setDraftVersion(origin.getDraftVersion());
+        data.setDraftVersionId(origin.getDraftVersionId());
         data.setLastPublishedVersion(origin.getLastPublishedVersion());
 
         data.setRemovable(origin.getRemovable());

@@ -174,10 +174,10 @@ public class DraftServiceImpl implements DraftService {
             refBookLockService.deleteRefBookOperation(refBookId);
         }
 
-        final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+        final RefBookVersionEntity createdEntity = versionRepository.getReferenceById(draft.getId());
         getStrategy(createdEntity, AfterUploadDataStrategy.class).apply(createdEntity);
 
-        auditLogService.addAction(AuditAction.UPLOAD_VERSION_FROM_FILE, () -> versionRepository.getOne(draft.getId()));
+        auditLogService.addAction(AuditAction.UPLOAD_VERSION_FROM_FILE, () -> versionRepository.getReferenceById(draft.getId()));
 
         return draft;
     }
@@ -230,7 +230,7 @@ public class DraftServiceImpl implements DraftService {
         try (XmlUpdateDraftFileProcessor xmlUpdateDraftFileProcessor = new XmlUpdateDraftFileProcessor(refBookId, this)) {
 
             final Draft draft = xmlUpdateDraftFileProcessor.process(fileSource);
-            final RefBookVersionEntity createdEntity = versionRepository.getOne(draft.getId());
+            final RefBookVersionEntity createdEntity = versionRepository.getReferenceById(draft.getId());
 
             uploadDataFromFile(createdEntity, fileModel);
 

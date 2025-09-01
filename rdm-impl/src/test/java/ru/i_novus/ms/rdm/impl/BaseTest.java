@@ -51,7 +51,7 @@ public class BaseTest {
     private boolean isOverridingToString(Object o) {
 
         String actual = o.toString();
-        if (actual == null || actual.length() == 0)
+        if (actual == null || actual.isEmpty())
             return true;
 
         String expected = o.getClass().getName() + "@" +

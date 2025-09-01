@@ -190,7 +190,7 @@ public class RefBookServiceTest {
     public void testGetCode() {
 
         RefBookEntity refBookEntity = createRefBookEntity(1);
-        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+        when(refBookRepository.getReferenceById(refBookEntity.getId())).thenReturn(refBookEntity);
 
         String refBookCode = refBookService.getCode(refBookEntity.getId());
         assertEquals(refBookEntity.getCode(), refBookCode);
@@ -304,7 +304,7 @@ public class RefBookServiceTest {
         versionEntity.setPassportValues(emptyList());
         refBookEntity.setVersionList(singletonList(versionEntity));
 
-        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+        when(refBookRepository.getReferenceById(refBookEntity.getId())).thenReturn(refBookEntity);
         when(versionValidation.hasReferrerVersions(refBookEntity.getCode())).thenReturn(false);
 
         refBookService.delete(refBookEntity.getId());
@@ -326,7 +326,7 @@ public class RefBookServiceTest {
     public void testToArchive() {
 
         RefBookEntity refBookEntity = createRefBookEntity(1);
-        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+        when(refBookRepository.getReferenceById(refBookEntity.getId())).thenReturn(refBookEntity);
 
         refBookService.toArchive(refBookEntity.getId());
         assertTrue(refBookEntity.getArchived());
@@ -338,7 +338,7 @@ public class RefBookServiceTest {
     public void testFromArchive() {
 
         RefBookEntity refBookEntity = createRefBookEntity(1);
-        when(refBookRepository.getOne(refBookEntity.getId())).thenReturn(refBookEntity);
+        when(refBookRepository.getReferenceById(refBookEntity.getId())).thenReturn(refBookEntity);
 
         refBookService.fromArchive(refBookEntity.getId());
         assertFalse(refBookEntity.getArchived());
@@ -432,7 +432,7 @@ public class RefBookServiceTest {
         if (e instanceof UserException ue) {
 
             if (!isEmpty(ue.getMessages()))
-                return ue.getMessages().get(0).getCode();
+                return ue.getMessages().getFirst().getCode();
         }
 
         if (!StringUtils.isEmpty(e.getMessage()))

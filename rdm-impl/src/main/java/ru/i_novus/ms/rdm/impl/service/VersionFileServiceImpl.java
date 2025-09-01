@@ -204,7 +204,7 @@ public class VersionFileServiceImpl implements VersionFileService {
 
     private void insertEntity(Integer versionId, FileType fileType, String filePath) {
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getReferenceById(versionId);
         VersionFileEntity createdEntity = new VersionFileEntity(versionEntity, fileType, filePath);
         versionFileRepository.save(createdEntity);
     }

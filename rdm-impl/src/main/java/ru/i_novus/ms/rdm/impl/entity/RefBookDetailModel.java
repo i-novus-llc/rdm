@@ -17,9 +17,8 @@ public class RefBookDetailModel {
     private Integer currentVersionId;
 
     /** Версия-черновик. */
-    @ManyToOne
-    @JoinColumn(name = "draft_version_id")
-    private RefBookVersionEntity draftVersion;
+    @Column(name = "draft_version_id")
+    private Integer draftVersionId;
 
     /** Последняя опубликованная версия. */
     @ManyToOne
@@ -66,12 +65,12 @@ public class RefBookDetailModel {
         this.currentVersionId = currentVersionId;
     }
 
-    public RefBookVersionEntity getDraftVersion() {
-        return draftVersion;
+    public Integer getDraftVersionId() {
+        return draftVersionId;
     }
 
-    public void setDraftVersion(RefBookVersionEntity draftVersion) {
-        this.draftVersion = draftVersion;
+    public void setDraftVersionId(Integer draftVersionId) {
+        this.draftVersionId = draftVersionId;
     }
 
     public RefBookVersionEntity getLastPublishedVersion() {
@@ -145,7 +144,7 @@ public class RefBookDetailModel {
 
         RefBookDetailModel that = (RefBookDetailModel) o;
         return Objects.equals(currentVersionId, that.currentVersionId) &&
-                Objects.equals(draftVersion, that.draftVersion) &&
+                Objects.equals(draftVersionId, that.draftVersionId) &&
                 Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
                 Objects.equals(removable, that.removable) &&
                 Objects.equals(hasReferrer, that.hasReferrer) &&
@@ -159,7 +158,7 @@ public class RefBookDetailModel {
     @Override
     public int hashCode() {
 
-        return Objects.hash(currentVersionId, draftVersion, lastPublishedVersion, removable, hasReferrer,
+        return Objects.hash(currentVersionId, draftVersionId, lastPublishedVersion, removable, hasReferrer,
                 hasDataConflict, hasUpdatedConflict, hasAlteredConflict, hasStructureConflict, lastHasConflict);
     }
 }

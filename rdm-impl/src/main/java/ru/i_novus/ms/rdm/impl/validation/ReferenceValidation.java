@@ -65,7 +65,7 @@ public class ReferenceValidation implements RdmValidation {
     @Transactional(readOnly = true)
     public List<Message> validate() {
 
-        final RefBookVersionEntity draftEntity = versionRepository.getOne(draftId);
+        final RefBookVersionEntity draftEntity = versionRepository.getReferenceById(draftId);
 
         // Использовать VersionValidationImpl.validateReferenceCode
         final RefBookVersionEntity referredEntity = versionRepository

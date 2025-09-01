@@ -210,6 +210,7 @@ public class ConflictServiceTest {
     }
 
     @Test
+    @SuppressWarnings("rawtypes")
     public void testCalculateAlteredConflicts() {
 
         referrerVersion.setStructure(createCalculateStructureConflictsReferrerStructure());
@@ -284,13 +285,14 @@ public class ConflictServiceTest {
         );
     }
 
+    @SuppressWarnings("SameParameterValue")
     private RefBookVersionEntity createReferrerEntity(Integer versionId, Structure structure) {
 
-        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        final RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setId(REFERRER_REF_BOOK_ID);
         refBookEntity.setCode(REFERRER_REF_BOOK_CODE);
 
-        RefBookVersionEntity versionEntity = new RefBookVersionEntity();
+        final RefBookVersionEntity versionEntity = new RefBookVersionEntity();
         versionEntity.setId(versionId);
         versionEntity.setRefBook(refBookEntity);
         versionEntity.setStatus(RefBookVersionStatus.DRAFT);
@@ -417,6 +419,7 @@ public class ConflictServiceTest {
         return new PageImpl<>(rowValues, Pageable.unpaged(), rowValues.size());
     }
 
+    @SuppressWarnings("rawtypes")
     private DataPage<RowValue> createCalculateStructureConflictsPublishedRowValues() {
 
         List<RowValue> rowValues = new ArrayList<>(CONFLICTED_PUBLISHED_ROW_SYS_IDS.size());

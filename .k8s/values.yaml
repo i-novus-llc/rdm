@@ -30,12 +30,13 @@ springServices:
     env:
       RDM_BACKEND_PATH: "http://backend:8080/rdm/api"
       ACCESS_SERVICE_URL: "http://security:8080"
+      ACCESS_SERVICE_USERINFO_URL: "http://security:8080/userinfo"
     ingress:
       path: '/'
 
   security:
     imageName: security-admin/backend
-    imageTag: '8.0.1'
+    imageTag: '9.0.1'
     env:
       RDM_BACKEND_PATH: "http://backend:8080"
       RDM_CLIENT_SYNC_URL: "${RDM_BACKEND_PATH}"

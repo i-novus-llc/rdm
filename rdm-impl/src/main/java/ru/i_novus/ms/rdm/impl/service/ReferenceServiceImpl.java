@@ -131,7 +131,7 @@ public class ReferenceServiceImpl implements ReferenceService {
      */
     private RefBookVersionEntity getOrCreateDraftEntity(Integer versionId) {
 
-        RefBookVersionEntity versionEntity = versionRepository.getOne(versionId);
+        RefBookVersionEntity versionEntity = versionRepository.getReferenceById(versionId);
         if (versionEntity.isDraft())
             return versionEntity;
 
@@ -145,7 +145,7 @@ public class ReferenceServiceImpl implements ReferenceService {
 
         // Изменение данных возможно только в черновике.
         Draft draft = draftService.createFromVersion(versionId);
-        return versionRepository.getOne(draft.getId());
+        return versionRepository.getReferenceById(draft.getId());
     }
 
     /**
