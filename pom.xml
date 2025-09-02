@@ -4,6 +4,7 @@
 
     <groupId>ru.i-novus.ms.rdm</groupId>
     <artifactId>rdm</artifactId>
+    <name>rdm</name>
     <version>5.0.0</version>
     <packaging>pom</packaging>
 

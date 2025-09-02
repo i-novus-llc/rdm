@@ -9,6 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-rest-spring-boot-starter</artifactId>
+    <name>rdm-rest-spring-boot-starter</name>
 
     <dependencies>
         <dependency>

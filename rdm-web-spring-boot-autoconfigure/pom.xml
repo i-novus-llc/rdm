@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-web-spring-boot-autoconfigure</artifactId>
+    <name>rdm-web-spring-boot-autoconfigure</name>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>

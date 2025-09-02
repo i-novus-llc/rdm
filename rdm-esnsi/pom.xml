@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-esnsi</artifactId>
+    <name>rdm-esnsi</name>
 
     <version>5.0.0</version>
     <packaging>jar</packaging>

@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-loader-client-starter</artifactId>
+    <name>rdm-loader-client-starter</name>
     <packaging>jar</packaging>
 
     <parent>

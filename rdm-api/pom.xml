@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-api</artifactId>
+    <name>rdm-api</name>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>

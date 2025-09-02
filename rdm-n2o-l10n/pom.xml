@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-n2o-l10n</artifactId>
+    <name>rdm-n2o-l10n</name>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
