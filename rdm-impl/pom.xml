@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rdm-impl</artifactId>
+    <name>rdm-impl</name>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
