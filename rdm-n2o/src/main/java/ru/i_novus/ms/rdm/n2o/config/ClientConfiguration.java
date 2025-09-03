@@ -15,9 +15,14 @@ import ru.i_novus.ms.rdm.api.util.RdmPermission;
 import ru.i_novus.ms.rdm.n2o.util.RdmPermissionImpl;
 import ru.i_novus.ms.rdm.n2o.util.json.RdmN2oLocalDateTimeMapperPreparer;
 
+import java.util.List;
+
 @Configuration
 @EnableJaxRsProxyClient(
-        scanPackages = "ru.i_novus.ms.rdm.api.rest, ru.i_novus.ms.rdm.api.service",
+        scanPackages = {
+                "ru.i_novus.ms.rdm.api.rest",
+                "ru.i_novus.ms.rdm.api.service"
+        },
         address = "${rdm.backend.path}"
 )
 public class ClientConfiguration {
@@ -50,14 +55,20 @@ public class ClientConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RestTemplate platformRestTemplate() {
-        return new RestTemplate(); // for RdmWebConfiguration
+    public RestTemplate platformRestTemplate(
+            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor interceptor
+    ) {
+        final RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(List.of(interceptor));
+
+        return restTemplate; // for RdmWebConfiguration
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ClientHttpRequestInterceptor userinfoRestTemplateInterceptor() {
-        return (request, body, execution) -> execution.execute(request, body); // for RdmWebConfiguration
+    public ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor() {
+        return (request, body, execution) ->
+                execution.execute(request, body); // for RdmWebConfiguration
     }
 }
 

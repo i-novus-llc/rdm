@@ -10,7 +10,7 @@
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
         <artifactId>rdm</artifactId>
-        <version>5.0.0</version>
+        <version>5.1.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -34,7 +34,7 @@
          - org.springframework.data/spring-data-commons
          - org.springframework.hateoas/spring-hateoas
          -->
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <!-- From:
          - net.n2oapp.framework/framework
          -->

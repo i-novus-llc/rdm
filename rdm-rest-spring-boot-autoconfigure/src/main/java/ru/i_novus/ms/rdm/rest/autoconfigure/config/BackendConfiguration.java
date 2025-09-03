@@ -40,11 +40,11 @@ public class BackendConfiguration {
     @Autowired
     public BackendConfiguration(
             @Qualifier("platformRestTemplate") RestTemplate platformRestTemplate,
-            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor,
+            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor interceptor,
             FieldFactory fieldFactory
     ) {
         this.platformRestTemplate = platformRestTemplate;
-        this.userinfoClientHttpRequestInterceptor = userinfoClientHttpRequestInterceptor;
+        this.userinfoClientHttpRequestInterceptor = interceptor;
 
         this.fieldFactory = fieldFactory;
     }

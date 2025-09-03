@@ -3,6 +3,7 @@
 
     <artifactId>rdm-web-spring-boot-starter</artifactId>
     <name>rdm-web-spring-boot-starter</name>
+    <packaging>pom</packaging>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
