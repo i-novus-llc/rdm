@@ -4,6 +4,7 @@
 
     <artifactId>rdm-web-spring-boot-autoconfigure</artifactId>
     <name>rdm-web-spring-boot-autoconfigure</name>
+    <packaging>jar</packaging>
 
     <parent>
         <groupId>ru.i-novus.ms.rdm</groupId>
@@ -13,7 +14,12 @@
 
     <properties>
         <jacoco.skip>false</jacoco.skip>
-        <sonar.coverage.exclusions>**/RdmWebAutoConfiguration.java</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>
+            **/autoconfigure/*.java
+        </sonar.coverage.exclusions>
+        <sonar.cpd.exclusions>
+            **/autoconfigure/*.java
+        </sonar.cpd.exclusions>
     </properties>
 
     <dependencies>

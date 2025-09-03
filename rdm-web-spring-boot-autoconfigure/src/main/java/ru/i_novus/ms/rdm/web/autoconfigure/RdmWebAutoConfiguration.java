@@ -21,7 +21,7 @@ import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
 @AutoConfiguration
 @ConditionalOnProperty(name = "rdm.backend.path")
 @ComponentScan({
-        "ru.i_novus.ms.rdm.n2o.service",
+        "ru.i_novus.ms.rdm.n2o.service",  "ru.i_novus.ms.rdm.n2o.validation",
         "ru.i_novus.ms.rdm.n2o.strategy", "ru.i_novus.ms.rdm.n2o.resolver",
         "ru.i_novus.ms.rdm.n2o.provider", "ru.i_novus.ms.rdm.n2o.transformer"
 })

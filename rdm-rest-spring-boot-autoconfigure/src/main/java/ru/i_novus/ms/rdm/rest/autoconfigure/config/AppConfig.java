@@ -2,6 +2,7 @@ package ru.i_novus.ms.rdm.rest.autoconfigure.config;
 
 import jakarta.servlet.MultipartConfigElement;
 import net.n2oapp.platform.loader.server.ServerLoader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
@@ -51,13 +52,19 @@ public class AppConfig {
 
     @Bean
     @ConditionalOnMissingBean
-    public RestTemplate platformRestTemplate() {
-        return new RestTemplate(); // for BackendConfiguration
+    public RestTemplate platformRestTemplate(
+            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor interceptor
+    ) {
+        final RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(List.of(interceptor));
+
+        return restTemplate; // for BackendConfiguration
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public ClientHttpRequestInterceptor userinfoRestTemplateInterceptor() {
-        return (request, body, execution) -> execution.execute(request, body); // for BackendConfiguration
+    public ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor() {
+        return (request, body, execution) ->
+                execution.execute(request, body); // for BackendConfiguration
     }
 }

@@ -24,6 +24,7 @@
         <dependency>
             <groupId>ru.i-novus.ms.rdm</groupId>
             <artifactId>rdm-rest-spring-boot-starter</artifactId>
+            <type>pom</type>
         </dependency>
 
         <!-- test -->

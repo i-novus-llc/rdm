@@ -13,7 +13,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @Import(value = { ClientConfiguration.class, N2oConfiguration.class })
-@ComponentScan(basePackages = "ru.i_novus.ms.rdm.n2o")
 @SuppressWarnings("FieldCanBeLocal")
 public class RdmWebConfiguration {
 
@@ -21,16 +20,17 @@ public class RdmWebConfiguration {
 
     private final RestTemplate restProviderRestTemplate;
 
-    private final ClientHttpRequestInterceptor userinfoRestTemplateInterceptor;
+    private final ClientHttpRequestInterceptor userinfoClientHttpRequestInterceptor;
 
     @Autowired
-    public RdmWebConfiguration(@Qualifier("platformRestTemplate") RestTemplate platformRestTemplate,
-                               @Qualifier("restProviderRestTemplate") RestTemplate restProviderRestTemplate,
-                               @Qualifier("userinfoRestTemplateInterceptor")
-                               ClientHttpRequestInterceptor userinfoRestTemplateInterceptor) {
+    public RdmWebConfiguration(
+            @Qualifier("platformRestTemplate") RestTemplate platformRestTemplate,
+            @Qualifier("restProviderRestTemplate") RestTemplate restProviderRestTemplate,
+            @Qualifier("userinfoClientHttpRequestInterceptor") ClientHttpRequestInterceptor interceptor
+    ) {
         this.platformRestTemplate = platformRestTemplate;
         this.restProviderRestTemplate = restProviderRestTemplate;
-        this.userinfoRestTemplateInterceptor = userinfoRestTemplateInterceptor;
+        this.userinfoClientHttpRequestInterceptor = interceptor;
     }
 
     @PostConstruct
@@ -41,6 +41,6 @@ public class RdmWebConfiguration {
             converter.getSupportedMediaTypes().contains(MediaType.APPLICATION_XML)
         );
 
-        restProviderRestTemplate.getInterceptors().add(userinfoRestTemplateInterceptor);
+        restProviderRestTemplate.getInterceptors().add(userinfoClientHttpRequestInterceptor);
     }
 }
