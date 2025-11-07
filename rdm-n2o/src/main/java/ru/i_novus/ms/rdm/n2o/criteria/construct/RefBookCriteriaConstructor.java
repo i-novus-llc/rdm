@@ -1,6 +1,8 @@
 package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
-import org.springframework.core.annotation.Order;
+import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
+import net.n2oapp.framework.api.data.CriteriaConstructor;
+import net.n2oapp.platform.jaxrs.RestCriteria;
 import org.springframework.stereotype.Component;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookCriteria;
 
@@ -8,8 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Order(1)
-public class RefBookCriteriaConstructResolver extends RestCriteriaConstructResolver {
+public class RefBookCriteriaConstructor extends RestCriteriaConstructor<RefBookCriteria> {
 
     private static final Map<String, String> FIELD_PROPERTY_MAP = createFieldPropertyMap();
 
@@ -23,8 +24,13 @@ public class RefBookCriteriaConstructResolver extends RestCriteriaConstructResol
     }
 
     @Override
-    public boolean isSatisfied(Object instance) {
-        return (instance instanceof RefBookCriteria);
+    public Class<RefBookCriteria> getCriteriaClass() {
+        return RefBookCriteria.class;
+    }
+
+    @Override
+    public RefBookCriteria construct(N2oPreparedCriteria criteria, RefBookCriteria instance) {
+        return prepareInstance(criteria, instance);
     }
 
     @Override
