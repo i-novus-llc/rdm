@@ -32,7 +32,6 @@ import java.util.List;
 })
 @Import(UiStrategyLocatorConfig.class)
 @AutoConfigureAfter({ WebMvcAutoConfiguration.class })
-@AutoConfigureBefore({ N2oEngineConfiguration.class })
 @SuppressWarnings({"java:S3740"})
 public class RdmWebAutoConfiguration {
 
@@ -52,12 +51,6 @@ public class RdmWebAutoConfiguration {
     @ConditionalOnMissingBean
     public RefBookAdapter refBookAdapter(UiStrategyLocator strategyLocator, Messages messages) {
         return new RefBookAdapter(strategyLocator, messages);
-    }
-
-    @Bean
-    @Primary
-    public CriteriaConstructorFactory rdmCriteriaConstructorFactory(List<CriteriaConstructor<?>> criteriaConstructors) {
-        return new RdmCriteriaConstructorFactory(criteriaConstructors);
     }
 
     @Configuration
