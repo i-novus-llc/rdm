@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-@Primary
+@Deprecated(since = "after update to n2o framework 7.29.6")
 public class RdmCriteriaConstructorFactory extends CriteriaConstructorFactory {
 
     private final Map<Class<?>, CriteriaConstructor<?>> constructors;
