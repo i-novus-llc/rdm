@@ -48,13 +48,13 @@ public abstract class RestCriteriaConstructor<T extends RestCriteria> implements
 
     protected Sort.Direction toSortDirection(SortingDirectionEnum direction) {
 
-        if (direction.equals(SortingDirectionEnum.ASC))
-            return Sort.Direction.ASC;
+        if (direction == null)
+            return null;
 
-        if (direction.equals(SortingDirectionEnum.DESC))
-            return Sort.Direction.DESC;
-
-        return null;
+        return switch (direction) {
+            case ASC -> Sort.Direction.ASC;
+            case DESC -> Sort.Direction.DESC;
+        };
     }
 
     protected String toSortProperty(String field) {
