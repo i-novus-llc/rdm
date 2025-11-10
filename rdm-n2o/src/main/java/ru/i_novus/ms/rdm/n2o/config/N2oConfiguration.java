@@ -14,7 +14,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import ru.i_novus.ms.rdm.n2o.criteria.construct.RdmCriteriaConstructorFactory;
 import ru.i_novus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
 import ru.i_novus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
