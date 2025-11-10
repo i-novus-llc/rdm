@@ -16,7 +16,7 @@ public class RefBookCriteriaConstructor extends RestCriteriaConstructor<RefBookC
 
     private static Map<String, String> createFieldPropertyMap() {
 
-        Map<String, String> map = new HashMap<>(2);
+        final Map<String, String> map = new HashMap<>(2);
         map.put("name", "passport.name");
         map.put("category.id", "category");
 

@@ -26,11 +26,16 @@ public abstract class RestCriteriaConstructor<T extends RestCriteria> implements
 
     private List<Sort.Order> toSortOrders(N2oPreparedCriteria criteria) {
 
-        List<Sort.Order> sortings = new ArrayList<>();
-        for (Sorting sorting : criteria.getSortings()) {
-            sortings.add(toSortOrder(sorting));
+        final List<Sorting> sortings = criteria.getSortings();
+        if (sortings == null)
+            return new ArrayList<>();
+
+        final List<Sort.Order> list = new ArrayList<>(sortings.size());
+        for (Sorting sorting : sortings) {
+            list.add(toSortOrder(sorting));
         }
-        return sortings;
+
+        return list;
     }
 
     private Sort.Order toSortOrder(Sorting sorting) {
