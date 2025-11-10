@@ -29,7 +29,6 @@ import java.util.List;
 public class N2oConfiguration {
 
     @Bean
-    @Primary
     public RdmCriteriaConstructorFactory rdmCriteriaConstructorFactory(
             List<CriteriaConstructor<?>> criteriaConstructors
     ) {
