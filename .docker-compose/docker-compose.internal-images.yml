@@ -2,14 +2,14 @@ version: "3.6"
 
 services:
   backend:
-    image: ${DOCKER_REGISTRY}/rdm/backend:${TAG}
+    image: ${DOCKER_REGISTRY}/n2o-components/rdm/backend:${TAG}
 
   frontend:
-    image: ${DOCKER_REGISTRY}/rdm/frontend:${TAG}
+    image: ${DOCKER_REGISTRY}/n2o-components/rdm/frontend:${TAG}
 
   esnsi:
-    image: ${DOCKER_REGISTRY}/rdm/esnsi:${TAG}
+    image: ${DOCKER_REGISTRY}/n2o-components/rdm/esnsi:${TAG}
 
   db:
-    image: ${DOCKER_REGISTRY}/rdm/db:${TAG}
+    image: ${DOCKER_REGISTRY}/n2o-components/rdm/db:${TAG}
 
