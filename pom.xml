@@ -26,7 +26,7 @@
         <npm.registry>https://npm.i-novus.ru</npm.registry>
 
         <!-- N2O -->
-        <n2o.version>7.29.1</n2o.version>
+        <n2o.version>7.29.5</n2o.version>
         <!-- / N2O -->
 
         <!-- STORAGE -->
@@ -49,7 +49,7 @@
         <springdoc-openapi.version>2.8.9</springdoc-openapi.version>
 
         <!-- security -->
-        <security.admin.version>9.0.1</security.admin.version>
+        <security.admin.version>9.0.2</security.admin.version>
         <!-- / security-->
 
         <!-- Текущая версия использует spring-boot 2.3.4 -->

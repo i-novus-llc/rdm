@@ -1,29 +1,34 @@
 package ru.i_novus.ms.rdm.web.autoconfigure;
 
+import net.n2oapp.framework.api.data.CriteriaConstructor;
+import net.n2oapp.framework.api.data.CriteriaConstructorFactory;
+import net.n2oapp.framework.boot.N2oEngineConfiguration;
 import net.n2oapp.platform.i18n.Messages;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import ru.i_novus.ms.rdm.api.provider.ExportFileProvider;
 import ru.i_novus.ms.rdm.api.provider.RdmMapperConfigurer;
 import ru.i_novus.ms.rdm.n2o.config.ClientConfiguration;
 import ru.i_novus.ms.rdm.n2o.config.N2oConfiguration;
 import ru.i_novus.ms.rdm.n2o.config.UiStrategyLocatorConfig;
+import ru.i_novus.ms.rdm.n2o.criteria.construct.RdmCriteriaConstructorFactory;
 import ru.i_novus.ms.rdm.n2o.strategy.UiStrategyLocator;
 import ru.i_novus.ms.rdm.n2o.util.RefBookAdapter;
+
+import java.util.List;
 
 @AutoConfiguration
 @ConditionalOnProperty(name = "rdm.backend.path")
 @ComponentScan({
         "ru.i_novus.ms.rdm.n2o.service",  "ru.i_novus.ms.rdm.n2o.validation",
         "ru.i_novus.ms.rdm.n2o.strategy", "ru.i_novus.ms.rdm.n2o.resolver",
-        "ru.i_novus.ms.rdm.n2o.provider", "ru.i_novus.ms.rdm.n2o.transformer"
+        "ru.i_novus.ms.rdm.n2o.provider", "ru.i_novus.ms.rdm.n2o.transformer",
+        "ru.i_novus.ms.rdm.n2o.criteria.construct"
 })
 @Import(UiStrategyLocatorConfig.class)
 @AutoConfigureAfter({ WebMvcAutoConfiguration.class })

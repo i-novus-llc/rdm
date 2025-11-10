@@ -1,48 +1,63 @@
 package ru.i_novus.ms.rdm.n2o.criteria.construct;
 
+import net.n2oapp.criteria.api.Sorting;
+import net.n2oapp.criteria.api.SortingDirectionEnum;
 import net.n2oapp.framework.api.criteria.N2oPreparedCriteria;
 import net.n2oapp.framework.api.data.CriteriaConstructor;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import net.n2oapp.platform.jaxrs.RestCriteria;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
+/**
+ * Абстрактный класс-резолвер для RestCriteria и его потомков.
+ */
+public abstract class RestCriteriaConstructor<T extends RestCriteria> implements CriteriaConstructor<T> {
 
-public class RestCriteriaConstructor implements CriteriaConstructor {
+    public T prepareInstance(N2oPreparedCriteria criteria, T instance) {
 
-    private final List<CriteriaConstructResolver> resolvers;
+        instance.setPageNumber(criteria.getPage() - 1);
+        instance.setPageSize(criteria.getSize());
+        instance.setOrders(toSortOrders(criteria));
 
-    public RestCriteriaConstructor(Collection<CriteriaConstructResolver> resolvers) {
-
-        this.resolvers = new ArrayList<>(resolvers);
-        this.resolvers.sort(AnnotationAwareOrderComparator.INSTANCE); // Сортировка по @Order
-    }
-
-    @Override
-    public Object construct(N2oPreparedCriteria criteria, Object instance) {
-
-        prepareInstance(criteria, instance);
         return instance;
     }
 
-    protected <T> void prepareInstance(N2oPreparedCriteria criteria, T instance) {
+    private List<Sort.Order> toSortOrders(N2oPreparedCriteria criteria) {
 
-        CriteriaConstructResolver resolver = getSatisfiedResolver(instance);
-        if (resolver == null)
-            return;
+        final List<Sorting> sortings = criteria.getSortings();
+        if (sortings == null)
+            return new ArrayList<>();
 
-        resolver.resolve(instance, criteria);
+        final List<Sort.Order> list = new ArrayList<>(sortings.size());
+        for (Sorting sorting : sortings) {
+            list.add(toSortOrder(sorting));
+        }
+
+        return list;
     }
 
-    private <T> CriteriaConstructResolver getSatisfiedResolver(T instance) {
+    private Sort.Order toSortOrder(Sorting sorting) {
 
-        if (isEmpty(resolvers))
+        return new Sort.Order(
+                toSortDirection(sorting.getDirection()),
+                toSortProperty(sorting.getField())
+        );
+    }
+
+    protected Sort.Direction toSortDirection(SortingDirectionEnum direction) {
+
+        if (direction == null)
             return null;
 
-        return resolvers.stream()
-                .filter(resolver -> resolver.isSatisfied(instance))
-                .findFirst().orElse(null);
+        return switch (direction) {
+            case ASC -> Sort.Direction.ASC;
+            case DESC -> Sort.Direction.DESC;
+        };
+    }
+
+    protected String toSortProperty(String field) {
+        return field;
     }
 }

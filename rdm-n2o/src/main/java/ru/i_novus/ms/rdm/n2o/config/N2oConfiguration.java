@@ -14,12 +14,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.i_novus.ms.rdm.n2o.criteria.construct.CriteriaConstructResolver;
-import ru.i_novus.ms.rdm.n2o.criteria.construct.RestCriteriaConstructor;
+import ru.i_novus.ms.rdm.n2o.criteria.construct.RdmCriteriaConstructorFactory;
 import ru.i_novus.ms.rdm.n2o.operation.RdmCompileCacheOperation;
 import ru.i_novus.ms.rdm.n2o.operation.RdmSourceCacheOperation;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Минимально необходимая конфигурация N2O для RDM.
@@ -29,21 +28,34 @@ import java.util.Collection;
 public class N2oConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
-    public CriteriaConstructor criteriaConstructor(Collection<CriteriaConstructResolver> criteriaConstructResolvers) {
-        return new RestCriteriaConstructor(criteriaConstructResolvers);
+    public RdmCriteriaConstructorFactory rdmCriteriaConstructorFactory(
+            List<CriteriaConstructor<?>> criteriaConstructors
+    ) {
+        return new RdmCriteriaConstructorFactory(criteriaConstructors);
+    }
+
+    @Bean
+    public QueryProcessor rdmQueryProcessor(
+            N2oInvocationFactory invocationFactory,
+            QueryExceptionHandler exceptionHandler,
+            MetadataEnvironment metadataEnvironment,
+            RdmCriteriaConstructorFactory rdmCriteriaConstructorFactory
+    ) {
+        final N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, exceptionHandler);
+        queryProcessor.setEnvironment(metadataEnvironment);
+        queryProcessor.setCriteriaConstructorFactory(rdmCriteriaConstructorFactory);
+        return queryProcessor;
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public QueryProcessor queryProcessor(N2oInvocationFactory invocationFactory,
-                                         QueryExceptionHandler exceptionHandler,
-                                         MetadataEnvironment metadataEnvironment,
-                                         Collection<CriteriaConstructResolver> criteriaConstructResolvers) {
-        N2oQueryProcessor queryProcessor = new N2oQueryProcessor(invocationFactory, exceptionHandler);
-        queryProcessor.setEnvironment(metadataEnvironment);
-        queryProcessor.setCriteriaConstructor(criteriaConstructor(criteriaConstructResolvers));
-        return queryProcessor;
+    public QueryProcessor queryProcessor(
+            N2oInvocationFactory invocationFactory,
+            QueryExceptionHandler exceptionHandler,
+            MetadataEnvironment metadataEnvironment,
+            RdmCriteriaConstructorFactory rdmCriteriaConstructorFactory
+    ) {
+        return rdmQueryProcessor(invocationFactory, exceptionHandler, metadataEnvironment, rdmCriteriaConstructorFactory);
     }
 
     @Bean
