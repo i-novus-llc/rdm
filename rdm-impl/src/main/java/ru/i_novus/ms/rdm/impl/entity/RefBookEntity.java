@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import ru.i_novus.ms.rdm.api.model.refbook.RefBookTypeEnum;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -34,9 +32,6 @@ public abstract class RefBookEntity implements Serializable {
 
     @Column(name = "archived", nullable = false)
     private Boolean archived;
-
-    @OneToMany(mappedBy="refBook", cascade = CascadeType.ALL)
-    private List<RefBookVersionEntity> versionList = new ArrayList<>();
 
     // Hibernate only.
     protected RefBookEntity() {
@@ -89,14 +84,6 @@ public abstract class RefBookEntity implements Serializable {
 
     public void setArchived(Boolean archived) {
         this.archived = archived;
-    }
-
-    public List<RefBookVersionEntity> getVersionList() {
-        return versionList;
-    }
-
-    public void setVersionList(List<RefBookVersionEntity> versionList) {
-        this.versionList = versionList;
     }
 
     public abstract RefBookVersionEntity createChangeableVersion();

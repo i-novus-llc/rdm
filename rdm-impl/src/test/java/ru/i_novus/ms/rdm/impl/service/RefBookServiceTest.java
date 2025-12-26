@@ -297,15 +297,19 @@ public class RefBookServiceTest {
 
     @Test
     public void testDelete() {
-        
-        RefBookEntity refBookEntity = createRefBookEntity(1);
-        RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
+
+        final int refBookId = 1;
+        final RefBookEntity refBookEntity = createRefBookEntity(refBookId);
+
+        final RefBookVersionEntity versionEntity = createRefBookVersionEntity(refBookEntity);
         versionEntity.setStorageCode("storage_code_" + versionEntity.getId());
         versionEntity.setPassportValues(emptyList());
-        refBookEntity.setVersionList(singletonList(versionEntity));
 
         when(refBookRepository.getReferenceById(refBookEntity.getId())).thenReturn(refBookEntity);
         when(versionValidation.hasReferrerVersions(refBookEntity.getCode())).thenReturn(false);
+
+        when(versionRepository.findAllByRefBookId(refBookId)).thenReturn(singletonList(versionEntity));
+        when(versionRepository.findFirstByRefBookIdOrderByCreationDateDesc(refBookId)).thenReturn(versionEntity);
 
         refBookService.delete(refBookEntity.getId());
 

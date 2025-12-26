@@ -59,7 +59,6 @@ import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.PlainRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
-import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -84,6 +83,7 @@ import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensi
 import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.REFBOOK_VERSIONS_NOT_FOUND_EXCEPTION_CODE;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Service
@@ -357,11 +357,11 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity recreateDraft(RefBookVersionEntity draftEntity, Structure structure,
                                                List<PassportValueEntity> passportValues) {
 
-        RefBookEntity refBookEntity = draftEntity.getRefBook();
+        final RefBookEntity refBookEntity = draftEntity.getRefBook();
         if (passportValues == null) passportValues = draftEntity.getPassportValues();
 
+        // Delete old draft before insert new draft!
         removeDraftEntity(draftEntity);
-        versionRepository.flush(); // Delete old draft before insert new draft!
 
         return createDraftEntity(refBookEntity, structure, passportValues);
     }
@@ -434,15 +434,15 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntityKit findEntityKit(Integer refBookId) {
 
-        RefBookVersionEntity publishedEntity = versionRepository
+        final RefBookVersionEntity publishedEntity = versionRepository
                 .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
 
-        RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
+        final RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
                 ? publishedEntity
                 : versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
 
         if (draftEntity == null && publishedEntity == null)
-            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+            throw new NotFoundException(new Message(REFBOOK_VERSIONS_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return new RefBookVersionEntityKit(publishedEntity, draftEntity);
     }
@@ -744,9 +744,16 @@ public class DraftServiceImpl implements DraftService {
      */
     private void removeDraftEntity(RefBookVersionEntity draftEntity) {
 
+        final Integer draftId = draftEntity.getId();
+
         dropDataService.drop(singleton(draftEntity.getStorageCode()));
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());
-        versionRepository.deleteById(draftEntity.getId());
+
+        // to-do: Проверить, почему удаляются не ВСЕ записи, а только с refRecordId is not null.
+        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftId);
+        conflictRepository.flush();
+
+        versionRepository.deleteById(draftId);
+        versionRepository.flush();
     }
 
     @Override
