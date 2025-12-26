@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.strategy.publish;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import ru.i_novus.ms.rdm.impl.service.RefBookLockService;
 import java.time.LocalDateTime;
 
 @Component
+@Slf4j
 public class UnversionedBasePublishStrategy implements BasePublishStrategy {
 
     @Autowired
@@ -50,12 +52,16 @@ public class UnversionedBasePublishStrategy implements BasePublishStrategy {
             entity.setFromDate(fromDate);
 
             entity.refreshLastActionDate();
-            versionRepository.save(entity);
+            versionRepository.saveAndFlush(entity);
 
             // Заполнение результата публикации
             result.setRefBookCode(entity.getRefBook().getCode());
             result.setOldId(entity.getId());
             result.setNewId(entity.getId());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            throw e;
 
         } finally {
             refBookLockService.deleteRefBookOperation(refBookId);
