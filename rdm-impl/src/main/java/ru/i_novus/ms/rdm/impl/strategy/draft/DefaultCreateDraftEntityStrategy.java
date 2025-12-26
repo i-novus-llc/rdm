@@ -8,7 +8,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
+import static ru.i_novus.ms.rdm.api.util.EntityUtils.toEntityList;
 
 @Component
 public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrategy {
@@ -37,6 +37,6 @@ public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrate
                                                          RefBookVersionEntity entity) {
         return passportValues.stream()
                 .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), entity))
-                .collect(toList());
+                .collect(toEntityList());
     }
 }
