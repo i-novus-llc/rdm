@@ -42,6 +42,6 @@ public class DefaultCreateFirstVersionStrategy implements CreateFirstVersionStra
     }
 
     protected RefBookVersionEntity saveEntity(RefBookVersionEntity entity) {
-        return versionRepository.save(entity);
+        return versionRepository.saveAndFlush(entity);
     }
 }

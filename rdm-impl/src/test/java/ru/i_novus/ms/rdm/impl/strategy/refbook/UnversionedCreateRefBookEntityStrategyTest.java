@@ -28,16 +28,18 @@ public class UnversionedCreateRefBookEntityStrategyTest {
     @Test
     public void testCreate() {
 
-        when(refBookRepository.save(any(UnversionedRefBookEntity.class)))
+        when(refBookRepository.saveAndFlush(any(UnversionedRefBookEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookCreateRequest request = new RefBookCreateRequest("test_code", RefBookTypeEnum.UNVERSIONED, "category", null);
-        RefBookEntity entity = strategy.create(request);
+        final RefBookCreateRequest request = new RefBookCreateRequest(
+                "test_code", RefBookTypeEnum.UNVERSIONED, "category", null
+        );
+        final RefBookEntity entity = strategy.create(request);
 
         assertNotNull(entity);
         assertEqualsRequestToEntity(request, entity);
 
-        verify(refBookRepository).save(any(UnversionedRefBookEntity.class));
+        verify(refBookRepository).saveAndFlush(any(UnversionedRefBookEntity.class));
         verifyNoMoreInteractions(refBookRepository);
     }
 
