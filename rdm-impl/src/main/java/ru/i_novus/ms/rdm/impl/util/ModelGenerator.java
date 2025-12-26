@@ -53,11 +53,11 @@ public class ModelGenerator {
             model.setDraftVersionId(detailModel.getDraftVersionId());
         }
 
-        final RefBookVersionEntity lastPublishedVersion = detailModel.getLastPublishedVersion();
-        if (lastPublishedVersion != null) {
-            model.setLastPublishedVersionId(lastPublishedVersion.getId());
-            model.setLastPublishedVersion(lastPublishedVersion.getVersion());
-            model.setLastPublishedDate(lastPublishedVersion.getFromDate());
+        final Integer lastPublishedVersionId = detailModel.getLastPublishedVersionId();
+        if (lastPublishedVersionId != null) {
+            model.setLastPublishedVersionId(lastPublishedVersionId);
+            model.setLastPublishedVersion(detailModel.getLastPublishedVersion());
+            model.setLastPublishedDate(detailModel.getLastPublishedFromDate());
         }
 
         final boolean hasReferrer = Boolean.TRUE.equals(detailModel.getHasReferrer());

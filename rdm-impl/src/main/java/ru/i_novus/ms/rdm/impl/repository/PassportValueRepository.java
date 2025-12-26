@@ -12,4 +12,6 @@ public interface PassportValueRepository extends
         QuerydslPredicateExecutor<RefBookEntity> {
 
     List<PassportValueEntity> findAllByVersionIdOrderByAttributePosition(Integer versionId);
+
+    void deleteByVersionId(Integer versionId);
 }

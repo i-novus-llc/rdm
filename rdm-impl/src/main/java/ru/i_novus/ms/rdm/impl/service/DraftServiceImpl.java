@@ -748,10 +748,17 @@ public class DraftServiceImpl implements DraftService {
 
         dropDataService.drop(singleton(draftEntity.getStorageCode()));
 
-        // to-do: Проверить, почему удаляются не ВСЕ записи, а только с refRecordId is not null.
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftId);
+        conflictRepository.deleteByReferrerVersionId(draftId);
         conflictRepository.flush();
 
+        passportValueRepository.deleteByVersionId(draftId);
+        passportValueRepository.flush();
+
+        attributeValidationRepository.deleteByVersionId(draftId);
+        attributeValidationRepository.flush();
+
+        draftEntity.setPassportValues(emptyList());
+        //versionRepository.delete(draftEntity);
         versionRepository.deleteById(draftId);
         versionRepository.flush();
     }

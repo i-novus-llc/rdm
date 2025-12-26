@@ -77,10 +77,16 @@ public interface RefBookDetailModelRepository extends
             SELECT
               cv.id AS current_version_id,
               cv.draft_id AS draft_version_id,
-              cv.last_published_id AS last_published_version_id,
 
-              (cv.is_removable AND NOT cv.is_archived AND
-               cv.last_published_id IS NULL) AS removable,
+              cv.last_published_id AS last_published_version_id,
+              (SELECT lpv.version
+                 FROM n2o_rdm_management.ref_book_version AS lpv
+                WHERE lpv.id = cv.last_published_id) AS last_published_version,
+              (SELECT lpv.from_date
+                 FROM n2o_rdm_management.ref_book_version AS lpv
+                WHERE lpv.id = cv.last_published_id) AS last_published_from_date,
+
+              (cv.is_removable AND NOT cv.is_archived AND cv.last_published_id IS NULL) AS removable,
 
               EXISTS(
         """ + CHECK_REFERRER_VERSION + """

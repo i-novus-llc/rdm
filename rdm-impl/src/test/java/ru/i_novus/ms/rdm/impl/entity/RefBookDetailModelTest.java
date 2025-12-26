@@ -25,7 +25,7 @@ public class RefBookDetailModelTest extends BaseTest {
 
         data.setCurrentVersionId(1);
         data.setDraftVersionId(2);
-        data.setLastPublishedVersion(new RefBookVersionEntity());
+        data.setLastPublishedVersionId(3);
 
         data.setRemovable(true);
         data.setHasReferrer(false);
@@ -45,7 +45,7 @@ public class RefBookDetailModelTest extends BaseTest {
 
         data.setCurrentVersionId(origin.getCurrentVersionId());
         data.setDraftVersionId(origin.getDraftVersionId());
-        data.setLastPublishedVersion(origin.getLastPublishedVersion());
+        data.setLastPublishedVersionId(origin.getLastPublishedVersionId());
 
         data.setRemovable(origin.getRemovable());
         data.setHasReferrer(origin.getHasReferrer());
