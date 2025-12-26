@@ -1,4 +1,4 @@
-FROM harbor.i-novus.ru/library/redos7c/base:7.3-240812
+FROM harbor.i-novus.ru/library/redos7c/jdk-21:21.0.5-1.30.0
 
 USER root
 
