@@ -8,7 +8,7 @@ import ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity;
 
 import java.util.List;
 
-import static ru.i_novus.ms.rdm.api.util.EntityUtils.toEntityList;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.copyPassportValues;
 
 @Component
 public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrategy {
@@ -20,7 +20,8 @@ public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrate
         return createEntity(refBookEntity, structure, passportValues);
     }
 
-    protected RefBookVersionEntity createEntity(RefBookEntity refBookEntity, Structure structure,
+    protected RefBookVersionEntity createEntity(RefBookEntity refBookEntity,
+                                                Structure structure,
                                                 List<PassportValueEntity> passportValues) {
 
         RefBookVersionEntity entity = refBookEntity.createChangeableVersion();
@@ -31,12 +32,5 @@ public class DefaultCreateDraftEntityStrategy implements CreateDraftEntityStrate
         }
 
         return entity;
-    }
-
-    private List<PassportValueEntity> copyPassportValues(List<PassportValueEntity> passportValues,
-                                                         RefBookVersionEntity entity) {
-        return passportValues.stream()
-                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), entity))
-                .collect(toEntityList());
     }
 }

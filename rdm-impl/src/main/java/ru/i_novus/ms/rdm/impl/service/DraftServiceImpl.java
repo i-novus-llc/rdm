@@ -81,6 +81,8 @@ import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.copyPassportValues;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.toPassportValues;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.REFBOOK_VERSIONS_NOT_FOUND_EXCEPTION_CODE;
@@ -279,7 +281,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookEntity refBookEntity = kit.getRefBook();
 
         List<PassportValueEntity> passportValues = (request.getPassport() != null)
-                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
+                ? toPassportValues(request.getPassport(), true, null)
                 : null;
 
         final String refBookCode = refBookEntity.getCode();
@@ -317,7 +319,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookEntity refBookEntity = kit.getRefBook();
 
         List<PassportValueEntity> passportValues = (request.getPassport() != null)
-                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
+                ? toPassportValues(request.getPassport(), true, null)
                 : null;
 
         final String refBookCode = refBookEntity.getCode();
@@ -330,7 +332,10 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
 
-            if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
+            if (passportValues == null) {
+                final List<PassportValueEntity> publishedPassportValues = kit.getPublishedEntity().getPassportValues();
+                passportValues = copyPassportValues(publishedPassportValues, null);
+            }
             draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
         } else if (!structure.equals(draftEntity.getStructure())) {
@@ -358,7 +363,10 @@ public class DraftServiceImpl implements DraftService {
                                                List<PassportValueEntity> passportValues) {
 
         final RefBookEntity refBookEntity = draftEntity.getRefBook();
-        if (passportValues == null) passportValues = draftEntity.getPassportValues();
+        if (passportValues == null) {
+            final List<PassportValueEntity> draftPassportValues = draftEntity.getPassportValues();
+            passportValues = copyPassportValues(draftPassportValues, null);
+        }
 
         // Delete old draft before insert new draft!
         removeDraftEntity(draftEntity);
@@ -373,7 +381,7 @@ public class DraftServiceImpl implements DraftService {
         if (passportValues == null) return; // Не менять паспорт, если нет новых значений
 
         if (!isEmpty(draftEntity.getPassportValues())) {
-            passportValueRepository.deleteInBatch(draftEntity.getPassportValues());
+            passportValueRepository.deleteAllInBatch(draftEntity.getPassportValues());
         }
 
         if (!isEmpty(passportValues)) draftEntity.setPassportValues(passportValues);
@@ -751,14 +759,13 @@ public class DraftServiceImpl implements DraftService {
         conflictRepository.deleteByReferrerVersionId(draftId);
         conflictRepository.flush();
 
+        draftEntity.setPassportValues(emptyList());
         passportValueRepository.deleteByVersionId(draftId);
         passportValueRepository.flush();
 
         attributeValidationRepository.deleteByVersionId(draftId);
         attributeValidationRepository.flush();
 
-        draftEntity.setPassportValues(emptyList());
-        //versionRepository.delete(draftEntity);
         versionRepository.deleteById(draftId);
         versionRepository.flush();
     }

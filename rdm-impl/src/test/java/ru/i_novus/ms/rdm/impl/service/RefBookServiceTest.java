@@ -144,10 +144,14 @@ public class RefBookServiceTest {
                     Integer currentVersionId = (Integer) v.getArguments()[0];
                     data.setCurrentVersionId(currentVersionId);
 
-                    RefBookVersionEntity lastPublishedVersion = lastPublishedEntities.stream()
+                    final RefBookVersionEntity lastPublishedVersion = lastPublishedEntities.stream()
                             .filter(entity -> Objects.equals(currentVersionId, entity.getId()))
                             .findFirst().orElse(null);
-                    data.setLastPublishedVersion(lastPublishedVersion);
+                    assertNotNull(lastPublishedVersion);
+
+                    data.setLastPublishedVersionId(lastPublishedVersion.getId());
+                    data.setLastPublishedVersion(lastPublishedVersion.getVersion());
+                    data.setLastPublishedFromDate(lastPublishedVersion.getFromDate());
 
                     return data;
                 });

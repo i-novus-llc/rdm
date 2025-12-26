@@ -52,6 +52,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.copyPassportValues;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DraftServiceFileTest {
@@ -134,18 +135,20 @@ public class DraftServiceFileTest {
     @Test
     public void testCreateFromXlsWhenDraft() {
 
-        RefBookVersionEntity draftEntity = createDraftEntity();
-        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID))).thenReturn(draftEntity);
+        final RefBookVersionEntity draftEntity = createDraftEntity();
+        when(versionRepository.findByStatusAndRefBookId(eq(RefBookVersionStatus.DRAFT), eq(REFBOOK_ID)))
+                .thenReturn(draftEntity);
 
-        RefBookEntity refBookEntity = draftEntity.getRefBook();
-        RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
+        final RefBookEntity refBookEntity = draftEntity.getRefBook();
+        final RefBookVersionEntity createdEntity = createDraftEntity(refBookEntity);
         createdEntity.setId(draftEntity.getId());
         final Structure stringStructure = createStringStructure();
         createdEntity.setStructure(stringStructure);
         createdEntity.setStorageCode(NEW_DRAFT_CODE);
 
         when(findDraftEntityStrategy.find(refBookEntity)).thenReturn(createdEntity);
-        when(createDraftEntityStrategy.create(refBookEntity, stringStructure, draftEntity.getPassportValues()))
+        final List<PassportValueEntity> passportValues = copyPassportValues(draftEntity.getPassportValues(), null);
+        when(createDraftEntityStrategy.create(refBookEntity, stringStructure, passportValues))
                 .thenReturn(createdEntity);
 
         when(versionRepository.saveAndFlush(eq(createdEntity))).thenReturn(createdEntity);
