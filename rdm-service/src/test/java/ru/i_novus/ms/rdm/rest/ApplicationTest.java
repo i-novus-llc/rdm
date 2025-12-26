@@ -117,10 +117,6 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "spring.cloud.consul.config.enabled=false",
                 "spring.cloud.consul.discovery.enabled=false",
                 // "spring.config.import=optional:file:./config/"
-                "logging.level.org.hibernate.SQL=DEBUG",
-                "logging.level.org.hibernate.type.descriptor.sql=TRACE",
-                "logging.level.org.hibernate.type.EnumType=TRACE",
-                "logging.level.org.hibernate.orm.jdbc.bind=TRACE",
                 ""
         })
 @DefinePort
