@@ -207,7 +207,7 @@ public class DefaultBasePublishStrategyTest {
                 .applyDraft(baseEntity.getStorageCode(), expectedDraftStorageCode, fromDate, null);
 
         ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
-        verify(versionRepository).save(savedCaptor.capture());
+        verify(versionRepository).saveAndFlush(savedCaptor.capture());
 
         expected.setLastActionDate(savedCaptor.getValue().getLastActionDate());
         assertEquals(expected, savedCaptor.getValue());
