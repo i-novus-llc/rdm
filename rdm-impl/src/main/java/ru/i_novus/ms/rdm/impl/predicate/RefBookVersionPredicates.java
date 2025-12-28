@@ -71,10 +71,9 @@ public final class RefBookVersionPredicates {
     }
 
     public static BooleanExpression isSourceType(RefBookSourceType sourceType) {
-        if (sourceType == null)
-            return isLastVersion();
 
         return switch (sourceType) {
+            case null -> isLastVersion();
             case ALL -> null;
             case ACTUAL -> isActual();
             case DRAFT -> isDraft();
