@@ -36,6 +36,7 @@ autotesting mr stand:
       -Drdm.username=rdm_admin
       -Drdm.password=rdm.admin
   artifacts:
+    when: always
     paths:
       - ./ui-test/build/reports/
     expire_in: 1 week

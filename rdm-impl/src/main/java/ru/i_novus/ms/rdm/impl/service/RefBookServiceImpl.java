@@ -1,5 +1,6 @@
 package ru.i_novus.ms.rdm.impl.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.n2oapp.platform.i18n.Message;
 import net.n2oapp.platform.i18n.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import ru.i_novus.ms.rdm.api.enumeration.RefBookVersionStatus;
 import ru.i_novus.ms.rdm.api.exception.NotFoundException;
 import ru.i_novus.ms.rdm.api.model.FileModel;
@@ -50,15 +50,16 @@ import ru.i_novus.platform.datastorage.temporal.service.DropDataService;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Primary
 @Service
+@Slf4j
 public class RefBookServiceImpl implements RefBookService {
 
     private static final String REFBOOK_IS_NOT_CREATED_EXCEPTION_CODE = "refbook.is.not.created";
@@ -238,6 +239,7 @@ public class RefBookServiceImpl implements RefBookService {
             return draftService.create(refBook.getRefBookId(), fileModel);
 
         } catch (Exception e) {
+            log.debug(e.getMessage(), e);
             delete(refBook.getRefBookId());
 
             throw e;
@@ -289,8 +291,8 @@ public class RefBookServiceImpl implements RefBookService {
         if (versionValidation.hasReferrerVersions(refBookEntity.getCode()))
             throw new UserException(new Message(REFBOOK_HAS_REFERRERS_EXCEPTION_CODE, refBookEntity.getCode()));
 
-        List<RefBookVersionEntity> refBookVersions = refBookEntity.getVersionList();
-        RefBookVersionEntity lastVersion = getLastVersion(refBookVersions);
+        List<RefBookVersionEntity> refBookVersions = versionRepository.findAllByRefBookId(refBookId);
+        RefBookVersionEntity lastVersion = versionRepository.findFirstByRefBookIdOrderByCreationDateDesc(refBookId);
 
         // Подтягиваем из базы данные о паспорте,
         // потому что их уже не будет там после удаления (fetchType по дефолту -- LAZY).
@@ -301,7 +303,8 @@ public class RefBookServiceImpl implements RefBookService {
 
         dropDataService.drop(refBookVersions.stream()
                 .map(RefBookVersionEntity::getStorageCode)
-                .collect(Collectors.toSet()));
+                .collect(toSet()));
+        versionRepository.deleteAll(refBookVersions);
         refBookRepository.deleteById(refBookId);
 
         if (lastVersion != null) {
@@ -317,7 +320,7 @@ public class RefBookServiceImpl implements RefBookService {
         versionValidation.validateRefBookExists(refBookId);
 
         RefBookEntity refBookEntity = refBookRepository.getReferenceById(refBookId);
-        RefBookVersionEntity lastVersion = getLastVersion(refBookEntity.getVersionList());
+        RefBookVersionEntity lastVersion = versionRepository.findFirstByRefBookIdOrderByCreationDateDesc(refBookId);
 
         // NB: Add checking references to this refBook.
         refBookEntity.setArchived(Boolean.TRUE);
@@ -423,7 +426,7 @@ public class RefBookServiceImpl implements RefBookService {
         Set<String> attributeCodesToRemove = toInsert.entrySet().stream()
                 .filter(e -> e.getValue() == null)
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+                .collect(toSet());
         List<PassportValueEntity> toRemove = versionEntity.getPassportValues().stream()
                 .filter(v -> attributeCodesToRemove.contains(v.getAttribute().getCode()))
                 .collect(toList());
@@ -449,21 +452,6 @@ public class RefBookServiceImpl implements RefBookService {
         newPassportValues.addAll(RefBookVersionEntity.toPassportValues(toInsert, true, versionEntity));
 
         versionEntity.setPassportValues(newPassportValues);
-    }
-
-    /** Получение последней (по идентификатору) версии из списка версий. */
-    private RefBookVersionEntity getLastVersion(List<RefBookVersionEntity> versions) {
-
-        if (CollectionUtils.isEmpty(versions))
-            return null;
-
-        RefBookVersionEntity result = null;
-        for (RefBookVersionEntity version : versions) {
-            if (result == null || result.getCreationDate().isBefore(version.getCreationDate()))
-                result = version;
-        }
-
-        return result;
     }
 
     /** Принудительное сохранение для обновления значения оптимистической блокировки версии. */

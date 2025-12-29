@@ -178,23 +178,23 @@ public class RefBookVersionQueryProvider {
 
     private RefBookSourceType getSourceType(RefBookCriteria criteria) {
 
-        RefBookSourceType sourceType = criteria.getSourceType();
+        final RefBookSourceType sourceType = criteria.getSourceType();
         if (criteria.getIncludeVersions()) {
             // Если ищется последняя версия справочника, то выбирается требуемая последняя версия.
             if (criteria.getExcludeDraft()
                     && (isNull(sourceType) || RefBookSourceType.LAST_VERSION.equals(sourceType))) {
-                sourceType = RefBookSourceType.LAST_PUBLISHED;
+                return RefBookSourceType.LAST_PUBLISHED;
             }
 
         } else {
             // Если ищется список справочников, то выбираются только требуемые последние версии.
             if (isNull(sourceType)) {
-                sourceType = RefBookSourceType.LAST_VERSION;
+                return RefBookSourceType.LAST_VERSION;
             }
 
             if (criteria.getExcludeDraft()
                     && RefBookSourceType.LAST_VERSION.equals(sourceType)) {
-                sourceType = RefBookSourceType.LAST_PUBLISHED;
+                return RefBookSourceType.LAST_PUBLISHED;
             }
         }
 

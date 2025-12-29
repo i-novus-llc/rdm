@@ -133,6 +133,11 @@ public interface RefBookConflictRepository extends
     );
 
     /**
+     * Удаление всех конфликтов для указанной версии ссылочного справочника.
+     */
+    void deleteByReferrerVersionId(Integer referrerVersionId);
+
+    /**
      * Удаление конфликтов данных для указанной версии ссылочного справочника.
      */
     void deleteByReferrerVersionIdAndRefRecordIdIsNotNull(Integer referrerVersionId);

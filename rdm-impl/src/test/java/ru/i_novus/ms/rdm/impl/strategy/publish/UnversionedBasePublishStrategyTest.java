@@ -64,7 +64,7 @@ public class UnversionedBasePublishStrategyTest {
         assertEquals(expected.getId(), result.getNewId());
 
         ArgumentCaptor<RefBookVersionEntity> savedCaptor = ArgumentCaptor.forClass(RefBookVersionEntity.class);
-        verify(versionRepository).save(savedCaptor.capture());
+        verify(versionRepository).saveAndFlush(savedCaptor.capture());
 
         expected.setLastActionDate(savedCaptor.getValue().getLastActionDate());
         assertEquals(expected, savedCaptor.getValue());

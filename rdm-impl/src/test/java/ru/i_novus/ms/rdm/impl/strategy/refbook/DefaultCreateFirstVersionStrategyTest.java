@@ -35,18 +35,19 @@ public class DefaultCreateFirstVersionStrategyTest {
     @Test
     public void testCreateDefaultWithPassport() {
 
-        when(versionRepository.save(any(RefBookVersionEntity.class)))
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookEntity refBookEntity = new DefaultRefBookEntity();
+        final RefBookEntity refBookEntity = new DefaultRefBookEntity();
         refBookEntity.setCode("test_code");
 
-        Map<String, String> passport = new HashMap<>(1);
+        final Map<String, String> passport = new HashMap<>(1);
         passport.put(REFBOOK_NAME_KEY, REFBOOK_NAME_VALUE);
 
-        RefBookCreateRequest request = new RefBookCreateRequest(refBookEntity.getCode(),
-                RefBookTypeEnum.DEFAULT, "category", passport);
-        RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
+        final RefBookCreateRequest request = new RefBookCreateRequest(
+                refBookEntity.getCode(), RefBookTypeEnum.DEFAULT, "category", passport
+        );
+        final RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
 
         assertEquals(refBookEntity, entity.getRefBook());
         assertTrue(entity.hasEmptyStructure());
@@ -54,31 +55,32 @@ public class DefaultCreateFirstVersionStrategyTest {
         assertEquals(RefBookVersionStatus.DRAFT, entity.getStatus());
         assertNull(entity.getFromDate());
 
-        List<PassportValueEntity> passportValues = entity.getPassportValues();
+        final List<PassportValueEntity> passportValues = entity.getPassportValues();
         assertNotNull(passportValues);
         assertEquals(1, passportValues.size());
 
-        PassportValueEntity passportValue = passportValues.get(0);
+        final PassportValueEntity passportValue = passportValues.getFirst();
         assertEquals(REFBOOK_NAME_KEY, passportValue.getAttribute().getCode());
         assertEquals(REFBOOK_NAME_VALUE, passportValue.getValue());
         assertEquals(entity,passportValue.getVersion());
 
-        verify(versionRepository).save(any(RefBookVersionEntity.class));
+        verify(versionRepository).saveAndFlush(any(RefBookVersionEntity.class));
         verifyNoMoreInteractions(versionRepository);
     }
 
     @Test
     public void testCreateUnversionedWithoutPassport() {
 
-        when(versionRepository.save(any(RefBookVersionEntity.class)))
+        when(versionRepository.saveAndFlush(any(RefBookVersionEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookEntity refBookEntity = new UnversionedRefBookEntity();
+        final RefBookEntity refBookEntity = new UnversionedRefBookEntity();
         refBookEntity.setCode("test_code");
 
-        RefBookCreateRequest request = new RefBookCreateRequest(refBookEntity.getCode(),
-                RefBookTypeEnum.DEFAULT, "category", null);
-        RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
+        final RefBookCreateRequest request = new RefBookCreateRequest(
+                refBookEntity.getCode(), RefBookTypeEnum.DEFAULT, "category", null
+        );
+        final RefBookVersionEntity entity = strategy.create(request, refBookEntity, "storage_code");
 
         assertEquals(refBookEntity, entity.getRefBook());
         assertTrue(entity.hasEmptyStructure());

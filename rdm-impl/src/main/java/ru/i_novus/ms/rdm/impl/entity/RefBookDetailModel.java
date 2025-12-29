@@ -1,7 +1,10 @@
 package ru.i_novus.ms.rdm.impl.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -21,9 +24,17 @@ public class RefBookDetailModel {
     private Integer draftVersionId;
 
     /** Последняя опубликованная версия. */
-    @ManyToOne
-    @JoinColumn(name = "last_published_version_id")
-    private RefBookVersionEntity lastPublishedVersion;
+    // id
+    @Column(name = "last_published_version_id")
+    private Integer lastPublishedVersionId;
+
+    // version
+    @Column(name = "last_published_version")
+    private String lastPublishedVersion;
+
+    // from_date
+    @Column(name = "last_published_from_date")
+    private LocalDateTime lastPublishedFromDate;
 
     /** Удаляемость справочника. */
     @Column(name = "removable")
@@ -73,12 +84,28 @@ public class RefBookDetailModel {
         this.draftVersionId = draftVersionId;
     }
 
-    public RefBookVersionEntity getLastPublishedVersion() {
+    public Integer getLastPublishedVersionId() {
+        return lastPublishedVersionId;
+    }
+
+    public void setLastPublishedVersionId(Integer lastPublishedVersionId) {
+        this.lastPublishedVersionId = lastPublishedVersionId;
+    }
+
+    public String getLastPublishedVersion() {
         return lastPublishedVersion;
     }
 
-    public void setLastPublishedVersion(RefBookVersionEntity lastPublishedVersion) {
+    public void setLastPublishedVersion(String lastPublishedVersion) {
         this.lastPublishedVersion = lastPublishedVersion;
+    }
+
+    public LocalDateTime getLastPublishedFromDate() {
+        return lastPublishedFromDate;
+    }
+
+    public void setLastPublishedFromDate(LocalDateTime lastPublishedFromDate) {
+        this.lastPublishedFromDate = lastPublishedFromDate;
     }
 
     public Boolean getRemovable() {
@@ -145,9 +172,14 @@ public class RefBookDetailModel {
         RefBookDetailModel that = (RefBookDetailModel) o;
         return Objects.equals(currentVersionId, that.currentVersionId) &&
                 Objects.equals(draftVersionId, that.draftVersionId) &&
+
+                Objects.equals(lastPublishedVersionId, that.lastPublishedVersionId) &&
                 Objects.equals(lastPublishedVersion, that.lastPublishedVersion) &&
+                Objects.equals(lastPublishedFromDate, that.lastPublishedFromDate) &&
+
                 Objects.equals(removable, that.removable) &&
                 Objects.equals(hasReferrer, that.hasReferrer) &&
+
                 Objects.equals(hasDataConflict, that.hasDataConflict) &&
                 Objects.equals(hasUpdatedConflict, that.hasUpdatedConflict) &&
                 Objects.equals(hasAlteredConflict, that.hasAlteredConflict) &&
@@ -158,7 +190,10 @@ public class RefBookDetailModel {
     @Override
     public int hashCode() {
 
-        return Objects.hash(currentVersionId, draftVersionId, lastPublishedVersion, removable, hasReferrer,
-                hasDataConflict, hasUpdatedConflict, hasAlteredConflict, hasStructureConflict, lastHasConflict);
+        return Objects.hash(currentVersionId, draftVersionId,
+                lastPublishedVersionId, lastPublishedVersion, lastPublishedFromDate,
+                removable, hasReferrer,
+                hasDataConflict, hasUpdatedConflict,
+                hasAlteredConflict, hasStructureConflict, lastHasConflict);
     }
 }

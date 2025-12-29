@@ -34,6 +34,6 @@ public class DefaultCreateRefBookEntityStrategy implements CreateRefBookEntitySt
     }
 
     protected RefBookEntity saveEntity(RefBookEntity entity) {
-        return refBookRepository.save(entity);
+        return refBookRepository.saveAndFlush(entity);
     }
 }

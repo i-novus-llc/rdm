@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static ru.i_novus.ms.rdm.api.util.EntityUtils.toEntityList;
+
 @Entity
 @Table(name = "ref_book_version", schema = "n2o_rdm_management")
 public class RefBookVersionEntity implements Serializable {
@@ -333,21 +335,24 @@ public class RefBookVersionEntity implements Serializable {
     }
 
     /**
-     * Преобразование набора значений в паспорт справочника.
+     * Преобразование набора значений в паспорт (версии) справочника.
      *
-     * @param passport  набор значений
+     * @param values    набор значений
      * @param allValues признак преобразования всех значений:
      *                  если false, то преобразуются только не-null значения
      * @param entity    сущность-версия, указываемая в паспортных данных
-     * @return Паспорт справочника
+     * @return Паспорт (паспортные значения версии) справочника
      */
-    public static List<PassportValueEntity> toPassportValues(Map<String, ?> passport,
+    public static List<PassportValueEntity> toPassportValues(Map<String, ?> values,
                                                              boolean allValues,
                                                              RefBookVersionEntity entity) {
-        return passport.entrySet().stream()
+        if (values == null)
+            return null;
+
+        return values.entrySet().stream()
                 .filter(e -> allValues || e.getValue() != null)
                 .map(e -> toPassportValue(e, entity))
-                .collect(Collectors.toList());
+                .collect(toEntityList());
     }
 
     /**
@@ -360,5 +365,19 @@ public class RefBookVersionEntity implements Serializable {
     private static PassportValueEntity toPassportValue(Map.Entry<String, ?> entry,
                                                        RefBookVersionEntity entity) {
         return new PassportValueEntity(new PassportAttributeEntity(entry.getKey()), (String) entry.getValue(), entity);
+    }
+
+    /**
+     * Копирование паспорта из одной версии справочника в другую.
+     *
+     * @param passportValues Паспорт версии
+     * @param entity   сущность-версия, указываемая в паспортных данных
+     * @return Паспорт (паспортные значения версии) справочника
+     */
+    public static List<PassportValueEntity> copyPassportValues(List<PassportValueEntity> passportValues,
+                                                               RefBookVersionEntity entity) {
+        return passportValues.stream()
+                .map(v -> new PassportValueEntity(v.getAttribute(), v.getValue(), entity))
+                .collect(toEntityList());
     }
 }

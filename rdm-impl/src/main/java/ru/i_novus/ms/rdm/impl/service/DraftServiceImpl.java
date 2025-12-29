@@ -59,7 +59,6 @@ import ru.i_novus.ms.rdm.impl.util.mappers.NonStrictOnTypeRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.PlainRowMapper;
 import ru.i_novus.ms.rdm.impl.util.mappers.StructureRowMapper;
 import ru.i_novus.ms.rdm.impl.validation.TypeValidation;
-import ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl;
 import ru.i_novus.platform.datastorage.temporal.model.Field;
 import ru.i_novus.platform.datastorage.temporal.model.LongRowValue;
 import ru.i_novus.platform.datastorage.temporal.model.criteria.DataCriteria;
@@ -82,8 +81,11 @@ import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newAbsentFileExtensionException;
 import static ru.i_novus.ms.rdm.api.exception.FileException.newInvalidFileExtensionException;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.copyPassportValues;
+import static ru.i_novus.ms.rdm.impl.entity.RefBookVersionEntity.toPassportValues;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.dataSortings;
 import static ru.i_novus.ms.rdm.impl.util.ConverterUtil.toFieldSearchCriterias;
+import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.REFBOOK_VERSIONS_NOT_FOUND_EXCEPTION_CODE;
 import static ru.i_novus.ms.rdm.impl.validation.VersionValidationImpl.VERSION_NOT_FOUND_EXCEPTION_CODE;
 
 @Service
@@ -278,16 +280,14 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntityKit kit = findEntityKit(refBookId);
         RefBookEntity refBookEntity = kit.getRefBook();
 
-        List<PassportValueEntity> passportValues = (request.getPassport() != null)
-                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
-                : null;
-
         final String refBookCode = refBookEntity.getCode();
         final Structure structure = request.getStructure();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
         if (request.getReferrerValidationRequired())
             versionValidation.validateReferrerStructure(structure);
+
+        List<PassportValueEntity> passportValues = toPassportValues(request.getPassport(), true, null);
 
         RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
@@ -317,7 +317,7 @@ public class DraftServiceImpl implements DraftService {
         RefBookEntity refBookEntity = kit.getRefBook();
 
         List<PassportValueEntity> passportValues = (request.getPassport() != null)
-                ? RefBookVersionEntity.toPassportValues(request.getPassport(), true, null)
+                ? toPassportValues(request.getPassport(), true, null)
                 : null;
 
         final String refBookCode = refBookEntity.getCode();
@@ -330,7 +330,10 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
 
-            if (passportValues == null) passportValues = kit.getPublishedEntity().getPassportValues();
+            if (passportValues == null) {
+                final List<PassportValueEntity> publishedPassportValues = kit.getPublishedEntity().getPassportValues();
+                passportValues = copyPassportValues(publishedPassportValues, null);
+            }
             draftEntity = createDraftEntity(refBookEntity, structure, passportValues);
 
         } else if (!structure.equals(draftEntity.getStructure())) {
@@ -357,11 +360,14 @@ public class DraftServiceImpl implements DraftService {
     private RefBookVersionEntity recreateDraft(RefBookVersionEntity draftEntity, Structure structure,
                                                List<PassportValueEntity> passportValues) {
 
-        RefBookEntity refBookEntity = draftEntity.getRefBook();
-        if (passportValues == null) passportValues = draftEntity.getPassportValues();
+        final RefBookEntity refBookEntity = draftEntity.getRefBook();
+        if (passportValues == null) {
+            final List<PassportValueEntity> draftPassportValues = draftEntity.getPassportValues();
+            passportValues = copyPassportValues(draftPassportValues, null);
+        }
 
+        // Delete old draft before insert new draft!
         removeDraftEntity(draftEntity);
-        versionRepository.flush(); // Delete old draft before insert new draft!
 
         return createDraftEntity(refBookEntity, structure, passportValues);
     }
@@ -373,7 +379,7 @@ public class DraftServiceImpl implements DraftService {
         if (passportValues == null) return; // Не менять паспорт, если нет новых значений
 
         if (!isEmpty(draftEntity.getPassportValues())) {
-            passportValueRepository.deleteInBatch(draftEntity.getPassportValues());
+            passportValueRepository.deleteAllInBatch(draftEntity.getPassportValues());
         }
 
         if (!isEmpty(passportValues)) draftEntity.setPassportValues(passportValues);
@@ -434,15 +440,15 @@ public class DraftServiceImpl implements DraftService {
 
     private RefBookVersionEntityKit findEntityKit(Integer refBookId) {
 
-        RefBookVersionEntity publishedEntity = versionRepository
+        final RefBookVersionEntity publishedEntity = versionRepository
                 .findFirstByRefBookIdAndStatusOrderByFromDateDesc(refBookId, RefBookVersionStatus.PUBLISHED);
 
-        RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
+        final RefBookVersionEntity draftEntity = (publishedEntity != null && publishedEntity.isChangeable())
                 ? publishedEntity
                 : versionRepository.findByStatusAndRefBookId(RefBookVersionStatus.DRAFT, refBookId);
 
         if (draftEntity == null && publishedEntity == null)
-            throw new NotFoundException(new Message(VersionValidationImpl.REFBOOK_NOT_FOUND_EXCEPTION_CODE, refBookId));
+            throw new NotFoundException(new Message(REFBOOK_VERSIONS_NOT_FOUND_EXCEPTION_CODE, refBookId));
 
         return new RefBookVersionEntityKit(publishedEntity, draftEntity);
     }
@@ -744,9 +750,22 @@ public class DraftServiceImpl implements DraftService {
      */
     private void removeDraftEntity(RefBookVersionEntity draftEntity) {
 
+        final Integer draftId = draftEntity.getId();
+
         dropDataService.drop(singleton(draftEntity.getStorageCode()));
-        conflictRepository.deleteByReferrerVersionIdAndRefRecordIdIsNotNull(draftEntity.getId());
-        versionRepository.deleteById(draftEntity.getId());
+
+        conflictRepository.deleteByReferrerVersionId(draftId);
+        conflictRepository.flush();
+
+        draftEntity.setPassportValues(emptyList());
+        passportValueRepository.deleteByVersionId(draftId);
+        passportValueRepository.flush();
+
+        attributeValidationRepository.deleteByVersionId(draftId);
+        attributeValidationRepository.flush();
+
+        versionRepository.deleteById(draftId);
+        versionRepository.flush();
     }
 
     @Override

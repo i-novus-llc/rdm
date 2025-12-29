@@ -111,7 +111,13 @@ import static ru.i_novus.platform.datastorage.temporal.model.DisplayExpression.t
                 "i18n.global.enabled=false",
                 "rdm.enable.publish.topic=false",
                 "rdm.audit.disabledActions=all",
-                "management.tracing.enabled=false"
+                "management.tracing.enabled=false",
+                // Отключение consul
+                "spring.cloud.consul.enabled=false",
+                "spring.cloud.consul.config.enabled=false",
+                "spring.cloud.consul.discovery.enabled=false",
+                // "spring.config.import=optional:file:./config/"
+                ""
         })
 @DefinePort
 @EnableTestcontainersPg
@@ -379,16 +385,18 @@ public class ApplicationTest {
         refBookService.toArchive(refBook.getRefBookId());
 
         // Получение справочника по идентификатору версии.
-        RefBook refBookById = refBookService.getByVersionId(refBook.getId());
+        final RefBook refBookById = refBookService.getByVersionId(refBook.getId());
         refBook.setArchived(Boolean.TRUE);
         refBook.setRemovable(Boolean.FALSE);
         assertRefBooksEqual(refBook, refBookById);
 
         // Удаление справочника.
         refBookService.delete(REMOVABLE_REF_BOOK_ID);
-        RefBookCriteria criteria = new RefBookCriteria();
+
+        final RefBookCriteria criteria = new RefBookCriteria();
         criteria.setCode(REMOVABLE_REF_BOOK_CODE);
-        Page<RefBook> refBooks = refBookService.search(criteria);
+
+        final Page<RefBook> refBooks = refBookService.search(criteria);
         assertEquals(0, refBooks.getTotalElements());
     }
 
@@ -487,10 +495,9 @@ public class ApplicationTest {
         search = refBookService.search(fromDateCriteria);
         assertTrue(search.getTotalElements() > 0);
         search.getContent().forEach(refBook -> {
-            assertTrue(refBook.getLastPublishedDate().equals(fromDateBegin)
-                    || refBook.getLastPublishedDate().isAfter(fromDateBegin));
-            assertTrue(refBook.getLastPublishedDate().equals(fromDateEnd)
-                    || refBook.getLastPublishedDate().isBefore(fromDateEnd));
+            final LocalDateTime lastPublishedDate = refBook.getLastPublishedDate();
+            assertTrue(lastPublishedDate.equals(fromDateBegin) || lastPublishedDate.isAfter(fromDateBegin));
+            assertTrue(lastPublishedDate.equals(fromDateEnd) || lastPublishedDate.isBefore(fromDateEnd));
         });
 
         // Поиск по дате последней публикации
@@ -506,10 +513,10 @@ public class ApplicationTest {
         onlyFromDateBeginCriteria.setFromDateBegin(onlyFromDateBegin);
         search = refBookService.search(onlyFromDateBeginCriteria);
         assertTrue(search.getTotalElements() > 0);
-        search.getContent().forEach(refBook ->
-                assertTrue(refBook.getLastPublishedDate().equals(onlyFromDateBegin)
-                        || refBook.getLastPublishedDate().isAfter(onlyFromDateBegin))
-        );
+        search.getContent().forEach(refBook -> {
+            final LocalDateTime lastPublishedDate = refBook.getLastPublishedDate();
+            assertTrue(lastPublishedDate.equals(onlyFromDateBegin) || lastPublishedDate.isAfter(onlyFromDateBegin));
+        });
     }
 
     /**

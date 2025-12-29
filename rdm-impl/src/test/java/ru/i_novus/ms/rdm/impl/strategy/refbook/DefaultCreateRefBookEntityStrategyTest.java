@@ -28,17 +28,19 @@ public class DefaultCreateRefBookEntityStrategyTest {
     @Test
     public void testCreate() {
 
-        when(refBookRepository.save(any(DefaultRefBookEntity.class)))
+        when(refBookRepository.saveAndFlush(any(DefaultRefBookEntity.class)))
                 .thenAnswer(invocation -> invocation.getArguments()[0]);
 
-        RefBookCreateRequest request = new RefBookCreateRequest("test_code", null, "category", null);
-        RefBookEntity entity = strategy.create(request);
+        final RefBookCreateRequest request = new RefBookCreateRequest(
+                "test_code", null, "category", null
+        );
+        final RefBookEntity entity = strategy.create(request);
 
         assertNotNull(entity);
         request.setType(RefBookTypeEnum.DEFAULT);
         assertEqualsRequestToEntity(request, entity);
 
-        verify(refBookRepository).save(any(DefaultRefBookEntity.class));
+        verify(refBookRepository).saveAndFlush(any(DefaultRefBookEntity.class));
         verifyNoMoreInteractions(refBookRepository);
     }
 
