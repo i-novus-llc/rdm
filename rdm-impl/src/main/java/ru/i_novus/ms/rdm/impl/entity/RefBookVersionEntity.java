@@ -346,6 +346,9 @@ public class RefBookVersionEntity implements Serializable {
     public static List<PassportValueEntity> toPassportValues(Map<String, ?> values,
                                                              boolean allValues,
                                                              RefBookVersionEntity entity) {
+        if (values == null)
+            return null;
+
         return values.entrySet().stream()
                 .filter(e -> allValues || e.getValue() != null)
                 .map(e -> toPassportValue(e, entity))

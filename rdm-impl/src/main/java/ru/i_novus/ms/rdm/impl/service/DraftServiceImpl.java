@@ -280,16 +280,14 @@ public class DraftServiceImpl implements DraftService {
         RefBookVersionEntityKit kit = findEntityKit(refBookId);
         RefBookEntity refBookEntity = kit.getRefBook();
 
-        List<PassportValueEntity> passportValues = (request.getPassport() != null)
-                ? toPassportValues(request.getPassport(), true, null)
-                : null;
-
         final String refBookCode = refBookEntity.getCode();
         final Structure structure = request.getStructure();
 
         versionValidation.validateDraftStructure(refBookCode, structure);
         if (request.getReferrerValidationRequired())
             versionValidation.validateReferrerStructure(structure);
+
+        List<PassportValueEntity> passportValues = toPassportValues(request.getPassport(), true, null);
 
         RefBookVersionEntity draftEntity = kit.getDraftEntity();
         if (draftEntity == null) {
